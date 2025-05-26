@@ -1,3 +1,4 @@
+// src/components/CircleLarge/CircleLarge.jsx
 import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
@@ -9,6 +10,7 @@ export default function CircleLarge() {
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
   const [circleSize, setCircleSize] = useState(680);
+  const [droppedItems, setDroppedItems] = useState([]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -28,17 +30,52 @@ export default function CircleLarge() {
     : 'Bienvenido';
 
   const isSmallScreen = width <= 640;
-
-  // Parámetros para el arco responsivo
   const radius = circleSize / 2 - 40;
   const cx = circleSize / 2;
   const cy = circleSize / 2;
   const arcStartX = cx - radius;
   const arcEndX = cx + radius;
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    const clampedX = Math.max(0, Math.min(offsetX, rect.width - 50));
+    const clampedY = Math.max(0, Math.min(offsetY, rect.height - 50));
+    const source = e.dataTransfer.getData('source');
+
+    if (source === 'sidebar') {
+      const label = e.dataTransfer.getData('text/plain');
+      const newItem = { id: Date.now(), label, x: clampedX, y: clampedY };
+      setDroppedItems((prev) => [...prev, newItem]);
+    } else if (source === 'dropped') {
+      const itemId = e.dataTransfer.getData('itemId');
+      setDroppedItems((prev) =>
+        prev.map((item) =>
+          item.id.toString() === itemId ? { ...item, x: clampedX, y: clampedY } : item
+        )
+      );
+    }
+  };
+
+  const getItemStyle = (label) => {
+    if (label.includes('Nota')) return 'border-blue-400 text-blue-600';
+    if (label.includes('Evento')) return 'border-pink-400 text-pink-600';
+    if (label.includes('Tarea')) return 'border-green-400 text-green-600';
+    if (label.includes('Idea')) return 'border-yellow-400 text-yellow-600';
+    if (label.includes('Archivo')) return 'border-purple-400 text-purple-600';
+    if (label.includes('Recordatorio')) return 'border-red-400 text-red-600';
+    return 'border-gray-400 text-gray-600';
+  };
+
   return (
     <div className="uppercase relative flex flex-col items-center justify-center">
-      {/* Texto curvo arriba */}
       <svg
         className="absolute top-0 left-0 w-full h-full pointer-events-none"
         viewBox={`0 0 ${circleSize} ${circleSize}`}
@@ -66,12 +103,37 @@ export default function CircleLarge() {
 
       <div
         ref={containerRef}
-        className="rounded-full border border-gray-700 shadow-md w-[90vw] max-w-[680px] h-[90vw] max-h-[680px] flex items-center justify-center relative"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        className="rounded-full border border-gray-700 shadow-md w-[90vw] max-w-[680px] h-[90vw] max-h-[680px] flex items-center justify-center relative overflow-hidden"
       >
         {selectedDay && <NotesArea dayInfo={selectedDay} />}
         {!isSmallScreen && (
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
         )}
+
+        {/* Objetos soltados con estilo minimalista */}
+        {droppedItems.map((item) => (
+          <div
+            key={item.id}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('source', 'dropped');
+              e.dataTransfer.setData('itemId', item.id.toString());
+            }}
+            style={{
+              position: 'absolute',
+              left: item.x,
+              top: item.y,
+            }}
+            className={`w-[48px] h-[48px] rounded-full bg-white/70 backdrop-blur-sm 
+              flex items-center justify-center shadow-sm hover:scale-105 transition-transform 
+              cursor-grab active:cursor-grabbing ${getItemStyle(item.label)}`}
+            title={item.label}
+          >
+            {item.label.split(' ')[0]}
+          </div>
+        ))}
       </div>
 
       {isSmallScreen && (
