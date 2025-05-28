@@ -5,7 +5,7 @@ import NotesArea from './NotesArea';
 import { DateTime } from 'luxon';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 
-export default function CircleLarge() {
+export default function CircleLarge({ showSmall }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
@@ -108,7 +108,7 @@ export default function CircleLarge() {
         className="rounded-full border border-gray-700 shadow-md w-[90vw] max-w-[680px] h-[90vw] max-h-[680px] flex items-center justify-center relative overflow-hidden"
       >
         {selectedDay && <NotesArea dayInfo={selectedDay} />}
-        {!isSmallScreen && (
+        {!isSmallScreen && showSmall && (
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
         )}
 
@@ -136,7 +136,7 @@ export default function CircleLarge() {
         ))}
       </div>
 
-      {isSmallScreen && (
+      {isSmallScreen && showSmall && (
         <div className="mt-6">
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={true} />
         </div>
