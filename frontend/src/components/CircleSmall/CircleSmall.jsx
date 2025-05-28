@@ -152,6 +152,7 @@ export default function CircleSmall({ onDayClick, isSmallScreen }) {
         width: '350px',
         height: '350px',
         margin: '0 auto',
+                zIndex: 9999,
       }
     : {
         position: 'relative',
@@ -159,11 +160,13 @@ export default function CircleSmall({ onDayClick, isSmallScreen }) {
         height: '400px',
         marginLeft: 'auto',
         marginRight: 0,
+                zIndex: 9999,
+
       };
 
   return (
     <div
-      className="uppercase font-ibm rounded-full border border-gray-700 shadow-md overflow-hidden"
+      className="uppercase font-ibm rounded-full border border-gray-700 shadow-md overflow-hidden bg-neutral-100"
       onWheel={handleScroll}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}

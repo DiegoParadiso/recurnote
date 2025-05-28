@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
+import NoteItem from './NoteItem';
 import { DateTime } from 'luxon';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 
@@ -46,22 +47,38 @@ export default function CircleLarge({ showSmall }) {
     const rect = containerRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
-    const clampedX = Math.max(0, Math.min(offsetX, rect.width - 50));
-    const clampedY = Math.max(0, Math.min(offsetY, rect.height - 50));
+    const clampedX = Math.max(0, Math.min(offsetX, rect.width - 100));
+    const clampedY = Math.max(0, Math.min(offsetY, rect.height - 100));
     const source = e.dataTransfer.getData('source');
 
     if (source === 'sidebar') {
       const label = e.dataTransfer.getData('text/plain');
-      const newItem = { id: Date.now(), label, x: clampedX, y: clampedY };
+      const newItem = {
+        id: Date.now(),
+        label,
+        x: clampedX,
+        y: clampedY,
+        content: '', // solo relevante para notas
+      };
       setDroppedItems((prev) => [...prev, newItem]);
     } else if (source === 'dropped') {
       const itemId = e.dataTransfer.getData('itemId');
       setDroppedItems((prev) =>
         prev.map((item) =>
-          item.id.toString() === itemId ? { ...item, x: clampedX, y: clampedY } : item
+          item.id.toString() === itemId
+            ? { ...item, x: clampedX, y: clampedY }
+            : item
         )
       );
     }
+  };
+
+  const handleNoteUpdate = (id, newContent) => {
+    setDroppedItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, content: newContent } : item
+      )
+    );
   };
 
   const getItemStyle = (label) => {
@@ -112,28 +129,39 @@ export default function CircleLarge({ showSmall }) {
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
         )}
 
-        {/* Objetos soltados con estilo minimalista */}
-        {droppedItems.map((item) => (
-          <div
-            key={item.id}
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('source', 'dropped');
-              e.dataTransfer.setData('itemId', item.id.toString());
-            }}
-            style={{
-              position: 'absolute',
-              left: item.x,
-              top: item.y,
-            }}
-            className={`w-[48px] h-[48px] rounded-full bg-white/70 backdrop-blur-sm 
-              flex items-center justify-center shadow-sm hover:scale-105 transition-transform 
-              cursor-grab active:cursor-grabbing ${getItemStyle(item.label)}`}
-            title={item.label}
-          >
-            {item.label.split(' ')[0]}
-          </div>
-        ))}
+        {droppedItems.map((item) =>
+          item.label.toLowerCase().includes('nota') ? (
+            <NoteItem
+              key={item.id}
+              item={item}
+              onDragStart={(e, draggedItem) => {
+                e.dataTransfer.setData('source', 'dropped');
+                e.dataTransfer.setData('itemId', draggedItem.id.toString());
+              }}
+              onUpdate={handleNoteUpdate}
+            />
+          ) : (
+            <div
+              key={item.id}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('source', 'dropped');
+                e.dataTransfer.setData('itemId', item.id.toString());
+              }}
+              style={{
+                position: 'absolute',
+                left: item.x,
+                top: item.y,
+              }}
+              className={`w-[48px] h-[48px] rounded-full bg-white/70 backdrop-blur-sm 
+                flex items-center justify-center shadow-sm hover:scale-105 transition-transform 
+                cursor-grab active:cursor-grabbing ${getItemStyle(item.label)}`}
+              title={item.label}
+            >
+              {item.label.split(' ')[0]}
+            </div>
+          )
+        )}
       </div>
 
       {isSmallScreen && showSmall && (

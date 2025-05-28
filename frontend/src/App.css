@@ -5,3 +5,16 @@ body {
 code, .mono {
   font-family: 'IBM Plex Mono', monospace;
 }
+
+/* Para CircleSmall */
+.circle-small-wrapper {
+  position: relative;
+  z-index: 20;
+}
+
+/* Para notas */
+.note-item {
+  position: absolute;
+  z-index: 5;
+}
+

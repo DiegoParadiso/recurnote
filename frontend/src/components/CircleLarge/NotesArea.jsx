@@ -1,7 +1,5 @@
-export default function NotesArea({ day }) {
-  return (
-    <div>
+import react from 'react';
+import { useState, useEffect } from 'react';
 
-    </div>
-  );
+export default function NotesArea({ droppedItems, setDroppedItems }) {
 }
