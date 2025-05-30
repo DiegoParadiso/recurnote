@@ -39,7 +39,7 @@ export default function NoteItem({ item, onDragStart, onUpdate }) {
           min-w-full
           max-w-full
           pl-6 pr-2 pt-1
-          text-xs
+          text-[10px]
           bg-transparent
           outline-none
           text-gray-800
