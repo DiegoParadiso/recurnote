@@ -1,4 +1,3 @@
-// src/components/CircleLarge/CircleLarge.jsx
 import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
@@ -12,6 +11,11 @@ export default function CircleLarge({ showSmall }) {
   const containerRef = useRef(null);
   const [circleSize, setCircleSize] = useState(680);
   const [droppedItems, setDroppedItems] = useState([]);
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const rotationSpeed = 2;
+
+  const isDragging = useRef(false);
+  const lastMouseAngle = useRef(null);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -19,6 +23,107 @@ export default function CircleLarge({ showSmall }) {
       setCircleSize(size);
     }
   }, [width]);
+
+  useEffect(() => {
+    let animationFrameId;
+    let isRotating = false;
+    let currentKey = null;
+
+    const handleKeyDown = (e) => {
+      if (e.repeat) return;
+      if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
+        currentKey = e.key;
+        if (!isRotating) {
+          isRotating = true;
+          rotate();
+        }
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
+        isRotating = false;
+        currentKey = null;
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+
+    
+    const rotate = () => {
+      setRotationAngle((prev) => {
+        let newAngle = prev;
+        if (isRotating) {
+          if (currentKey === 'ArrowUp' || currentKey === 'ArrowRight') {
+            newAngle = (prev + rotationSpeed) % 360;
+          } else if (currentKey === 'ArrowDown' || currentKey === 'ArrowLeft') {
+            newAngle = (prev - rotationSpeed + 360) % 360;
+          }
+        }
+        return newAngle;
+      });
+
+      if (isRotating) {
+        animationFrameId = requestAnimationFrame(rotate);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  const getAngleFromCenter = (x, y) => {
+    if (!containerRef.current) return 0;
+    const rect = containerRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = x - cx;
+    const dy = y - cy;
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angle < 0) angle += 360;
+    return angle;
+  };
+
+const onMouseDown = (e) => {
+  if (
+    e.target.tagName === 'TEXTAREA' ||
+    e.target.tagName === 'INPUT' ||
+    e.target.isContentEditable ||
+    e.target.closest('.draggable-note')
+  ) {
+    // No iniciar rotación si el click es dentro de un NoteItem
+    return;
+  }
+
+  e.preventDefault();
+  isDragging.current = true;
+  lastMouseAngle.current = getAngleFromCenter(e.clientX, e.clientY);
+};
+
+  const onMouseMove = (e) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const currentAngle = getAngleFromCenter(e.clientX, e.clientY);
+    if (lastMouseAngle.current !== null) {
+      let diff = currentAngle - lastMouseAngle.current;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+
+      setRotationAngle((prev) => (prev + diff + 360) % 360);
+    }
+    lastMouseAngle.current = currentAngle;
+  };
+
+  const onMouseUp = (e) => {
+    e.preventDefault();
+    isDragging.current = false;
+    lastMouseAngle.current = null;
+  };
 
   const displayText = selectedDay
     ? DateTime.fromObject({
@@ -47,18 +152,26 @@ export default function CircleLarge({ showSmall }) {
     const rect = containerRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
-    const clampedX = Math.max(0, Math.min(offsetX, rect.width - 100));
-    const clampedY = Math.max(0, Math.min(offsetY, rect.height - 100));
+    const clampedX = Math.max(0, Math.min(offsetX, rect.width));
+    const clampedY = Math.max(0, Math.min(offsetY, rect.height));
     const source = e.dataTransfer.getData('source');
+    const label = e.dataTransfer.getData('label') || 'Nota';
+
+    const dx = clampedX - cx;
+    const dy = clampedY - cy;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance > radius - 50) distance = radius - 50;
+
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angle < 0) angle += 360;
 
     if (source === 'sidebar') {
-      const label = e.dataTransfer.getData('text/plain');
       const newItem = {
         id: Date.now(),
         label,
-        x: clampedX,
-        y: clampedY,
-        content: '', // solo relevante para notas
+        angle,
+        distance,
+        content: '',
       };
       setDroppedItems((prev) => [...prev, newItem]);
     } else if (source === 'dropped') {
@@ -66,18 +179,28 @@ export default function CircleLarge({ showSmall }) {
       setDroppedItems((prev) =>
         prev.map((item) =>
           item.id.toString() === itemId
-            ? { ...item, x: clampedX, y: clampedY }
+            ? { ...item, angle, distance }
             : item
         )
       );
     }
   };
-
-  const handleNoteUpdate = (id, newContent) => {
+const handleNoteDragStart = (e, itemId) => {
+  e.dataTransfer.setData('source', 'dropped');
+  e.dataTransfer.setData('itemId', itemId.toString());
+};
+  // Actualiza handleNoteUpdate para aceptar también cambios de posición
+  const handleNoteUpdate = (id, newContent, newPolar) => {
     setDroppedItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, content: newContent } : item
-      )
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        let updated = { ...item, content: newContent };
+        if (newPolar) {
+          updated.angle = newPolar.angle;
+          updated.distance = newPolar.distance;
+        }
+        return updated;
+      })
     );
   };
 
@@ -92,11 +215,13 @@ export default function CircleLarge({ showSmall }) {
   };
 
   return (
-    <div className="uppercase relative flex flex-col items-center justify-center">
+    <div className="relative flex flex-col items-center justify-center select-none uppercase">
+      {/* Texto circular fijo */}
       <svg
         className="absolute top-0 left-0 w-full h-full pointer-events-none"
         viewBox={`0 0 ${circleSize} ${circleSize}`}
         preserveAspectRatio="xMidYMid meet"
+        style={{ transform: `rotate(0deg)` }}
       >
         <defs>
           <path
@@ -118,29 +243,59 @@ export default function CircleLarge({ showSmall }) {
         </text>
       </svg>
 
+      {/* Círculo rotante */}
       <div
         ref={containerRef}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
         className="rounded-full border border-gray-700 shadow-md w-[90vw] max-w-[680px] h-[90vw] max-h-[680px] flex items-center justify-center relative overflow-hidden"
+        style={{ transform: `rotate(${rotationAngle}deg)` }}
       >
-        {selectedDay && <NotesArea dayInfo={selectedDay} />}
-        {!isSmallScreen && showSmall && (
-          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
+        {selectedDay && (
+          <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
+            <NotesArea dayInfo={selectedDay} />
+          </div>
         )}
+        {droppedItems.map((item) => {
+  const angleInRadians = (item.angle + rotationAngle) * (Math.PI / 180);
+  const x = cx + item.distance * Math.cos(angleInRadians);
+  const y = cy + item.distance * Math.sin(angleInRadians);
 
-        {droppedItems.map((item) =>
-          item.label.toLowerCase().includes('nota') ? (
-            <NoteItem
-              key={item.id}
-              item={item}
-              onDragStart={(e, draggedItem) => {
-                e.dataTransfer.setData('source', 'dropped');
-                e.dataTransfer.setData('itemId', draggedItem.id.toString());
-              }}
-              onUpdate={handleNoteUpdate}
-            />
-          ) : (
+
+          const style = {
+            position: 'absolute',
+            left: x,
+            top: y,
+            cursor: 'grab',
+            transform: `rotate(${-rotationAngle}deg)`,
+            transformOrigin: 'center',
+          };
+
+
+          if (item.label.toLowerCase().includes('nota')) {
+            return (
+                  <NoteItem
+  key={item.id}
+  id={item.id}
+  x={x}
+  y={y}
+  rotation={-rotationAngle}
+  item={item}
+  onDragStart={handleNoteDragStart}
+  onUpdate={handleNoteUpdate}
+  circleSize={circleSize}
+  cx={cx}
+  cy={cy}
+/>
+
+            );
+          }
+
+          return (
             <div
               key={item.id}
               draggable
@@ -148,25 +303,20 @@ export default function CircleLarge({ showSmall }) {
                 e.dataTransfer.setData('source', 'dropped');
                 e.dataTransfer.setData('itemId', item.id.toString());
               }}
-              style={{
-                position: 'absolute',
-                left: item.x,
-                top: item.y,
-              }}
-              className={`w-[48px] h-[48px] rounded-full bg-white/70 backdrop-blur-sm 
-                flex items-center justify-center shadow-sm hover:scale-105 transition-transform 
-                cursor-grab active:cursor-grabbing ${getItemStyle(item.label)}`}
+              style={style}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border bg-white/80 backdrop-blur ${getItemStyle(item.label)}`}
               title={item.label}
             >
-              {item.label.split(' ')[0]}
+              {item.label}
             </div>
-          )
-        )}
+          );
+        })}
       </div>
 
-      {isSmallScreen && showSmall && (
-        <div className="mt-6">
-          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={true} />
+      {/* Círculo pequeño */}
+      {!isSmallScreen && showSmall && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2">
+          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
         </div>
       )}
     </div>
