@@ -12,6 +12,7 @@ export default function CircleLarge({ showSmall }) {
   const [circleSize, setCircleSize] = useState(680);
   const [droppedItems, setDroppedItems] = useState([]);
   const [rotationAngle, setRotationAngle] = useState(0);
+  const prevRotationRef = useRef(rotationAngle);
   const rotationSpeed = 2;
 
   const isDragging = useRef(false);
@@ -24,21 +25,36 @@ export default function CircleLarge({ showSmall }) {
     }
   }, [width]);
 
+  // 🔁 Ajustar ángulos de los ítems en sentido inverso a la rotación
+  useEffect(() => {
+    const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
+    if (delta !== 0) {
+      setDroppedItems((prevItems) =>
+        prevItems.map((item) => ({
+          ...item,
+          angle: (item.angle + delta) % 360,
+        }))
+      );
+    }
+    prevRotationRef.current = rotationAngle;
+  }, [rotationAngle]);
+
   useEffect(() => {
     let animationFrameId;
     let isRotating = false;
     let currentKey = null;
 
-    const handleKeyDown = (e) => {
-      if (e.repeat) return;
-      if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
-        currentKey = e.key;
-        if (!isRotating) {
-          isRotating = true;
-          rotate();
-        }
-      }
-    };
+const handleKeyDown = (e) => {
+  if (e.repeat) return;
+  if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
+    e.preventDefault(); 
+    currentKey = e.key;
+    if (!isRotating) {
+      isRotating = true;
+      rotate();
+    }
+  }
+};
 
     const handleKeyUp = (e) => {
       if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
@@ -48,7 +64,6 @@ export default function CircleLarge({ showSmall }) {
       }
     };
 
-    
     const rotate = () => {
       setRotationAngle((prev) => {
         let newAngle = prev;
@@ -76,7 +91,14 @@ export default function CircleLarge({ showSmall }) {
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
-
+function isColliding(x1, y1, w1, h1, x2, y2, w2, h2, margin = 8) {
+  return !(
+    x1 + w1 / 2 + margin < x2 - w2 / 2 ||
+    x1 - w1 / 2 - margin > x2 + w2 / 2 ||
+    y1 + h1 / 2 + margin < y2 - h2 / 2 ||
+    y1 - h1 / 2 - margin > y2 + h2 / 2
+  );
+}
   const getAngleFromCenter = (x, y) => {
     if (!containerRef.current) return 0;
     const rect = containerRef.current.getBoundingClientRect();
@@ -89,21 +111,20 @@ export default function CircleLarge({ showSmall }) {
     return angle;
   };
 
-const onMouseDown = (e) => {
-  if (
-    e.target.tagName === 'TEXTAREA' ||
-    e.target.tagName === 'INPUT' ||
-    e.target.isContentEditable ||
-    e.target.closest('.draggable-note')
-  ) {
-    // No iniciar rotación si el click es dentro de un NoteItem
-    return;
-  }
+  const onMouseDown = (e) => {
+    if (
+      e.target.tagName === 'TEXTAREA' ||
+      e.target.tagName === 'INPUT' ||
+      e.target.isContentEditable ||
+      e.target.closest('.draggable-note')
+    ) {
+      return;
+    }
 
-  e.preventDefault();
-  isDragging.current = true;
-  lastMouseAngle.current = getAngleFromCenter(e.clientX, e.clientY);
-};
+    e.preventDefault();
+    isDragging.current = true;
+    lastMouseAngle.current = getAngleFromCenter(e.clientX, e.clientY);
+  };
 
   const onMouseMove = (e) => {
     if (!isDragging.current) return;
@@ -146,50 +167,118 @@ const onMouseDown = (e) => {
     e.preventDefault();
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
-    const clampedX = Math.max(0, Math.min(offsetX, rect.width));
-    const clampedY = Math.max(0, Math.min(offsetY, rect.height));
-    const source = e.dataTransfer.getData('source');
-    const label = e.dataTransfer.getData('label') || 'Nota';
+const handleDrop = (e) => {
+  e.preventDefault();
+  if (!containerRef.current) return;
 
-    const dx = clampedX - cx;
-    const dy = clampedY - cy;
-    let distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance > radius - 50) distance = radius - 50;
+  const rect = containerRef.current.getBoundingClientRect();
+  const mouseX = e.clientX;
+  const mouseY = e.clientY;
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
 
-    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
+  let dx = mouseX - centerX;
+  let dy = mouseY - centerY;
 
-    if (source === 'sidebar') {
-      const newItem = {
-        id: Date.now(),
-        label,
-        angle,
-        distance,
-        content: '',
-      };
-      setDroppedItems((prev) => [...prev, newItem]);
-    } else if (source === 'dropped') {
-      const itemId = e.dataTransfer.getData('itemId');
-      setDroppedItems((prev) =>
-        prev.map((item) =>
-          item.id.toString() === itemId
-            ? { ...item, angle, distance }
-            : item
-        )
-      );
+  let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  if (angle < 0) angle += 360;
+  angle = (angle - rotationAngle + 360) % 360;
+
+  let distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance > radius - 50) distance = radius - 50;
+
+  const source = e.dataTransfer.getData('source');
+  const label = e.dataTransfer.getData('label') || 'Nota';
+
+  // Función interna para chequear si espacio está libre
+  const isPositionFree = (angle, distance, idToIgnore = null) => {
+    const angleRad = angle * (Math.PI / 180);
+    const x = cx + distance * Math.cos(angleRad);
+    const y = cy + distance * Math.sin(angleRad);
+
+    const width = 150;
+    const height = 80;
+
+    for (const item of droppedItems) {
+      if (idToIgnore !== null && item.id === idToIgnore) continue;
+
+      const itemAngleRad = item.angle * (Math.PI / 180);
+      const itemX = cx + item.distance * Math.cos(itemAngleRad);
+      const itemY = cy + item.distance * Math.sin(itemAngleRad);
+
+      const itemWidth = item.width || 150;
+      const itemHeight = item.height || 80;
+
+      if (isColliding(x, y, width, height, itemX, itemY, itemWidth, itemHeight)) {
+        return false;
+      }
     }
+    return true;
   };
-const handleNoteDragStart = (e, itemId) => {
-  e.dataTransfer.setData('source', 'dropped');
-  e.dataTransfer.setData('itemId', itemId.toString());
+
+  let finalAngle = angle;
+  let finalDistance = distance;
+  const stepAngle = 5;
+  const maxAttempts = 36;
+
+  if (!isPositionFree(finalAngle, finalDistance)) {
+    let found = false;
+    for (let i = 1; i <= maxAttempts; i++) {
+      let testAngle = (finalAngle + i * stepAngle) % 360;
+      if (isPositionFree(testAngle, finalDistance)) {
+        finalAngle = testAngle;
+        found = true;
+        break;
+      }
+      testAngle = (finalAngle - i * stepAngle + 360) % 360;
+      if (isPositionFree(testAngle, finalDistance)) {
+        finalAngle = testAngle;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      for (let dist = finalDistance - 10; dist > 20; dist -= 10) {
+        if (isPositionFree(finalAngle, dist)) {
+          finalDistance = dist;
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) {
+      // No espacio, cancelar drop
+      return;
+    }
+  }
+
+  if (source === 'sidebar') {
+    const newItem = {
+      id: Date.now(),
+      label,
+      angle: finalAngle,
+      distance: finalDistance,
+      content: '',
+      width: 150,
+      height: 80,
+    };
+    setDroppedItems((prev) => [...prev, newItem]);
+  } else if (source === 'dropped') {
+    const itemId = e.dataTransfer.getData('itemId');
+    setDroppedItems((prev) =>
+      prev.map((item) =>
+        item.id.toString() === itemId
+          ? { ...item, angle: finalAngle, distance: finalDistance }
+          : item
+      )
+    );
+  }
 };
-  // Actualiza handleNoteUpdate para aceptar también cambios de posición
+  const handleNoteDragStart = (e, itemId) => {
+    e.dataTransfer.setData('source', 'dropped');
+    e.dataTransfer.setData('itemId', itemId.toString());
+  };
+
   const handleNoteUpdate = (id, newContent, newPolar) => {
     setDroppedItems((prev) =>
       prev.map((item) => {
@@ -261,10 +350,9 @@ const handleNoteDragStart = (e, itemId) => {
           </div>
         )}
         {droppedItems.map((item) => {
-  const angleInRadians = (item.angle + rotationAngle) * (Math.PI / 180);
-  const x = cx + item.distance * Math.cos(angleInRadians);
-  const y = cy + item.distance * Math.sin(angleInRadians);
-
+          const angleInRadians = item.angle * (Math.PI / 180);
+          const x = cx + item.distance * Math.cos(angleInRadians);
+          const y = cy + item.distance * Math.sin(angleInRadians);
 
           const style = {
             position: 'absolute',
@@ -275,23 +363,21 @@ const handleNoteDragStart = (e, itemId) => {
             transformOrigin: 'center',
           };
 
-
           if (item.label.toLowerCase().includes('nota')) {
             return (
-                  <NoteItem
-  key={item.id}
-  id={item.id}
-  x={x}
-  y={y}
-  rotation={-rotationAngle}
-  item={item}
-  onDragStart={handleNoteDragStart}
-  onUpdate={handleNoteUpdate}
-  circleSize={circleSize}
-  cx={cx}
-  cy={cy}
-/>
-
+              <NoteItem
+                key={item.id}
+                id={item.id}
+                x={x}
+                y={y}
+                rotation={-rotationAngle}
+                item={item}
+                onDragStart={handleNoteDragStart}
+                onUpdate={handleNoteUpdate}
+                circleSize={circleSize}
+                cx={cx}
+                cy={cy}
+              />
             );
           }
 
@@ -313,7 +399,6 @@ const handleNoteDragStart = (e, itemId) => {
         })}
       </div>
 
-      {/* Círculo pequeño */}
       {!isSmallScreen && showSmall && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2">
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
