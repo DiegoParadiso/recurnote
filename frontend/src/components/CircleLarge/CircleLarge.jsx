@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react'; 
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
 import NoteItem from './NoteItem';
 import { DateTime } from 'luxon';
+import useHandleDrop from './useDropHandler';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useRotationControls from './useRotationControls';
 
 export default function CircleLarge({ showSmall }) {
   const [selectedDay, setSelectedDay] = useState(null);
@@ -12,11 +14,14 @@ export default function CircleLarge({ showSmall }) {
   const [circleSize, setCircleSize] = useState(680);
   const [droppedItems, setDroppedItems] = useState([]);
   const [rotationAngle, setRotationAngle] = useState(0);
-  const prevRotationRef = useRef(rotationAngle);
   const rotationSpeed = 2;
 
-  const isDragging = useRef(false);
-  const lastMouseAngle = useRef(null);
+  const {
+    onMouseDown,
+    onMouseMove,
+    onMouseUp,
+    prevRotationRef,
+  } = useRotationControls({ containerRef, rotationAngle, setRotationAngle, rotationSpeed });
 
   useEffect(() => {
     if (containerRef.current) {
@@ -25,7 +30,7 @@ export default function CircleLarge({ showSmall }) {
     }
   }, [width]);
 
-  // 🔁 Ajustar ángulos de los ítems en sentido inverso a la rotación
+  // Ajustar ángulos de los ítems inversamente a la rotación
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
     if (delta !== 0) {
@@ -37,114 +42,7 @@ export default function CircleLarge({ showSmall }) {
       );
     }
     prevRotationRef.current = rotationAngle;
-  }, [rotationAngle]);
-
-  useEffect(() => {
-    let animationFrameId;
-    let isRotating = false;
-    let currentKey = null;
-
-const handleKeyDown = (e) => {
-  if (e.repeat) return;
-  if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
-    e.preventDefault(); 
-    currentKey = e.key;
-    if (!isRotating) {
-      isRotating = true;
-      rotate();
-    }
-  }
-};
-
-    const handleKeyUp = (e) => {
-      if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
-        isRotating = false;
-        currentKey = null;
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-
-    const rotate = () => {
-      setRotationAngle((prev) => {
-        let newAngle = prev;
-        if (isRotating) {
-          if (currentKey === 'ArrowUp' || currentKey === 'ArrowRight') {
-            newAngle = (prev + rotationSpeed) % 360;
-          } else if (currentKey === 'ArrowDown' || currentKey === 'ArrowLeft') {
-            newAngle = (prev - rotationSpeed + 360) % 360;
-          }
-        }
-        return newAngle;
-      });
-
-      if (isRotating) {
-        animationFrameId = requestAnimationFrame(rotate);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-function isColliding(x1, y1, w1, h1, x2, y2, w2, h2, margin = 8) {
-  return !(
-    x1 + w1 / 2 + margin < x2 - w2 / 2 ||
-    x1 - w1 / 2 - margin > x2 + w2 / 2 ||
-    y1 + h1 / 2 + margin < y2 - h2 / 2 ||
-    y1 - h1 / 2 - margin > y2 + h2 / 2
-  );
-}
-  const getAngleFromCenter = (x, y) => {
-    if (!containerRef.current) return 0;
-    const rect = containerRef.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = x - cx;
-    const dy = y - cy;
-    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
-    return angle;
-  };
-
-  const onMouseDown = (e) => {
-    if (
-      e.target.tagName === 'TEXTAREA' ||
-      e.target.tagName === 'INPUT' ||
-      e.target.isContentEditable ||
-      e.target.closest('.draggable-note')
-    ) {
-      return;
-    }
-
-    e.preventDefault();
-    isDragging.current = true;
-    lastMouseAngle.current = getAngleFromCenter(e.clientX, e.clientY);
-  };
-
-  const onMouseMove = (e) => {
-    if (!isDragging.current) return;
-    e.preventDefault();
-    const currentAngle = getAngleFromCenter(e.clientX, e.clientY);
-    if (lastMouseAngle.current !== null) {
-      let diff = currentAngle - lastMouseAngle.current;
-      if (diff > 180) diff -= 360;
-      if (diff < -180) diff += 360;
-
-      setRotationAngle((prev) => (prev + diff + 360) % 360);
-    }
-    lastMouseAngle.current = currentAngle;
-  };
-
-  const onMouseUp = (e) => {
-    e.preventDefault();
-    isDragging.current = false;
-    lastMouseAngle.current = null;
-  };
+  }, [rotationAngle, prevRotationRef]);
 
   const displayText = selectedDay
     ? DateTime.fromObject({
@@ -167,113 +65,16 @@ function isColliding(x1, y1, w1, h1, x2, y2, w2, h2, margin = 8) {
     e.preventDefault();
   };
 
-const handleDrop = (e) => {
-  e.preventDefault();
-  if (!containerRef.current) return;
+  const handleDrop = useHandleDrop({
+    containerRef,
+    droppedItems,
+    setDroppedItems,
+    rotationAngle,
+    radius,
+    cx,
+    cy,
+  });
 
-  const rect = containerRef.current.getBoundingClientRect();
-  const mouseX = e.clientX;
-  const mouseY = e.clientY;
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-
-  let dx = mouseX - centerX;
-  let dy = mouseY - centerY;
-
-  let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-  if (angle < 0) angle += 360;
-  angle = (angle - rotationAngle + 360) % 360;
-
-  let distance = Math.sqrt(dx * dx + dy * dy);
-  if (distance > radius - 50) distance = radius - 50;
-
-  const source = e.dataTransfer.getData('source');
-  const label = e.dataTransfer.getData('label') || 'Nota';
-
-  // Función interna para chequear si espacio está libre
-  const isPositionFree = (angle, distance, idToIgnore = null) => {
-    const angleRad = angle * (Math.PI / 180);
-    const x = cx + distance * Math.cos(angleRad);
-    const y = cy + distance * Math.sin(angleRad);
-
-    const width = 150;
-    const height = 80;
-
-    for (const item of droppedItems) {
-      if (idToIgnore !== null && item.id === idToIgnore) continue;
-
-      const itemAngleRad = item.angle * (Math.PI / 180);
-      const itemX = cx + item.distance * Math.cos(itemAngleRad);
-      const itemY = cy + item.distance * Math.sin(itemAngleRad);
-
-      const itemWidth = item.width || 150;
-      const itemHeight = item.height || 80;
-
-      if (isColliding(x, y, width, height, itemX, itemY, itemWidth, itemHeight)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  let finalAngle = angle;
-  let finalDistance = distance;
-  const stepAngle = 5;
-  const maxAttempts = 36;
-
-  if (!isPositionFree(finalAngle, finalDistance)) {
-    let found = false;
-    for (let i = 1; i <= maxAttempts; i++) {
-      let testAngle = (finalAngle + i * stepAngle) % 360;
-      if (isPositionFree(testAngle, finalDistance)) {
-        finalAngle = testAngle;
-        found = true;
-        break;
-      }
-      testAngle = (finalAngle - i * stepAngle + 360) % 360;
-      if (isPositionFree(testAngle, finalDistance)) {
-        finalAngle = testAngle;
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      for (let dist = finalDistance - 10; dist > 20; dist -= 10) {
-        if (isPositionFree(finalAngle, dist)) {
-          finalDistance = dist;
-          found = true;
-          break;
-        }
-      }
-    }
-    if (!found) {
-      // No espacio, cancelar drop
-      return;
-    }
-  }
-
-  if (source === 'sidebar') {
-    const newItem = {
-      id: Date.now(),
-      label,
-      angle: finalAngle,
-      distance: finalDistance,
-      content: '',
-      width: 150,
-      height: 80,
-    };
-    setDroppedItems((prev) => [...prev, newItem]);
-  } else if (source === 'dropped') {
-    const itemId = e.dataTransfer.getData('itemId');
-    setDroppedItems((prev) =>
-      prev.map((item) =>
-        item.id.toString() === itemId
-          ? { ...item, angle: finalAngle, distance: finalDistance }
-          : item
-      )
-    );
-  }
-};
   const handleNoteDragStart = (e, itemId) => {
     e.dataTransfer.setData('source', 'dropped');
     e.dataTransfer.setData('itemId', itemId.toString());
@@ -291,16 +92,6 @@ const handleDrop = (e) => {
         return updated;
       })
     );
-  };
-
-  const getItemStyle = (label) => {
-    if (label.includes('Nota')) return 'border-blue-400 text-blue-600';
-    if (label.includes('Evento')) return 'border-pink-400 text-pink-600';
-    if (label.includes('Tarea')) return 'border-green-400 text-green-600';
-    if (label.includes('Idea')) return 'border-yellow-400 text-yellow-600';
-    if (label.includes('Archivo')) return 'border-purple-400 text-purple-600';
-    if (label.includes('Recordatorio')) return 'border-red-400 text-red-600';
-    return 'border-gray-400 text-gray-600';
   };
 
   return (
