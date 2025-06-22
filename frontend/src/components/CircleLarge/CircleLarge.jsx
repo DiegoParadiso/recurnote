@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'; 
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
-import NoteItem from './NoteItem';
+import NoteItem from './NoteItem/index';
 import { DateTime } from 'luxon';
 import useHandleDrop from './useDropHandler';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -30,7 +30,6 @@ export default function CircleLarge({ showSmall }) {
     }
   }, [width]);
 
-  // Ajustar ángulos de los ítems inversamente a la rotación
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
     if (delta !== 0) {
@@ -95,35 +94,57 @@ export default function CircleLarge({ showSmall }) {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none uppercase">
-      {/* Texto circular fijo */}
-      <svg
-        className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        viewBox={`0 0 ${circleSize} ${circleSize}`}
-        preserveAspectRatio="xMidYMid meet"
-        style={{ transform: `rotate(0deg)` }}
-      >
-        <defs>
-          <path
-            id="dayPath"
-            d={`M ${arcStartX},${cy} A ${radius},${radius} 0 0,1 ${arcEndX},${cy}`}
-            fill="none"
-          />
-        </defs>
-        <text
-          fill="#1f2937"
-          fontFamily="IBM Plex Mono, monospace"
-          fontSize={circleSize * 0.03}
-          letterSpacing="2"
-          fontWeight="600"
+    <div className="relative select-none uppercase" style={{ width: '100%', height: circleSize, maxWidth: 680, margin: '0 auto' }}>
+      
+      {/* CircleSmall (arriba de todo) */}
+      {!isSmallScreen && showSmall && (
+        <div
+          className="absolute right-0 top-1/2 -translate-y-1/2"
+          style={{ zIndex: 9999, position: 'absolute' }}
         >
-          <textPath href="#dayPath" startOffset="50%" textAnchor="middle">
-            {displayText.toUpperCase()}
-          </textPath>
-        </text>
-      </svg>
+          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
+        </div>
+      )}
 
-      {/* Círculo rotante */}
+      {/* Texto SVG (displayText) con z-index medio */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: circleSize,
+          height: circleSize,
+          pointerEvents: 'none',
+          zIndex: 10,
+        }}
+      >
+        <svg
+          viewBox={`0 0 ${circleSize} ${circleSize}`}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ transform: `rotate(0deg)` }}
+        >
+          <defs>
+            <path
+              id="dayPath"
+              d={`M ${arcStartX},${cy} A ${radius},${radius} 0 0,1 ${arcEndX},${cy}`}
+              fill="none"
+            />
+          </defs>
+          <text
+            fill="#1f2937"
+            fontFamily="IBM Plex Mono, monospace"
+            fontSize={circleSize * 0.03}
+            letterSpacing="2"
+            fontWeight="600"
+          >
+            <textPath href="#dayPath" startOffset="50%" textAnchor="middle">
+              {displayText.toUpperCase()}
+            </textPath>
+          </text>
+        </svg>
+      </div>
+
+      {/* Círculo rotante + NoteItem (debajo de todo) */}
       <div
         ref={containerRef}
         onDragOver={handleDragOver}
@@ -132,14 +153,22 @@ export default function CircleLarge({ showSmall }) {
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
-        className="rounded-full border border-gray-700 shadow-md w-[90vw] max-w-[680px] h-[90vw] max-h-[680px] flex items-center justify-center relative overflow-hidden"
-        style={{ transform: `rotate(${rotationAngle}deg)` }}
+        className="rounded-full border border-gray-700 shadow-md flex items-center justify-center overflow-hidden"
+        style={{
+          width: circleSize,
+          height: circleSize,
+          margin: '0 auto',
+          position: 'relative',
+          zIndex: 1,
+          transform: `rotate(${rotationAngle}deg)`,
+        }}
       >
         {selectedDay && (
           <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
             <NotesArea dayInfo={selectedDay} />
           </div>
         )}
+
         {droppedItems.map((item) => {
           const angleInRadians = item.angle * (Math.PI / 180);
           const x = cx + item.distance * Math.cos(angleInRadians);
@@ -189,12 +218,6 @@ export default function CircleLarge({ showSmall }) {
           );
         })}
       </div>
-
-      {!isSmallScreen && showSmall && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2">
-          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
-        </div>
-      )}
     </div>
   );
 }

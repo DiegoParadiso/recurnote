@@ -1,6 +1,5 @@
-// useDropHandler.js
 import { useCallback } from 'react';
-import { isColliding, getAngleFromCenter } from './utils'; // Ajusta la ruta según tu estructura
+import { isColliding, getAngleFromCenter } from './utils'; 
 
 export default function useHandleDrop({
   containerRef,
@@ -35,7 +34,6 @@ export default function useHandleDrop({
     const source = e.dataTransfer.getData('source');
     const label = e.dataTransfer.getData('label') || 'Nota';
 
-    // Función para validar si la posición está libre, usa isColliding importado
     const isPositionFree = (angle, distance, idToIgnore = null) => {
       const angleRad = (angle * Math.PI) / 180;
       const x = cx + distance * Math.cos(angleRad);
@@ -69,7 +67,6 @@ export default function useHandleDrop({
     if (!isPositionFree(finalAngle, finalDistance)) {
       let found = false;
 
-      // Intentar mover el ángulo para encontrar posición libre
       for (let i = 1; i <= maxAttempts; i++) {
         let testAngle = (finalAngle + i * stepAngle) % 360;
         if (isPositionFree(testAngle, finalDistance)) {

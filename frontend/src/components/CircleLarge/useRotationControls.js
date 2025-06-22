@@ -47,7 +47,7 @@ export default function useRotationControls({
       if (diff > 180) diff -= 360;
       if (diff < -180) diff += 360;
 
-      setRotationAngle((prev) => (prev + diff + 360) % 360);
+      setRotationAngle((prev) => Math.round((prev + diff + 360) % 360));
     }
     lastMouseAngle.current = currentAngle;
   };
