@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
 import NoteItem from './NoteItem/index';
+import TaskItem  from './Taskitem/index';
 import { DateTime } from 'luxon';
 import useHandleDrop from './useDropHandler';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -170,53 +171,69 @@ export default function CircleLarge({ showSmall }) {
         )}
 
         {droppedItems.map((item) => {
-          const angleInRadians = item.angle * (Math.PI / 180);
-          const x = cx + item.distance * Math.cos(angleInRadians);
-          const y = cy + item.distance * Math.sin(angleInRadians);
+        const angleInRadians = item.angle * (Math.PI / 180);
+        const x = cx + item.distance * Math.cos(angleInRadians);
+        const y = cy + item.distance * Math.sin(angleInRadians);
 
-          const style = {
-            position: 'absolute',
-            left: x,
-            top: y,
-            cursor: 'grab',
-            transform: `rotate(${-rotationAngle}deg)`,
-            transformOrigin: 'center',
-          };
-
-          if (item.label.toLowerCase().includes('nota')) {
-            return (
-              <NoteItem
-                key={item.id}
-                id={item.id}
-                x={x}
-                y={y}
-                rotation={-rotationAngle}
-                item={item}
-                onDragStart={handleNoteDragStart}
-                onUpdate={handleNoteUpdate}
-                circleSize={circleSize}
-                cx={cx}
-                cy={cy}
-              />
-            );
-          }
-
+        if (item.label === 'Tarea') {
           return (
-            <div
+            <TaskItem
               key={item.id}
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('source', 'dropped');
-                e.dataTransfer.setData('itemId', item.id.toString());
-              }}
-              style={style}
-              className={`px-3 py-1 rounded-full text-xs font-semibold border bg-white/80 backdrop-blur ${getItemStyle(item.label)}`}
-              title={item.label}
-            >
-              {item.label}
-            </div>
+              id={item.id}
+              x={x}
+              y={y}
+              rotation={-rotationAngle}
+              item={item}
+              onDragStart={handleNoteDragStart}
+              onUpdate={handleNoteUpdate}
+              circleSize={circleSize}
+              cx={cx}
+              cy={cy}
+            />
           );
-        })}
+        }
+
+        if (item.label.toLowerCase().includes('nota')) {
+          return (
+            <NoteItem
+              key={item.id}
+              id={item.id}
+              x={x}
+              y={y}
+              rotation={-rotationAngle}
+              item={item}
+              onDragStart={handleNoteDragStart}
+              onUpdate={handleNoteUpdate}
+              circleSize={circleSize}
+              cx={cx}
+              cy={cy}
+            />
+          );
+        }
+
+        return (
+          <div
+            key={item.id}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('source', 'dropped');
+              e.dataTransfer.setData('itemId', item.id.toString());
+            }}
+            style={{
+              position: 'absolute',
+              left: x,
+              top: y,
+              cursor: 'grab',
+              transform: `rotate(${-rotationAngle}deg)`,
+              transformOrigin: 'center',
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border bg-white/80 backdrop-blur ${getItemStyle(item.label)}`}
+            title={item.label}
+          >
+            {item.label}
+          </div>
+        );
+      })}
       </div>
     </div>
   );

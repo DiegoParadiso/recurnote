@@ -1,5 +1,4 @@
 import NoteContainer from './NoteContainer';
-import DragHandle from './DragHandle';
 import ResizableTextarea from './ResizableTextarea';
 
 import { useState, useEffect, useRef } from 'react';
@@ -19,7 +18,6 @@ export default function NoteItem({ id, x, y, rotation, item, onDragStart, onUpda
     const remainingDistance = maxRadius - distance;
     const safeSize = Math.max(40, remainingDistance * Math.SQRT1_2 * 2);
 
-    // Limitar según padding y contenedor (240 - 16 padding, 230 - 16)
     setMaxSize({
       width: Math.min(224, safeSize),
       height: Math.min(214, safeSize),
@@ -27,8 +25,22 @@ export default function NoteItem({ id, x, y, rotation, item, onDragStart, onUpda
   }, [x, y, cx, cy, circleSize]);
 
   return (
-    <NoteContainer x={x} y={y} rotation={rotation}>
-      <DragHandle onDragStart={onDragStart} id={id} />
+    <NoteContainer
+      x={x}
+      y={y}
+      rotation={rotation}
+      draggable
+      onDragStart={(e) => onDragStart(e, id)}
+      style={{ cursor: 'grab' }}
+    >
+      {/* Puntitos visuales */}
+      <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 pointer-events-none select-none">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="w-[6px] h-[6px] bg-neutral-400/30 rounded-full" />
+        ))}
+      </div>
+
+      {/* Área editable */}
       <ResizableTextarea
         text={text}
         onChange={(e) => {

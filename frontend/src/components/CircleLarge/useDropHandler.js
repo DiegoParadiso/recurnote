@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { isColliding, getAngleFromCenter } from './utils'; 
+import { isColliding, getAngleFromCenter } from './utils';
 
 export default function useHandleDrop({
   containerRef,
@@ -18,37 +18,37 @@ export default function useHandleDrop({
     const mouseX = e.clientX;
     const mouseY = e.clientY;
 
-    // Obtengo el ángulo respecto al centro del contenedor usando la función utilitaria
     let angle = getAngleFromCenter(mouseX, mouseY, containerRef);
     angle = (angle - rotationAngle + 360) % 360;
 
-    // Calculo distancia desde el centro
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     let dx = mouseX - centerX;
     let dy = mouseY - centerY;
-
     let distance = Math.sqrt(dx * dx + dy * dy);
     if (distance > radius - 50) distance = radius - 50;
 
     const source = e.dataTransfer.getData('source');
     const label = e.dataTransfer.getData('label') || 'Nota';
 
-    const isPositionFree = (angle, distance, idToIgnore = null) => {
+    const itemId = e.dataTransfer.getData('itemId');
+    const existingItem = droppedItems.find((item) => item.id.toString() === itemId);
+
+    // 📏 Usar dimensiones reales si se mueve, o dimensiones por defecto si es nuevo
+    const newWidth = existingItem?.width || (label === 'Tarea' ? 200 : 100);
+    const newHeight = existingItem?.height || (label === 'Tarea' ? 150 : 100);
+
+    const isPositionFree = (angle, distance, width, height, idToIgnore = null) => {
       const angleRad = (angle * Math.PI) / 180;
       const x = cx + distance * Math.cos(angleRad);
       const y = cy + distance * Math.sin(angleRad);
 
-      const width = 150;
-      const height = 80;
-
       for (const item of droppedItems) {
-        if (idToIgnore !== null && item.id === idToIgnore) continue;
+        if (idToIgnore && item.id.toString() === idToIgnore) continue;
 
         const itemAngleRad = (item.angle * Math.PI) / 180;
         const itemX = cx + item.distance * Math.cos(itemAngleRad);
         const itemY = cy + item.distance * Math.sin(itemAngleRad);
-
         const itemWidth = item.width || 150;
         const itemHeight = item.height || 80;
 
@@ -63,29 +63,27 @@ export default function useHandleDrop({
     let finalDistance = distance;
     const stepAngle = 5;
     const maxAttempts = 36;
+    let found = isPositionFree(finalAngle, finalDistance, newWidth, newHeight, itemId);
 
-    if (!isPositionFree(finalAngle, finalDistance)) {
-      let found = false;
-
+    if (!found) {
       for (let i = 1; i <= maxAttempts; i++) {
         let testAngle = (finalAngle + i * stepAngle) % 360;
-        if (isPositionFree(testAngle, finalDistance)) {
+        if (isPositionFree(testAngle, finalDistance, newWidth, newHeight, itemId)) {
           finalAngle = testAngle;
           found = true;
           break;
         }
         testAngle = (finalAngle - i * stepAngle + 360) % 360;
-        if (isPositionFree(testAngle, finalDistance)) {
+        if (isPositionFree(testAngle, finalDistance, newWidth, newHeight, itemId)) {
           finalAngle = testAngle;
           found = true;
           break;
         }
       }
 
-      // Si no se encontró posición por ángulo, intentar con distancia menor
       if (!found) {
         for (let dist = finalDistance - 10; dist > 20; dist -= 10) {
-          if (isPositionFree(finalAngle, dist)) {
+          if (isPositionFree(finalAngle, dist, newWidth, newHeight, itemId)) {
             finalDistance = dist;
             found = true;
             break;
@@ -93,10 +91,7 @@ export default function useHandleDrop({
         }
       }
 
-      if (!found) {
-        // No hay espacio libre, salir
-        return;
-      }
+      if (!found) return; // No hay espacio libre
     }
 
     if (source === 'sidebar') {
@@ -105,13 +100,13 @@ export default function useHandleDrop({
         label,
         angle: finalAngle,
         distance: finalDistance,
-        content: '',
-        width: 150,
-        height: 80,
+        content: label === 'Tarea' ? [''] : '',
+        checked: label === 'Tarea' ? [false] : undefined,
+        width: newWidth,
+        height: newHeight,
       };
       setDroppedItems((prev) => [...prev, newItem]);
     } else if (source === 'dropped') {
-      const itemId = e.dataTransfer.getData('itemId');
       setDroppedItems((prev) =>
         prev.map((item) =>
           item.id.toString() === itemId

@@ -87,6 +87,7 @@ export default function HalfCircleSidebar() {
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', item.label);
+                e.dataTransfer.setData('label', item.label);
                 e.dataTransfer.setData('source', 'sidebar');
               }}
             >
