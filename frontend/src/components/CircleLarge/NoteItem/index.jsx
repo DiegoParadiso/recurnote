@@ -1,37 +1,33 @@
-import NoteContainer from './NoteContainer';
-import ResizableTextarea from './ResizableTextarea';
-
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
+import UnifiedContainer from '../../Shared/UnifiedContainer';
 
 export default function NoteItem({ id, x, y, rotation, item, onDragStart, onUpdate, circleSize, cx, cy }) {
   const [text, setText] = useState(item.content || '');
-  const textareaRef = useRef(null);
-  const [maxSize, setMaxSize] = useState({ width: 100, height: 100 });
 
-  useEffect(() => {
-    if (!textareaRef.current) return;
+  // Tamaño fijo inicial, no cambia automáticamente
+  const [size, setSize] = useState({ width: 150, height: 150 });
 
-    const dx = x - cx;
-    const dy = y - cy;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const maxRadius = circleSize / 2 - 8;
-    const remainingDistance = maxRadius - distance;
-    const safeSize = Math.max(40, remainingDistance * Math.SQRT1_2 * 2);
-
-    setMaxSize({
-      width: Math.min(224, safeSize),
-      height: Math.min(214, safeSize),
-    });
-  }, [x, y, cx, cy, circleSize]);
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+    onUpdate(id, e.target.value);
+    // NO cambiamos tamaño aquí para que sea fijo
+  };
 
   return (
-    <NoteContainer
+    <UnifiedContainer
       x={x}
       y={y}
       rotation={rotation}
-      draggable
-      onDragStart={(e) => onDragStart(e, id)}
-      style={{ cursor: 'grab' }}
+      width={size.width}
+      height={size.height}
+      minWidth={40}
+      minHeight={40}
+      maxWidth={224}
+      maxHeight={214}
+      onMove={({ x, y }) => onDragStart({ x, y }, id)}
+      onResize={setSize} // Tamaño cambia solo al hacer resize manual
+      circleCenter={{ cx, cy }}
+      maxRadius={circleSize / 2}
     >
       {/* Puntitos visuales */}
       <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 pointer-events-none select-none">
@@ -40,16 +36,15 @@ export default function NoteItem({ id, x, y, rotation, item, onDragStart, onUpda
         ))}
       </div>
 
-      {/* Área editable */}
-      <ResizableTextarea
-        text={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          onUpdate(id, e.target.value);
+      <textarea
+        value={text}
+        onChange={handleTextChange}
+        placeholder="Escribe aquí..."
+        className="pl-6 pr-2 pt-1 text-[10px] bg-transparent outline-none text-black rounded-md resize-none w-full h-full"
+        style={{
+          overflow: 'auto',  // Scroll si se excede tamaño
         }}
-        maxSize={maxSize}
-        textareaRef={textareaRef}
       />
-    </NoteContainer>
+    </UnifiedContainer>
   );
 }
