@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import UnifiedContainer from '../../Shared/UnifiedContainer';
 
-export default function TaskItem({ id, x, y, rotation, item, onMove, onResize, onUpdate, cx, cy, circleSize }) {
+export default function TaskItem({
+  id, x, y, rotation, item, onMove, onResize, onUpdate, cx, cy, circleSize,
+}) {
   const [tasks, setTasks] = useState(item.content || []);
   const [checks, setChecks] = useState(item.checked || []);
-  const [size, setSize] = useState({ width: 200, height: 150 });
+  const [resizedManually, setResizedManually] = useState(false);
 
   const handleTaskChange = (index, value) => {
     const updated = [...tasks];
@@ -21,9 +23,17 @@ export default function TaskItem({ id, x, y, rotation, item, onMove, onResize, o
   };
 
   const addTask = () => {
-    setTasks(prev => [...prev, '']);
-    setChecks(prev => [...prev, false]);
-    onUpdate?.(id, [...tasks, ''], [...checks, false]);
+    const newTasks = [...tasks, ''];
+    const newChecks = [...checks, false];
+    setTasks(newTasks);
+    setChecks(newChecks);
+    onUpdate?.(id, newTasks, newChecks);
+
+    if (!resizedManually) {
+      const newHeight = Math.min(100 + newTasks.length * 30, 400);
+      // Informamos el nuevo height al padre para actualizar el item
+      onUpdate?.(id, newTasks, newChecks, { height: newHeight });
+    }
   };
 
   return (
@@ -31,21 +41,22 @@ export default function TaskItem({ id, x, y, rotation, item, onMove, onResize, o
       x={x}
       y={y}
       rotation={rotation}
-      width={size.width}
-      height={size.height}
+      width={item.width || 200}
+      height={item.height || 100}
       minWidth={120}
       minHeight={100}
       maxWidth={400}
       maxHeight={400}
       onMove={({ x, y }) => onMove?.(id, x, y)}
       onResize={(newSize) => {
-        setSize(newSize);
+        setResizedManually(true);
+        onUpdate?.(id, tasks, checks, newSize);
         onResize?.(newSize);
       }}
       circleCenter={{ cx, cy }}
       maxRadius={circleSize / 2}
     >
-      <div className="text-black text-[10px] flex flex-col gap-1 overflow-auto" style={{ maxHeight: '100%' }}>
+      <div className="text-black text-[10px] flex flex-col gap-1 overflow-auto" style={{ flexGrow: 1, overflowY: 'auto' }}>
         {tasks.map((task, index) => (
           <div key={index} className="flex items-center gap-2 pt-1 pb-1">
             <input

@@ -80,19 +80,27 @@ export default function CircleLarge({ showSmall }) {
     e.dataTransfer.setData('itemId', itemId.toString());
   };
 
-  const handleNoteUpdate = (id, newContent, newPolar) => {
+  const handleNoteUpdate = (id, newContent, newPolar, maybeSize) => {
     setDroppedItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-        let updated = { ...item, content: newContent };
+        const updated = {
+          ...item,
+          content: newContent,
+        };
         if (newPolar) {
-          updated.angle = newPolar.angle;
-          updated.distance = newPolar.distance;
+          updated.angle = newPolar.angle ?? item.angle;
+          updated.distance = newPolar.distance ?? item.distance;
+        }
+        if (maybeSize?.width && maybeSize?.height) {
+          updated.width = maybeSize.width;
+          updated.height = maybeSize.height;
         }
         return updated;
       })
     );
   };
+
 
   return (
     <div className="relative select-none uppercase" style={{ width: '100%', height: circleSize, maxWidth: 680, margin: '0 auto' }}>
