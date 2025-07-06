@@ -10,7 +10,7 @@ export default function useRotationControls({
   const lastMouseAngle = useRef(null);
   const prevRotationRef = useRef(rotationAngle);
 
-  // Calcular ángulo desde el centro del container hacia el mouse
+  // Calcular el ángulo desde el centro del container hacia el mouse
   const getAngleFromCenter = (x, y) => {
     if (!containerRef.current) return 0;
     const rect = containerRef.current.getBoundingClientRect();
@@ -23,7 +23,9 @@ export default function useRotationControls({
     return angle;
   };
 
+  // Al comenzar a arrastrar
   const onMouseDown = (e) => {
+    // Evitar que inputs o elementos editables disparen la rotación
     if (
       e.target.tagName === 'TEXTAREA' ||
       e.target.tagName === 'INPUT' ||
@@ -36,29 +38,45 @@ export default function useRotationControls({
     e.preventDefault();
     isDragging.current = true;
     lastMouseAngle.current = getAngleFromCenter(e.clientX, e.clientY);
+    
+    // Evitar que el evento genere scroll o selección de texto
+    document.body.style.userSelect = 'none'; 
+    document.body.style.touchAction = 'none'; 
   };
 
+  // Al mover el mouse durante el arrastre
   const onMouseMove = (e) => {
     if (!isDragging.current) return;
     e.preventDefault();
+
     const currentAngle = getAngleFromCenter(e.clientX, e.clientY);
+
     if (lastMouseAngle.current !== null) {
       let diff = currentAngle - lastMouseAngle.current;
+
+      // Corregir salto de ángulo para rotación continua
       if (diff > 180) diff -= 360;
       if (diff < -180) diff += 360;
 
       setRotationAngle((prev) => Math.round((prev + diff + 360) % 360));
     }
+
     lastMouseAngle.current = currentAngle;
   };
 
+  // Al soltar el mouse
   const onMouseUp = (e) => {
+    if (!isDragging.current) return;
     e.preventDefault();
     isDragging.current = false;
     lastMouseAngle.current = null;
+
+    // Restablecer estilos para permitir scroll y selección
+    document.body.style.userSelect = '';
+    document.body.style.touchAction = '';
   };
 
-  // Teclado
+  // Control por teclado para rotar con flechas
   useEffect(() => {
     let animationFrameId;
     let isRotating = false;
@@ -112,7 +130,7 @@ export default function useRotationControls({
     };
   }, [rotationSpeed, setRotationAngle]);
 
-  // Devolver los handlers de mouse para uso en el componente
+  // Devolver los handlers de mouse para usar en el componente
   return {
     onMouseDown,
     onMouseMove,

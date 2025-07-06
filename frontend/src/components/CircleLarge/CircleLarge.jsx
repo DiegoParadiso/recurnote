@@ -79,23 +79,40 @@ export default function CircleLarge({ showSmall }) {
     e.dataTransfer.setData('source', 'dropped');
     e.dataTransfer.setData('itemId', itemId.toString());
   };
-
-  const handleNoteUpdate = (id, newContent, newPolar, maybeSize) => {
+  
+  const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition) => {
     setDroppedItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-        const updated = {
-          ...item,
-          content: newContent,
-        };
-        if (newPolar) {
-          updated.angle = newPolar.angle ?? item.angle;
-          updated.distance = newPolar.distance ?? item.distance;
+
+        const updated = { ...item };
+
+        // Actualizar contenido
+        if (typeof newContent === 'string') {
+          updated.content = newContent;
         }
+
+        // Actualizar tamaño si se proporciona
         if (maybeSize?.width && maybeSize?.height) {
           updated.width = maybeSize.width;
           updated.height = maybeSize.height;
         }
+
+        // Actualizar desde polar explícito (drag desde DropHandler)
+        if (newPolar) {
+          updated.angle = newPolar.angle ?? item.angle;
+          updated.distance = newPolar.distance ?? item.distance;
+        }
+
+        // Si se recibe posición (drag manual), recalcular ángulo y distancia
+        if (newPosition) {
+          const dx = newPosition.x - cx;
+          const dy = newPosition.y - cy;
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+          updated.angle = (angle + 360) % 360;
+          updated.distance = Math.sqrt(dx * dx + dy * dy);
+        }
+
         return updated;
       })
     );
