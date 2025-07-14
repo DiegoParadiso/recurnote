@@ -4,9 +4,9 @@ import NotesArea from './NotesArea';
 import NoteItem from './NoteItem/index';
 import TaskItem  from './Taskitem/index';
 import { DateTime } from 'luxon';
-import useHandleDrop from './useDropHandler';
+import useHandleDrop from '../../hooks/useDropHandler';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useRotationControls from './useRotationControls';
+import useRotationControls from '../../hooks/useRotationControls';
 
 export default function CircleLarge({ showSmall }) {
   const [selectedDay, setSelectedDay] = useState(null);
@@ -34,11 +34,8 @@ export default function CircleLarge({ showSmall }) {
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
     if (delta !== 0) {
-      setDroppedItems((prevItems) =>
-        prevItems.map((item) => ({
-          ...item,
-          angle: (item.angle + delta) % 360,
-        }))
+      setDroppedItems((prev) =>
+        prev.map((it) => ({ ...it, angle: (it.angle + delta) % 360 }))
       );
     }
     prevRotationRef.current = rotationAngle;
@@ -74,50 +71,46 @@ export default function CircleLarge({ showSmall }) {
     cx,
     cy,
   });
-
-  const handleNoteDragStart = (e, itemId) => {
-    e.dataTransfer.setData('source', 'dropped');
-    e.dataTransfer.setData('itemId', itemId.toString());
-  };
   
+const handleNoteDragStart = (e, itemId) => {
+  e.dataTransfer.setData('source', 'dropped');
+  e.dataTransfer.setData('itemId', itemId.toString());
+};
+
   const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition) => {
     setDroppedItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-
         const updated = { ...item };
 
-        // Actualizar contenido
         if (typeof newContent === 'string') {
           updated.content = newContent;
         }
-
-        // Actualizar tamaño si se proporciona
         if (maybeSize?.width && maybeSize?.height) {
           updated.width = maybeSize.width;
           updated.height = maybeSize.height;
         }
-
-        // Actualizar desde polar explícito (drag desde DropHandler)
         if (newPolar) {
           updated.angle = newPolar.angle ?? item.angle;
           updated.distance = newPolar.distance ?? item.distance;
         }
-
-        // Si se recibe posición (drag manual), recalcular ángulo y distancia
         if (newPosition) {
           const dx = newPosition.x - cx;
           const dy = newPosition.y - cy;
-          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-          updated.angle = (angle + 360) % 360;
-          updated.distance = Math.sqrt(dx * dx + dy * dy);
-        }
+          
+          const radians = (-rotationAngle * Math.PI) / 180;
+          const rotatedX = dx * Math.cos(radians) - dy * Math.sin(radians);
+          const rotatedY = dx * Math.sin(radians) + dy * Math.cos(radians);
+          const angle = (Math.atan2(rotatedY, rotatedX) * 180) / Math.PI;
+          
+          updated.angle = (angle + rotationAngle + 360) % 360;
 
+          updated.distance = Math.sqrt(rotatedX ** 2 + rotatedY ** 2);
+        }
         return updated;
       })
     );
   };
-
 
   return (
     <div className="relative select-none uppercase" style={{ width: '100%', height: circleSize, maxWidth: 680, margin: '0 auto' }}>
@@ -196,9 +189,9 @@ export default function CircleLarge({ showSmall }) {
         )}
 
         {droppedItems.map((item) => {
-        const angleInRadians = item.angle * (Math.PI / 180);
-        const x = cx + item.distance * Math.cos(angleInRadians);
-        const y = cy + item.distance * Math.sin(angleInRadians);
+        const angleInRadians = (item.angle * Math.PI) / 180;
+const x = cx + item.distance * Math.cos(angleInRadians);
+const y = cy + item.distance * Math.sin(angleInRadians);
 
         if (item.label === 'Tarea') {
           return (
@@ -231,7 +224,7 @@ export default function CircleLarge({ showSmall }) {
               onUpdate={handleNoteUpdate}
               circleSize={circleSize}
               cx={cx}
-              cy={cy}
+              cy={cy}º
             />
           );
         }

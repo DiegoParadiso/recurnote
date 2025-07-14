@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import UnifiedContainer from '../../Shared/UnifiedContainer';
+import UnifiedContainer from '../../common/UnifiedContainer';
 
 export default function TaskItem({
   id,

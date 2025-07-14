@@ -1,0 +1,18 @@
+export const getContainerStyle = ({ pos, rotation, sizeState, isDragging, style }) => ({
+  position: 'absolute',
+  left: `${pos.x}px`,
+  top: `${pos.y}px`,
+  transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+  width: `${sizeState.width}px`,
+  height: `${sizeState.height}px`,
+  overflow: 'auto',
+  cursor: isDragging ? 'grabbing' : 'grab',
+  backgroundColor: '#f5f5f5',
+  borderRadius: '0.5rem',
+  border: '1px solid rgba(0,0,0,0.05)',
+  padding: '8px',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  ...style,
+});

@@ -91,6 +91,7 @@ export default function useRotationControls({
           } else if (currentKey === 'ArrowDown' || currentKey === 'ArrowLeft') {
             newAngle = (prev - rotationSpeed + 360) % 360;
           }
+          prevRotationRef.current = newAngle;
         }
         return newAngle;
       });
