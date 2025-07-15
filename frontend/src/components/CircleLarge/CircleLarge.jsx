@@ -17,6 +17,10 @@ export default function CircleLarge({ showSmall }) {
   const [rotationAngle, setRotationAngle] = useState(0);
   const rotationSpeed = 2;
 
+  const handleDeleteItem = (id) => {
+    setDroppedItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
   const {
     onMouseDown,
     onMouseMove,
@@ -204,6 +208,7 @@ const y = cy + item.distance * Math.sin(angleInRadians);
               item={item}
               onDragStart={handleNoteDragStart}
               onUpdate={handleNoteUpdate}
+              onDelete={() => handleDeleteItem(item.id)}
               circleSize={circleSize}
               cx={cx}
               cy={cy}
@@ -224,7 +229,8 @@ const y = cy + item.distance * Math.sin(angleInRadians);
               onUpdate={handleNoteUpdate}
               circleSize={circleSize}
               cx={cx}
-              cy={cy}º
+              cy={cy}
+              onDelete={() => handleDeleteItem(item.id)}
             />
           );
         }
