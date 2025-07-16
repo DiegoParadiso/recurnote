@@ -1,16 +1,18 @@
 import { useCallback } from 'react';
+import formatDateKey from '../utils/formatDateKey';
 
 export default function useHandleDrop({
   containerRef,
-  droppedItems,
-  setDroppedItems,
+  itemsByDate,
+  setItemsByDate,
+  selectedDay,
   rotationAngle,
-  radius
+  radius,
 }) {
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
-      if (!containerRef.current) return;
+      if (!containerRef.current || !selectedDay) return;
 
       const rect = containerRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -21,15 +23,15 @@ export default function useHandleDrop({
 
       // Desrotar posición del mouse
       const rad = (rotationAngle * Math.PI) / 180;
-      const rotatedX = mouseX * Math.cos(rad) + mouseY * Math.sin(rad);
-      const rotatedY = -mouseX * Math.sin(rad) + mouseY * Math.cos(rad);
+      let rotatedX = mouseX * Math.cos(rad) + mouseY * Math.sin(rad);
+      let rotatedY = -mouseX * Math.sin(rad) + mouseY * Math.cos(rad);
 
       let distance = Math.hypot(rotatedX, rotatedY);
       if (distance > radius) {
         const scale = radius / distance;
-        distance = radius;
         rotatedX *= scale;
         rotatedY *= scale;
+        distance = radius;
       }
 
       let angle = (Math.atan2(rotatedY, rotatedX) * 180) / Math.PI;
@@ -38,7 +40,10 @@ export default function useHandleDrop({
       const source = e.dataTransfer.getData('source');
       const label = e.dataTransfer.getData('label') || 'Nota';
       const itemId = e.dataTransfer.getData('itemId');
-      const existing = droppedItems.find((it) => it.id.toString() === itemId);
+      const dateKey = formatDateKey(selectedDay);
+      const itemsForDate = itemsByDate[dateKey] || [];
+      const existing = itemsForDate.find((it) => it.id.toString() === itemId);
+
       const width = existing?.width ?? (label === 'Tarea' ? 200 : 100);
       const height = existing?.height ?? (label === 'Tarea' ? 150 : 100);
 
@@ -51,20 +56,25 @@ export default function useHandleDrop({
           content: label === 'Tarea' ? [''] : '',
           checked: label === 'Tarea' ? [false] : undefined,
           width,
-          height
+          height,
         };
-        setDroppedItems((prev) => [...prev, newItem]);
-      } else {
-        setDroppedItems((prev) =>
-          prev.map((it) =>
+
+        setItemsByDate((prev) => ({
+          ...prev,
+          [dateKey]: [...(prev[dateKey] || []), newItem],
+        }));
+      } else if (source === 'dropped') {
+        setItemsByDate((prev) => ({
+          ...prev,
+          [dateKey]: prev[dateKey].map((it) =>
             it.id.toString() === itemId
               ? { ...it, angle, distance }
               : it
-          )
-        );
+          ),
+        }));
       }
     },
-    [containerRef, droppedItems, setDroppedItems, rotationAngle, radius]
+    [containerRef, itemsByDate, setItemsByDate, selectedDay, rotationAngle, radius]
   );
 
   return handleDrop;
