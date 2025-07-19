@@ -2,25 +2,35 @@ import { useState, useRef, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import DayButton from './DayButton';
 
-export default function CircleSmall({ onDayClick, isSmallScreen }) {
+export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentDate, setCurrentDate] = useState(DateTime.local());
   const startY = useRef(null);
 
-  // Ajustar selectedDate cuando cambia currentDate (mes o año)
   useEffect(() => {
-    if (!selectedDate) return;
-
-    const daysInMonth = currentDate.daysInMonth;
-    let day = selectedDate.day;
-
-    if (day > daysInMonth) {
-      day = daysInMonth;
+    if (selectedDay) {
+      const newSelected = DateTime.fromObject(selectedDay);
+      if (
+        !selectedDate ||
+        selectedDate.day !== newSelected.day ||
+        selectedDate.month !== newSelected.month ||
+        selectedDate.year !== newSelected.year
+      ) {
+        setSelectedDate(newSelected);
+        setCurrentDate(newSelected.startOf('month'));
+      }
     }
+  }, [selectedDay]);
 
-    const newSelected = currentDate.set({ day });
-    setSelectedDate(newSelected);
-    onDayClick(newSelected.toObject());
+  useEffect(() => {
+    if (
+      selectedDate &&
+      (selectedDate.month !== currentDate.month || selectedDate.year !== currentDate.year)
+    ) {
+      const firstDayOfMonth = currentDate.set({ day: 1 });
+      setSelectedDate(firstDayOfMonth);
+      onDayClick(firstDayOfMonth.toObject());
+    }
   }, [currentDate]);
 
   const handleScroll = (e) => {
@@ -36,7 +46,6 @@ export default function CircleSmall({ onDayClick, isSmallScreen }) {
   const handleEnd = (y) => {
     if (startY.current === null) return;
     const deltaY = y - startY.current;
-
     if (Math.abs(deltaY) > 30) {
       const direction = deltaY > 0 ? 1 : -1;
       setCurrentDate((prev) => prev.plus({ months: direction }));
@@ -51,7 +60,6 @@ export default function CircleSmall({ onDayClick, isSmallScreen }) {
 
   const daysInMonth = currentDate.daysInMonth;
 
-  // Configuración dinámica según tamaño de pantalla
   const radius = isSmallScreen ? 150 : 170;
   const center = isSmallScreen ? 175 : 200;
   const buttonSize = isSmallScreen ? 27 : 32;
@@ -152,7 +160,7 @@ export default function CircleSmall({ onDayClick, isSmallScreen }) {
         width: '350px',
         height: '350px',
         margin: '0 auto',
-                zIndex: 9999,
+        zIndex: 9999,
       }
     : {
         position: 'relative',
@@ -160,8 +168,7 @@ export default function CircleSmall({ onDayClick, isSmallScreen }) {
         height: '400px',
         marginLeft: 'auto',
         marginRight: 0,
-                zIndex: 9999,
-
+        zIndex: 9999,
       };
 
   return (

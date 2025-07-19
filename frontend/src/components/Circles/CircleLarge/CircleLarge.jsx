@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
-import NoteItem from './NoteItem';
-import TaskItem from './Taskitem';
+import ItemsOnCircle from '../Items/ItemsOnCircle';
+import ArcText from './ArcText';
 import { DateTime } from 'luxon';
-import useHandleDrop from '../../hooks/useDropHandler';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useRotationControls from '../../hooks/useRotationControls';
-import formatDateKey from '../../utils/formatDateKey';
-import { useItems } from '../../context/ItemsContext';
-import BottomToast from '../BottomToast';
-import logo from '../../assets/logorecurnote.png';
+import useHandleDrop from '../../../hooks/useDropHandler';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import useRotationControls from '../../../hooks/useRotationControls';
+import formatDateKey from '../../../utils/formatDateKey';
+import { useItems } from '../../../context/ItemsContext';
+import BottomToast from '../../common/BottomToast';
+import logo from '../../../assets/logorecurnote.png';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
   const { itemsByDate, setItemsByDate } = useItems();
@@ -50,36 +50,36 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     prevRotationRef.current = rotationAngle;
   }, [rotationAngle]);
 
-  const displayText = selectedDay
+  const selectedDate = selectedDay
     ? DateTime.fromObject({
         day: selectedDay.day,
         month: selectedDay.month,
         year: selectedDay.year,
       })
-        .setLocale('es')
-        .toFormat('cccc d, yyyy')
+    : null;
+
+  const displayText = selectedDate
+    ? selectedDate.setLocale('es').toFormat('cccc d, yyyy')
     : 'Bienvenido';
 
   const isSmallScreen = width <= 640;
   const radius = circleSize / 2 - 40;
   const cx = circleSize / 2;
   const cy = circleSize / 2;
-  const arcStartX = cx - radius;
-  const arcEndX = cx + radius;
 
   const handleDragOver = (e) => e.preventDefault();
 
-const handleDrop = useHandleDrop({
-  containerRef,
-  itemsByDate,
-  setItemsByDate,
-  selectedDay,
-  rotationAngle,
-  radius,
-  cx,
-  cy,
-  onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
-});
+  const handleDrop = useHandleDrop({
+    containerRef,
+    itemsByDate,
+    setItemsByDate,
+    selectedDay,
+    rotationAngle,
+    radius,
+    cx,
+    cy,
+    onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
+  });
 
   const handleNoteDragStart = (e, itemId) => {
     e.dataTransfer.setData('source', 'dropped');
@@ -96,7 +96,7 @@ const handleDrop = useHandleDrop({
         if (item.id !== id) return item;
         const updated = { ...item };
         if (Array.isArray(newContent)) {
-          updated.checked = newPolar; 
+          updated.checked = newPolar;
         }
         if (newContent !== undefined) {
           updated.content = newContent;
@@ -153,7 +153,7 @@ const handleDrop = useHandleDrop({
           className="absolute right-0 top-1/2 -translate-y-1/2"
           style={{ zIndex: 9999 }}
         >
-          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} />
+          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
         </div>
       )}
 
@@ -172,7 +172,7 @@ const handleDrop = useHandleDrop({
           <defs>
             <path
               id="dayPath"
-              d={`M ${arcStartX},${cy} A ${radius},${radius} 0 0,1 ${arcEndX},${cy}`}
+              d={`M ${cx - radius},${cy} A ${radius},${radius} 0 0,1 ${cx + radius},${cy}`}
               fill="none"
             />
           </defs>
@@ -191,116 +191,59 @@ const handleDrop = useHandleDrop({
       </div>
 
       <div
-  ref={containerRef}
-  onDragOver={handleDragOver}
-  onDrop={handleDrop}
-  onMouseDown={onMouseDown}
-  onMouseMove={onMouseMove}
-  onMouseUp={onMouseUp}
-  onMouseLeave={onMouseUp}
-  className="rounded-full border border-gray-700 shadow-md flex items-center justify-center overflow-hidden"
-  style={{
-    width: circleSize,
-    height: circleSize,
-    margin: '0 auto',
-    position: 'relative',
-    zIndex: 1,
-    transform: `rotate(${rotationAngle}deg)`,
-  }}
->
-{!selectedDay && (
-  <img
-    src={logo}
-    alt="Logo Marca de Agua"
-    style={{
-      position: 'absolute',
-      top: '26%',
-      left: -30,
-      width: circleSize * 0.5,
-      height: 'auto',
-      opacity: 0.04,
-      pointerEvents: 'none',
-      userSelect: 'none',
-      zIndex: 0,
+        ref={containerRef}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        className="rounded-full border border-gray-700 shadow-md flex items-center justify-center overflow-hidden"
+        style={{
+          width: circleSize,
+          height: circleSize,
+          margin: '0 auto',
+          position: 'relative',
+          zIndex: 1,
+          transform: `rotate(${rotationAngle}deg)`,
+        }}
+      >
+        {!selectedDay && (
+          <img
+            src={logo}
+            alt="Logo Marca de Agua"
+            style={{
+              position: 'absolute',
+              top: '26%',
+              left: -30,
+              width: circleSize * 0.5,
+              height: 'auto',
+              opacity: 0.04,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              zIndex: 0,
+              transform: `translate(-20%, -20%) rotate(35deg)`,
+              transformOrigin: 'center center',
+            }}
+          />
+        )}
 
-      transform: `translate(-20%, -20%) rotate(35deg)`, 
-      transformOrigin: 'center center',
-    }}
-  />
-)}
+        {selectedDay && (
+          <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
+            <NotesArea dayInfo={selectedDay} />
+          </div>
+        )}
 
-  {selectedDay && (
-    <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
-      <NotesArea dayInfo={selectedDay} />
-    </div>
-  )}
-
-        {itemsForSelectedDay.map((item) => {
-          const angleInRadians = (item.angle * Math.PI) / 180;
-          const x = cx + item.distance * Math.cos(angleInRadians);
-          const y = cy + item.distance * Math.sin(angleInRadians);
-
-          if (item.label === 'Tarea') {
-            return (
-              <TaskItem
-                key={item.id}
-                id={item.id}
-                x={x}
-                y={y}
-                rotation={-rotationAngle}
-                item={item}
-                onDragStart={handleNoteDragStart}
-                onUpdate={handleNoteUpdate}
-                onDelete={() => handleDeleteItem(item.id)}
-                circleSize={circleSize}
-                cx={cx}
-                cy={cy}
-              />
-            );
-          }
-
-          if (item.label.toLowerCase().includes('nota')) {
-            return (
-              <NoteItem
-                key={item.id}
-                id={item.id}
-                x={x}
-                y={y}
-                rotation={-rotationAngle}
-                item={item}
-                onDragStart={handleNoteDragStart}
-                onUpdate={handleNoteUpdate}
-                onDelete={() => handleDeleteItem(item.id)}
-                circleSize={circleSize}
-                cx={cx}
-                cy={cy}
-              />
-            );
-          }
-
-          return (
-            <div
-              key={item.id}
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('source', 'dropped');
-                e.dataTransfer.setData('itemId', item.id.toString());
-              }}
-              style={{
-                position: 'absolute',
-                left: x,
-                top: y,
-                cursor: 'grab',
-                transform: `rotate(${-rotationAngle}deg)`,
-                transformOrigin: 'center',
-              }}
-              className={`px-3 py-1 rounded-full text-xs font-semibold border bg-white/80 backdrop-blur`}
-              title={item.label}
-            >
-              {item.label}
-            </div>
-          );
-        })}
+        <ItemsOnCircle
+          items={itemsForSelectedDay}
+          cx={cx}
+          cy={cy}
+          rotationAngle={rotationAngle}
+          onNoteDragStart={handleNoteDragStart}
+          onNoteUpdate={handleNoteUpdate}
+          onDeleteItem={handleDeleteItem}
+          circleSize={circleSize}
+        />
       </div>
 
       <BottomToast message={toastMessage} onClose={() => setToastMessage('')} />

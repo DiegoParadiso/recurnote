@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import CircleLarge from '../components/CircleLarge/CircleLarge';
+import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
 import HalfCircleSidebar from '../components/HalfCircleSidebar/HalfCircleSidebar';
 import { Eye, EyeOff } from 'lucide-react';
 import HalfCircleDayView from '../components/HalfCircleDayView/HalfCircleDayView';
@@ -29,7 +29,11 @@ export default function Home() {
         </button>
       </div>
 
-      {showRightSidebar && <HalfCircleDayView selectedDay={selectedDay} />}
+      {showRightSidebar &&  <HalfCircleDayView
+  selectedDay={selectedDay}
+  setSelectedDay={setSelectedDay}
+  showRightSidebar={showRightSidebar}
+/>}
 
       {/* Flecha animada */}
       <button

@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 import { useItems } from '../../context/ItemsContext';
 import formatDateKey from '../../utils/formatDateKey';
 
-export default function HalfCircleDayView() {
+export default function HalfCircleDayView({ setSelectedDay }) {
   const { itemsByDate, setItemsByDate } = useItems();
   const [itemsForDays, setItemsForDays] = useState([]);
   const [startDate, setStartDate] = useState(null);
@@ -11,11 +11,27 @@ export default function HalfCircleDayView() {
   useEffect(() => {
     const now = DateTime.now();
     setStartDate(now);
-    const lastDay = now.endOf('month').day;
-    const itemsList = [];
 
-    for (let day = now.day; day <= lastDay; day++) {
-      const date = now.set({ day });
+    // Obtener todas las fechas con items en formato DateTime
+    const fechasConItems = Object.keys(itemsByDate)
+      .map((key) => {
+        // Ajustar aquí si el formato de las keys cambia
+        return DateTime.fromISO(key);
+      })
+      .filter(date => date >= now);
+
+    if (fechasConItems.length === 0) {
+      // No hay items futuros
+      setItemsForDays([]);
+      return;
+    }
+
+    // Encontrar la fecha más lejana con items
+    const maxDate = fechasConItems.reduce((a, b) => (a > b ? a : b));
+
+    const itemsList = [];
+    // Iterar desde hoy hasta maxDate
+    for (let date = now; date <= maxDate; date = date.plus({ days: 1 })) {
       const key = formatDateKey(date.toObject());
       const items = itemsByDate[key] || [];
       if (items.length > 0) {
@@ -44,10 +60,22 @@ export default function HalfCircleDayView() {
   };
 
   const renderItem = (item, dateKey) => {
+    const handleDelete = (e) => {
+      e.preventDefault();
+      const confirmed = window.confirm('¿Eliminar este ítem?');
+      if (!confirmed) return;
+
+      setItemsByDate((prev) => {
+        const newItems = (prev[dateKey] || []).filter((i) => i.id !== item.id);
+        return { ...prev, [dateKey]: newItems };
+      });
+    };
+
     if (item.label === 'Tarea') {
       return (
         <div
           key={item.id}
+          onContextMenu={handleDelete}
           className="w-full rounded p-2 bg-neutral-200 border border-neutral-300 shadow-sm text-[10px] text-neutral-700"
         >
           {(item.content || []).map((task, idx) => (
@@ -70,6 +98,7 @@ export default function HalfCircleDayView() {
     return (
       <div
         key={item.id}
+        onContextMenu={handleDelete}
         className="w-full rounded p-2 bg-neutral-200 border border-neutral-300 shadow-sm text-[10px] text-neutral-700"
         title={item.content}
       >
@@ -112,7 +141,10 @@ export default function HalfCircleDayView() {
               const key = formatDateKey(date.toObject());
               return (
                 <div key={date.toISODate()} className="flex flex-col gap-2 border-b pb-3">
-                  <h3 className="text-[10px] font-semibold text-neutral-500 mono tracking-wide uppercase">
+                  <h3
+                    onClick={() => setSelectedDay(date.toObject())}
+                    className="text-[10px] font-semibold text-neutral-500 mono tracking-wide uppercase cursor-pointer hover:text-black transition"
+                  >
                     {date.setLocale('es').toFormat('cccc d LLLL')}
                   </h3>
                   {items.map((item) => renderItem(item, key))}

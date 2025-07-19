@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import UnifiedContainer from '../../common/UnifiedContainer';
-import WithContextMenu from '../../common/WithContextMenu';
+import UnifiedContainer from '../../../common/UnifiedContainer';
+import WithContextMenu from '../../../common/WithContextMenu';
 
 export default function TaskItem({
   id,

@@ -1,0 +1,24 @@
+[33me4df2e5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: se agrega sección de Proximos Días; feat(ui) Flecha con animación para indicar el menu desplegable; Fix: Se agrega Tiempo de Carga para Local Storage
+[33m7460587[m feat: se agrega Toast para mensajes de alerta; feat(ui): se agrega logo a la pantalla de bienvenida
+[33m9a96a30[m Merge branch 'master' of https://github.com/DiegoParadiso/recurnote
+[33m70e23ee[m feat: Agregar favicons y site manifest en public/assets
+[33m58d5cec[m Create LICENSE
+[33m6f38593[m refactor: migración a itemsByDate con contexto global y soporte de múltiples días dinamico
+[33mf4230f6[m Fix: Scroll automático; feat: Soporte para eliminar Items
+[33m8c223c5[m refactor: separar componentes, utils y hooks; fix: corregir comportamientos en items
+[33m6225852[m feat: Limites y mejora en el manejo de TaskItem. drag & drop y actualización de notas. (2025-07-06)
+[33m46fd5a0[m feat: Refactor de los items para que el estado se maneje desde CircleLarge - estado levantado al componente padre (2025-07-05)
+[33m979265c[m Mejora en el manejo de drop y handle de los Items, ahora usan un contenedor padre compartido
+[33m50d96f5[m Se añade TaskItem, mejora en manejo de NoteItem, estilos y colisiones
+[33ma8ab07a[m Ajustes en el Drop de NoteItem + Separación de capas
+[33m96e050c[m Organización modular de código
+[33mfb659e1[m Mejora en zona drop y colisiones
+[33m76051d2[m Conf. en el manejo del CircleLarge y NoteItem
+[33m11aa9b2[m conf. de halfcircle
+[33m9fb4cb1[m Conf. de estilos y manejo del drop (Notas)
+[33m127bf62[m Se agrega botón de visibilidad del circleSmall
+[33mfa1b67e[m Diseño del Halfcircle
+[33m2af3b2e[m Cambio de estilos en el halfcircle.jsx
+[33mcdd701e[m conf. de halfcircle
+[33ma6deedc[m Iniciando responsividad
+[33mf081915[m Primer commit

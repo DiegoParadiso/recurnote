@@ -19,7 +19,7 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
       setTimeout(() => {
         setShouldRender(false);
         onClose();
-      }, 700); // Debe coincidir con duración de animación
+      }, 700); 
     }, duration);
 
     return () => {
