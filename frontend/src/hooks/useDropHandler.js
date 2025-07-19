@@ -8,11 +8,19 @@ export default function useHandleDrop({
   selectedDay,
   rotationAngle,
   radius,
+  onInvalidDrop, // nuevo callback
 }) {
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
-      if (!containerRef.current || !selectedDay) return;
+
+      // Avisar si no hay día seleccionado
+      if (!containerRef.current || !selectedDay) {
+        if (typeof onInvalidDrop === 'function') {
+          onInvalidDrop();
+        }
+        return;
+      }
 
       const rect = containerRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -74,7 +82,15 @@ export default function useHandleDrop({
         }));
       }
     },
-    [containerRef, itemsByDate, setItemsByDate, selectedDay, rotationAngle, radius]
+    [
+      containerRef,
+      itemsByDate,
+      setItemsByDate,
+      selectedDay,
+      rotationAngle,
+      radius,
+      onInvalidDrop,
+    ]
   );
 
   return handleDrop;

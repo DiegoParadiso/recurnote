@@ -79,7 +79,8 @@ export default function HalfCircleSidebar() {
       <div className="absolute left-0 top-0 h-full w-[30px] z-10" />
 
       {/* Sidebar animado */}
-      <div className="absolute left-[-270px] top-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out group-hover:left-0">
+      <div className="absolute left-[-270px] top-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out group-hover:left-[-1px]">
+
         <div className="w-[300px] h-[600px] border border-neutral-700 rounded-r-full flex flex-col items-start justify-center gap-4 overflow-auto p-16 bg-neutral">
           {items.map((item) => (
             <div

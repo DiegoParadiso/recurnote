@@ -24,7 +24,7 @@ export default function DayButton({
     >
       <div
         className={`rounded-full border-2 shadow-sm relative flex items-center justify-center cursor-pointer transition duration-200 ${
-          isSelected ? 'bg-black border-black' : 'bg-gray-100 border-gray-300 hover:bg-black'
+          isSelected ? ' bg-neutral-800 border-neutral-800' : 'bg-gray-100 border-gray-300'
         }`}
         style={{
           width: `${buttonSize}px`,

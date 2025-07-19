@@ -9,15 +9,18 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 import useRotationControls from '../../hooks/useRotationControls';
 import formatDateKey from '../../utils/formatDateKey';
 import { useItems } from '../../context/ItemsContext';
+import BottomToast from '../BottomToast';
+import logo from '../../../public/assets/logorecurnote.png';
 
 export default function CircleLarge({ showSmall }) {
   const [selectedDay, setSelectedDay] = useState(null);
-const { itemsByDate, setItemsByDate } = useItems();
+  const { itemsByDate, setItemsByDate } = useItems();
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
   const [circleSize, setCircleSize] = useState(680);
   const [rotationAngle, setRotationAngle] = useState(0);
   const rotationSpeed = 2;
+  const [toastMessage, setToastMessage] = useState('');
 
   const {
     onMouseDown,
@@ -67,16 +70,17 @@ const { itemsByDate, setItemsByDate } = useItems();
 
   const handleDragOver = (e) => e.preventDefault();
 
-  const handleDrop = useHandleDrop({
-    containerRef,
-    itemsByDate,
-    setItemsByDate,
-    selectedDay,
-    rotationAngle,
-    radius,
-    cx,
-    cy,
-  });
+const handleDrop = useHandleDrop({
+  containerRef,
+  itemsByDate,
+  setItemsByDate,
+  selectedDay,
+  rotationAngle,
+  radius,
+  cx,
+  cy,
+  onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
+});
 
   const handleNoteDragStart = (e, itemId) => {
     e.dataTransfer.setData('source', 'dropped');
@@ -92,8 +96,10 @@ const { itemsByDate, setItemsByDate } = useItems();
       [dateKey]: prev[dateKey].map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item };
-
-        if (typeof newContent === 'string') {
+        if (Array.isArray(newContent)) {
+          updated.checked = newPolar; 
+        }
+        if (newContent !== undefined) {
           updated.content = newContent;
         }
         if (maybeSize?.width && maybeSize?.height) {
@@ -186,28 +192,49 @@ const { itemsByDate, setItemsByDate } = useItems();
       </div>
 
       <div
-        ref={containerRef}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        className="rounded-full border border-gray-700 shadow-md flex items-center justify-center overflow-hidden"
-        style={{
-          width: circleSize,
-          height: circleSize,
-          margin: '0 auto',
-          position: 'relative',
-          zIndex: 1,
-          transform: `rotate(${rotationAngle}deg)`,
-        }}
-      >
-        {selectedDay && (
-          <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
-            <NotesArea dayInfo={selectedDay} />
-          </div>
-        )}
+  ref={containerRef}
+  onDragOver={handleDragOver}
+  onDrop={handleDrop}
+  onMouseDown={onMouseDown}
+  onMouseMove={onMouseMove}
+  onMouseUp={onMouseUp}
+  onMouseLeave={onMouseUp}
+  className="rounded-full border border-gray-700 shadow-md flex items-center justify-center overflow-hidden"
+  style={{
+    width: circleSize,
+    height: circleSize,
+    margin: '0 auto',
+    position: 'relative',
+    zIndex: 1,
+    transform: `rotate(${rotationAngle}deg)`,
+  }}
+>
+{!selectedDay && (
+  <img
+    src={logo}
+    alt="Logo Marca de Agua"
+    style={{
+      position: 'absolute',
+      top: '26%',         // vertical centro del contenedor
+      left: -30,            // pegado al borde izquierdo del contenedor
+      width: circleSize * 0.5,
+      height: 'auto',
+      opacity: 0.04,
+      pointerEvents: 'none',
+      userSelect: 'none',
+      zIndex: 0,
+
+      transform: `translate(-20%, -20%) rotate(35deg)`, 
+      transformOrigin: 'center center',
+    }}
+  />
+)}
+
+  {selectedDay && (
+    <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
+      <NotesArea dayInfo={selectedDay} />
+    </div>
+  )}
 
         {itemsForSelectedDay.map((item) => {
           const angleInRadians = (item.angle * Math.PI) / 180;
@@ -276,6 +303,8 @@ const { itemsByDate, setItemsByDate } = useItems();
           );
         })}
       </div>
+
+      <BottomToast message={toastMessage} onClose={() => setToastMessage('')} />
     </div>
   );
 }
