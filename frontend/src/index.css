@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html, body, #root {
   overflow: hidden;
+    height: 100%;
+  margin: 0;
 }

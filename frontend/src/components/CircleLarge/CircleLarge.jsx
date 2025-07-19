@@ -10,10 +10,9 @@ import useRotationControls from '../../hooks/useRotationControls';
 import formatDateKey from '../../utils/formatDateKey';
 import { useItems } from '../../context/ItemsContext';
 import BottomToast from '../BottomToast';
-import logo from '../../../public/assets/logorecurnote.png';
+import logo from '../../assets/logorecurnote.png';
 
-export default function CircleLarge({ showSmall }) {
-  const [selectedDay, setSelectedDay] = useState(null);
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
   const { itemsByDate, setItemsByDate } = useItems();
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
@@ -215,8 +214,8 @@ const handleDrop = useHandleDrop({
     alt="Logo Marca de Agua"
     style={{
       position: 'absolute',
-      top: '26%',         // vertical centro del contenedor
-      left: -30,            // pegado al borde izquierdo del contenedor
+      top: '26%',
+      left: -30,
       width: circleSize * 0.5,
       height: 'auto',
       opacity: 0.04,

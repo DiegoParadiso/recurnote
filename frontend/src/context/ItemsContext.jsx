@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 
 const ItemsContext = createContext();
 
@@ -12,15 +12,28 @@ export const ItemsProvider = ({ children }) => {
       try {
         setItemsByDate(JSON.parse(stored));
       } catch (error) {
-        console.error("Error al parsear itemsByDate desde localStorage:", error);
-        localStorage.removeItem('itemsByDate'); // por si estaba corrupto
+        console.error('Error parseando itemsByDate:', error);
+        localStorage.removeItem('itemsByDate');
       }
     }
   }, []);
 
-  // Guardar en localStorage cuando cambia
+  // Ref para manejar el timeout del debounce
+  const saveTimeoutRef = useRef(null);
+
+  // Guardar en localStorage cuando cambia itemsByDate, con debounce
   useEffect(() => {
-    localStorage.setItem('itemsByDate', JSON.stringify(itemsByDate));
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      console.log('Guardando itemsByDate en localStorage:', itemsByDate);
+      localStorage.setItem('itemsByDate', JSON.stringify(itemsByDate));
+    }, 300); // Espera 300ms antes de guardar
+
+    // Limpieza para evitar fugas de memoria si se desmonta el componente
+    return () => clearTimeout(saveTimeoutRef.current);
   }, [itemsByDate]);
 
   return (
