@@ -7,3 +7,14 @@ html, body, #root {
     height: 100%;
   margin: 0;
 }
+
+/* Ocultar scrollbar para elementos con scroll vertical */
+.scroll-hidden {
+  overflow-y: auto;  /* debe haber scroll para que aparezca */
+  -ms-overflow-style: none;  /* IE y Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari y Opera */
+}
