@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
-import HalfCircleSidebar from '../components/HalfCircleSidebar/HalfCircleSidebar';
+import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView/';
 import { Eye, EyeOff } from 'lucide-react';
-import HalfCircleDayView from '../components/HalfCircleDayView/HalfCircleDayView';
+import HalfCircleSidebar from '../components/Sidebars/HalfCircleSidebar/HalfCircleSidebar';
 
 export default function Home() {
   const [showSmall, setShowSmall] = useState(true);
@@ -29,7 +29,7 @@ export default function Home() {
         </button>
       </div>
 
-      {showRightSidebar &&  <HalfCircleDayView
+      {showRightSidebar &&  <SidebarDayView
   selectedDay={selectedDay}
   setSelectedDay={setSelectedDay}
   showRightSidebar={showRightSidebar}

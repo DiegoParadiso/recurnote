@@ -1,6 +1,8 @@
+// components/Circles/CircleSmall/CircleSmall.jsx
 import { useState, useRef, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import DayButton from './DayButton';
+import MonthHeader from './MonthHeader';
 
 export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -101,59 +103,6 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) 
   const prevDate = currentDate.minus({ months: 1 });
   const nextDate = currentDate.plus({ months: 1 });
 
-  const renderMonthText = (date, position, onClick) => {
-    const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
-    let style = {
-      position: 'absolute',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: '100%',
-      textAlign: 'center',
-      userSelect: 'none',
-      fontWeight: 600,
-      textTransform: 'uppercase',
-      color: '#374151',
-      fontSize: '0.85rem',
-      transition: 'all 0.3s ease',
-      cursor: onClick ? 'pointer' : 'default',
-      pointerEvents: onClick ? 'auto' : 'none',
-    };
-    if (position === 'previous') {
-      style = {
-        ...style,
-        top: '40%',
-        opacity: 0.35,
-        fontSize: '0.8rem',
-        filter: 'grayscale(80%)',
-      };
-    } else if (position === 'next') {
-      style = {
-        ...style,
-        top: '55%',
-        opacity: 0.35,
-        fontSize: '0.8rem',
-        filter: 'grayscale(80%)',
-      };
-    } else if (position === 'current') {
-      style = {
-        ...style,
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        opacity: 1,
-        fontSize: '1.4rem',
-        color: '#111827',
-        pointerEvents: 'none',
-        cursor: 'default',
-      };
-    }
-
-    return (
-      <h2 style={style} onClick={onClick}>
-        {mesNombre}
-      </h2>
-    );
-  };
-
   const containerStyle = isSmallScreen
     ? {
         position: 'relative',
@@ -181,9 +130,9 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) 
       onTouchEnd={handleTouchEnd}
       style={containerStyle}
     >
-      {renderMonthText(prevDate, 'previous', () => setCurrentDate(prevDate))}
-      {renderMonthText(currentDate, 'current', null)}
-      {renderMonthText(nextDate, 'next', () => setCurrentDate(nextDate))}
+      <MonthHeader date={prevDate} position="previous" onClick={() => setCurrentDate(prevDate)} />
+      <MonthHeader date={currentDate} position="current" />
+      <MonthHeader date={nextDate} position="next" onClick={() => setCurrentDate(nextDate)} />
 
       {buttons}
     </div>

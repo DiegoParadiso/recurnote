@@ -1,8 +1,10 @@
+// components/Circles/CircleLarge/CircleLarge.jsx
 import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
 import ItemsOnCircle from '../Items/ItemsOnCircle';
-import ArcText from './ArcText';
+import CircleBackgroundText from './CircleBackgroundText';
+import EmptyLogo from './EmptyLogo';
 import { DateTime } from 'luxon';
 import useHandleDrop from '../../../hooks/useDropHandler';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -10,7 +12,6 @@ import useRotationControls from '../../../hooks/useRotationControls';
 import formatDateKey from '../../../utils/formatDateKey';
 import { useItems } from '../../../context/ItemsContext';
 import BottomToast from '../../common/BottomToast';
-import logo from '../../../assets/logorecurnote.png';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
   const { itemsByDate, setItemsByDate } = useItems();
@@ -30,8 +31,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
 
   useEffect(() => {
     if (containerRef.current) {
-      const size = containerRef.current.offsetWidth;
-      setCircleSize(size);
+      setCircleSize(containerRef.current.offsetWidth);
     }
   }, [width]);
 
@@ -67,8 +67,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
-  const handleDragOver = (e) => e.preventDefault();
-
   const handleDrop = useHandleDrop({
     containerRef,
     itemsByDate,
@@ -95,12 +93,9 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
       [dateKey]: prev[dateKey].map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item };
-        if (Array.isArray(newContent)) {
-          updated.checked = newPolar;
-        }
-        if (newContent !== undefined) {
-          updated.content = newContent;
-        }
+
+        if (Array.isArray(newContent)) updated.checked = newPolar;
+        if (newContent !== undefined) updated.content = newContent;
         if (maybeSize?.width && maybeSize?.height) {
           updated.width = maybeSize.width;
           updated.height = maybeSize.height;
@@ -116,7 +111,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
           const rotatedX = dx * Math.cos(radians) - dy * Math.sin(radians);
           const rotatedY = dx * Math.sin(radians) + dy * Math.cos(radians);
           const angle = (Math.atan2(rotatedY, rotatedX) * 180) / Math.PI;
-
           updated.angle = (angle + rotationAngle + 360) % 360;
           updated.distance = Math.sqrt(rotatedX ** 2 + rotatedY ** 2);
         }
@@ -135,8 +129,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     }));
   };
 
-  const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
-  const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
+  const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
 
   return (
     <div
@@ -157,42 +150,15 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
         </div>
       )}
 
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: circleSize,
-          height: circleSize,
-          pointerEvents: 'none',
-          zIndex: 10,
-        }}
-      >
-        <svg viewBox={`0 0 ${circleSize} ${circleSize}`} preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <path
-              id="dayPath"
-              d={`M ${cx - radius},${cy} A ${radius},${radius} 0 0,1 ${cx + radius},${cy}`}
-              fill="none"
-            />
-          </defs>
-          <text
-            fill="#1f2937"
-            fontFamily="IBM Plex Mono, monospace"
-            fontSize={circleSize * 0.03}
-            letterSpacing="2"
-            fontWeight="600"
-          >
-            <textPath href="#dayPath" startOffset="50%" textAnchor="middle">
-              {displayText.toUpperCase()}
-            </textPath>
-          </text>
-        </svg>
-      </div>
+      <CircleBackgroundText
+        circleSize={circleSize}
+        radius={radius}
+        displayText={displayText}
+      />
 
       <div
         ref={containerRef}
-        onDragOver={handleDragOver}
+        onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
@@ -208,25 +174,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
           transform: `rotate(${rotationAngle}deg)`,
         }}
       >
-        {!selectedDay && (
-          <img
-            src={logo}
-            alt="Logo Marca de Agua"
-            style={{
-              position: 'absolute',
-              top: '26%',
-              left: -30,
-              width: circleSize * 0.5,
-              height: 'auto',
-              opacity: 0.04,
-              pointerEvents: 'none',
-              userSelect: 'none',
-              zIndex: 0,
-              transform: `translate(-20%, -20%) rotate(35deg)`,
-              transformOrigin: 'center center',
-            }}
-          />
-        )}
+        {!selectedDay && <EmptyLogo circleSize={circleSize} />}
 
         {selectedDay && (
           <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>

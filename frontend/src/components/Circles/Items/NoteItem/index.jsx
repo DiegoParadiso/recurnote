@@ -60,7 +60,11 @@ export default function NoteItem({
           onChange={handleTextChange}
           placeholder="Escribe aquí..."
           className="pl-6 pr-2 pt-1 text-[10px] bg-transparent outline-none text-black rounded-md w-full h-full"
-          style={{ resize: 'none', overflow: 'hidden', wordBreak: 'break-word' }}
+          style={{
+            resize: 'none',
+            overflow: 'hidden',
+            wordBreak: 'break-word',
+          }}
         />
       </UnifiedContainer>
     </WithContextMenu>

@@ -4,13 +4,17 @@ import WithContextMenu from '../../../common/WithContextMenu';
 
 export default function TaskItem({
   id,
-  x, y, rotation,
+  x,
+  y,
+  rotation,
   item,
-  onMove, onResize,
+  onMove,
+  onResize,
   onUpdate,
   onDelete,
-  cx, cy,
-  circleSize
+  cx,
+  cy,
+  circleSize,
 }) {
   const [tasks, setTasks] = useState(item.content || []);
   const [checks, setChecks] = useState(item.checked || []);
@@ -75,7 +79,11 @@ export default function TaskItem({
           style={{ flexGrow: 1, overflowY: 'visible', height: 'auto' }}
         >
           {tasks.slice(0, maxTasks).map((task, index) => (
-            <div key={index} className="flex items-center gap-2 pt-1 pb-1" style={{ height: taskHeight }}>
+            <div
+              key={index}
+              className="flex items-center gap-2 pt-1 pb-1"
+              style={{ height: taskHeight }}
+            >
               <input
                 type="checkbox"
                 className="w-[12px] h-[12px] text-neutral-400"
@@ -98,7 +106,12 @@ export default function TaskItem({
               onClick={addTask}
               className="text-neutral-400 text-[20px] hover:text-neutral-600 text-left"
               type="button"
-              style={{ height: buttonHeight, padding: 0, margin: 0, lineHeight: `${buttonHeight}px` }}
+              style={{
+                height: buttonHeight,
+                padding: 0,
+                margin: 0,
+                lineHeight: `${buttonHeight}px`,
+              }}
             >
               +
             </button>
