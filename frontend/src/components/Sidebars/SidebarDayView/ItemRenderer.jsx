@@ -1,4 +1,5 @@
 import React from 'react';
+import './SidebarDayView.css'; 
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsByDate }) {
   const handleDelete = (e) => {
@@ -16,17 +17,36 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsB
       <div
         key={item.id}
         onContextMenu={handleDelete}
-        className="w-full rounded p-2 bg-neutral-200 border border-neutral-300 shadow-sm text-[10px] text-neutral-700"
+        className="w-full rounded p-2 item-card border shadow-sm text-[10px]"
       >
         {(item.content || []).map((task, idx) => (
           <div key={idx} className="flex items-center gap-2 mb-1">
-            <input
-              type="checkbox"
-              className="w-[10px] h-[10px] accent-neutral-500"
-              checked={item.checked?.[idx] || false}
-              onChange={() => toggleTaskCheck(dateKey, idx)}
-            />
-            <span className={item.checked?.[idx] ? 'line-through text-neutral-400' : ''}>
+            <label className="checkbox-label relative cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="checkbox-input"
+                checked={item.checked?.[idx] || false}
+                onChange={() => toggleTaskCheck(dateKey, idx)}
+              />
+              <span
+                className={`checkbox-box ${item.checked?.[idx] ? 'checked' : ''}`}
+              >
+                <svg
+                  viewBox="0 0 12 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 5L4 8L11 1"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </label>
+            <span className={item.checked?.[idx] ? 'line-through' : ''}>
               {task}
             </span>
           </div>
@@ -39,7 +59,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsB
     <div
       key={item.id}
       onContextMenu={handleDelete}
-      className="w-full rounded p-2 bg-neutral-200 border border-neutral-300 shadow-sm text-[10px] text-neutral-700"
+      className="w-full rounded p-2 item-card border shadow-sm text-[10px]"
       title={item.content}
     >
       {item.content}

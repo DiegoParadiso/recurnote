@@ -6,7 +6,7 @@
   --color-highlight: #44403c;
 
   --daybutton-selected-bg: var(--color-highlight);
-  --daybutton-selected-border: var(--color-text-primary); 
+  --daybutton-selected-border: var(--color-text-primary);
   --daybutton-selected-text: #ffffff;
 
   --daybutton-bg: var(--color-bg);
@@ -16,19 +16,22 @@
   --logo-brightness: 1.2;
   --logo-invert: 0;
   --logo-opacity: 0.05;
+
+  /* Color del check en modo claro: blanco */
+  --checkbox-check-stroke: white;
 }
 
-/* DARK MODE - se activa con la clase html.dark */
+/* Modo oscuro */
 html.dark {
   --color-bg: #121212;
-  --color-bg-2: #2c2c2c;  
-  --color-text-primary: #d3d3d3; 
+  --color-bg-2: #2c2c2c;
+  --color-text-primary: #d3d3d3;
   --color-text-secondary: #50555D;
   --color-highlight: #f5f5f5;
 
-  --daybutton-selected-bg: #3a3a3a; 
-  --daybutton-selected-border: var(--color-text-secondary); 
-  --daybutton-selected-text: #e0e0e0; 
+  --daybutton-selected-bg: #3a3a3a;
+  --daybutton-selected-border: var(--color-text-secondary);
+  --daybutton-selected-text: #e0e0e0;
 
   --daybutton-bg: var(--color-bg);
   --daybutton-border: var(--color-text-secondary);
@@ -37,9 +40,72 @@ html.dark {
   --logo-brightness: 3;
   --logo-invert: 1;
   --logo-opacity: 0.3;
+
+  /* Color del check en modo oscuro: negro */
+  --checkbox-check-stroke: black;
 }
 
-/* Opcional: scrollbar oculto que usas */
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--color-text-secondary);
+  border-radius: 2px;
+  background-color: transparent;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  cursor: pointer;
+  color: var(--checkbox-check-stroke);
+  vertical-align: middle;
+  position: relative;
+}
+
+.checkbox-box.checked {
+  background-color: var(--color-highlight);
+  border-color: var(--color-highlight);
+  color: var(--checkbox-check-stroke);
+}
+
+.checkbox-box svg {
+  width: 8px;
+  height: 8px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.checkbox-box.checked svg {
+  opacity: 1;
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.checkbox-label:focus-visible .checkbox-box {
+  outline: 2px solid var(--color-highlight);
+  outline-offset: 2px;
+}
+
 .scroll-hidden::-webkit-scrollbar {
   width: 0px;
   background: transparent;

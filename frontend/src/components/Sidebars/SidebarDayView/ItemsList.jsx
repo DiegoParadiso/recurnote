@@ -1,9 +1,10 @@
+
 import React from 'react';
 import DayItemGroup from './DayItemGroup';
 
 export default function ItemsList({ itemsForDays, setSelectedDay, renderItem }) {
   if (itemsForDays.length === 0) {
-    return <p className="text-neutral-500 text-[10px] italic">No hay ítems para los próximos días.</p>;
+    return <p className="text-[10px] italic">No hay ítems para los próximos días.</p>;
   }
 
   return (

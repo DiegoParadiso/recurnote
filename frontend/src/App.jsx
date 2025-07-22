@@ -1,12 +1,10 @@
 import Home from './pages/Home';
 import { ItemsProvider } from './context/ItemsContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 function AppContent() {
-  const { isLightTheme } = useTheme();
-
   return (
-    <div id="app-container" className={isLightTheme ? '' : 'dark'}>
+    <div id="app-container">
       <ItemsProvider>
         <Home />
       </ItemsProvider>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 
@@ -16,14 +16,11 @@ export default function TaskItem({
   cy,
   circleSize,
 }) {
-  const [tasks, setTasks] = useState(item.content || []);
-  const [checks, setChecks] = useState(item.checked || []);
-
   const baseHeight = 30;
   const maxTasks = 4;
   const taskHeight = 30;
   const buttonHeight = 30;
-  const visibleTasksCount = Math.min(tasks.length, maxTasks);
+  const visibleTasksCount = Math.min(item.content?.length || 0, maxTasks);
 
   const computedMinHeight =
     visibleTasksCount >= maxTasks
@@ -31,25 +28,21 @@ export default function TaskItem({
       : Math.min(baseHeight + visibleTasksCount * taskHeight + buttonHeight, 400);
 
   const handleTaskChange = (index, value) => {
-    const updated = [...tasks];
-    updated[index] = value;
-    setTasks(updated);
-    onUpdate?.(id, updated, checks);
+    const updatedTasks = [...(item.content || [])];
+    updatedTasks[index] = value;
+    onUpdate?.(id, updatedTasks, item.checked || []);
   };
 
   const handleCheckChange = (index, checked) => {
-    const updated = [...checks];
-    updated[index] = checked;
-    setChecks(updated);
-    onUpdate?.(id, tasks, updated);
+    const updatedChecks = [...(item.checked || [])];
+    updatedChecks[index] = checked;
+    onUpdate?.(id, item.content || [], updatedChecks);
   };
 
   const addTask = () => {
-    if (tasks.length >= maxTasks) return;
-    const newTasks = [...tasks, ''];
-    const newChecks = [...checks, false];
-    setTasks(newTasks);
-    setChecks(newChecks);
+    if ((item.content?.length || 0) >= maxTasks) return;
+    const newTasks = [...(item.content || []), ''];
+    const newChecks = [...(item.checked || []), false];
     onUpdate?.(id, newTasks, newChecks);
   };
 
@@ -65,10 +58,10 @@ export default function TaskItem({
         maxWidth={400}
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
-        onMove={({ x, y }) => onUpdate?.(id, tasks, checks, null, { x, y })}
+        onMove={({ x, y }) => onUpdate?.(id, item.content || [], item.checked || [], null, { x, y })}
         onResize={(newSize) => {
           const newWidth = Math.min(newSize.width, 400);
-          onUpdate?.(id, tasks, checks, { width: newWidth, height: computedMinHeight });
+          onUpdate?.(id, item.content || [], item.checked || [], { width: newWidth, height: computedMinHeight });
           onResize?.({ width: newWidth, height: computedMinHeight });
         }}
         circleCenter={{ cx, cy }}
@@ -83,21 +76,41 @@ export default function TaskItem({
             color: 'var(--color-text-primary)',
           }}
         >
-          {tasks.slice(0, maxTasks).map((task, index) => (
+          {(item.content || []).slice(0, maxTasks).map((task, index) => (
             <div
               key={index}
               className="flex items-center gap-2 pt-1 pb-1"
               style={{ height: taskHeight }}
             >
-              <input
-                type="checkbox"
-                className="w-[12px] h-[12px]"
-                style={{
-                  accentColor: 'var(--color-highlight)',
+              <label
+                tabIndex={0}
+                className="checkbox-label relative inline-flex items-center cursor-pointer select-none"
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCheckChange(index, !(item.checked?.[index] || false));
+                  }
                 }}
-                checked={checks[index] || false}
-                onChange={(e) => handleCheckChange(index, e.target.checked)}
-              />
+              >
+                <input
+                  type="checkbox"
+                  className="checkbox-input"
+                  checked={item.checked?.[index] || false}
+                  onChange={(e) => handleCheckChange(index, e.target.checked)}
+                />
+                <span className={`checkbox-box ${item.checked?.[index] ? 'checked' : ''}`}>
+                  <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M1 5L4 8L11 1"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                  </svg>
+                </span>
+              </label>
+
               <input
                 type="text"
                 value={task}
@@ -114,7 +127,7 @@ export default function TaskItem({
             </div>
           ))}
 
-          {tasks.length < maxTasks && (
+          {(item.content?.length || 0) < maxTasks && (
             <button
               onClick={addTask}
               className="text-[20px] text-left"
