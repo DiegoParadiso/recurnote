@@ -1,4 +1,3 @@
-// ArcText.jsx
 export default function ArcText({ circleSize, radius, cx, cy, text }) {
   const arcStartX = cx - radius;
   const arcEndX = cx + radius;

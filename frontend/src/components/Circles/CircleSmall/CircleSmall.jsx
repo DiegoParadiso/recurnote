@@ -1,4 +1,3 @@
-// components/Circles/CircleSmall/CircleSmall.jsx
 import { useState, useRef, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import DayButton from './DayButton';
@@ -110,6 +109,11 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) 
         height: '350px',
         margin: '0 auto',
         zIndex: 9999,
+        backgroundColor: 'var(--color-bg)',
+        color: 'var(--color-text-primary)',
+        border: '1px solid var(--color-text-primary)',
+        borderRadius: '9999px',
+        transition: 'background-color 0.3s ease, color 0.3s ease',
       }
     : {
         position: 'relative',
@@ -118,11 +122,16 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) 
         marginLeft: 'auto',
         marginRight: 0,
         zIndex: 9999,
+        backgroundColor: 'var(--color-bg)',
+        color: 'var(--color-text-primary)',
+        border: '1px solid var(--color-text-primary)',
+        borderRadius: '9999px',
+        transition: 'background-color 0.3s ease, color 0.3s ease',
       };
 
   return (
     <div
-      className="uppercase font-ibm rounded-full border border-gray-700 shadow-md overflow-hidden bg-neutral-100"
+      className="uppercase font-ibm rounded-full overflow-hidden"
       onWheel={handleScroll}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}

@@ -72,9 +72,11 @@ export default function ItemsOnCircle({
               borderRadius: '9999px',
               fontSize: '0.75rem',
               fontWeight: '600',
-              border: '1px solid #ccc',
-              backgroundColor: 'rgba(255,255,255,0.8)',
+              border: '1px solid var(--color-text-secondary)',       // variable para borde
+              backgroundColor: 'var(--color-bg)',                     // fondo basado en variable
+              color: 'var(--color-text-primary)',                     // color texto principal
               backdropFilter: 'blur(4px)',
+              userSelect: 'none',
             }}
             title={item.label}
           >

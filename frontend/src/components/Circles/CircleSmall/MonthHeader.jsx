@@ -10,7 +10,7 @@ export default function MonthHeader({ date, position, onClick }) {
     userSelect: 'none',
     fontWeight: 600,
     textTransform: 'uppercase',
-    color: '#374151',
+    color: 'var(--color-text-primary)',
     fontSize: '0.85rem',
     transition: 'all 0.3s ease',
     cursor: onClick ? 'pointer' : 'default',
@@ -40,7 +40,7 @@ export default function MonthHeader({ date, position, onClick }) {
       transform: 'translate(-50%, -50%)',
       opacity: 1,
       fontSize: '1.4rem',
-      color: '#111827',
+      color: 'var(--color-text-primary)',
       pointerEvents: 'none',
       cursor: 'default',
     };

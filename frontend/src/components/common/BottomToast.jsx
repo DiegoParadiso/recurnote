@@ -10,16 +10,13 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
     setShouldRender(true);
     setVisible(false);
 
-    const appearTimeout = setTimeout(() => {
-      setVisible(true);
-    }, 20);
-
+    const appearTimeout = setTimeout(() => setVisible(true), 20);
     const hideTimer = setTimeout(() => {
       setVisible(false);
       setTimeout(() => {
         setShouldRender(false);
         onClose();
-      }, 700); 
+      }, 700);
     }, duration);
 
     return () => {
@@ -36,7 +33,6 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
         fixed bottom-0 left-1/2 transform -translate-x-1/2
         px-6 py-2 text-sm w-fit max-w-[90%]
         rounded-t-xl rounded-b-none shadow-md border-t border-x
-        bg-gray-100 border-gray-400 text-neutral-900
         backdrop-blur-md normal-case
         transition-transform duration-700 ease-out
         ${visible ? 'translate-y-0' : 'translate-y-full'}
@@ -44,6 +40,9 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
       style={{
         zIndex: 9999,
         willChange: 'transform',
+        backgroundColor: 'var(--color-bg)',
+        borderColor: 'var(--color-text-secondary)',
+        color: 'var(--color-text-primary)',
       }}
     >
       {message}

@@ -1,4 +1,3 @@
-// components/Circles/CircleLarge/CircleBackgroundText.jsx
 import React from 'react';
 
 export default function CircleBackgroundText({ circleSize, radius, displayText }) {
@@ -15,9 +14,14 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
         height: circleSize,
         pointerEvents: 'none',
         zIndex: 10,
+        color: 'var(--color-text-primary)', 
       }}
     >
-      <svg viewBox={`0 0 ${circleSize} ${circleSize}`} preserveAspectRatio="xMidYMid meet">
+      <svg
+        viewBox={`0 0 ${circleSize} ${circleSize}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ overflow: 'visible' }}
+      >
         <defs>
           <path
             id="dayPath"
@@ -26,7 +30,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
           />
         </defs>
         <text
-          fill="#1f2937"
+          fill="currentColor"
           fontFamily="IBM Plex Mono, monospace"
           fontSize={circleSize * 0.03}
           letterSpacing="2"

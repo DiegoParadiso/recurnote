@@ -75,8 +75,13 @@ export default function TaskItem({
         maxRadius={circleSize / 2}
       >
         <div
-          className="text-black text-[10px] flex flex-col gap-1"
-          style={{ flexGrow: 1, overflowY: 'visible', height: 'auto' }}
+          className="text-[10px] flex flex-col gap-1"
+          style={{
+            flexGrow: 1,
+            overflowY: 'visible',
+            height: 'auto',
+            color: 'var(--color-text-primary)',
+          }}
         >
           {tasks.slice(0, maxTasks).map((task, index) => (
             <div
@@ -86,7 +91,10 @@ export default function TaskItem({
             >
               <input
                 type="checkbox"
-                className="w-[12px] h-[12px] text-neutral-400"
+                className="w-[12px] h-[12px]"
+                style={{
+                  accentColor: 'var(--color-highlight)',
+                }}
                 checked={checks[index] || false}
                 onChange={(e) => handleCheckChange(index, e.target.checked)}
               />
@@ -95,8 +103,13 @@ export default function TaskItem({
                 value={task}
                 onChange={(e) => handleTaskChange(index, e.target.value)}
                 placeholder="Tarea..."
-                className="w-full border-b bg-neutral-100 border-neutral-300 focus:outline-none text-[10px] rounded-sm"
-                style={{ padding: '2px 4px' }}
+                className="w-full border-b focus:outline-none text-[10px] rounded-sm"
+                style={{
+                  padding: '2px 4px',
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-text-secondary)',
+                  color: 'var(--color-text-primary)',
+                }}
               />
             </div>
           ))}
@@ -104,14 +117,21 @@ export default function TaskItem({
           {tasks.length < maxTasks && (
             <button
               onClick={addTask}
-              className="text-neutral-400 text-[20px] hover:text-neutral-600 text-left"
+              className="text-[20px] text-left"
               type="button"
               style={{
                 height: buttonHeight,
                 padding: 0,
                 margin: 0,
                 lineHeight: `${buttonHeight}px`,
+                color: 'var(--color-text-secondary)',
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = 'var(--color-text-primary)')
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = 'var(--color-text-secondary)')
+              }
             >
               +
             </button>

@@ -23,12 +23,17 @@ export default function DayButton({
       onClick={onClick}
     >
       <div
-        className={`rounded-full border-2 shadow-sm relative flex items-center justify-center cursor-pointer transition duration-200 ${
-          isSelected ? ' bg-neutral-700 border-neutral-700' : 'bg-gray-100 border-gray-300'
-        }`}
+        className={`rounded-full border-2 relative flex items-center justify-center cursor-pointer transition duration-200`}
         style={{
           width: `${buttonSize}px`,
           height: `${buttonSize}px`,
+          backgroundColor: isSelected
+            ? 'var(--daybutton-selected-bg)'
+            : 'var(--daybutton-bg)',
+          borderColor: isSelected
+            ? 'var(--daybutton-selected-border)'
+            : 'var(--daybutton-border)',
+          transition: 'background-color 0.3s ease, border-color 0.3s ease',
         }}
       >
         <span
@@ -39,6 +44,10 @@ export default function DayButton({
             top: `${labelY}px`,
             transform: 'translate(-50%, -50%)',
             userSelect: 'none',
+            color: isSelected
+              ? 'var(--color-text-primary)'
+              : 'var(--color-text-primary)', // mismo color para simplificar
+            transition: 'color 0.3s ease',
           }}
         >
           {day}

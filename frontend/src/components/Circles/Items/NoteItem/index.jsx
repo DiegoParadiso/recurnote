@@ -59,9 +59,10 @@ export default function NoteItem({
           value={content}
           onChange={handleTextChange}
           placeholder="Escribe aquí..."
-          className="pl-6 pr-2 pt-1 text-[10px] bg-transparent outline-none text-black rounded-md w-full h-full"
+          className="pl-6 pr-2 pt-1 text-[10px] rounded-md w-full h-full outline-none resize-none"
           style={{
-            resize: 'none',
+            backgroundColor: 'var(--color-bg)',
+            color: 'var(--color-text-primary)',
             overflow: 'hidden',
             wordBreak: 'break-word',
           }}

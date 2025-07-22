@@ -62,9 +62,20 @@ export default function UnifiedContainer({ ...props }) {
   return (
     <div
       onMouseDown={onMouseDownDrag}
-      onContextMenu={props.onContextMenu} // <-- AGREGADO PARA CLIC DERECHO
-      style={getContainerStyle({ pos, rotation, sizeState, isDragging: isDragging.current, style })}
-    >
+      onContextMenu={props.onContextMenu} 
+      style={getContainerStyle({
+        pos,
+        rotation,
+        sizeState,
+        isDragging: isDragging.current,
+        style: {
+          ...style,
+          backgroundColor: 'var(--color-bg)',
+          color: 'var(--color-text-primary)',
+          border: '1px solid var(--color-text-secondary)',
+        }
+      })}    
+      >
       {children}
       <div
         data-resize-handle="true"

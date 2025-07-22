@@ -1,11 +1,23 @@
+@import './theme.css';
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
-  overflow: hidden;
-    height: 100%;
+html, body {
   margin: 0;
+  height: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  /* Sin transición aquí */
+}
+
+#app-container {
+  height: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 /* Ocultar scrollbar para elementos con scroll vertical */

@@ -1,4 +1,3 @@
-// components/Circles/CircleLarge/CircleLarge.jsx
 import { useState, useEffect, useRef } from 'react';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
@@ -22,12 +21,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
   const rotationSpeed = 2;
   const [toastMessage, setToastMessage] = useState('');
 
-  const {
-    onMouseDown,
-    onMouseMove,
-    onMouseUp,
-    prevRotationRef,
-  } = useRotationControls({ containerRef, rotationAngle, setRotationAngle, rotationSpeed });
+  const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
+    containerRef,
+    rotationAngle,
+    setRotationAngle,
+    rotationSpeed,
+  });
 
   useEffect(() => {
     if (containerRef.current) {
@@ -142,19 +141,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
       }}
     >
       {!isSmallScreen && showSmall && (
-        <div
-          className="absolute right-0 top-1/2 -translate-y-1/2"
-          style={{ zIndex: 9999 }}
-        >
+        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 9999 }}>
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
         </div>
       )}
 
-      <CircleBackgroundText
-        circleSize={circleSize}
-        radius={radius}
-        displayText={displayText}
-      />
+      <CircleBackgroundText circleSize={circleSize} radius={radius} displayText={displayText} />
 
       <div
         ref={containerRef}
@@ -164,7 +156,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
-        className="rounded-full border border-gray-700 shadow-md flex items-center justify-center overflow-hidden"
+        className="rounded-full border flex items-center justify-center overflow-hidden"
         style={{
           width: circleSize,
           height: circleSize,
@@ -172,15 +164,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
           position: 'relative',
           zIndex: 1,
           transform: `rotate(${rotationAngle}deg)`,
+          borderColor: 'var(--color-border)', // usa variables css
         }}
       >
         {!selectedDay && <EmptyLogo circleSize={circleSize} />}
 
-        {selectedDay && (
-          <div style={{ transform: `rotate(${-rotationAngle}deg)` }}>
-            <NotesArea dayInfo={selectedDay} />
-          </div>
-        )}
+        {selectedDay && <div style={{ transform: `rotate(${-rotationAngle}deg)` }}><NotesArea dayInfo={selectedDay} /></div>}
 
         <ItemsOnCircle
           items={itemsForSelectedDay}
