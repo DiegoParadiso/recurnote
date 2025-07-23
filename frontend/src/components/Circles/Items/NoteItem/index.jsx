@@ -61,7 +61,7 @@ export default function NoteItem({
           placeholder="Escribe aquí..."
           className="pl-6 pr-2 pt-1 text-[10px] rounded-md w-full h-full outline-none resize-none"
           style={{
-            backgroundColor: 'var(--color-bg)',
+            backgroundColor: 'var(--color-neutral)',
             color: 'var(--color-text-primary)',
             overflow: 'hidden',
             wordBreak: 'break-word',

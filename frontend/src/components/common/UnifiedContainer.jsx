@@ -70,7 +70,7 @@ export default function UnifiedContainer({ ...props }) {
         isDragging: isDragging.current,
         style: {
           ...style,
-          backgroundColor: 'var(--color-bg)',
+          backgroundColor: 'var(--color-neutral)',
           color: 'var(--color-text-primary)',
           border: '1px solid var(--color-text-secondary)',
         }

@@ -1,7 +1,7 @@
 // DayItemGroup.jsx
 import React from 'react';
 import formatDateKey from '../../../utils/formatDateKey';
-import './SidebarDayView.css';
+import './DayItemGroup.css';
 
 export default function DayItemGroup({ date, items, onDaySelect, renderItem }) {
   const key = formatDateKey(date.toObject());

@@ -38,9 +38,7 @@ export default function HalfCircleDayView({ setSelectedDay }) {
       <div className="absolute right-0 top-0 h-full w-[30px] z-10" />
       <div className="absolute right-[-260px] top-0 group-hover:right-0 cursor-default sidebar-container">
         <div className="px-4 pt-7 pb-7 flex-shrink-0">
-          <h2 className="text-[15px] font-medium mono tracking-widest uppercase">
-            próximos días
-          </h2>
+          <h2 className="sidebar-header">próximos días</h2>
         </div>
 
         <div
@@ -76,7 +74,8 @@ export default function HalfCircleDayView({ setSelectedDay }) {
 
         {startDate && (
           <div className="sidebar-footer">
-            Mostrando desde <strong>{startDate.setLocale('es').toFormat('cccc d LLLL')}</strong>
+            Mostrando desde{' '}
+            <strong>{startDate.setLocale('es').toFormat('cccc d LLLL')}</strong>
           </div>
         )}
       </div>

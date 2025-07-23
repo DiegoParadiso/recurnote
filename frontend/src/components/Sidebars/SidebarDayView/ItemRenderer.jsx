@@ -1,5 +1,5 @@
 import React from 'react';
-import './SidebarDayView.css'; 
+import './ItemRenderer.css';
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsByDate }) {
   const handleDelete = (e) => {

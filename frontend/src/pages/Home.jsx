@@ -3,9 +3,9 @@ import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
 import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView/';
 import { Eye, EyeOff } from 'lucide-react';
 import CurvedSidebar from '../components/Sidebars/HalfCircleSidebar/HalfCircleSidebar';
-import ConfigButton from '../components/common/ConfigButton';
-import ConfigPanel from '../components/common/ConfigPanel';
-import ThemeToggle from '../components/common/ThemeToggle';
+import ConfigButton from '../components/Preferences/ConfigButton';
+import ConfigPanel from '../components/Preferences/ConfigPanel';
+import ThemeToggle from '../components/Preferences/ThemeToggle';
 
 export default function Home() {
   const [showSmall, setShowSmall] = useState(true);
@@ -16,8 +16,7 @@ export default function Home() {
 
   return (
     <div
-      className={`scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative
-        text-black dark:text-white`}
+      className={`scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative`}
       style={{
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text-primary)',
@@ -37,7 +36,6 @@ export default function Home() {
             zIndex: showConfigPanel ? 10 : 30,
             position: 'relative',
             border: '1px solid var(--color-border)',
-            boxShadow: '0 4px 6px var(--color-shadow)',
             borderRadius: '8px',
             backgroundColor: 'var(--color-bg)',
             transition: 'all 0.3s ease',

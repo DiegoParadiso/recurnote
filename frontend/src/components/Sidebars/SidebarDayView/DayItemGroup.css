@@ -1,0 +1,40 @@
+/* DayItemGroup.css */
+.day-item-group {
+  border-bottom: 1px solid var(--color-neutral-dark);
+  padding-bottom: 0.75rem;
+}
+
+html.dark .day-item-group {
+  border-bottom-color: var(--color-neutral);
+}
+
+.day-header {
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.day-header.dark {
+  color: var(--color-text-primary);
+}
+
+.day-header:hover {
+  color: var(--color-text-primary);
+}
+
+html.dark .day-header:hover {
+  color: var(--color-highlight);
+}
+
+.item-list {
+  background-color: var(--color-text-secondary);
+}
+
+.item-list.dark {
+  background-color: var(--color-muted);
+}

@@ -119,7 +119,7 @@ export default function TaskItem({
                 className="w-full border-b focus:outline-none text-[10px] rounded-sm"
                 style={{
                   padding: '2px 4px',
-                  backgroundColor: 'var(--color-bg)',
+                  backgroundColor: 'var(--color-neutral)',
                   borderColor: 'var(--color-text-secondary)',
                   color: 'var(--color-text-primary)',
                 }}
