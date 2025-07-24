@@ -23,16 +23,16 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) 
     }
   }, [selectedDay]);
 
-  useEffect(() => {
-    if (
-      selectedDate &&
-      (selectedDate.month !== currentDate.month || selectedDate.year !== currentDate.year)
-    ) {
-      const firstDayOfMonth = currentDate.set({ day: 1 });
-      setSelectedDate(firstDayOfMonth);
-      onDayClick(firstDayOfMonth.toObject());
-    }
-  }, [currentDate]);
+useEffect(() => {
+  if (
+    selectedDate &&
+    (selectedDate.month !== currentDate.month || selectedDate.year !== currentDate.year)
+  ) {
+    setSelectedDate(null);
+    onDayClick(null); // 🛠️ actualiza el estado global en Home (y por ende en CircleLarge)
+  }
+}, [currentDate]);
+
 
   const handleScroll = (e) => {
     e.preventDefault();
