@@ -38,9 +38,15 @@ export default function UnifiedContainer({ ...props }) {
 
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
-    if (['input', 'textarea', 'select'].includes(tag) || e.target.dataset.resizeHandle) return;
 
-    e.stopPropagation(); e.preventDefault();
+    // No iniciar drag si el click es en input, textarea o select, para permitir edición
+    if (['input', 'textarea', 'select'].includes(tag)) return;
+
+    // No iniciar drag si es el handle de resize
+    if (e.target.dataset.resizeHandle) return;
+
+    e.stopPropagation();
+    e.preventDefault();
     isDragging.current = true;
     dragStartPos.current = {
       mouseX: e.clientX, mouseY: e.clientY,
@@ -51,7 +57,8 @@ export default function UnifiedContainer({ ...props }) {
 
   const onMouseDownResize = (e) => {
     if (disableResize) return;
-    e.stopPropagation(); e.preventDefault();
+    e.stopPropagation();
+    e.preventDefault();
     isResizing.current = true;
     resizeStartPos.current = {
       mouseX: e.clientX, mouseY: e.clientY,

@@ -3,18 +3,17 @@ import formatDateKey from '../utils/formatDateKey';
 
 export default function useHandleDrop({
   containerRef,
-  itemsByDate,
   setItemsByDate,
   selectedDay,
   rotationAngle,
   radius,
-  onInvalidDrop, // nuevo callback
+  onInvalidDrop,
 }) {
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
+      e.stopPropagation();
 
-      // Avisar si no hay día seleccionado
       if (!containerRef.current || !selectedDay) {
         if (typeof onInvalidDrop === 'function') {
           onInvalidDrop();
@@ -29,7 +28,6 @@ export default function useHandleDrop({
       const mouseX = e.clientX - centerX;
       const mouseY = e.clientY - centerY;
 
-      // Desrotar posición del mouse
       const rad = (rotationAngle * Math.PI) / 180;
       let rotatedX = mouseX * Math.cos(rad) + mouseY * Math.sin(rad);
       let rotatedY = -mouseX * Math.sin(rad) + mouseY * Math.cos(rad);
@@ -49,48 +47,47 @@ export default function useHandleDrop({
       const label = e.dataTransfer.getData('label') || 'Nota';
       const itemId = e.dataTransfer.getData('itemId');
       const dateKey = formatDateKey(selectedDay);
-      const itemsForDate = itemsByDate[dateKey] || [];
-      const existing = itemsForDate.find((it) => it.id.toString() === itemId);
 
-      const width = existing?.width ?? (label === 'Tarea' ? 200 : 100);
-      const height = existing?.height ?? (label === 'Tarea' ? 150 : 100);
+      setItemsByDate((prev) => {
+        const itemsForDate = prev[dateKey] || [];
+        if (source === 'sidebar') {
+          // Nuevo ítem
+          const newItem = {
+            id: Date.now(),
+            label,
+            angle,
+            distance,
+            content: label === 'Tarea' ? [''] : '',
+            checked: label === 'Tarea' ? [false] : undefined,
+            width: label === 'Tarea' ? 200 : 100,
+            height: label === 'Tarea' ? 150 : 100,
+          };
 
-      if (source === 'sidebar') {
-        const newItem = {
-          id: Date.now(),
-          label,
-          angle,
-          distance,
-          content: label === 'Tarea' ? [''] : '',
-          checked: label === 'Tarea' ? [false] : undefined,
-          width,
-          height,
-        };
+          return {
+            ...prev,
+            [dateKey]: [...itemsForDate, newItem],
+          };
+        } else if (source === 'dropped' && itemId) {
+          // Actualizar posición item existente
+          const exists = itemsForDate.find((it) => it.id.toString() === itemId);
+          if (!exists) return prev;
 
-        setItemsByDate((prev) => ({
-          ...prev,
-          [dateKey]: [...(prev[dateKey] || []), newItem],
-        }));
-      } else if (source === 'dropped') {
-        setItemsByDate((prev) => ({
-          ...prev,
-          [dateKey]: prev[dateKey].map((it) =>
+          const updatedItems = itemsForDate.map((it) =>
             it.id.toString() === itemId
               ? { ...it, angle, distance }
               : it
-          ),
-        }));
-      }
+          );
+
+          return {
+            ...prev,
+            [dateKey]: updatedItems,
+          };
+        }
+
+        return prev; // Fuente desconocida, no cambia nada
+      });
     },
-    [
-      containerRef,
-      itemsByDate,
-      setItemsByDate,
-      selectedDay,
-      rotationAngle,
-      radius,
-      onInvalidDrop,
-    ]
+    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop]
   );
 
   return handleDrop;
