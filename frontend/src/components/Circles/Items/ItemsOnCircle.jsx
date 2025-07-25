@@ -1,6 +1,6 @@
 import NoteItem from '../Items/NoteItem';
 import TaskItem from '../Items/Taskitem';
-
+import ArchiveItem from '../Items/ArchiveItem/ArchiveItem';
 export default function ItemsOnCircle({
   items,
   cx,
@@ -14,10 +14,13 @@ export default function ItemsOnCircle({
   return (
     <>
       {items.map((item) => {
+        if (item.label === 'Evento') return null; // ← Oculta "Evento"
+
         const angleInRadians = (item.angle * Math.PI) / 180;
         const x = cx + item.distance * Math.cos(angleInRadians);
         const y = cy + item.distance * Math.sin(angleInRadians);
 
+        // Render Tarea
         if (item.label === 'Tarea') {
           return (
             <TaskItem
@@ -37,6 +40,7 @@ export default function ItemsOnCircle({
           );
         }
 
+        // Render Nota
         if (item.label.toLowerCase().includes('nota')) {
           return (
             <NoteItem
@@ -56,6 +60,26 @@ export default function ItemsOnCircle({
           );
         }
 
+        // Render Archivo
+        if (item.label === 'Archivo') {
+          return (
+            <ArchiveItem
+              key={item.id}
+              id={item.id}
+              x={x}
+              y={y}
+              rotation={-rotationAngle}
+              item={item}
+              onUpdate={onNoteUpdate}
+              onDelete={onDeleteItem}
+              cx={cx}
+              cy={cy}
+              circleSize={circleSize}
+            />
+          );
+        }
+
+        // Fallback genérico
         return (
           <div
             key={item.id}
@@ -72,9 +96,9 @@ export default function ItemsOnCircle({
               borderRadius: '9999px',
               fontSize: '0.75rem',
               fontWeight: '600',
-              border: '1px solid var(--color-text-secondary)',       // variable para borde
-              backgroundColor: 'var(--color-bg)',                     // fondo basado en variable
-              color: 'var(--color-text-primary)',                     // color texto principal
+              border: '1px solid var(--color-text-secondary)',
+              backgroundColor: 'var(--color-bg)',
+              color: 'var(--color-text-primary)',
               backdropFilter: 'blur(4px)',
               userSelect: 'none',
             }}

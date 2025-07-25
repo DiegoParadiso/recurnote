@@ -60,9 +60,22 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsB
       key={item.id}
       onContextMenu={handleDelete}
       className="w-full rounded p-2 item-card border shadow-sm text-[10px]"
-      title={item.content}
+      title={typeof item.content === 'object' ? JSON.stringify(item.content) : item.content}
     >
-      {item.content}
+      {typeof item.content === 'object' && item.content.fileData && item.content.base64 ? (
+        <a
+          href={item.content.base64}
+          download={item.content.fileData.name}
+          className="file-download-link"
+          title="Descargar archivo"
+        >
+          {item.content.fileData.name}
+        </a>
+      ) : typeof item.content === 'object' ? (
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(item.content, null, 2)}</pre>
+      ) : (
+        item.content
+      )}
     </div>
   );
 }

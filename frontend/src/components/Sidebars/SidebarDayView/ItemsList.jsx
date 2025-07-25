@@ -21,3 +21,4 @@ export default function ItemsList({ itemsForDays, setSelectedDay, renderItem }) 
     </>
   );
 }
+    

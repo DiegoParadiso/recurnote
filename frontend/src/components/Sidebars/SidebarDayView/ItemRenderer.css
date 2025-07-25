@@ -96,3 +96,26 @@ html.dark .checkbox-box.checked {
   border-color: var(--color-neutral-darker);
   color: black; 
 }
+.file-download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  word-break: break-word;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.file-download-link:hover {
+  color: var(--color-highlight);
+}
+
+html.dark .file-download-link {
+  color: var(--color-highlight);
+}
+
+html.dark .file-download-link:hover {
+  color: var(--color-muted);
+}

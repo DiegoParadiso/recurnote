@@ -12,6 +12,7 @@ export default function UnifiedContainer({ ...props }) {
     maxRadius = 200,
     onMove, onResize,
     children, style = {},
+    disableResize = false,
   } = props;
 
   const [pos, setPos] = useState({ x, y });
@@ -19,9 +20,7 @@ export default function UnifiedContainer({ ...props }) {
 
   useEffect(() => {
     const limited = limitPositionInsideCircle(
-      x, y,
-      width, height,
-      circleCenter, maxRadius
+      x, y, width, height, circleCenter, maxRadius
     );
     setPos({ x: limited.x, y: limited.y });
     setSizeState({
@@ -51,6 +50,7 @@ export default function UnifiedContainer({ ...props }) {
   };
 
   const onMouseDownResize = (e) => {
+    if (disableResize) return;
     e.stopPropagation(); e.preventDefault();
     isResizing.current = true;
     resizeStartPos.current = {
@@ -62,7 +62,7 @@ export default function UnifiedContainer({ ...props }) {
   return (
     <div
       onMouseDown={onMouseDownDrag}
-      onContextMenu={props.onContextMenu} 
+      onContextMenu={props.onContextMenu}
       style={getContainerStyle({
         pos,
         rotation,
@@ -74,22 +74,24 @@ export default function UnifiedContainer({ ...props }) {
           color: 'var(--color-text-primary)',
           border: '1px solid var(--color-text-secondary)',
         }
-      })}    
-      >
+      })}
+    >
       {children}
-      <div
-        data-resize-handle="true"
-        onMouseDown={onMouseDownResize}
-        className="resize-handle-native"
-        style={{
-          position: 'absolute',
-          right: 0,
-          bottom: 0,
-          cursor: 'nwse-resize',
-          borderRadius: '2px',
-          zIndex: 10,
-        }}
-      />
+      {!disableResize && (
+        <div
+          data-resize-handle="true"
+          onMouseDown={onMouseDownResize}
+          className="resize-handle-native"
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            cursor: 'nwse-resize',
+            borderRadius: '2px',
+            zIndex: 10,
+          }}
+        />
+      )}
     </div>
   );
 }
