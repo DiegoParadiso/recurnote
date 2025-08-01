@@ -1,8 +1,7 @@
 import './HalfCircleSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
-
-export default function CurvedSidebar({ showConfigPanel }) {
+export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
   const [items] = useState([
     { id: 1, label: 'nota' },
     { id: 2, label: 'Tarea' },
@@ -11,12 +10,14 @@ export default function CurvedSidebar({ showConfigPanel }) {
   ]);
   return (
     <div
-      className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''}`}
+      className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''} ${
+        isMobile ? 'mobile' : ''
+      }`}
     >
-      <div className="curved-sidebar-hover-zone" />
+      {!isMobile && <div className="curved-sidebar-hover-zone" />}
       <div className="curved-sidebar-panel">
         {items
-          .filter((item) => item.label !== 'Evento') // 👈 Oculta "Evento"
+          .filter((item) => item.label !== 'Evento')
           .map((item) => (
             <div
               key={item.id}

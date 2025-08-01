@@ -3,7 +3,10 @@ import { DateTime } from 'luxon';
 import DayButton from './DayButton';
 import MonthHeader from './MonthHeader';
 
-export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) {
+export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay, size }) {
+  // Tamaño del círculo (fijo o según prop)
+  const circleSize = size ?? (isSmallScreen ? 350 : 400);
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentDate, setCurrentDate] = useState(DateTime.local());
   const startY = useRef(null);
@@ -23,16 +26,15 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay }) 
     }
   }, [selectedDay]);
 
-useEffect(() => {
-  if (
-    selectedDate &&
-    (selectedDate.month !== currentDate.month || selectedDate.year !== currentDate.year)
-  ) {
-    setSelectedDate(null);
-    onDayClick(null); // 🛠️ actualiza el estado global en Home (y por ende en CircleLarge)
-  }
-}, [currentDate]);
-
+  useEffect(() => {
+    if (
+      selectedDate &&
+      (selectedDate.month !== currentDate.month || selectedDate.year !== currentDate.year)
+    ) {
+      setSelectedDate(null);
+      onDayClick(null); // actualiza estado global en Home y CircleLarge
+    }
+  }, [currentDate]);
 
   const handleScroll = (e) => {
     e.preventDefault();
@@ -61,9 +63,10 @@ useEffect(() => {
 
   const daysInMonth = currentDate.daysInMonth;
 
-  const radius = isSmallScreen ? 150 : 170;
-  const center = isSmallScreen ? 175 : 200;
-  const buttonSize = isSmallScreen ? 27 : 32;
+  // Cálculos dinámicos conservando proporciones originales
+  const radius = circleSize / 2 - (isSmallScreen ? 25 : 30); // margen para que quepa el botón
+  const center = circleSize / 2;
+  const buttonSize = isSmallScreen ? 27 : 32; // tamaños fijos igual que en el primer código
   const labelDistanceFromCenter = isSmallScreen ? -22 : -35;
 
   const buttons = Array.from({ length: daysInMonth }, (_, i) => {
@@ -102,32 +105,18 @@ useEffect(() => {
   const prevDate = currentDate.minus({ months: 1 });
   const nextDate = currentDate.plus({ months: 1 });
 
-  const containerStyle = isSmallScreen
-    ? {
-        position: 'relative',
-        width: '350px',
-        height: '350px',
-        margin: '0 auto',
-        zIndex: 9999,
-        backgroundColor: 'var(--color-bg)',
-        color: 'var(--color-text-primary)',
-        border: '1px solid var(--color-text-primary)',
-        borderRadius: '9999px',
-        transition: 'background-color 0.3s ease, color 0.3s ease',
-      }
-    : {
-        position: 'relative',
-        width: '400px',
-        height: '400px',
-        marginLeft: 'auto',
-        marginRight: 0,
-        zIndex: 9999,
-        backgroundColor: 'var(--color-bg)',
-        color: 'var(--color-text-primary)',
-        border: '1px solid var(--color-text-primary)',
-        borderRadius: '9999px',
-        transition: 'background-color 0.3s ease, color 0.3s ease',
-      };
+  const containerStyle = {
+    position: 'relative',
+    width: `${circleSize}px`,
+    height: `${circleSize}px`,
+    margin: isSmallScreen ? '0 auto' : '0 0 0 auto',
+    zIndex: 9999,
+    backgroundColor: 'var(--color-bg)',
+    color: 'var(--color-text-primary)',
+    border: '1px solid var(--color-text-primary)',
+    borderRadius: '9999px',
+    transition: 'background-color 0.3s ease, color 0.3s ease',
+  };
 
   return (
     <div

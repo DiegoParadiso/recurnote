@@ -28,11 +28,14 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     rotationSpeed,
   });
 
-  useEffect(() => {
-    if (containerRef.current) {
-      setCircleSize(containerRef.current.offsetWidth);
-    }
-  }, [width]);
+useEffect(() => {
+  if (width <= 640) {
+    setCircleSize(Math.min(width - 40, 360)); 
+  } else {
+    setCircleSize(680); 
+  }
+}, [width]);
+
 
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
@@ -130,23 +133,46 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
 
   const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
 
-  return (
-    <div
-      className="relative select-none uppercase"
-      style={{
-        width: '100%',
-        height: circleSize,
-        maxWidth: 680,
-        margin: '0 auto',
-      }}
-    >
-      {!isSmallScreen && showSmall && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 9999 }}>
-          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
-        </div>
-      )}
+return (
+  <div
+    className="relative select-none uppercase"
+    style={{
+      width: '100%',
+      height: circleSize,
+      maxWidth: 680,
+      margin: '0 auto',
+    }}
+  >
+    {/* Para pantallas grandes: CircleSmall a la derecha si showSmall es true */}
+    {!isSmallScreen && showSmall && (
+      <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 9999 }}>
+        <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
+      </div>
+    )}
+{isSmallScreen && showSmall && (
+  <div
+    style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: circleSize,
+      height: circleSize,
+      zIndex: 9999,
+      backgroundColor: 'var(--color-bg)',
+      borderRadius: '50%',
+      boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+    }}
+  >
+<CircleSmall
+  onDayClick={setSelectedDay}
+  isSmallScreen={true}
+  selectedDay={selectedDay}
+  size={circleSize}
+/>
+  </div>
+)}
 
-      <CircleBackgroundText circleSize={circleSize} radius={radius} displayText={displayText} />
+    <CircleBackgroundText circleSize={circleSize} radius={radius} displayText={displayText} />
 
       <div
         ref={containerRef}
@@ -164,7 +190,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
           position: 'relative',
           zIndex: 1,
           transform: `rotate(${rotationAngle}deg)`,
-          borderColor: 'var(--color-border)', // usa variables css
+          borderColor: 'var(--color-border)',
         }}
       >
         {!selectedDay && <EmptyLogo circleSize={circleSize} />}

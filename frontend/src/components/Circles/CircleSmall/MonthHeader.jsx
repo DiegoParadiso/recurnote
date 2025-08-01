@@ -1,7 +1,7 @@
 export default function MonthHeader({ date, position, onClick }) {
   const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
 
-  let style = {
+  const baseStyle = {
     position: 'absolute',
     left: '50%',
     transform: 'translateX(-50%)',
@@ -11,43 +11,44 @@ export default function MonthHeader({ date, position, onClick }) {
     fontWeight: 600,
     textTransform: 'uppercase',
     color: 'var(--color-text-primary)',
-    fontSize: '0.85rem',
     transition: 'all 0.3s ease',
     cursor: onClick ? 'pointer' : 'default',
     pointerEvents: onClick ? 'auto' : 'none',
   };
 
-  if (position === 'previous') {
-    style = {
-      ...style,
+  const positionsStyles = {
+    previous: {
       top: '40%',
       opacity: 0.35,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
-    };
-  } else if (position === 'next') {
-    style = {
-      ...style,
+      transform: 'translateX(-50%)',
+    },
+    next: {
       top: '55%',
       opacity: 0.35,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
-    };
-  } else if (position === 'current') {
-    style = {
-      ...style,
+      transform: 'translateX(-50%)',
+    },
+    current: {
       top: '50%',
-      transform: 'translate(-50%, -50%)',
       opacity: 1,
       fontSize: '1.4rem',
       color: 'var(--color-text-primary)',
       pointerEvents: 'none',
       cursor: 'default',
-    };
-  }
+      transform: 'translate(-50%, -50%)',
+    },
+  };
+
+  const style = {
+    ...baseStyle,
+    ...(positionsStyles[position] || {}),
+  };
 
   return (
-    <h2 style={style} onClick={onClick}>
+    <h2 style={style} onClick={onClick} aria-live={position === 'current' ? 'polite' : undefined}>
       {mesNombre}
     </h2>
   );
