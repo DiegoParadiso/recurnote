@@ -76,14 +76,7 @@ export default function Home() {
 
       {/* Sidebar izquierdo móvil */}
       {showLeftSidebarMobile && isMobile && (
-        <div className="fixed left-0 right-0 top-0 z-50 bg-[var(--color-bg)] p-4 overflow-auto max-h-[80vh]">
-          <button
-            onClick={() => setShowLeftSidebarMobile(false)}
-            aria-label="Cerrar sidebar izquierdo móvil"
-            className="mb-4 text-2xl font-bold"
-          >
-            ×
-          </button>
+        <div className="fixed left-0 right-0 bottom-[64px] z-40">
           <CurvedSidebar showConfigPanel={showConfigPanel} isMobile={true} />
         </div>
       )}
@@ -134,7 +127,7 @@ export default function Home() {
       {/* Botones móviles inferiores */}
       <div className="fixed bottom-4 left-4 right-4 z-50 sm:hidden flex justify-between items-center px-4">
         <button
-          onClick={() => setShowLeftSidebarMobile(true)}
+          onClick={() => setShowLeftSidebarMobile(prev => !prev)}
           aria-label="Mostrar sidebar izquierdo"
           className="p-0"
           style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}

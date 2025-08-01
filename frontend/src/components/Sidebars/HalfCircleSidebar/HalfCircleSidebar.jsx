@@ -15,7 +15,7 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
       }`}
     >
       {!isMobile && <div className="curved-sidebar-hover-zone" />}
-      <div className="curved-sidebar-panel">
+      <div className="scroll-hidden curved-sidebar-panel">
         {items
           .filter((item) => item.label !== 'Evento')
           .map((item) => (

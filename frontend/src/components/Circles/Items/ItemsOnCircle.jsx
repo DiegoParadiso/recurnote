@@ -24,7 +24,7 @@ export default function ItemsOnCircle({
         const y = cy + item.distance * Math.sin(angleInRadians);
 
         // Calculamos rotación solo si está habilitada
-        const rotation = rotationEnabled ? -rotationAngle : 0;
+        const rotation = rotationEnabled && !isSmallScreen ? -rotationAngle : 0;
 
         // Render Tarea
         if (item.label === 'Tarea') {
@@ -35,7 +35,7 @@ export default function ItemsOnCircle({
               x={x}
               y={y}
               rotation={rotation}
-              rotationEnabled={rotationEnabled}  // <-- paso prop
+              rotationEnabled={rotationEnabled && !isSmallScreen}
               item={item}
               onDragStart={onNoteDragStart}
               onUpdate={onNoteUpdate}

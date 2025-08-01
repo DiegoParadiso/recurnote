@@ -49,7 +49,7 @@
 /* --- MEDIA QUERY PARA MÓVILES --- */
 @media (max-width: 640px) {
   .curved-sidebar-container {
-    width: 100vw; /* ocupa todo el ancho para poder mostrar */
+    width: 50vw; /* ocupa todo el ancho para poder mostrar */
     height: 100vh; /* ocupa toda la altura */
     top: 0;
     left: 0;
@@ -76,23 +76,30 @@
 
 /* Clases para modo móvil vía prop isMobile */
 .curved-sidebar-container.mobile {
-  position: relative !important; /* Dentro del fixed padre */
-  width: 100% !important;
-  height: 100% !important;
-  top: auto !important;
-  left: auto !important;
-  background-color: var(--color-bg);
-  border-radius: 0;
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100vw !important;
+    height: auto !important;
+    background-color: var(--color-bg);
+    z-index: 100;
+      margin-bottom: 60px;
+    overflow-x: auto;
 }
 
 .curved-sidebar-container.mobile .curved-sidebar-panel {
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  transform: none !important;
-  width: 100% !important;
-  height: 100% !important;
-  border-radius: 0 !important;
-  padding: 1rem !important;
-  overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 1rem 0.5rem !important;
+    gap: 1rem !important;
+    border-radius: 0 !important;
 }
+  .curved-sidebar-container.mobile .curved-sidebar-panel > div {
+    flex: 0 0 auto; /* prevent shrinking */
+  }
