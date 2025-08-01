@@ -144,21 +144,18 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
         margin: '0 auto',
       }}
     >
-      {/* Sidebar pequeño en desktop */}
       {!isSmallScreen && showSmall && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 9999 }}>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 10 }}>
           <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
         </div>
       )}
 
-      {/* Sidebar pequeño en móvil */}
       {isSmallScreen && showSmall && (
         <div
-          className="absolute z-[9999] flex items-center justify-center"
+          className="absolute z-[10] flex items-center justify-center"
           style={{
             backgroundColor: 'var(--color-bg)',
             borderRadius: '50%',
-            boxShadow: '0 0 10px rgba(0,0,0,0.2)',
             width: circleSize,
             height: circleSize,
             top: '50%',
@@ -176,7 +173,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
       )}
 
       {/* Decoración (background text) siempre visible */}
-      <CircleBackgroundText circleSize={circleSize} radius={radius} displayText={displayText} />
+      <CircleBackgroundText
+        circleSize={circleSize}
+        radius={radius}
+        displayText={displayText}
+        isSmallScreen={isSmallScreen}
+      />
 
       {/* Zona de drop */}
       <div

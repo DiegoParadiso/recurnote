@@ -110,7 +110,7 @@ export default function CircleSmall({ onDayClick, isSmallScreen, selectedDay, si
     width: `${circleSize}px`,
     height: `${circleSize}px`,
     margin: isSmallScreen ? '0 auto' : '0 0 0 auto',
-    zIndex: 9999,
+    zIndex: 20,
     backgroundColor: 'var(--color-bg)',
     color: 'var(--color-text-primary)',
     border: '1px solid var(--color-text-primary)',

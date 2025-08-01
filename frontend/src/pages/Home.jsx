@@ -35,8 +35,24 @@ export default function Home() {
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >
-      {/* Config + toggle tema */}
-      <div className="fixed top-3 left-3 z-70 flex gap-3 items-center">
+      {/* ConfigButton (menú 3 barras) en móvil arriba izquierda */}
+      <div
+        className="fixed top-3 left-3 z-[30] sm:hidden"
+        aria-label="Mostrar configuración móvil"
+      >
+        <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
+      </div>
+
+      {/* ThemeToggle en móvil arriba derecha */}
+      <div
+        className="fixed top-3 right-3 z-[30] sm:hidden"
+        aria-label="Toggle tema oscuro móvil"
+      >
+        <ThemeToggle />
+      </div>
+
+      {/* ConfigButton y ThemeToggle juntos en desktop arriba izquierda */}
+      <div className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center">
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
         <ThemeToggle />
       </div>
@@ -46,7 +62,7 @@ export default function Home() {
         <div
           className="hidden sm:block"
           style={{
-            zIndex: showConfigPanel ? 10 : 30,
+            zIndex: 30,
             position: 'relative',
             border: '1px solid var(--color-border)',
             borderRadius: '8px',
@@ -116,7 +132,7 @@ export default function Home() {
       </div>
 
       {/* Botones móviles inferiores */}
-<div className="fixed bottom-4 left-4 right-4 z-50 sm:hidden flex justify-between items-center px-4">
+      <div className="fixed bottom-4 left-4 right-4 z-50 sm:hidden flex justify-between items-center px-4">
         <button
           onClick={() => setShowLeftSidebarMobile(true)}
           aria-label="Mostrar sidebar izquierdo"
@@ -128,19 +144,19 @@ export default function Home() {
           </svg>
         </button>
 
-  <button
-    onClick={() => {
-      setShowSmall(prev => {
-        console.log('Toggle showSmall:', !prev);
-        return !prev;
-      });
-    }}
-    aria-label="Toggle mostrar pequeño"
-    className="p-0"
-    style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
-  >
-    {showSmall ? <EyeOff size={20} /> : <Eye size={20} />}
-  </button>
+        <button
+          onClick={() => {
+            setShowSmall(prev => {
+              console.log('Toggle showSmall:', !prev);
+              return !prev;
+            });
+          }}
+          aria-label="Toggle mostrar pequeño"
+          className="p-0"
+          style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
+        >
+          {showSmall ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
 
         <button
           onClick={() => setShowRightSidebarMobile(true)}

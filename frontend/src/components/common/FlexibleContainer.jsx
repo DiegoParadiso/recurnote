@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+import React, { useState, useRef, useEffect } from 'react';
+
 export default function FlexibleContainer({
   x,
   y,
@@ -22,56 +24,77 @@ export default function FlexibleContainer({
 
   const isDragging = useRef(false);
   const isResizing = useRef(false);
-  const dragStart = useRef({ mouseX: 0, mouseY: 0, x, y });
-  const resizeStart = useRef({ mouseX: 0, mouseY: 0, width: size.width, height: size.height });
+  const dragStart = useRef({ x, y, startX: 0, startY: 0 });
+  const resizeStart = useRef({ width: size.width, height: size.height, startX: 0, startY: 0 });
 
-  const onMouseDownDrag = (e) => {
+  const getEventXY = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else {
+      return { x: e.clientX, y: e.clientY };
+    }
+  };
+
+  const handleMove = (e) => {
+    const { x: clientX, y: clientY } = getEventXY(e);
+    if (isDragging.current) {
+      const dx = clientX - dragStart.current.startX;
+      const dy = clientY - dragStart.current.startY;
+      onMove?.({ x: dragStart.current.x + dx, y: dragStart.current.y + dy });
+    } else if (isResizing.current) {
+      const dx = clientX - resizeStart.current.startX;
+      const dy = clientY - resizeStart.current.startY;
+      const newWidth = Math.min(Math.max(resizeStart.current.width + dx, minWidth), maxWidth);
+      const newHeight = Math.min(Math.max(resizeStart.current.height + dy, minHeight), maxHeight);
+      setSize({ width: newWidth, height: newHeight });
+      onResize?.({ width: newWidth, height: newHeight });
+    }
+  };
+
+  const stopInteraction = () => {
+    isDragging.current = false;
+    isResizing.current = false;
+  };
+
+  const onStartDrag = (e) => {
+    if (!draggable) return;
     const tag = e.target.tagName.toLowerCase();
-    if (!draggable || ['input', 'textarea', 'select'].includes(tag) || e.target.dataset.resizeHandle) return;
+    if (['input', 'textarea', 'select'].includes(tag) || e.target.dataset.resizeHandle) return;
+
+    const { x: clientX, y: clientY } = getEventXY(e);
     isDragging.current = true;
-    dragStart.current = { mouseX: e.clientX, mouseY: e.clientY, x, y };
+    dragStart.current = { x, y, startX: clientX, startY: clientY };
     e.preventDefault();
   };
 
-  const onMouseDownResize = (e) => {
+  const onStartResize = (e) => {
     if (!resizable) return;
+    const { x: clientX, y: clientY } = getEventXY(e);
     isResizing.current = true;
-    resizeStart.current = { mouseX: e.clientX, mouseY: e.clientY, width: size.width, height: size.height };
+    resizeStart.current = {
+      width: size.width,
+      height: size.height,
+      startX: clientX,
+      startY: clientY,
+    };
     e.preventDefault();
     e.stopPropagation();
   };
 
   useEffect(() => {
-    const onMouseMove = (e) => {
-      if (isDragging.current) {
-        const dx = e.clientX - dragStart.current.mouseX;
-        const dy = e.clientY - dragStart.current.mouseY;
-        onMove?.({ x: dragStart.current.x + dx, y: dragStart.current.y + dy });
-      } else if (isResizing.current) {
-        const dx = e.clientX - resizeStart.current.mouseX;
-        const dy = e.clientY - resizeStart.current.mouseY;
-        const newWidth = Math.min(Math.max(resizeStart.current.width + dx, minWidth), maxWidth);
-        const newHeight = Math.min(Math.max(resizeStart.current.height + dy, minHeight), maxHeight);
-        setSize({ width: newWidth, height: newHeight });
-        onResize?.({ width: newWidth, height: newHeight });
-      }
-    };
-
-    const onMouseUp = () => {
-      isDragging.current = false;
-      isResizing.current = false;
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', stopInteraction);
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', stopInteraction);
 
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', stopInteraction);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', stopInteraction);
     };
-  }, [minWidth, minHeight, maxWidth, maxHeight, onMove, onResize]);
+  }, [onMove, onResize]);
 
-  // Solo actualizar tamaño si NO se está redimensionando manualmente para no pisar al usuario
   useEffect(() => {
     if (!isResizing.current && width && height) {
       setSize({ width, height });
@@ -80,7 +103,8 @@ export default function FlexibleContainer({
 
   return (
     <div
-      onMouseDown={onMouseDownDrag}
+      onMouseDown={onStartDrag}
+      onTouchStart={onStartDrag}
       style={{
         position: 'absolute',
         left: `${x - size.width / 2}px`,
@@ -88,8 +112,6 @@ export default function FlexibleContainer({
         transform: `rotate(${rotation}deg)`,
         width: size.width,
         height: size.height,
-        minHeight,
-        maxHeight,
         overflow: 'auto',
         cursor: isDragging.current ? 'grabbing' : draggable ? 'grab' : 'default',
         border: '1px solid rgba(0,0,0,0.05)',
@@ -104,14 +126,16 @@ export default function FlexibleContainer({
       {resizable && (
         <div
           data-resize-handle
-          onMouseDown={onMouseDownResize}
-          className="resize-handle-native"
+          onMouseDown={onStartResize}
+          onTouchStart={onStartResize}
           style={{
             position: 'absolute',
             right: 0,
             bottom: 0,
+            width: '16px',
+            height: '16px',
             cursor: 'nwse-resize',
-            borderRadius: '2px',
+            backgroundColor: 'transparent',
             zIndex: 10,
           }}
         />
