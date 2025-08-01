@@ -12,9 +12,10 @@ export const useDragResize = ({
   maxHeight,
   circleCenter,
   maxRadius,
-  onMove,
+  onMove, 
   onResize,
   rotation,
+  isSmallScreen = false
 }) => {
   const isDragging = useRef(false);
   const isResizing = useRef(false);
@@ -22,10 +23,23 @@ export const useDragResize = ({
   const resizeStartPos = useRef({});
 
   useEffect(() => {
-    const onMouseMove = (e) => {
+    const handleMove = (e) => {
+      let clientX, clientY;
+
+      if (e.touches && e.touches.length === 1) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+        e.preventDefault();
+      } else if (e.clientX !== undefined && e.clientY !== undefined) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      } else {
+        return;
+      }
+
       if (isDragging.current) {
-        const dx = e.clientX - dragStartPos.current.mouseX;
-        const dy = e.clientY - dragStartPos.current.mouseY;
+        const dx = clientX - dragStartPos.current.mouseX;
+        const dy = clientY - dragStartPos.current.mouseY;
 
         const angle = (dragStartPos.current.containerRotation * Math.PI) / 180;
         const correctedDx = dx * Math.cos(angle) + dy * Math.sin(angle);
@@ -40,14 +54,15 @@ export const useDragResize = ({
           sizeState.width,
           sizeState.height,
           circleCenter,
-          maxRadius
+          maxRadius,
+          isSmallScreen 
         );
 
         setPos({ x: limited.x, y: limited.y });
         onMove?.({ x: limited.x, y: limited.y });
       } else if (isResizing.current) {
-        const dx = e.clientX - resizeStartPos.current.mouseX;
-        const dy = e.clientY - resizeStartPos.current.mouseY;
+        const dx = clientX - resizeStartPos.current.mouseX;
+        const dy = clientY - resizeStartPos.current.mouseY;
 
         let newWidth = Math.min(Math.max(resizeStartPos.current.width + dx, minWidth), maxWidth);
         let newHeight = Math.min(Math.max(resizeStartPos.current.height + dy, minHeight), maxHeight);
@@ -78,16 +93,25 @@ export const useDragResize = ({
       }
     };
 
-    const onMouseUp = () => {
+    const onEnd = () => {
       isDragging.current = false;
       isResizing.current = false;
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', onEnd);
+
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('touchcancel', onEnd);
+
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', onEnd);
+
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
     };
   }, [
     pos,

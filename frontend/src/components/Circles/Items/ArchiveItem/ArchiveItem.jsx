@@ -16,6 +16,7 @@ export default function ArchivoItem({
   cx,
   cy,
   circleSize,
+  isSmallScreen,
 }) {
   const fileInputRef = useRef();
   const [showOnlyImage, setShowOnlyImage] = useState(false);
@@ -95,6 +96,7 @@ export default function ArchivoItem({
           }
           circleCenter={{ cx, cy }}
           maxRadius={circleSize / 2}
+          isSmallScreen={isSmallScreen}
         >
           <div
             className={`archivo-item-container ${showOnlyImage ? 'show-only-image' : ''}`}

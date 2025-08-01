@@ -1,4 +1,9 @@
-export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRadius) {
+export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
+
+  if (isSmallScreen) {
+    return { x: newX, y: newY };
+  }
+
   const { cx, cy } = circleCenter;
   const dx = newX - cx;
   const dy = newY - cy;

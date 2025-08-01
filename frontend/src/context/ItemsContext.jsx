@@ -12,7 +12,6 @@ export const ItemsProvider = ({ children }) => {
       try {
         setItemsByDate(JSON.parse(stored));
       } catch (error) {
-        console.error('Error parseando itemsByDate:', error);
         localStorage.removeItem('itemsByDate');
       }
     }
@@ -28,7 +27,6 @@ export const ItemsProvider = ({ children }) => {
     }
 
     saveTimeoutRef.current = setTimeout(() => {
-      console.log('Guardando itemsByDate en localStorage:', itemsByDate);
       localStorage.setItem('itemsByDate', JSON.stringify(itemsByDate));
     }, 300); // Espera 300ms antes de guardar
 

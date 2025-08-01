@@ -147,7 +147,6 @@ export default function Home() {
         <button
           onClick={() => {
             setShowSmall(prev => {
-              console.log('Toggle showSmall:', !prev);
               return !prev;
             });
           }}

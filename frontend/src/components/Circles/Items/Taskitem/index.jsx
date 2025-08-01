@@ -16,6 +16,7 @@ export default function TaskItem({
   cx,
   cy,
   circleSize,
+  isSmallScreen,
 }) {
   const baseHeight = 30;
   const maxTasks = 4;
@@ -67,6 +68,7 @@ export default function TaskItem({
         }}
         circleCenter={{ cx, cy }}
         maxRadius={circleSize / 2}
+        isSmallScreen={isSmallScreen}
       >
         <div
           className="text-[10px] flex flex-col gap-1"

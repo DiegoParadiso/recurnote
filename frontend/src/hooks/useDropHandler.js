@@ -50,8 +50,8 @@ export default function useHandleDrop({
 
       setItemsByDate((prev) => {
         const itemsForDate = prev[dateKey] || [];
+
         if (source === 'sidebar') {
-          // Nuevo ítem
           const newItem = {
             id: Date.now(),
             label,
@@ -67,16 +67,15 @@ export default function useHandleDrop({
             ...prev,
             [dateKey]: [...itemsForDate, newItem],
           };
-        } else if (source === 'dropped' && itemId) {
-          // Actualizar posición item existente
-          const exists = itemsForDate.find((it) => it.id.toString() === itemId);
-          if (!exists) return prev;
+        }
 
-          const updatedItems = itemsForDate.map((it) =>
-            it.id.toString() === itemId
-              ? { ...it, angle, distance }
-              : it
-          );
+        if (source === 'dropped' && itemId) {
+          const updatedItems = itemsForDate.map((item) => {
+            if (item.id.toString() === itemId) {
+              return { ...item, angle, distance };
+            }
+            return item;
+          });
 
           return {
             ...prev,
@@ -84,7 +83,7 @@ export default function useHandleDrop({
           };
         }
 
-        return prev; // Fuente desconocida, no cambia nada
+        return prev;
       });
     },
     [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop]

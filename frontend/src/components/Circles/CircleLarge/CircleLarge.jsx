@@ -140,7 +140,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
       style={{
         width: '100%',
         height: isSmallScreen ? '100dvh' : circleSize,
-        maxWidth: isSmallScreen ? '100%' : 680,
         margin: '0 auto',
       }}
     >
@@ -181,30 +180,28 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
       />
 
       {/* Zona de drop */}
-      <div
-        ref={containerRef}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        className={
-          isSmallScreen
-            ? 'flex items-center justify-center'
-            : 'rounded-full border flex items-center justify-center overflow-hidden'
-        }
-        style={{
-          width: isSmallScreen ? '100%' : circleSize,
-          height: isSmallScreen ? '100%' : circleSize,
-          margin: '0 auto',
-          position: 'relative',
-          zIndex: 1,
-          transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
-          borderColor: isSmallScreen ? 'transparent' : 'var(--color-border)',
-          borderStyle: isSmallScreen ? 'none' : 'solid',
-        }}
-      >
+<div
+  ref={containerRef}
+  onDragOver={(e) => e.preventDefault()}
+  onDrop={handleDrop}
+  onMouseDown={onMouseDown}
+  onMouseMove={onMouseMove}
+  onMouseUp={onMouseUp}
+  onMouseLeave={onMouseUp}
+  className={
+    isSmallScreen
+      ? 'absolute inset-0 flex items-center justify-center z-[1]'
+      : 'rounded-full border flex items-center justify-center overflow-hidden'
+  }
+  style={{
+    width: isSmallScreen ? '100%' : circleSize,
+    height: isSmallScreen ? '100dvh' : circleSize,
+    margin: isSmallScreen ? undefined : '0 auto',
+    transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
+    borderColor: isSmallScreen ? 'transparent' : 'var(--color-border)',
+    borderStyle: isSmallScreen ? 'none' : 'solid',
+  }}
+>
         {!selectedDay && !isSmallScreen && <EmptyLogo circleSize={circleSize} />}
 
         {selectedDay && (
@@ -222,6 +219,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
           onNoteUpdate={handleNoteUpdate}
           onDeleteItem={handleDeleteItem}
           circleSize={circleSize}
+          isSmallScreen={isSmallScreen}
         />
       </div>
 

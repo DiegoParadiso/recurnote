@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 
@@ -15,6 +15,7 @@ export default function NoteItem({
   circleSize,
   cx,
   cy,
+  isSmallScreen,
 }) {
   const textareaRef = useRef(null);
   const { content = '', width = 150, height = 80 } = item;
@@ -43,12 +44,11 @@ export default function NoteItem({
         minHeight={60}
         maxWidth={224}
         maxHeight={214}
-        draggable
-        onDragStart={(e) => onDragStart(e, id)}
         onMove={({ x, y }) => onUpdate(id, content, null, null, { x, y })}
         onResize={(size) => onUpdate(id, content, null, size)}
         circleCenter={{ cx, cy }}
         maxRadius={circleSize / 2}
+        isSmallScreen={isSmallScreen}
       >
         <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 pointer-events-none select-none">
           {[...Array(3)].map((_, i) => (
