@@ -1,8 +1,7 @@
 import React, { useRef, useState } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
-import BottomToast from '../../../common/BottomToast'; 
-
+import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
 
 export default function ArchivoItem({
@@ -10,6 +9,7 @@ export default function ArchivoItem({
   x,
   y,
   rotation,
+  rotationEnabled = true,
   item,
   onUpdate,
   onDelete,
@@ -68,7 +68,7 @@ export default function ArchivoItem({
         <UnifiedContainer
           x={x}
           y={y}
-          rotation={rotation}
+          rotation={rotationEnabled ? rotation : 0}
           width={item.width || (showOnlyImage ? 220 : 180)}
           height={item.height || (showOnlyImage ? 220 : isImage ? 180 : 100)}
           minWidth={minWidth}

@@ -7,6 +7,7 @@ export default function TaskItem({
   x,
   y,
   rotation,
+  rotationEnabled = true,
   item,
   onMove,
   onResize,
@@ -51,7 +52,7 @@ export default function TaskItem({
       <UnifiedContainer
         x={x}
         y={y}
-        rotation={rotation}
+        rotation={rotationEnabled ? rotation : 0}
         width={item.width || 200}
         height={computedMinHeight}
         minWidth={120}
@@ -101,12 +102,12 @@ export default function TaskItem({
                 <span className={`checkbox-box ${item.checked?.[index] ? 'checked' : ''}`}>
                   <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
-                        d="M1 5L4 8L11 1"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                      d="M1 5L4 8L11 1"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </span>
               </label>

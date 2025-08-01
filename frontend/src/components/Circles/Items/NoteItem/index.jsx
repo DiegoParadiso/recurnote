@@ -7,6 +7,7 @@ export default function NoteItem({
   x,
   y,
   rotation,
+  rotationEnabled = true,
   item,
   onDragStart,
   onUpdate,
@@ -35,7 +36,7 @@ export default function NoteItem({
       <UnifiedContainer
         x={x}
         y={y}
-        rotation={rotation}
+        rotation={rotationEnabled ? rotation : 0}
         width={width}
         height={height}
         minWidth={120}

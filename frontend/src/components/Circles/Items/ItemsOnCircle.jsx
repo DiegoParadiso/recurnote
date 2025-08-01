@@ -1,6 +1,7 @@
 import NoteItem from '../Items/NoteItem';
 import TaskItem from '../Items/Taskitem';
 import ArchiveItem from '../Items/ArchiveItem/ArchiveItem';
+
 export default function ItemsOnCircle({
   items,
   cx,
@@ -10,6 +11,7 @@ export default function ItemsOnCircle({
   onNoteUpdate,
   onDeleteItem,
   circleSize,
+  rotationEnabled = true, // por defecto rotación activada
 }) {
   return (
     <>
@@ -20,6 +22,9 @@ export default function ItemsOnCircle({
         const x = cx + item.distance * Math.cos(angleInRadians);
         const y = cy + item.distance * Math.sin(angleInRadians);
 
+        // Calculamos rotación solo si está habilitada
+        const rotation = rotationEnabled ? -rotationAngle : 0;
+
         // Render Tarea
         if (item.label === 'Tarea') {
           return (
@@ -28,7 +33,8 @@ export default function ItemsOnCircle({
               id={item.id}
               x={x}
               y={y}
-              rotation={-rotationAngle}
+              rotation={rotation}
+              rotationEnabled={rotationEnabled}  // <-- paso prop
               item={item}
               onDragStart={onNoteDragStart}
               onUpdate={onNoteUpdate}
@@ -48,7 +54,8 @@ export default function ItemsOnCircle({
               id={item.id}
               x={x}
               y={y}
-              rotation={-rotationAngle}
+              rotation={rotation}
+              rotationEnabled={rotationEnabled}  // <-- paso prop
               item={item}
               onDragStart={onNoteDragStart}
               onUpdate={onNoteUpdate}
@@ -68,7 +75,8 @@ export default function ItemsOnCircle({
               id={item.id}
               x={x}
               y={y}
-              rotation={-rotationAngle}
+              rotation={rotation}
+              rotationEnabled={rotationEnabled}  // <-- paso prop
               item={item}
               onUpdate={onNoteUpdate}
               onDelete={onDeleteItem}
@@ -90,7 +98,7 @@ export default function ItemsOnCircle({
               left: x,
               top: y,
               cursor: 'grab',
-              transform: `rotate(${-rotationAngle}deg)`,
+              transform: `rotate(${rotation}deg)`,
               transformOrigin: 'center',
               padding: '0.25rem 0.75rem',
               borderRadius: '9999px',

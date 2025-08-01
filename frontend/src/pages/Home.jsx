@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
+import CircleSmall from '../components/Circles/CircleSmall/CircleSmall';
 import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView';
 import { Eye, EyeOff } from 'lucide-react';
 import CurvedSidebar from '../components/Sidebars/HalfCircleSidebar/HalfCircleSidebar';
@@ -115,7 +116,7 @@ export default function Home() {
       </div>
 
       {/* Botones móviles inferiores */}
-      <div className="fixed bottom-4 left-4 right-4 z-50 sm:hidden flex justify-between items-center px-4">
+<div className="fixed bottom-4 left-4 right-4 z-50 sm:hidden flex justify-between items-center px-4">
         <button
           onClick={() => setShowLeftSidebarMobile(true)}
           aria-label="Mostrar sidebar izquierdo"
@@ -127,14 +128,19 @@ export default function Home() {
           </svg>
         </button>
 
-        <button
-          onClick={() => setShowSmall(!showSmall)}
-          aria-label="Toggle mostrar pequeño"
-          className="p-0"
-          style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
-        >
-          {showSmall ? <EyeOff size={20} /> : <Eye size={20} />}
-        </button>
+  <button
+    onClick={() => {
+      setShowSmall(prev => {
+        console.log('Toggle showSmall:', !prev);
+        return !prev;
+      });
+    }}
+    aria-label="Toggle mostrar pequeño"
+    className="p-0"
+    style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
+  >
+    {showSmall ? <EyeOff size={20} /> : <Eye size={20} />}
+  </button>
 
         <button
           onClick={() => setShowRightSidebarMobile(true)}

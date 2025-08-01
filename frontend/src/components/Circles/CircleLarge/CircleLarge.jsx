@@ -12,7 +12,7 @@ import formatDateKey from '../../../utils/formatDateKey';
 import { useItems } from '../../../context/ItemsContext';
 import BottomToast from '../../common/BottomToast';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, isMobile }) {
   const { itemsByDate, setItemsByDate } = useItems();
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
@@ -20,6 +20,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
   const [rotationAngle, setRotationAngle] = useState(0);
   const rotationSpeed = 2;
   const [toastMessage, setToastMessage] = useState('');
+  const dropRef = useRef(null);
 
   const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
     containerRef,
@@ -28,14 +29,13 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     rotationSpeed,
   });
 
-useEffect(() => {
-  if (width <= 640) {
-    setCircleSize(Math.min(width - 40, 360)); 
-  } else {
-    setCircleSize(680); 
-  }
-}, [width]);
-
+  useEffect(() => {
+    if (width <= 640) {
+      setCircleSize(Math.min(width - 40, 360));
+    } else {
+      setCircleSize(680);
+    }
+  }, [width]);
 
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
@@ -80,6 +80,7 @@ useEffect(() => {
     cy,
     onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
   });
+  useHandleDrop(dropRef);
 
   const handleNoteDragStart = (e, itemId) => {
     e.dataTransfer.setData('source', 'dropped');
@@ -133,47 +134,51 @@ useEffect(() => {
 
   const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
 
-return (
-  <div
-    className="relative select-none uppercase"
-    style={{
-      width: '100%',
-      height: circleSize,
-      maxWidth: 680,
-      margin: '0 auto',
-    }}
-  >
-    {/* Para pantallas grandes: CircleSmall a la derecha si showSmall es true */}
-    {!isSmallScreen && showSmall && (
-      <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 9999 }}>
-        <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
-      </div>
-    )}
-{isSmallScreen && showSmall && (
-  <div
-    style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: circleSize,
-      height: circleSize,
-      zIndex: 9999,
-      backgroundColor: 'var(--color-bg)',
-      borderRadius: '50%',
-      boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-    }}
-  >
-<CircleSmall
-  onDayClick={setSelectedDay}
-  isSmallScreen={true}
-  selectedDay={selectedDay}
-  size={circleSize}
-/>
-  </div>
-)}
+  return (
+    <div
+      className="relative select-none uppercase"
+      style={{
+        width: '100%',
+        height: isSmallScreen ? '100dvh' : circleSize,
+        maxWidth: isSmallScreen ? '100%' : 680,
+        margin: '0 auto',
+      }}
+    >
+      {/* Sidebar pequeño en desktop */}
+      {!isSmallScreen && showSmall && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 9999 }}>
+          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
+        </div>
+      )}
 
-    <CircleBackgroundText circleSize={circleSize} radius={radius} displayText={displayText} />
+      {/* Sidebar pequeño en móvil */}
+      {isSmallScreen && showSmall && (
+        <div
+          className="absolute z-[9999] flex items-center justify-center"
+          style={{
+            backgroundColor: 'var(--color-bg)',
+            borderRadius: '50%',
+            boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+            width: circleSize,
+            height: circleSize,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <CircleSmall
+            onDayClick={setSelectedDay}
+            isSmallScreen={true}
+            selectedDay={selectedDay}
+            size={circleSize}
+          />
+        </div>
+      )}
 
+      {/* Decoración (background text) siempre visible */}
+      <CircleBackgroundText circleSize={circleSize} radius={radius} displayText={displayText} />
+
+      {/* Zona de drop */}
       <div
         ref={containerRef}
         onDragOver={(e) => e.preventDefault()}
@@ -182,20 +187,29 @@ return (
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
-        className="rounded-full border flex items-center justify-center overflow-hidden"
+        className={
+          isSmallScreen
+            ? 'flex items-center justify-center'
+            : 'rounded-full border flex items-center justify-center overflow-hidden'
+        }
         style={{
-          width: circleSize,
-          height: circleSize,
+          width: isSmallScreen ? '100%' : circleSize,
+          height: isSmallScreen ? '100%' : circleSize,
           margin: '0 auto',
           position: 'relative',
           zIndex: 1,
-          transform: `rotate(${rotationAngle}deg)`,
-          borderColor: 'var(--color-border)',
+          transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
+          borderColor: isSmallScreen ? 'transparent' : 'var(--color-border)',
+          borderStyle: isSmallScreen ? 'none' : 'solid',
         }}
       >
-        {!selectedDay && <EmptyLogo circleSize={circleSize} />}
+        {!selectedDay && !isSmallScreen && <EmptyLogo circleSize={circleSize} />}
 
-        {selectedDay && <div style={{ transform: `rotate(${-rotationAngle}deg)` }}><NotesArea dayInfo={selectedDay} /></div>}
+        {selectedDay && (
+          <div style={{ transform: isSmallScreen ? 'none' : `rotate(${-rotationAngle}deg)` }}>
+            <NotesArea dayInfo={selectedDay} />
+          </div>
+        )}
 
         <ItemsOnCircle
           items={itemsForSelectedDay}
