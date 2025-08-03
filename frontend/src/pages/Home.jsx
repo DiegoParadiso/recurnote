@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
-import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
-import CircleSmall from '../components/Circles/CircleSmall/CircleSmall';
-import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView';
+import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
+import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView';
 import CurvedSidebar from '../components/Sidebars/HalfCircleSidebar/HalfCircleSidebar';
 import ConfigButton from '../components/Preferences/ConfigButton';
 import ConfigPanel from '../components/Preferences/ConfigPanel';
 import ThemeToggle from '../components/Preferences/ThemeToggle';
+import useIsMobile from '../hooks/useIsMobile';
+import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles'; // Ajusta ruta
+import MobileBottomControls from '../components/common/MobileBottomControls';   // Ajusta ruta
 
 export default function Home() {
   const [showSmall, setShowSmall] = useState(true);
@@ -14,17 +16,10 @@ export default function Home() {
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showConfigPanel, setShowConfigPanel] = useState(false);
-
   const [showLeftSidebarMobile, setShowLeftSidebarMobile] = useState(false);
   const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   return (
     <div
@@ -35,23 +30,15 @@ export default function Home() {
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >
-      {/* ConfigButton (menú 3 barras) en móvil arriba izquierda */}
-      <div
-        className="fixed top-3 left-3 z-[30] sm:hidden"
-        aria-label="Mostrar configuración móvil"
-      >
+      {/* Botones Config y Tema móvil arriba */}
+      <div className="fixed top-3 left-3 z-[30] sm:hidden" aria-label="Mostrar configuración móvil">
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
       </div>
-
-      {/* ThemeToggle en móvil arriba derecha */}
-      <div
-        className="fixed top-3 right-3 z-[30] sm:hidden"
-        aria-label="Toggle tema oscuro móvil"
-      >
+      <div className="fixed top-3 right-3 z-[30] sm:hidden" aria-label="Toggle tema oscuro móvil">
         <ThemeToggle />
       </div>
 
-      {/* ConfigButton y ThemeToggle juntos en desktop arriba izquierda */}
+      {/* Botones Config y Tema desktop arriba */}
       <div className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center">
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
         <ThemeToggle />
@@ -96,9 +83,7 @@ export default function Home() {
           selectedDay={selectedDay}
           setSelectedDay={(day) => {
             setSelectedDay(day);
-            if (isMobile) {
-              setShowSmall(false);
-            }
+            if (isMobile) setShowSmall(false);
           }}
         />
 
@@ -124,44 +109,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Botones móviles inferiores */}
-      <div className="fixed bottom-4 left-4 right-4 z-50 sm:hidden flex justify-between items-center px-4">
-        <button
-          onClick={() => setShowLeftSidebarMobile(prev => !prev)}
-          aria-label="Mostrar sidebar izquierdo"
-          className="p-0"
-          style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        <button
-          onClick={() => {
-            setShowSmall(prev => {
-              return !prev;
-            });
-          }}
-          aria-label="Toggle mostrar pequeño"
-          className="p-0"
-          style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
-        >
-          {showSmall ? <EyeOff size={20} /> : <Eye size={20} />}
-        </button>
-
-        <button
-          onClick={() => setShowRightSidebarMobile(true)}
-          aria-label="Mostrar sidebar derecho"
-          className="p-0"
-          style={{ color: 'var(--color-highlight)', transition: 'all 0.3s ease' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
-
       {/* Sidebar derecho desktop */}
       {showRightSidebar && !isMobile && (
         <div className="hidden sm:block">
@@ -180,13 +127,23 @@ export default function Home() {
       )}
 
 {showRightSidebarMobile && isMobile && (
-  <div className="fixed top-0 bottom-0 left-0" style={{ right: '50px', backgroundColor: 'var(--color-bg)', padding: '1rem', overflow: 'auto', zIndex: 50 }}>
+  <div
+    className="fixed top-0 bottom-0 right-0"   
+    style={{
+      width: 'calc(100vw - 50px)',      
+      backgroundColor: 'var(--color-bg)',
+      padding: '1rem',
+      overflow: 'auto',
+      zIndex: 70,                             
+      boxShadow: 'rgba(0, 0, 0, 0.3) 0px 0px 10px', // opcional sombra para que se note que está encima
+    }}
+  >
     <SidebarDayView
       selectedDay={selectedDay}
       setSelectedDay={setSelectedDay}
       showRightSidebar={showRightSidebarMobile}
       isMobile={true}
-      onClose={() => setShowRightSidebarMobile(false)} 
+      onClose={() => setShowRightSidebarMobile(false)}
     />
   </div>
 )}
@@ -201,53 +158,19 @@ export default function Home() {
         setShowRightSidebar={setShowRightSidebar}
       />
 
-      {/* Toggle sidebar derecho desktop */}
-      <button
-        onClick={() => setShowRightSidebar(v => !v)}
-        aria-label="Toggle right sidebar"
-        className="fixed right-0 z-20 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideLeftRight_2s_ease-in-out_infinite] hidden sm:flex"
-        style={{
-          top: '50vh',
-          transform: 'translateY(-50%)',
-          background: 'transparent',
-          border: 'none',
-          padding: 0,
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+      {/* Toggles sidebar desktop */}
+      <DesktopSidebarToggles
+        onToggleLeft={() => setShowLeftSidebar(v => !v)}
+        onToggleRight={() => setShowRightSidebar(v => !v)}
+      />
 
-      {/* Toggle sidebar izquierdo desktop */}
-      <button
-        onClick={() => setShowLeftSidebar(v => !v)}
-        aria-label="Toggle left sidebar"
-        className="fixed left-0 z-20 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideRightLeft_2s_ease-in-out_infinite] hidden sm:flex"
-        style={{
-          top: '50vh',
-          transform: 'translateY(-50%)',
-          background: 'transparent',
-          border: 'none',
-          padding: 0,
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* Animaciones flechas */}
-      <style>{`
-        @keyframes slideLeftRight {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(-6px); }
-        }
-        @keyframes slideRightLeft {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(6px); }
-        }
-      `}</style>
+      {/* Controles inferiores móviles */}
+      <MobileBottomControls
+        showSmall={showSmall}
+        setShowSmall={setShowSmall}
+        onToggleLeft={() => setShowLeftSidebarMobile(v => !v)}
+        onToggleRight={() => setShowRightSidebarMobile(true)}
+      />
     </div>
   );
 }
