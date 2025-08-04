@@ -39,10 +39,11 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e) => {
     setIsTouchDragging(false);
     touchStartRef.current = null;
     setDragPreview?.(null);
+    // El drop móvil se manejará en CurvedSidebar
   };
 
   // --- DESKTOP DRAG ---
@@ -53,7 +54,7 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
   };
 
   const commonProps = {
-    draggable: !isTouch,
+    draggable: !isTouch,            // NO draggable en mobile (touch)
     onDragStart: !isTouch ? handleDragStart : undefined,
     onTouchStart: isTouch ? handleTouchStart : undefined,
     onTouchMove: isTouch ? handleTouchMove : undefined,
