@@ -73,13 +73,7 @@
     left: auto; /* ya no aplica */
   }
 }
-.drag-preview {
-  opacity: 0.8;
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
-  pointer-events: none;
-}
+
 /* Clases para modo móvil vía prop isMobile */
 .curved-sidebar-container.mobile {
     position: fixed !important;

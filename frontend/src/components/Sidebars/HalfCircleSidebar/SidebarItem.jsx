@@ -6,6 +6,7 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
   const base = 'sidebar-item';
   const [isTouchDragging, setIsTouchDragging] = useState(false);
   const touchStartRef = useRef(null);
+  const touchTimeoutRef = useRef(null);
   const isTouch = 'ontouchstart' in window;
 
   // --- TOUCH EVENTS ---
@@ -15,6 +16,11 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
       x: touch.clientX,
       y: touch.clientY,
     };
+
+    touchTimeoutRef.current = setTimeout(() => {
+      setIsTouchDragging(true);
+      onMobileDragStart?.(item);
+    }, 100);
   };
 
   const handleTouchMove = (e) => {
@@ -26,6 +32,7 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance > 10 && !isTouchDragging) {
+      clearTimeout(touchTimeoutRef.current);
       setIsTouchDragging(true);
       onMobileDragStart?.(item);
     }
@@ -40,10 +47,10 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
   };
 
   const handleTouchEnd = (e) => {
+    clearTimeout(touchTimeoutRef.current);
     setIsTouchDragging(false);
     touchStartRef.current = null;
     setDragPreview?.(null);
-    // El drop móvil se manejará en CurvedSidebar
   };
 
   // --- DESKTOP DRAG ---
@@ -54,11 +61,22 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
   };
 
   const commonProps = {
-    draggable: !isTouch,            // NO draggable en mobile (touch)
+    draggable: !isTouch,
     onDragStart: !isTouch ? handleDragStart : undefined,
     onTouchStart: isTouch ? handleTouchStart : undefined,
     onTouchMove: isTouch ? handleTouchMove : undefined,
     onTouchEnd: isTouch ? handleTouchEnd : undefined,
+
+    // PREVENIR SELECCIÓN Y MENÚ LARGO EN MOBILE
+    onContextMenu: (e) => e.preventDefault(),
+    style: {
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
+      MozUserSelect: 'none',
+      msUserSelect: 'none',
+      touchAction: 'none', // evita gestos nativos tipo scroll/zoom durante drag
+      cursor: 'grab',
+    },
   };
 
   const renderContent = () => {
