@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { CheckSquare } from 'lucide-react';
 import './SidebarItem.css';
 
@@ -6,10 +6,10 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
   const base = 'sidebar-item';
   const [isTouchDragging, setIsTouchDragging] = useState(false);
   const touchStartRef = useRef(null);
+  const isTouch = 'ontouchstart' in window;
 
+  // --- TOUCH EVENTS ---
   const handleTouchStart = (e) => {
-    if (window.innerWidth > 640) return;
-
     const touch = e.touches[0];
     touchStartRef.current = {
       x: touch.clientX,
@@ -45,12 +45,19 @@ export default function SidebarItem({ item, onMobileDragStart, setDragPreview })
     setDragPreview?.(null);
   };
 
+  // --- DESKTOP DRAG ---
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', item.label);
+    e.dataTransfer.setData('label', item.label);
+    e.dataTransfer.setData('source', 'sidebar');
+  };
+
   const commonProps = {
-    onTouchStart: handleTouchStart,
-    onTouchMove: handleTouchMove,
-    onTouchEnd: handleTouchEnd,
-    draggable: true,
-    onDragStart: () => onMobileDragStart?.(item),
+    draggable: !isTouch,
+    onDragStart: !isTouch ? handleDragStart : undefined,
+    onTouchStart: isTouch ? handleTouchStart : undefined,
+    onTouchMove: isTouch ? handleTouchMove : undefined,
+    onTouchEnd: isTouch ? handleTouchEnd : undefined,
   };
 
   const renderContent = () => {

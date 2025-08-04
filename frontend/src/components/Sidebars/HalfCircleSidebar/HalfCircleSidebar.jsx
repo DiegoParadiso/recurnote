@@ -13,18 +13,17 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
   const [dragPreview, setDragPreview] = useState(null);
 
   const handleMobileDragStart = (item) => {
+    // Lógica adicional opcional al comenzar el drag en mobile
   };
 
   return (
     <div
-      className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''} ${
-        isMobile ? 'mobile' : ''
-      }`}
+      className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''} ${isMobile ? 'mobile' : ''}`}
     >
       {!isMobile && <div className="curved-sidebar-hover-zone" />}
       <div className="scroll-hidden curved-sidebar-panel">
         {items
-          .filter((item) => item.label !== 'Evento')
+          .filter((item) => item.label !== 'Evento') // ocultar si se desea
           .map((item) => (
             <SidebarItem
               key={item.id}
@@ -35,7 +34,7 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
           ))}
       </div>
 
-      {/* Vista previa en mobile */}
+      {/* Vista previa del ítem mientras se arrastra (solo mobile) */}
       {dragPreview && (
         <div
           className="drag-preview"
