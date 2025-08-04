@@ -12,7 +12,7 @@ import formatDateKey from '../../../utils/formatDateKey';
 import { useItems } from '../../../context/ItemsContext';
 import BottomToast from '../../common/BottomToast';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, isMobile }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
   const { itemsByDate, setItemsByDate } = useItems();
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
@@ -143,15 +143,20 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
         margin: '0 auto',
       }}
     >
+      {/* Desktop: CircleSmall con isSmallScreen = false para que use tamaño grande */}
       {!isSmallScreen && showSmall && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 10 }}>
-          <CircleSmall onDayClick={setSelectedDay} isSmallScreen={false} selectedDay={selectedDay} />
+          <CircleSmall
+            onDayClick={setSelectedDay}
+            isSmallScreen={false}    // Desktop
+            selectedDay={selectedDay}
+            setSelectedDay={setSelectedDay}
+          />
         </div>
       )}
-
       {isSmallScreen && showSmall && (
         <div
-          className="absolute z-[10] flex items-center justify-center"
+          className="fixed z-[10] flex items-center justify-center"
           style={{
             backgroundColor: 'var(--color-bg)',
             borderRadius: '50%',
@@ -164,14 +169,14 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
         >
           <CircleSmall
             onDayClick={setSelectedDay}
-            isSmallScreen={true}
+            isSmallScreen={true}    // Mobile
             selectedDay={selectedDay}
-            size={circleSize}
+            setSelectedDay={setSelectedDay}
+            size={circleSize}       // Pasamos el tamaño calculado
           />
         </div>
       )}
 
-      {/* Decoración (background text) siempre visible */}
       <CircleBackgroundText
         circleSize={circleSize}
         radius={radius}
@@ -179,29 +184,28 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, is
         isSmallScreen={isSmallScreen}
       />
 
-      {/* Zona de drop */}
-<div
-  ref={containerRef}
-  onDragOver={(e) => e.preventDefault()}
-  onDrop={handleDrop}
-  onMouseDown={onMouseDown}
-  onMouseMove={onMouseMove}
-  onMouseUp={onMouseUp}
-  onMouseLeave={onMouseUp}
-  className={
-    isSmallScreen
-      ? 'absolute inset-0 flex items-center justify-center z-[1]'
-      : 'rounded-full border flex items-center justify-center overflow-hidden'
-  }
-  style={{
-    width: isSmallScreen ? '100%' : circleSize,
-    height: isSmallScreen ? '100dvh' : circleSize,
-    margin: isSmallScreen ? undefined : '0 auto',
-    transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
-    borderColor: isSmallScreen ? 'transparent' : 'var(--color-border)',
-    borderStyle: isSmallScreen ? 'none' : 'solid',
-  }}
->
+      <div
+        ref={containerRef}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        className={
+          isSmallScreen
+            ? 'absolute inset-0 flex items-center justify-center z-[1]'
+            : 'rounded-full border flex items-center justify-center overflow-hidden'
+        }
+        style={{
+          width: isSmallScreen ? '100%' : circleSize,
+          height: isSmallScreen ? '100dvh' : circleSize,
+          margin: isSmallScreen ? undefined : '0 auto',
+          transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
+          borderColor: isSmallScreen ? 'transparent' : 'var(--color-border)',
+          borderStyle: isSmallScreen ? 'none' : 'solid',
+        }}
+      >
         {!selectedDay && !isSmallScreen && <EmptyLogo circleSize={circleSize} />}
 
         {selectedDay && (

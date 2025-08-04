@@ -1,5 +1,5 @@
 import React from 'react';
-import useWindowDimensions from '../../../hooks/useWindowDimensions'; // Asegurate que tenés este hook
+import useWindowDimensions from '../../../hooks/useWindowDimensions'; 
 
 export default function CircleBackgroundText({ circleSize, radius, displayText }) {
   const { width } = useWindowDimensions();

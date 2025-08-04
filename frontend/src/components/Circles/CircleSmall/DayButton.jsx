@@ -46,7 +46,7 @@ export default function DayButton({
             userSelect: 'none',
             color: isSelected
               ? 'var(--color-text-primary)'
-              : 'var(--color-text-primary)', // mismo color para simplificar
+              : 'var(--color-text-primary)',
             transition: 'color 0.3s ease',
           }}
         >

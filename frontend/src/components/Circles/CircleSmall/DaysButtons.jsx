@@ -3,8 +3,8 @@ import DayButton from './DayButton';
 
 export default function DaysButtons({
   currentDate,
-  selectedDate,
-  setSelectedDate,
+  selectedDay,
+  setSelectedDay,
   onDayClick,
   radius,
   center,
@@ -22,9 +22,9 @@ export default function DaysButtons({
         const dayNumber = i + 1;
 
         const isSelected =
-          selectedDate?.day === dayNumber &&
-          selectedDate?.month === currentDate.month &&
-          selectedDate?.year === currentDate.year;
+          selectedDay?.day === dayNumber &&
+          selectedDay?.month === currentDate.month &&
+          selectedDay?.year === currentDate.year;
 
         return (
           <DayButton
@@ -39,8 +39,8 @@ export default function DaysButtons({
             isSelected={isSelected}
             onClick={() => {
               const newSelected = currentDate.set({ day: dayNumber });
-              setSelectedDate(newSelected);
-              onDayClick(newSelected.toObject());
+              setSelectedDay(newSelected.toObject());
+              onDayClick?.(newSelected.toObject());
             }}
             buttonSize={buttonSize}
             labelDistanceFromCenter={labelDistanceFromCenter}
