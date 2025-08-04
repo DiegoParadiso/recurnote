@@ -1,6 +1,7 @@
 import './HalfCircleSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
+
 export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
   const [items] = useState([
     { id: 1, label: 'nota' },
@@ -8,6 +9,12 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
     { id: 3, label: 'Evento' },
     { id: 4, label: 'Archivo' },
   ]);
+
+  const [dragPreview, setDragPreview] = useState(null);
+
+  const handleMobileDragStart = (item) => {
+  };
+
   return (
     <div
       className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''} ${
@@ -19,19 +26,31 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
         {items
           .filter((item) => item.label !== 'Evento')
           .map((item) => (
-            <div
+            <SidebarItem
               key={item.id}
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('text/plain', item.label);
-                e.dataTransfer.setData('label', item.label);
-                e.dataTransfer.setData('source', 'sidebar');
-              }}
-            >
-              <SidebarItem item={item} />
-            </div>
+              item={item}
+              onMobileDragStart={handleMobileDragStart}
+              setDragPreview={setDragPreview}
+            />
           ))}
       </div>
+
+      {/* Vista previa en mobile */}
+      {dragPreview && (
+        <div
+          className="drag-preview"
+          style={{
+            position: 'fixed',
+            top: dragPreview.y,
+            left: dragPreview.x,
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 9999,
+          }}
+        >
+          <SidebarItem item={dragPreview.item} />
+        </div>
+      )}
     </div>
   );
 }

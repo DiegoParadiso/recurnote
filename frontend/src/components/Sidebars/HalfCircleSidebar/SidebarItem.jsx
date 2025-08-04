@@ -1,34 +1,55 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { CheckSquare } from 'lucide-react';
 import './SidebarItem.css';
 
-export default function SidebarItem({ item, onMobileDragStart }) {
+export default function SidebarItem({ item, onMobileDragStart, setDragPreview }) {
   const base = 'sidebar-item';
-  const touchTimeout = useRef(null);
   const [isTouchDragging, setIsTouchDragging] = useState(false);
+  const touchStartRef = useRef(null);
 
   const handleTouchStart = (e) => {
-    if (window.innerWidth > 640) return; // Solo en móviles
+    if (window.innerWidth > 640) return;
 
-    touchTimeout.current = setTimeout(() => {
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchStartRef.current) return;
+
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 10 && !isTouchDragging) {
       setIsTouchDragging(true);
-      onMobileDragStart?.(item); // Avisamos al contenedor padre
-    }, 400); // 400ms = long press
+      onMobileDragStart?.(item);
+    }
+
+    if (isTouchDragging && setDragPreview) {
+      setDragPreview({
+        x: touch.clientX,
+        y: touch.clientY,
+        item,
+      });
+    }
   };
 
   const handleTouchEnd = () => {
-    clearTimeout(touchTimeout.current);
-    if (isTouchDragging) setIsTouchDragging(false);
+    setIsTouchDragging(false);
+    touchStartRef.current = null;
+    setDragPreview?.(null);
   };
-
-  useEffect(() => {
-    return () => clearTimeout(touchTimeout.current);
-  }, []);
 
   const commonProps = {
     onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
-    draggable: true, // también para desktop drag
+    draggable: true,
     onDragStart: () => onMobileDragStart?.(item),
   };
 
