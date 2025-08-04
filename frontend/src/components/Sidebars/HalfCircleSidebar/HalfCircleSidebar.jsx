@@ -1,13 +1,15 @@
 import './HalfCircleSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
-export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
+
+export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem }) {
   const [items] = useState([
     { id: 1, label: 'nota' },
     { id: 2, label: 'Tarea' },
     { id: 3, label: 'Evento' },
     { id: 4, label: 'Archivo' },
   ]);
+
   return (
     <div
       className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''} ${
@@ -28,7 +30,12 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false }) {
                 e.dataTransfer.setData('source', 'sidebar');
               }}
             >
-              <SidebarItem item={item} />
+              <SidebarItem
+                item={item}
+                onClick={() => {
+                  onSelectItem?.(item);
+                }}
+              />
             </div>
           ))}
       </div>
