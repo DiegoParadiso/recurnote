@@ -17,6 +17,7 @@ import { useItems } from '../context/ItemsContext';
 import { useNotes } from '../context/NotesContext';
 
 export default function Home() {
+  
   const { itemsByDate, setItemsByDate } = useItems();
   const { selectedDay, setSelectedDay } = useNotes();
 
@@ -28,7 +29,7 @@ export default function Home() {
   const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
 
   const isMobile = useIsMobile();
-  const [draggedItem, setDraggedItem] = useState(null); // { id, x, y }
+  const [draggedItem, setDraggedItem] = useState(null); 
   const [isOverTrash, setIsOverTrash] = useState(false);
 
   // Obtener items para el día seleccionado
@@ -37,20 +38,20 @@ export default function Home() {
   const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
   
   // Función para determinar si la posición está sobre la papelera (zona arriba)
-    function isOverTrashZone(pos) {
-      if (!pos) return false;
-      const trashX = 25; // left fijo igual que en DragTrashZone
-      const trashY = 5;  // top fijo igual que en DragTrashZone
-      const trashWidth = 50;
-      const trashHeight = 50;
+function isOverTrashZone(pos) {
+  if (!pos) return false;
+  const trashX = 0;      // esquina izquierda (coincide con left:0)
+  const trashY = 5;      // mismo top que el div
+  const trashWidth = 80; // igual al ancho del div
+  const trashHeight = 80;
 
-      return (
-        pos.x >= trashX &&
-        pos.x <= trashX + trashWidth &&
-        pos.y >= trashY &&
-        pos.y <= trashY + trashHeight
-      );
-    }
+  return (
+    pos.x >= trashX &&
+    pos.x <= trashX + trashWidth &&
+    pos.y >= trashY &&
+    pos.y <= trashY + trashHeight
+  );
+}
 
   useEffect(() => {
     setIsOverTrash(isOverTrashZone(draggedItem));
@@ -92,15 +93,17 @@ export default function Home() {
 
     setItemsByDate(prev => {
       const prevItems = prev[dateKey] || [];
-      // Evitar duplicados por label (opcional)
-      if (prevItems.some(i => i.label === item.label)) return prev;
       return {
         ...prev,
         [dateKey]: [...prevItems, newItem],
       };
     });
   }
-
+useEffect(() => {
+  if (!selectedDay) {
+    setShowSmall(true);
+  }
+}, [selectedDay]);
   return (
     <div
       className="scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
@@ -254,6 +257,7 @@ export default function Home() {
             showRightSidebar={showRightSidebarMobile}
             isMobile={true}
             onClose={() => setShowRightSidebarMobile(false)}
+            setShowSmall={setShowSmall}
           />
         </div>
       )}

@@ -1,16 +1,16 @@
 import React from 'react';
 import logo from '../../../assets/logorecurnote.png';
 
-export default function EmptyLogo({ circleSize }) {
+export default function EmptyLogo({ circleSize, isSmallScreen }) {
   return (
     <img
       src={logo}
       alt="Logo Marca de Agua"
       style={{
         position: 'absolute',
-        top: '26%',
-        left: -30,
-        width: circleSize * 0.5,
+        top: isSmallScreen ? '30%' : '26%',
+        left: isSmallScreen ? -60 : -30,
+        width: circleSize,
         height: 'auto',
         opacity: 'var(--logo-opacity)',
         pointerEvents: 'none',

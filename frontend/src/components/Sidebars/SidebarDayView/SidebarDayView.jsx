@@ -6,7 +6,7 @@ import './SidebarDayView.css';
 import useItemsForDays from './hooks/useItemsForDays';
 import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
-export default function SidebarDayView({ setSelectedDay, isMobile, onClose }) {
+export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall  }) {
   const { itemsByDate, setItemsByDate } = useItems();
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
 
@@ -32,6 +32,14 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose }) {
       [dateKey]: updatedItems,
     }));
   };
+
+  function handleDaySelect(day) {
+    setSelectedDay(day);
+    if (isMobile) {
+      if (onClose) onClose();
+      if (setShowSmall) setShowSmall(false);
+    }
+  }
 
   return (
     <div className={`fixed ${isMobile ? 'inset-0 z-50 flex flex-col bg-[var(--color-bg)]' : 'top-0 right-0 h-screen w-[30px] group z-50'}`}>
@@ -61,7 +69,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose }) {
         >
           <ItemsList
             itemsForDays={itemsForDays}
-            setSelectedDay={setSelectedDay}
+            setSelectedDay={handleDaySelect}
             renderItem={(item, dateKey) => (
               <ItemRenderer
                 item={item}

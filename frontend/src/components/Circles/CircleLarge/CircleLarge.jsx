@@ -217,7 +217,13 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           borderStyle: isSmallScreen ? 'none' : 'solid',
         }}
       >
-        {!selectedDay && !isSmallScreen && <EmptyLogo circleSize={circleSize} />}
+        {!selectedDay && (
+          <EmptyLogo
+            circleSize={isSmallScreen ? circleSize * 3 : circleSize * 0.5}
+            isSmallScreen={isSmallScreen}
+          />
+        )}
+
 
         {selectedDay && (
           <div style={{ transform: isSmallScreen ? 'none' : `rotate(${-rotationAngle}deg)` }}>
