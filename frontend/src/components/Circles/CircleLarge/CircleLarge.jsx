@@ -9,19 +9,21 @@ import useHandleDrop from '../../../hooks/useDropHandler';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useRotationControls from '../../../hooks/useRotationControls';
 import formatDateKey from '../../../utils/formatDateKey';
-import { useItems } from '../../../context/ItemsContext';
+import { useItems } from '../../../context/ItemsContext'; 
 import BottomToast from '../../common/BottomToast';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
+  // Contexto global con items organizados por fecha
   const { itemsByDate, setItemsByDate } = useItems();
+
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
   const [circleSize, setCircleSize] = useState(680);
   const [rotationAngle, setRotationAngle] = useState(0);
   const rotationSpeed = 2;
   const [toastMessage, setToastMessage] = useState('');
-  const dropRef = useRef(null);
 
+  // Control de rotación con mouse
   const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
     containerRef,
     rotationAngle,
@@ -29,6 +31,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     rotationSpeed,
   });
 
+  // Ajustar tamaño según ancho de ventana (responsive)
   useEffect(() => {
     if (width <= 640) {
       setCircleSize(Math.min(width - 40, 360));
@@ -37,6 +40,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     }
   }, [width]);
 
+  // Cuando rota el círculo, actualizo el ángulo de los items del día seleccionado en contexto
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
     if (delta !== 0 && selectedDay) {
@@ -50,8 +54,9 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
       }));
     }
     prevRotationRef.current = rotationAngle;
-  }, [rotationAngle]);
+  }, [rotationAngle, selectedDay, setItemsByDate, prevRotationRef]);
 
+  // Fecha seleccionada como objeto DateTime para mostrar texto legible
   const selectedDate = selectedDay
     ? DateTime.fromObject({
         day: selectedDay.day,
@@ -69,6 +74,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
+  // Hook para manejar drag & drop sobre el círculo
   const handleDrop = useHandleDrop({
     containerRef,
     itemsByDate,
@@ -80,13 +86,14 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     cy,
     onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
   });
-  useHandleDrop(dropRef);
 
+  // Eventos drag para los items
   const handleNoteDragStart = (e, itemId) => {
     e.dataTransfer.setData('source', 'dropped');
     e.dataTransfer.setData('itemId', itemId.toString());
   };
 
+  // Actualizar item (contenido, posición polar, tamaño, etc)
   const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
@@ -122,6 +129,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     }));
   };
 
+  // Borrar item por id
   const handleDeleteItem = (id) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
@@ -132,6 +140,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
     }));
   };
 
+  // Items para el día seleccionado (pueden ser [] si no hay)
   const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
 
   return (
@@ -143,17 +152,19 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
         margin: '0 auto',
       }}
     >
-      {/* Desktop: CircleSmall con isSmallScreen = false para que use tamaño grande */}
+      {/* CircleSmall solo en desktop cuando showSmall */}
       {!isSmallScreen && showSmall && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 10 }}>
           <CircleSmall
             onDayClick={setSelectedDay}
-            isSmallScreen={false}    // Desktop
+            isSmallScreen={false}
             selectedDay={selectedDay}
             setSelectedDay={setSelectedDay}
           />
         </div>
       )}
+
+      {/* CircleSmall móvil */}
       {isSmallScreen && showSmall && (
         <div
           className="fixed z-[10] flex items-center justify-center"
@@ -169,10 +180,10 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
         >
           <CircleSmall
             onDayClick={setSelectedDay}
-            isSmallScreen={true}    // Mobile
+            isSmallScreen={true}
             selectedDay={selectedDay}
             setSelectedDay={setSelectedDay}
-            size={circleSize}       // Pasamos el tamaño calculado
+            size={circleSize}
           />
         </div>
       )}

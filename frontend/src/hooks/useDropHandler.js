@@ -12,7 +12,6 @@ export default function useHandleDrop({
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
-      e.stopPropagation();
 
       if (!containerRef.current || !selectedDay) {
         if (typeof onInvalidDrop === 'function') {
@@ -53,12 +52,12 @@ export default function useHandleDrop({
 
         if (source === 'sidebar') {
           const newItem = {
-            id: Date.now(),
+            id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
             label,
             angle,
             distance,
             content: label === 'Tarea' ? [''] : '',
-            checked: label === 'Tarea' ? [false] : undefined,
+            ...(label === 'Tarea' && { checked: [false] }),
             width: label === 'Tarea' ? 200 : 100,
             height: label === 'Tarea' ? 150 : 100,
           };

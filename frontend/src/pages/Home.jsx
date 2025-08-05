@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { DateTime } from 'luxon'; 
 import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
 import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView';
-import CurvedSidebar from '../components/Sidebars/HalfCircleSidebar/HalfCircleSidebar';
+import CurvedSidebar from '../components/Sidebars/CurvedSidebar/CurvedSidebar';
 import ConfigButton from '../components/Preferences/ConfigButton';
 import ConfigPanel from '../components/Preferences/ConfigPanel';
 import ThemeToggle from '../components/Preferences/ThemeToggle';
 import useIsMobile from '../hooks/useIsMobile';
-import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles'; // Ajusta ruta
-import MobileBottomControls from '../components/common/MobileBottomControls';   // Ajusta ruta
+import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles';
+import MobileBottomControls from '../components/common/MobileBottomControls';
+
+import { useItems } from '../context/ItemsContext';
+import { useNotes } from '../context/NotesContext';
 
 export default function Home() {
+  const { itemsByDate, setItemsByDate } = useItems();
+  const { selectedDay, setSelectedDay } = useNotes();
+
   const [showSmall, setShowSmall] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showConfigPanel, setShowConfigPanel] = useState(false);
@@ -20,6 +26,39 @@ export default function Home() {
   const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
 
   const isMobile = useIsMobile();
+
+  // Obtener items para el día seleccionado
+  const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
+
+  const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
+
+  function handleSelectItem(item) {
+    if (!dateKey) {
+      alert('Seleccioná un día primero');
+      return;
+    }
+
+    const newItem = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+      label: item.label,
+      angle: Math.random() * 360,
+      distance: 120,
+      content: item.label === 'Tarea' ? [''] : '',
+      ...(item.label === 'Tarea' && { checked: [false] }),
+      width: item.label === 'Tarea' ? 200 : 100,
+      height: item.label === 'Tarea' ? 150 : 100,
+    };
+
+    setItemsByDate(prev => {
+      const prevItems = prev[dateKey] || [];
+      // Evitar duplicados por label (opcional)
+      if (prevItems.some(i => i.label === item.label)) return prev;
+      return {
+        ...prev,
+        [dateKey]: [...prevItems, newItem],
+      };
+    });
+  }
 
   return (
     <div
@@ -30,7 +69,7 @@ export default function Home() {
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >
-      {/* Botones Config y Tema móvil arriba */}
+      {/* Botones Config y Tema móvil */}
       <div className="fixed top-3 left-3 z-[30] sm:hidden" aria-label="Mostrar configuración móvil">
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
       </div>
@@ -38,7 +77,7 @@ export default function Home() {
         <ThemeToggle />
       </div>
 
-      {/* Botones Config y Tema desktop arriba */}
+      {/* Botones Config y Tema desktop */}
       <div className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center">
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
         <ThemeToggle />
@@ -57,14 +96,14 @@ export default function Home() {
             transition: 'all 0.3s ease',
           }}
         >
-          <CurvedSidebar showConfigPanel={showConfigPanel} />
+          <CurvedSidebar showConfigPanel={showConfigPanel} onSelectItem={handleSelectItem} />
         </div>
       )}
 
       {/* Sidebar izquierdo móvil */}
       {showLeftSidebarMobile && isMobile && (
         <div className="fixed left-0 right-0 bottom-[64px] z-40">
-          <CurvedSidebar showConfigPanel={showConfigPanel} isMobile={true} />
+          <CurvedSidebar showConfigPanel={showConfigPanel} isMobile={true} onSelectItem={handleSelectItem} />
         </div>
       )}
 
@@ -81,9 +120,14 @@ export default function Home() {
         <CircleLarge
           showSmall={showSmall}
           selectedDay={selectedDay}
-          setSelectedDay={(day) => {
+          setSelectedDay={day => {
             setSelectedDay(day);
             if (isMobile) setShowSmall(false);
+          }}
+          items={itemsForSelectedDay}
+          setItems={newItemsForDay => {
+            if (!dateKey) return;
+            setItemsByDate(prev => ({ ...prev, [dateKey]: newItemsForDay }));
           }}
         />
 
@@ -126,27 +170,28 @@ export default function Home() {
         </div>
       )}
 
-{showRightSidebarMobile && isMobile && (
-  <div
-    className="fixed top-0 bottom-0 right-0"   
-    style={{
-      width: 'calc(100vw - 50px)',      
-      backgroundColor: 'var(--color-bg)',
-      padding: '1rem',
-      overflow: 'auto',
-      zIndex: 70,                             
-      boxShadow: 'rgba(0, 0, 0, 0.3) 0px 0px 10px', // opcional sombra para que se note que está encima
-    }}
-  >
-    <SidebarDayView
-      selectedDay={selectedDay}
-      setSelectedDay={setSelectedDay}
-      showRightSidebar={showRightSidebarMobile}
-      isMobile={true}
-      onClose={() => setShowRightSidebarMobile(false)}
-    />
-  </div>
-)}
+      {/* Sidebar derecho móvil */}
+      {showRightSidebarMobile && isMobile && (
+        <div
+          className="fixed top-0 bottom-0 right-0"
+          style={{
+            width: 'calc(100vw - 50px)',
+            backgroundColor: 'var(--color-bg)',
+            padding: '1rem',
+            overflow: 'auto',
+            zIndex: 70,
+            boxShadow: 'rgba(0, 0, 0, 0.3) 0px 0px 10px',
+          }}
+        >
+          <SidebarDayView
+            selectedDay={selectedDay}
+            setSelectedDay={setSelectedDay}
+            showRightSidebar={showRightSidebarMobile}
+            isMobile={true}
+            onClose={() => setShowRightSidebarMobile(false)}
+          />
+        </div>
+      )}
 
       {/* Panel de configuración */}
       <ConfigPanel

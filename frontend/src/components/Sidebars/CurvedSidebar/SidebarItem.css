@@ -12,7 +12,9 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  
+  touch-action: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sidebar-item:hover {

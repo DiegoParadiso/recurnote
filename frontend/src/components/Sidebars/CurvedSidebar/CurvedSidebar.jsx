@@ -1,4 +1,4 @@
-import './HalfCircleSidebar.css';
+import './CurvedSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
 
@@ -19,7 +19,7 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
       {!isMobile && <div className="curved-sidebar-hover-zone" />}
       <div className="scroll-hidden curved-sidebar-panel">
         {items
-          .filter((item) => item.label !== 'Evento')
+          .filter((item) => item.label !== 'Evento') // si querés mostrar Evento acá sacá este filtro
           .map((item) => (
             <div
               key={item.id}
@@ -33,7 +33,7 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
               <SidebarItem
                 item={item}
                 onClick={() => {
-                  onSelectItem?.(item);
+                  onSelectItem?.(item); 
                 }}
               />
             </div>

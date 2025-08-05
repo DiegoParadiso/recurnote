@@ -1,6 +1,6 @@
 import NoteItem from '../Items/NoteItem';
 import TaskItem from '../Items/Taskitem';
-import ArchiveItem from '../Items/ArchiveItem/ArchiveItem';
+import ArchiveItem from './ArchiveItem';
 
 export default function ItemsOnCircle({
   items,
