@@ -12,7 +12,7 @@ import formatDateKey from '../../../utils/formatDateKey';
 import { useItems } from '../../../context/ItemsContext'; 
 import BottomToast from '../../common/BottomToast';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, onItemDrop }) {
   // Contexto global con items organizados por fecha
   const { itemsByDate, setItemsByDate } = useItems();
 
@@ -230,6 +230,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay }) 
           cx={cx}
           cy={cy}
           rotationAngle={rotationAngle}
+          onItemDrag={onItemDrag}
+          onItemDrop={onItemDrop}
           onNoteDragStart={handleNoteDragStart}
           onNoteUpdate={handleNoteUpdate}
           onDeleteItem={handleDeleteItem}

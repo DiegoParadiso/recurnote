@@ -12,7 +12,9 @@ export default function ItemsOnCircle({
   onDeleteItem,
   circleSize,
   rotationEnabled = true,
-  isSmallScreen
+  isSmallScreen,
+  onItemDrag,
+  onItemDrop
 }) {
   return (
     <>
@@ -38,6 +40,8 @@ export default function ItemsOnCircle({
               rotationEnabled={rotationEnabled && !isSmallScreen}
               item={item}
               onDragStart={onNoteDragStart}
+              onItemDrag={onItemDrag}
+              onItemDrop={onItemDrop}
               onUpdate={onNoteUpdate}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
@@ -60,6 +64,8 @@ export default function ItemsOnCircle({
               rotationEnabled={rotationEnabled}
               item={item}
               onDragStart={onNoteDragStart}
+              onItemDrag={onItemDrag}
+              onItemDrop={onItemDrop}
               onUpdate={onNoteUpdate}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
@@ -79,10 +85,12 @@ export default function ItemsOnCircle({
               x={x}
               y={y}
               rotation={rotation}
-              rotationEnabled={rotationEnabled}  // <-- paso prop
+              rotationEnabled={rotationEnabled}  
               item={item}
               onUpdate={onNoteUpdate}
               onDelete={onDeleteItem}
+              onItemDrag={onItemDrag}
+              onItemDrop={onItemDrop}
               cx={cx}
               cy={cy}
               circleSize={circleSize}

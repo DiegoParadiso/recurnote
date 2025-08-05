@@ -17,6 +17,8 @@ export default function ArchivoItem({
   cy,
   circleSize,
   isSmallScreen,
+  onItemDrag,  // <-- agregado
+  onItemDrop,  // <-- agregado
 }) {
   const fileInputRef = useRef();
   const [showOnlyImage, setShowOnlyImage] = useState(false);
@@ -76,24 +78,30 @@ export default function ArchivoItem({
           maxWidth={maxWidth}
           minHeight={minHeight}
           maxHeight={maxHeight}
-          onMove={({ x: newX, y: newY }) =>
+          onMove={({ x: newX, y: newY }) => {
             onUpdate?.(
               id,
               item.content || {},
               null,
               { width: item.width || maxWidth, height: item.height || maxHeight },
               { x: newX, y: newY }
-            )
-          }
-          onResize={(newSize) =>
+            );
+            onItemDrag?.(id, { x: newX, y: newY });  // <-- aviso drag
+          }}
+          onResize={(newSize) => {
             onUpdate?.(
               id,
               item.content || {},
               null,
               { width: newSize.width, height: newSize.height },
               { x: x, y: y }
-            )
-          }
+            );
+            // Podrías avisar onResize también si querés:
+            // onResize?.({ width: newSize.width, height: newSize.height });
+          }}
+          onDrop={() => {
+            onItemDrop?.(id);  // <-- aviso drop
+          }}
           circleCenter={{ cx, cy }}
           maxRadius={circleSize / 2}
           isSmallScreen={isSmallScreen}

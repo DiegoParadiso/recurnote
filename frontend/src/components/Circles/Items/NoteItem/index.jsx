@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 
@@ -9,27 +9,24 @@ export default function NoteItem({
   rotation,
   rotationEnabled = true,
   item,
-  onDragStart,
   onUpdate,
+  onResize,
   onDelete,
   circleSize,
   cx,
   cy,
   isSmallScreen,
+  onItemDrag,
+  onItemDrop,
 }) {
   const textareaRef = useRef(null);
   const { content = '', width = 150, height = 80 } = item;
 
+  const computedMinHeight = height;
+
+  // Simplificado: actualiza siempre el contenido
   const handleTextChange = (e) => {
-    const nextValue = e.target.value;
-    const ta = textareaRef.current;
-    const overflowY = ta.scrollHeight > ta.clientHeight;
-    const overflowX = ta.scrollWidth > ta.clientWidth;
-    if (!overflowY && !overflowX) {
-      onUpdate(id, nextValue);
-    } else {
-      ta.value = content;
-    }
+    onUpdate(id, e.target.value);
   };
 
   return (
@@ -41,11 +38,21 @@ export default function NoteItem({
         width={width}
         height={height}
         minWidth={120}
-        minHeight={60}
+        minHeight={computedMinHeight}
         maxWidth={224}
-        maxHeight={214}
-        onMove={({ x, y }) => onUpdate(id, content, null, null, { x, y })}
-        onResize={(size) => onUpdate(id, content, null, size)}
+        maxHeight={computedMinHeight}
+        onMove={({ x, y }) => {
+          onUpdate?.(id, content, null, null, { x, y });
+          onItemDrag?.(id, { x, y });
+        }}
+        onResize={(newSize) => {
+          const newWidth = Math.min(newSize.width, 400);
+          onUpdate?.(id, content, null, { width: newWidth, height: computedMinHeight });
+          onResize?.({ width: newWidth, height: computedMinHeight });
+        }}
+        onDrop={() => {
+          onItemDrop?.(id);
+        }}
         circleCenter={{ cx, cy }}
         maxRadius={circleSize / 2}
         isSmallScreen={isSmallScreen}

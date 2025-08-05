@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { DateTime } from 'luxon'; 
 import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
@@ -10,6 +10,8 @@ import ThemeToggle from '../components/Preferences/ThemeToggle';
 import useIsMobile from '../hooks/useIsMobile';
 import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles';
 import MobileBottomControls from '../components/common/MobileBottomControls';
+
+import DragTrashZone from '../components/common/DragTrashZone'; 
 
 import { useItems } from '../context/ItemsContext';
 import { useNotes } from '../context/NotesContext';
@@ -26,17 +28,56 @@ export default function Home() {
   const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
 
   const isMobile = useIsMobile();
+  const [draggedItem, setDraggedItem] = useState(null); // { id, x, y }
+  const [isOverTrash, setIsOverTrash] = useState(false);
 
   // Obtener items para el día seleccionado
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
 
   const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
+  
+  // Función para determinar si la posición está sobre la papelera (zona arriba)
+    function isOverTrashZone(pos) {
+      if (!pos) return false;
+      const trashX = 25; // left fijo igual que en DragTrashZone
+      const trashY = 5;  // top fijo igual que en DragTrashZone
+      const trashWidth = 50;
+      const trashHeight = 50;
+
+      return (
+        pos.x >= trashX &&
+        pos.x <= trashX + trashWidth &&
+        pos.y >= trashY &&
+        pos.y <= trashY + trashHeight
+      );
+    }
+
+  useEffect(() => {
+    setIsOverTrash(isOverTrashZone(draggedItem));
+  }, [draggedItem]);
 
   function handleSelectItem(item) {
     if (!dateKey) {
       alert('Seleccioná un día primero');
       return;
     }
+
+    const handleDeleteItemById = (id) => {
+      if (!selectedDay) return;
+      const dateKey = DateTime.fromObject(selectedDay).toISODate();
+      setItemsByDate(prev => ({
+        ...prev,
+        [dateKey]: (prev[dateKey] || []).filter(item => item.id !== id),
+      }));
+    };
+
+    const handleItemDrop = () => {
+      if (draggedItem && isOverTrashZone(draggedItem)) {
+        handleDeleteItemById(draggedItem.id);
+      }
+      setDraggedItem(null);
+      setIsOverTrash(false);
+    };
 
     const newItem = {
       id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
@@ -69,16 +110,28 @@ export default function Home() {
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >
-      {/* Botones Config y Tema móvil */}
-      <div className="fixed top-3 left-3 z-[30] sm:hidden" aria-label="Mostrar configuración móvil">
-        <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
-      </div>
-      <div className="fixed top-3 right-3 z-[30] sm:hidden" aria-label="Toggle tema oscuro móvil">
-        <ThemeToggle />
-      </div>
+    {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
+    {isMobile && !draggedItem && (
+      <>
+        <div
+          className="fixed top-3 left-3 z-[30] sm:hidden"
+          aria-label="Mostrar configuración móvil"
+        >
+          <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
+        </div>
+        <div
+          className="fixed top-3 right-3 z-[30] sm:hidden"
+          aria-label="Toggle tema oscuro móvil"
+        >
+          <ThemeToggle />
+        </div>
+      </>
+    )}
 
       {/* Botones Config y Tema desktop */}
-      <div className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center">
+      <div
+        className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center"
+      >
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
         <ThemeToggle />
       </div>
@@ -120,6 +173,18 @@ export default function Home() {
         <CircleLarge
           showSmall={showSmall}
           selectedDay={selectedDay}
+          onItemDrag={(itemId, pos) => setDraggedItem({ id: itemId, ...pos })}
+          onItemDrop={() => {
+            if (draggedItem && isOverTrash) {
+              setItemsByDate(prev => {
+                if (!dateKey) return prev;
+                const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
+                return { ...prev, [dateKey]: filtered };
+              });
+            }
+            setDraggedItem(null);
+            setIsOverTrash(false);
+          }}
           setSelectedDay={day => {
             setSelectedDay(day);
             if (isMobile) setShowSmall(false);
@@ -202,6 +267,11 @@ export default function Home() {
         showRightSidebar={showRightSidebar}
         setShowRightSidebar={setShowRightSidebar}
       />
+
+      {/* Papelera DragTrashZone SOLO en mobile y si hay draggedItem */}
+      {isMobile && (
+        <DragTrashZone isActive={!!draggedItem} isOverTrash={isOverTrash} />
+      )}
 
       {/* Toggles sidebar desktop */}
       <DesktopSidebarToggles

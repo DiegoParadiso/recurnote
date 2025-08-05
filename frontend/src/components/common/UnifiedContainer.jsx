@@ -3,18 +3,21 @@ import { useDragResize } from '../../hooks/useDragResize';
 import { limitPositionInsideCircle } from '../../utils/geometry';
 import { getContainerStyle } from '../../utils/styles/getContainerStyle';
 
-export default function UnifiedContainer({ ...props }) {
-  const {
-    x, y, width, height, rotation = 0,
-    minWidth = 100, minHeight = 80,
-    maxWidth = 400, maxHeight = 400,
-    circleCenter = { cx: 0, cy: 0 },
-    maxRadius = 200,
-    onMove, onResize,
-    children, style = {},
-    disableResize = false,
-    isSmallScreen = false, 
-  } = props;
+export default function UnifiedContainer({
+  x, y, width, height, rotation = 0,
+  minWidth = 100, minHeight = 80,
+  maxWidth = 400, maxHeight = 400,
+  circleCenter = { cx: 0, cy: 0 },
+  maxRadius = 200,
+  onMove, onResize,
+  onDrag,
+  onDrop,
+  onContextMenu,
+  children, style = {},
+  disableResize = false,
+  isSmallScreen = false,
+  ...rest
+}) {
 
   const containerRef = useRef(null);
   const [pos, setPos] = useState({ x, y });
@@ -31,14 +34,28 @@ useEffect(() => {
   });
 }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen]);
 
-  const { isDragging, isResizing, dragStartPos, resizeStartPos } = useDragResize({
+    const { isDragging, isResizing, dragStartPos, resizeStartPos } = useDragResize({
     pos, setPos, sizeState, setSizeState,
     minWidth, minHeight, maxWidth, maxHeight,
     circleCenter, maxRadius, onMove, onResize,
+    onDrag,  
+    onDrop,  
     rotation,
-    isSmallScreen, 
+    isSmallScreen,
   });
-
+  const handleMouseUp = (e) => {
+    if (isDragging.current) {
+      onDrop?.();
+      isDragging.current = false;
+    }
+  };
+  
+  const handleTouchEnd = (e) => {
+    if (isDragging.current) {
+      onDrop?.();
+      isDragging.current = false;
+    }
+  };
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
 
@@ -46,7 +63,6 @@ useEffect(() => {
     if (e.target.dataset.resizeHandle) return;
 
     e.stopPropagation();
-    e.preventDefault();
     isDragging.current = true;
     dragStartPos.current = {
       mouseX: e.clientX,
@@ -61,9 +77,7 @@ useEffect(() => {
     if (e.touches.length !== 1) return;
 
     const touch = e.touches[0];
-    e.preventDefault();
     e.stopPropagation();
-
     isDragging.current = true;
     dragStartPos.current = {
       mouseX: touch.clientX,
@@ -77,7 +91,6 @@ useEffect(() => {
   const onMouseDownResize = (e) => {
     if (disableResize) return;
     e.stopPropagation();
-    e.preventDefault();
     isResizing.current = true;
     resizeStartPos.current = {
       mouseX: e.clientX,
@@ -93,7 +106,6 @@ useEffect(() => {
 
     const touch = e.touches[0];
     e.stopPropagation();
-    e.preventDefault();
     isResizing.current = true;
     resizeStartPos.current = {
       mouseX: touch.clientX,
@@ -108,7 +120,9 @@ useEffect(() => {
       ref={containerRef}
       onMouseDown={onMouseDownDrag}
       onTouchStart={onTouchStartDrag}
-      onContextMenu={props.onContextMenu}
+      onMouseUp={handleMouseUp}
+      onTouchEnd={handleTouchEnd}
+      onContextMenu={onContextMenu}
       style={getContainerStyle({
         pos,
         rotation,

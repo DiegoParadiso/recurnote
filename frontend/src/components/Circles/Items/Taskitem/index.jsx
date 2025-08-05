@@ -17,6 +17,8 @@ export default function TaskItem({
   cy,
   circleSize,
   isSmallScreen,
+  onItemDrag,
+  onItemDrop,
 }) {
   const baseHeight = 30;
   const maxTasks = 4;
@@ -60,11 +62,17 @@ export default function TaskItem({
         maxWidth={400}
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
-        onMove={({ x, y }) => onUpdate?.(id, item.content || [], item.checked || [], null, { x, y })}
+        onMove={({ x, y }) => {
+          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y });
+          onItemDrag?.(id, { x, y });   // <-- Aviso que se mueve
+        }}
         onResize={(newSize) => {
           const newWidth = Math.min(newSize.width, 400);
           onUpdate?.(id, item.content || [], item.checked || [], { width: newWidth, height: computedMinHeight });
           onResize?.({ width: newWidth, height: computedMinHeight });
+        }}
+        onDrop={() => {
+          onItemDrop?.(id);             // <-- Aviso que terminó de mover
         }}
         circleCenter={{ cx, cy }}
         maxRadius={circleSize / 2}

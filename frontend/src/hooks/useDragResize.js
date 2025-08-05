@@ -14,6 +14,8 @@ export const useDragResize = ({
   maxRadius,
   onMove, 
   onResize,
+  onDrag,
+  onDrop,
   rotation,
   isSmallScreen = false
 }) => {
@@ -59,7 +61,8 @@ export const useDragResize = ({
         );
 
         setPos({ x: limited.x, y: limited.y });
-        onMove?.({ x: limited.x, y: limited.y });
+      onMove?.({ x: limited.x, y: limited.y });
+      onDrag?.({ x: limited.x, y: limited.y }); 
       } else if (isResizing.current) {
         const dx = clientX - resizeStartPos.current.mouseX;
         const dy = clientY - resizeStartPos.current.mouseY;
@@ -94,6 +97,9 @@ export const useDragResize = ({
     };
 
     const onEnd = () => {
+      if (isDragging.current) {
+        onDrop?.(); // avisar que terminó el drag
+      }
       isDragging.current = false;
       isResizing.current = false;
     };
@@ -124,6 +130,8 @@ export const useDragResize = ({
     maxRadius,
     onMove,
     onResize,
+    onDrag,
+    onDrop
   ]);
 
   return {
