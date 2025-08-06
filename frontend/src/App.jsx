@@ -1,25 +1,48 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
 import { ItemsProvider } from './context/ItemsContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { NotesProvider } from './context/NotesContext'; // Importá el contexto de notas
+import { NotesProvider } from './context/NotesContext';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './PrivateRoute';
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        }
+      />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
+}
 
 function AppContent() {
   return (
-    <div id="app-container">
-      <ItemsProvider>
-        <NotesProvider>
-          <Home />
-        </NotesProvider>
-      </ItemsProvider>
-    </div>
+    <ItemsProvider>
+      <NotesProvider>
+        <AppRoutes />
+      </NotesProvider>
+    </ItemsProvider>
   );
 }
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

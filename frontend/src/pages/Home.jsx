@@ -248,7 +248,6 @@ useEffect(() => {
             padding: '1rem',
             overflow: 'auto',
             zIndex: 70,
-            boxShadow: 'rgba(0, 0, 0, 0.3) 0px 0px 10px',
           }}
         >
           <SidebarDayView
