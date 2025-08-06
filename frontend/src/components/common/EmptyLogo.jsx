@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../../../assets/logorecurnote.png';
+import logo from '../../assets/logorecurnote.png';
 
 export default function EmptyLogo({ circleSize, isSmallScreen }) {
   return (

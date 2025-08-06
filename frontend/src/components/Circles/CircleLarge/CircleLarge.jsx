@@ -3,7 +3,7 @@ import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
 import ItemsOnCircle from '../Items/ItemsOnCircle';
 import CircleBackgroundText from './CircleBackgroundText';
-import EmptyLogo from './EmptyLogo';
+import EmptyLogo from '../../common/EmptyLogo';
 import { DateTime } from 'luxon';
 import useHandleDrop from '../../../hooks/useDropHandler';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';

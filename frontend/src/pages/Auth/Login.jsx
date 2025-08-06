@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/auth.css';
-import EmptyLogo from '../../components/Circles/CircleLarge/EmptyLogo.jsx';
+import EmptyLogo from '../../components/common/EmptyLogo.jsx';
 
 export default function Login() {
   const { login } = useContext(AuthContext);
