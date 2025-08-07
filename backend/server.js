@@ -18,8 +18,8 @@ const PORT = process.env.PORT || 5000;
 connectDB().then(() => {
   // Sincronizar modelos con la DB (solo en desarrollo)
   sequelize.sync().then(() => {
-    app.listen(PORT, () => {
-      console.log(`Servidor escuchando en http://localhost:${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`);
     });
   });
 });
