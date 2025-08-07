@@ -110,51 +110,52 @@ export default function ConfigPanel({
             ×
           </button>
         </header>
-        <main className="config-panel-main">
-          <section className="config-section">
-            <h3>Sesión</h3>
-            <SessionOptions />
-          </section>
+       <main className="config-panel-main">
+        <section className="config-section">
+          <h3>Sesión</h3>
+          <SessionOptions />
+        </section>
+
+        {/* Siempre mostrar estas opciones (header) en desktop y mobile */}
+        <section className="config-section">
+          <h3>Visualización</h3>
+
+          <div className="visualization-header-options">
+            {options.map(({ key, label }) => (
+              <ToggleOption
+                key={key}
+                id={`toggle-${key}`}
+                label={` ${label}`}
+                value={displayOptions[key]}
+                onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
+              />
+            ))}
+          </div>
 
           {!isMobile && (
-            <section className="config-section">
-              <h3>Visualización</h3>
+            <div className="visualization-sidebar-options">
+              <ToggleOption
+                id="toggle-sidebar-left-pinned"
+                label="Fijar sidebar izquierdo"
+                value={isLeftSidebarPinned}
+                onChange={setIsLeftSidebarPinned}
+              />
+              <ToggleOption
+                id="toggle-sidebar-right-pinned"
+                label="Fijar sidebar derecho"
+                value={isRightSidebarPinned}
+                onChange={setIsRightSidebarPinned}
+              />
+            </div>
+          )}
+        </section>
 
-    <div className="visualization-header-options">
-      {options.map(({ key, label }) => (
-        <ToggleOption
-          key={key}
-          id={`toggle-${key}`}
-          label={` ${label}`}
-          value={displayOptions[key]}
-          onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
-        />
-      ))}
-    </div>
-
-    <div className="visualization-sidebar-options">
-      <ToggleOption
-        id="toggle-sidebar-left-pinned"
-        label="Fijar sidebar izquierdo"
-        value={isLeftSidebarPinned}
-        onChange={setIsLeftSidebarPinned}
-      />
-      <ToggleOption
-        id="toggle-sidebar-right-pinned"
-        label="Fijar sidebar derecho"
-        value={isRightSidebarPinned}
-        onChange={setIsRightSidebarPinned}
-      />
-    </div>
-            </section>
-                    )}
-          <section className="config-section">
-            <h3>Idioma y región</h3>
-            <ComingSoonOption label="Idioma" />
-            <ComingSoonOption label="Zona horaria" />
-            <ComingSoonOption label="Formato de hora (12h/24h)" />
-          </section>
-
+        <section className="config-section">
+          <h3>Idioma y región</h3>
+          <ComingSoonOption label="Idioma" />
+          <ComingSoonOption label="Zona horaria" />
+          <ComingSoonOption label="Formato de hora (12h/24h)" />
+        </section>
           <section className="config-section">
             <h3>Notificaciones</h3>
             <ComingSoonOption label="Activar recordatorios" />
