@@ -22,7 +22,7 @@
 .curved-sidebar-panel {
   position: absolute;
   top: 50%;
-  left: -224px; /* fuera de pantalla */
+  left: -224px; 
   transform: translateY(-50%);
   transition: left 0.3s ease-in-out;
   background-color: var(--color-bg);
@@ -103,3 +103,11 @@
   .curved-sidebar-container.mobile .curved-sidebar-panel > div {
     flex: 0 0 auto; /* prevent shrinking */
   }
+  .curved-sidebar-container.pinned {
+
+}
+
+.curved-sidebar-container.pinned .curved-sidebar-panel {
+  top: 10 !important;
+  left: 12px !important;
+}

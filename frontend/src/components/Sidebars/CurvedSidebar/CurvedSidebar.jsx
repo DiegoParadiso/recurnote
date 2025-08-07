@@ -2,7 +2,7 @@ import './CurvedSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
 
-export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem }) {
+export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false }) {
   const [items] = useState([
     { id: 1, label: 'nota' },
     { id: 2, label: 'Tarea' },
@@ -11,11 +11,13 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
   ]);
 
   return (
-    <div
-      className={`curved-sidebar-container ${showConfigPanel ? 'config-open' : ''} ${
-        isMobile ? 'mobile' : ''
-      }`}
-    >
+        <div
+          className={`curved-sidebar-container 
+            ${showConfigPanel ? 'config-open' : ''} 
+            ${isMobile ? 'mobile' : ''} 
+            ${isLeftSidebarPinned ? 'pinned' : ''}  /* clase para fijar */
+          `}
+        >
       {!isMobile && <div className="curved-sidebar-hover-zone" />}
       <div className="scroll-hidden curved-sidebar-panel">
         {items

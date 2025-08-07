@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Clock, User, LogOut } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import useIsMobile from '../../hooks/useIsMobile';
 import './ConfigPanel.css';
 
 function ToggleOption({ id, label, value, onChange }) {
@@ -42,6 +43,7 @@ function ComingSoonOption({ label }) {
     </div>
   );
 }
+
 function SessionOptions() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -86,7 +88,13 @@ export default function ConfigPanel({
   setShowSmall,
   showRightSidebar,
   setShowRightSidebar,
+  isRightSidebarPinned,
+  setIsRightSidebarPinned,
+  isLeftSidebarPinned,
+  setIsLeftSidebarPinned,
 }) {
+  const isMobile = useIsMobile();  // USAMOS EL HOOK
+
   if (!show) return null;
 
   return (
@@ -119,29 +127,29 @@ export default function ConfigPanel({
             <SessionOptions />
           </section>
 
-          <section className="config-section">
-            <h3>Visualización</h3>
-            <ToggleOption
-              id="toggle-circle-small"
-              label={
-                showSmall
-                  ? 'Ocultar círculo pequeño'
-                  : 'Mostrar círculo pequeño'
-              }
-              value={showSmall}
-              onChange={setShowSmall}
-            />
-            <ToggleOption
-              id="toggle-sidebar-right"
-              label={
-                showRightSidebar
-                  ? 'Ocultar sidebar derecho'
-                  : 'Mostrar sidebar derecho'
-              }
-              value={showRightSidebar}
-              onChange={setShowRightSidebar}
-            />
-          </section>
+          {!isMobile && (
+            <section className="config-section">
+              <h3>Visualización</h3>
+              <ToggleOption
+                id="toggle-calendar"
+                label="Calendario"
+                value={showSmall}
+                onChange={setShowSmall}
+              />
+              <ToggleOption
+                id="toggle-sidebar-left-pinned"
+                label="Fijar sidebar izquierdo"
+                value={isLeftSidebarPinned}
+                onChange={setIsLeftSidebarPinned}
+              />
+              <ToggleOption
+                id="toggle-sidebar-right-pinned"
+                label="Fijar sidebar derecho"
+                value={isRightSidebarPinned}
+                onChange={setIsRightSidebarPinned}
+              />
+            </section>
+          )}
 
           <section className="config-section">
             <h3>Preferencias Generales</h3>

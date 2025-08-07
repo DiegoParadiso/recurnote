@@ -6,7 +6,7 @@ import './SidebarDayView.css';
 import useItemsForDays from './hooks/useItemsForDays';
 import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
-export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall  }) {
+export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned }) {
   const { itemsByDate, setItemsByDate } = useItems();
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
 
@@ -57,7 +57,15 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
       {/* Hover trigger desktop */}
       {!isMobile && <div className="absolute right-0 top-0 h-full w-[30px] z-10" />}
 
-      <div className={`${isMobile ? 'sidebar-mobile' : 'absolute right-[-260px] top-0 group-hover:right-0 cursor-default'} sidebar-container`}>
+      <div
+        className={`${
+          isMobile
+            ? 'sidebar-mobile'
+            : isRightSidebarPinned
+            ? 'absolute right-0 top-0 cursor-default'
+            : 'absolute right-[-260px] top-0 group-hover:right-0 cursor-default'
+        } sidebar-container`}
+      >
         <div className="px-4 md:pt-7 pb-7 flex-shrink-0">
           <h2 className="sidebar-header">próximos días</h2>
         </div>

@@ -28,30 +28,31 @@ export default function Home() {
   const [showLeftSidebarMobile, setShowLeftSidebarMobile] = useState(false);
   const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
 
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
+  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
+
   const isMobile = useIsMobile();
   const [draggedItem, setDraggedItem] = useState(null); 
   const [isOverTrash, setIsOverTrash] = useState(false);
 
-  // Obtener items para el día seleccionado
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
 
   const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
   
-  // Función para determinar si la posición está sobre la papelera (zona arriba)
-function isOverTrashZone(pos) {
-  if (!pos) return false;
-  const trashX = 0;      // esquina izquierda (coincide con left:0)
-  const trashY = 5;      // mismo top que el div
-  const trashWidth = 80; // igual al ancho del div
-  const trashHeight = 80;
+  function isOverTrashZone(pos) {
+    if (!pos) return false;
+    const trashX = 0;
+    const trashY = 5; 
+    const trashWidth = 80; 
+    const trashHeight = 80;
 
-  return (
-    pos.x >= trashX &&
-    pos.x <= trashX + trashWidth &&
-    pos.y >= trashY &&
-    pos.y <= trashY + trashHeight
-  );
-}
+    return (
+      pos.x >= trashX &&
+      pos.x <= trashX + trashWidth &&
+      pos.y >= trashY &&
+      pos.y <= trashY + trashHeight
+    );
+  }
 
   useEffect(() => {
     setIsOverTrash(isOverTrashZone(draggedItem));
@@ -99,11 +100,13 @@ function isOverTrashZone(pos) {
       };
     });
   }
-useEffect(() => {
-  if (!selectedDay) {
-    setShowSmall(true);
-  }
-}, [selectedDay]);
+
+  useEffect(() => {
+    if (!selectedDay) {
+      setShowSmall(true);
+    }
+  }, [selectedDay]);
+
   return (
     <div
       className="scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
@@ -113,23 +116,23 @@ useEffect(() => {
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >
-    {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
-    {isMobile && !draggedItem && (
-      <>
-        <div
-          className="fixed top-3 left-3 z-[30] sm:hidden"
-          aria-label="Mostrar configuración móvil"
-        >
-          <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
-        </div>
-        <div
-          className="fixed top-3 right-3 z-[30] sm:hidden"
-          aria-label="Toggle tema oscuro móvil"
-        >
-          <ThemeToggle />
-        </div>
-      </>
-    )}
+      {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
+      {isMobile && !draggedItem && (
+        <>
+          <div
+            className="fixed top-3 left-3 z-[30] sm:hidden"
+            aria-label="Mostrar configuración móvil"
+          >
+            <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
+          </div>
+          <div
+            className="fixed top-3 right-3 z-[30] sm:hidden"
+            aria-label="Toggle tema oscuro móvil"
+          >
+            <ThemeToggle />
+          </div>
+        </>
+      )}
 
       {/* Botones Config y Tema desktop */}
       <div
@@ -138,22 +141,56 @@ useEffect(() => {
         <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
         <ThemeToggle />
       </div>
-
-      {/* Sidebar izquierdo desktop */}
-      {showLeftSidebar && !isMobile && (
-        <div
-          className="hidden sm:block"
-          style={{
-            zIndex: 30,
-            position: 'relative',
-            border: '1px solid var(--color-border)',
-            borderRadius: '8px',
-            backgroundColor: 'var(--color-bg)',
-            transition: 'all 0.3s ease',
-          }}
-        >
-          <CurvedSidebar showConfigPanel={showConfigPanel} onSelectItem={handleSelectItem} />
-        </div>
+      
+      {!isMobile && (
+        <>
+          {isLeftSidebarPinned ? (
+            // Fijado permanentemente lado izquierdo
+            <div
+              className="hidden sm:block"
+              style={{
+                zIndex: 30,
+                position: 'fixed',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-bg)',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <CurvedSidebar showConfigPanel={showConfigPanel} onSelectItem={handleSelectItem} isLeftSidebarPinned={true} />
+            </div>
+          ) : (
+            <div
+              className="hidden sm:block opacity-0 hover:opacity-100 transition-opacity duration-200 ease-in-out"
+              style={{
+                pointerEvents: 'auto',
+                position: 'fixed',
+                top: '60px', 
+                left: 0,
+                height: 'calc(100vh - 60px)', 
+                width: '60px',
+                zIndex: 40,
+                backgroundColor: 'transparent',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  height: '100vh',
+                  width: '260px',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--color-bg)',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <CurvedSidebar showConfigPanel={showConfigPanel} onSelectItem={handleSelectItem} />
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Sidebar izquierdo móvil */}
@@ -221,21 +258,84 @@ useEffect(() => {
         )}
       </div>
 
-      {/* Sidebar derecho desktop */}
-      {showRightSidebar && !isMobile && (
-        <div className="hidden sm:block">
-          <SidebarDayView
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-            showRightSidebar={showRightSidebar}
-            style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              backgroundColor: 'var(--color-text-secondary)',
-              transition: 'all 0.3s ease',
-            }}
-          />
-        </div>
+      {!isMobile && (
+        <>
+          {isRightSidebarPinned ? (
+            // Fijado siempre visible lado derecho
+            <div className="hidden sm:block">
+              <SidebarDayView
+                selectedDay={selectedDay}
+                setSelectedDay={setSelectedDay}
+                showRightSidebar={true}
+                isRightSidebarPinned={isRightSidebarPinned}
+                style={{
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--color-text-secondary)',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            </div>
+          ) : (
+            // Hover en borde derecho para mostrar sidebar
+            <div
+              className="hidden sm:block opacity-0 hover:opacity-100 transition-opacity duration-200 ease-in-out"
+              style={{
+                position: 'fixed',
+                top: '60px', // igual que izquierda
+                right: 0,
+                height: 'calc(100vh - 60px)', // igual que izquierda
+                width: '60px',
+                zIndex: 40,
+                backgroundColor: 'transparent',
+                pointerEvents: 'auto',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  height: '100vh',
+                  width: '260px',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--color-bg)',
+                  transition: 'all 0.3s ease',
+                  zIndex: 30,
+                }}
+              >
+                <SidebarDayView
+  selectedDay={selectedDay}
+  setSelectedDay={setSelectedDay}
+  showRightSidebar={showRightSidebar}
+  isRightSidebarPinned={false}
+  isMobile={isMobile}
+/>
+              </div>
+            </div>
+          )}
+
+          {/* Toggle derecho - fuera del contenedor hover para que desaparezca al hacer hover en sidebar */}
+          {!isRightSidebarPinned && (
+            <button
+              onClick={() => setShowRightSidebar(v => !v)}
+              aria-label="Toggle right sidebar"
+              className="fixed right-0 top-[50vh] transform -translate-y-1/2 z-10 hidden sm:flex cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                animation: 'slideLeftRight 2s ease-in-out infinite',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+        </>
       )}
 
       {/* Sidebar derecho móvil */}
@@ -269,6 +369,10 @@ useEffect(() => {
         setShowSmall={setShowSmall}
         showRightSidebar={showRightSidebar}
         setShowRightSidebar={setShowRightSidebar}
+        isRightSidebarPinned={isRightSidebarPinned}
+        setIsRightSidebarPinned={setIsRightSidebarPinned}
+        setIsLeftSidebarPinned={setIsLeftSidebarPinned}
+        isLeftSidebarPinned={isLeftSidebarPinned}
       />
 
       {/* Papelera DragTrashZone SOLO en mobile y si hay draggedItem */}
@@ -289,6 +393,18 @@ useEffect(() => {
         onToggleLeft={() => setShowLeftSidebarMobile(v => !v)}
         onToggleRight={() => setShowRightSidebarMobile(true)}
       />
+
+      {/* Keyframes para animaciones (si no están ya definidos en CSS global) */}
+      <style>{`
+        @keyframes slideLeftRight {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-6px); }
+        }
+        @keyframes slideRightLeft {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(6px); }
+        }
+      `}</style>
     </div>
   );
 }
