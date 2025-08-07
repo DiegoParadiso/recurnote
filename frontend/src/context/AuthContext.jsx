@@ -7,6 +7,8 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     const savedToken = localStorage.getItem('token');
@@ -18,7 +20,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function login(email, password) {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -30,7 +32,6 @@ export function AuthProvider({ children }) {
     }
 
     const data = await response.json();
-
     setUser(data.user);
     setToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -38,7 +39,7 @@ export function AuthProvider({ children }) {
   }
 
   async function register(name, email, password) {
-    const response = await fetch('http://localhost:5000/api/auth/register', {
+    const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
@@ -49,8 +50,6 @@ export function AuthProvider({ children }) {
       throw new Error(errorData.message || 'Error en registro');
     }
 
-    // Podés devolver algo o hacer login automático aquí, según prefieras
-    // Por ahora no hacemos login automático:
     return await response.json();
   }
 
