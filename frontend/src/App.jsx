@@ -7,20 +7,26 @@ import { ThemeProvider } from './context/ThemeContext';
 import { NotesProvider } from './context/NotesContext';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './PrivateRoute';
-
 function AppRoutes() {
   return (
     <Routes>
+      {/* Ruta pública para Home */}
+      <Route path="/" element={<Home />} />
+
+      {/* Rutas de autenticación */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* Rutas privadas, por ejemplo un dashboard, perfil, etc */}
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <PrivateRoute>
-            <Home />
           </PrivateRoute>
         }
       />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+
+      {/* Ruta catch-all */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

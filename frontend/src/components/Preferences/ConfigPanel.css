@@ -161,7 +161,7 @@ margin-bottom: 0.8rem;
 
 /* Coming Soon Option */
 .coming-soon {
-      margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -204,4 +204,61 @@ margin-bottom: 0.8rem;
     border-radius: 0 !important;
     box-shadow: none !important;
   }
+}
+
+.session-button {
+  background-color: var(--color-neutral);
+  border: 1px solid var(--color-neutral-dark);
+  color: var(--color-muted);
+  padding: 0.6rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: 
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+  user-select: none;
+}
+
+.session-button:hover,
+.session-button:focus {
+  background-color: var(--color-bg-2);
+  border-color: var(--color-highlight);
+  color: var(--color-text-primary);
+  outline: none;
+} 
+
+.session-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-info {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.session-button.register {
+  background-color: var(--color-highlight);
+  border-color: var(--color-highlight);
+  color: var(--color-bg);
+  font-weight: 600;
+}
+
+.session-button.register:hover,
+.session-button.register:focus {
+  background-color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg);
+  box-shadow: none;
 }
