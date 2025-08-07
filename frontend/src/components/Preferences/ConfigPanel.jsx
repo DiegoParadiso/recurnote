@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Clock, User, LogOut } from 'lucide-react'; 
+import React from 'react';
+import { Clock, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import useIsMobile from '../../hooks/useIsMobile';
@@ -57,22 +57,15 @@ function SessionOptions() {
             <span>Hola, {user.name || user.email || 'Usuario'}</span>
           </div>
           <button className="session-button logout" onClick={() => logout()}>
-            <LogOut size={16} style={{ marginRight: 6 }} />
-            Cerrar sesión
+            <LogOut size={16} style={{ marginRight: 6 }} />Cerrar sesión
           </button>
         </>
       ) : (
         <>
-          <button
-            className="session-button"
-            onClick={() => navigate('/login')}
-          >
+          <button className="session-button" onClick={() => navigate('/login')}>
             Iniciar sesión
           </button>
-          <button
-            className="session-button register"
-            onClick={() => navigate('/register')}
-          >
+          <button className="session-button register" onClick={() => navigate('/register')}>
             Registrarse
           </button>
         </>
@@ -86,38 +79,34 @@ export default function ConfigPanel({
   onClose,
   showSmall,
   setShowSmall,
-  showRightSidebar,
-  setShowRightSidebar,
-  isRightSidebarPinned,
-  setIsRightSidebarPinned,
   isLeftSidebarPinned,
   setIsLeftSidebarPinned,
+  isRightSidebarPinned,
+  setIsRightSidebarPinned,
+  displayOptions,
+  setDisplayOptions,
 }) {
-  const isMobile = useIsMobile();  // USAMOS EL HOOK
-
+  const isMobile = useIsMobile();
   if (!show) return null;
+
+  const options = [
+    { key: 'year', label: 'Año' },
+    { key: 'month', label: 'Mes' },
+    { key: 'week', label: 'Semana' },
+    { key: 'weekday', label: 'Día de la semana' }, 
+    { key: 'day', label: 'Día' }, 
+    { key: 'time', label: 'Horario' },
+  ];
+
 
   return (
     <>
-      <div
-        className="config-panel-backdrop"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="config-panel-backdrop" onClick={onClose} aria-hidden="true" />
 
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label="Panel de configuración"
-        className="config-panel"
-      >
+      <aside role="dialog" aria-modal="true" aria-label="Panel de configuración" className="config-panel">
         <header className="config-panel-header">
           <h2>Configuración</h2>
-          <button
-            onClick={onClose}
-            aria-label="Cerrar panel"
-            className="config-panel-close-btn"
-          >
+          <button onClick={onClose} aria-label="Cerrar panel" className="config-panel-close-btn">
             ×
           </button>
         </header>
@@ -130,37 +119,71 @@ export default function ConfigPanel({
           {!isMobile && (
             <section className="config-section">
               <h3>Visualización</h3>
-              <ToggleOption
-                id="toggle-calendar"
-                label="Calendario"
-                value={showSmall}
-                onChange={setShowSmall}
-              />
-              <ToggleOption
-                id="toggle-sidebar-left-pinned"
-                label="Fijar sidebar izquierdo"
-                value={isLeftSidebarPinned}
-                onChange={setIsLeftSidebarPinned}
-              />
-              <ToggleOption
-                id="toggle-sidebar-right-pinned"
-                label="Fijar sidebar derecho"
-                value={isRightSidebarPinned}
-                onChange={setIsRightSidebarPinned}
-              />
-            </section>
-          )}
 
+    <div className="visualization-header-options">
+      {options.map(({ key, label }) => (
+        <ToggleOption
+          key={key}
+          id={`toggle-${key}`}
+          label={` ${label}`}
+          value={displayOptions[key]}
+          onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
+        />
+      ))}
+    </div>
+
+    <div className="visualization-sidebar-options">
+      <ToggleOption
+        id="toggle-sidebar-left-pinned"
+        label="Fijar sidebar izquierdo"
+        value={isLeftSidebarPinned}
+        onChange={setIsLeftSidebarPinned}
+      />
+      <ToggleOption
+        id="toggle-sidebar-right-pinned"
+        label="Fijar sidebar derecho"
+        value={isRightSidebarPinned}
+        onChange={setIsRightSidebarPinned}
+      />
+    </div>
+            </section>
+                    )}
           <section className="config-section">
-            <h3>Preferencias Generales</h3>
-            <ComingSoonOption label="Cambiar Plantilla" />
-            <ComingSoonOption label="Idiomas" />
-            <ComingSoonOption label="Zonas Horarias" />
+            <h3>Idioma y región</h3>
+            <ComingSoonOption label="Idioma" />
+            <ComingSoonOption label="Zona horaria" />
+            <ComingSoonOption label="Formato de hora (12h/24h)" />
           </section>
 
           <section className="config-section">
-            <h3>Avanzado</h3>
-            <p>Opciones avanzadas disponibles próximamente.</p>
+            <h3>Notificaciones</h3>
+            <ComingSoonOption label="Activar recordatorios" />
+            <ComingSoonOption label="Sonido / vibración" />
+            <ComingSoonOption label="Recordar X minutos antes" />
+            <ComingSoonOption label="Alertas silenciosas vs activas" />
+          </section>
+
+          <section className="config-section">
+            <h3>Privacidad</h3>
+            <ComingSoonOption label="Mostrar eventos privados como ocultos" />
+            <ComingSoonOption label="Bloquear modificación de ciertos días" />
+            <ComingSoonOption label="Exportar respaldo encriptado" />
+          </section>
+
+          <section className="config-section">
+            <h3>Integraciones</h3>
+            <ComingSoonOption label="Google Calendar / Outlook" />
+            <ComingSoonOption label="Importar/Exportar calendario (ICS, CSV)" />
+            <ComingSoonOption label="API para programadores" />
+            <ComingSoonOption label="Integración con Notion / Trello" />
+          </section>
+
+          <section className="config-section">
+            <h3>Accesibilidad</h3>
+            <ComingSoonOption label="Modo alto contraste" />
+            <ComingSoonOption label="Texto grande" />
+            <ComingSoonOption label="Navegación con teclado" />
+            <ComingSoonOption label="Animaciones reducidas" />
           </section>
         </main>
       </aside>

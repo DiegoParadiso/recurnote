@@ -24,9 +24,9 @@ export default function Home() {
   const [showSmall, setShowSmall] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-  const [showConfigPanel, setShowConfigPanel] = useState(false);
   const [showLeftSidebarMobile, setShowLeftSidebarMobile] = useState(false);
   const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
 
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
   const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
@@ -38,7 +38,16 @@ export default function Home() {
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
 
   const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
-  
+
+    const [displayOptions, setDisplayOptions] = useState({
+    year: false,
+    month: true,
+    week: false,
+    weekday: true, 
+    day: true, 
+    time: false,
+  });
+
   function isOverTrashZone(pos) {
     if (!pos) return false;
     const trashX = 0;
@@ -123,7 +132,7 @@ export default function Home() {
             className="fixed top-3 left-3 z-[30] sm:hidden"
             aria-label="Mostrar configuración móvil"
           >
-            <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
+            <ConfigButton onToggle={() => setShowConfig(v => !v)} />
           </div>
           <div
             className="fixed top-3 right-3 z-[30] sm:hidden"
@@ -138,7 +147,7 @@ export default function Home() {
       <div
         className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center"
       >
-        <ConfigButton onToggle={() => setShowConfigPanel(v => !v)} />
+        <ConfigButton onToggle={() => setShowConfig(v => !v)} />
         <ThemeToggle />
       </div>
       
@@ -157,7 +166,7 @@ export default function Home() {
                 transition: 'all 0.3s ease',
               }}
             >
-              <CurvedSidebar showConfigPanel={showConfigPanel} onSelectItem={handleSelectItem} isLeftSidebarPinned={true} />
+              <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} isLeftSidebarPinned={true} />
             </div>
           ) : (
             <div
@@ -186,7 +195,7 @@ export default function Home() {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <CurvedSidebar showConfigPanel={showConfigPanel} onSelectItem={handleSelectItem} />
+                <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} />
               </div>
             </div>
           )}
@@ -196,7 +205,7 @@ export default function Home() {
       {/* Sidebar izquierdo móvil */}
       {showLeftSidebarMobile && isMobile && (
         <div className="fixed left-0 right-0 bottom-[64px] z-40">
-          <CurvedSidebar showConfigPanel={showConfigPanel} isMobile={true} onSelectItem={handleSelectItem} />
+          <CurvedSidebar showConfig={showConfig} isMobile={true} onSelectItem={handleSelectItem} />
         </div>
       )}
 
@@ -212,6 +221,7 @@ export default function Home() {
       >
         <CircleLarge
           showSmall={showSmall}
+          displayOptions={displayOptions}
           selectedDay={selectedDay}
           onItemDrag={(itemId, pos) => setDraggedItem({ id: itemId, ...pos })}
           onItemDrop={() => {
@@ -363,16 +373,16 @@ export default function Home() {
 
       {/* Panel de configuración */}
       <ConfigPanel
-        show={showConfigPanel}
-        onClose={() => setShowConfigPanel(false)}
+        show={showConfig}
+        onClose={() => setShowConfig(false)}
         showSmall={showSmall}
         setShowSmall={setShowSmall}
-        showRightSidebar={showRightSidebar}
-        setShowRightSidebar={setShowRightSidebar}
+        isLeftSidebarPinned={isLeftSidebarPinned}
+        setIsLeftSidebarPinned={setIsLeftSidebarPinned}
         isRightSidebarPinned={isRightSidebarPinned}
         setIsRightSidebarPinned={setIsRightSidebarPinned}
-        setIsLeftSidebarPinned={setIsLeftSidebarPinned}
-        isLeftSidebarPinned={isLeftSidebarPinned}
+        displayOptions={displayOptions}
+        setDisplayOptions={setDisplayOptions}
       />
 
       {/* Papelera DragTrashZone SOLO en mobile y si hay draggedItem */}

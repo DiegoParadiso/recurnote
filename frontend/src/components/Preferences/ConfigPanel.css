@@ -25,7 +25,6 @@
 /* Header */
 .config-panel-header {
   padding: 1.25rem 1.25rem;
-  border-bottom: 1px solid var(--color-neutral-dark);
   background-color: var(--color-bg);
   position: sticky;
   top: 0;
@@ -59,7 +58,6 @@
 .config-panel-close-btn:focus {
   color: var(--color-highlight);
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-highlight);
   border-radius: 4px;
 }
 
@@ -261,4 +259,17 @@ margin-bottom: 0.8rem;
   border-color: var(--color-text-primary);
   color: var(--color-bg);
   box-shadow: none;
+}
+
+.visualization-header-options {
+  background-color: var(--bg-highlight);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.2rem;
+}
+
+.visualization-sidebar-options {
+  background-color: var(--bg-highlight);
+  padding: 1rem;
+  border-radius: 8px;
 }

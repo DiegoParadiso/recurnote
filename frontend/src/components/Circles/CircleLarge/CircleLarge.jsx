@@ -12,7 +12,7 @@ import formatDateKey from '../../../utils/formatDateKey';
 import { useItems } from '../../../context/ItemsContext'; 
 import BottomToast from '../../common/BottomToast';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, onItemDrop }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, onItemDrop, displayOptions }) {
   // Contexto global con items organizados por fecha
   const { itemsByDate, setItemsByDate } = useItems();
 
@@ -22,7 +22,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const [rotationAngle, setRotationAngle] = useState(0);
   const rotationSpeed = 2;
   const [toastMessage, setToastMessage] = useState('');
-
   // Control de rotación con mouse
   const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
     containerRef,
@@ -57,17 +56,34 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   }, [rotationAngle, selectedDay, setItemsByDate, prevRotationRef]);
 
   // Fecha seleccionada como objeto DateTime para mostrar texto legible
-  const selectedDate = selectedDay
-    ? DateTime.fromObject({
-        day: selectedDay.day,
-        month: selectedDay.month,
-        year: selectedDay.year,
-      })
-    : null;
+const selectedDate = selectedDay
+  ? DateTime.fromObject({
+      day: selectedDay.day,
+      month: selectedDay.month,
+      year: selectedDay.year,
+    })
+  : null;
+  
+const displayParts = [];
 
-  const displayText = selectedDate
-    ? selectedDate.setLocale('es').toFormat('cccc d, yyyy')
-    : 'Bienvenido';
+if (selectedDate) {
+  const dateEs = selectedDate.setLocale('es');
+  const dateGroup = [];
+
+  if (displayOptions.weekday) dateGroup.push(dateEs.toFormat('cccc')); 
+  if (displayOptions.day) dateGroup.push(dateEs.toFormat('d'));
+  if (displayOptions.month) dateGroup.push(dateEs.toFormat('LLLL'));
+
+  if (dateGroup.length) displayParts.push(dateGroup.join(' '));
+  if (displayOptions.year) displayParts.push(dateEs.toFormat('yyyy'));
+  if (displayOptions.week) displayParts.push(`Semana ${dateEs.weekNumber}`);
+  if (displayOptions.time) displayParts.push(dateEs.toFormat('HH:mm'));
+}
+
+const displayText = selectedDate && displayParts.length
+  ? displayParts.join(' • ')
+  : 'Bienvenido';
+
 
   const isSmallScreen = width <= 640;
   const radius = circleSize / 2 - 40;
