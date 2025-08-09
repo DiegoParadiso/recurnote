@@ -99,13 +99,12 @@
     padding: 1rem 0.5rem !important;
     gap: 1rem !important;
     border-radius: 0 !important;
+    -webkit-overflow-scrolling: touch; 
+    white-space: nowrap;
 }
   .curved-sidebar-container.mobile .curved-sidebar-panel > div {
     flex: 0 0 auto; /* prevent shrinking */
   }
-  .curved-sidebar-container.pinned {
-
-}
 
 .curved-sidebar-container.pinned .curved-sidebar-panel {
   top: 10 !important;

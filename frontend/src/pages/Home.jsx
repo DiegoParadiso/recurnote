@@ -40,13 +40,16 @@ export default function Home() {
   const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
 
     const [displayOptions, setDisplayOptions] = useState({
-    year: false,
-    month: true,
-    week: false,
-    weekday: true, 
-    day: true, 
-    time: false,
-  });
+      year: true,
+      month: true,
+      week: false,
+      weekday: true,
+      day: true,
+      time: false,
+      timeZone: 'America/Argentina/Buenos_Aires',
+      timeFormat: '24h'
+    });
+
 
   function isOverTrashZone(pos) {
     if (!pos) return false;
@@ -113,8 +116,14 @@ export default function Home() {
   useEffect(() => {
     if (!selectedDay) {
       setShowSmall(true);
+    } else {
+      if (isMobile) {
+        setShowLeftSidebarMobile(true); 
+      } else {
+        setShowLeftSidebar(true); 
+      }
     }
-  }, [selectedDay]);
+  }, [selectedDay, isMobile]);
 
   return (
     <div
@@ -292,9 +301,9 @@ export default function Home() {
               className="hidden sm:block opacity-0 hover:opacity-100 transition-opacity duration-200 ease-in-out"
               style={{
                 position: 'fixed',
-                top: '60px', // igual que izquierda
+                top: '60px',
                 right: 0,
-                height: 'calc(100vh - 60px)', // igual que izquierda
+                height: 'calc(100vh - 60px)', 
                 width: '60px',
                 zIndex: 40,
                 backgroundColor: 'transparent',
@@ -316,12 +325,12 @@ export default function Home() {
                 }}
               >
                 <SidebarDayView
-  selectedDay={selectedDay}
-  setSelectedDay={setSelectedDay}
-  showRightSidebar={showRightSidebar}
-  isRightSidebarPinned={false}
-  isMobile={isMobile}
-/>
+                  selectedDay={selectedDay}
+                  setSelectedDay={setSelectedDay}
+                  showRightSidebar={showRightSidebar}
+                  isRightSidebarPinned={false}
+                  isMobile={isMobile}
+                />
               </div>
             </div>
           )}

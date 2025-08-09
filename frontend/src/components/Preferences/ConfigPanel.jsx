@@ -98,7 +98,6 @@ export default function ConfigPanel({
     { key: 'time', label: 'Horario' },
   ];
 
-
   return (
     <>
       <div className="config-panel-backdrop" onClick={onClose} aria-hidden="true" />
@@ -110,52 +109,115 @@ export default function ConfigPanel({
             ×
           </button>
         </header>
-       <main className="config-panel-main">
-        <section className="config-section">
-          <h3>Sesión</h3>
-          <SessionOptions />
-        </section>
+        <main className="config-panel-main">
+          <section className="config-section">
+            <h3>Sesión</h3>
+            <SessionOptions />
+          </section>
 
-        {/* Siempre mostrar estas opciones (header) en desktop y mobile */}
-        <section className="config-section">
-          <h3>Visualización</h3>
-
-          <div className="visualization-header-options">
-            {options.map(({ key, label }) => (
-              <ToggleOption
-                key={key}
-                id={`toggle-${key}`}
-                label={` ${label}`}
-                value={displayOptions[key]}
-                onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
-              />
-            ))}
-          </div>
-
-          {!isMobile && (
-            <div className="visualization-sidebar-options">
-              <ToggleOption
-                id="toggle-sidebar-left-pinned"
-                label="Fijar sidebar izquierdo"
-                value={isLeftSidebarPinned}
-                onChange={setIsLeftSidebarPinned}
-              />
-              <ToggleOption
-                id="toggle-sidebar-right-pinned"
-                label="Fijar sidebar derecho"
-                value={isRightSidebarPinned}
-                onChange={setIsRightSidebarPinned}
-              />
+          <section className="config-section">
+            <h3>Visualización</h3>
+            <div className="visualization-header-options">
+              {options.map(({ key, label }) => (
+                <ToggleOption
+                  key={key}
+                  id={`toggle-${key}`}
+                  label={` ${label}`}
+                  value={displayOptions[key]}
+                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
+                />
+              ))}
             </div>
-          )}
-        </section>
 
-        <section className="config-section">
-          <h3>Idioma y región</h3>
-          <ComingSoonOption label="Idioma" />
-          <ComingSoonOption label="Zona horaria" />
-          <ComingSoonOption label="Formato de hora (12h/24h)" />
-        </section>
+            {!isMobile && (
+              <div className="visualization-header-options">
+                <ToggleOption
+                  id="toggle-sidebar-left-pinned"
+                  label="Fijar sidebar izquierdo"
+                  value={isLeftSidebarPinned}
+                  onChange={setIsLeftSidebarPinned}
+                />
+                <ToggleOption
+                  id="toggle-sidebar-right-pinned"
+                  label="Fijar sidebar derecho"
+                  value={isRightSidebarPinned}
+                  onChange={setIsRightSidebarPinned}
+                />
+              </div>
+            )}
+          </section>
+
+          <section className="config-section">
+            <h3>Idioma y región</h3>
+            <div className="visualization-header-options idioma-region-options">
+              <label htmlFor="timezone">Zona horaria</label>
+              <select
+                id="timezone"
+                value={displayOptions.timeZone}
+                onChange={(e) => setDisplayOptions(prev => ({ ...prev, timeZone: e.target.value }))}
+              >
+                {/* América */}
+                <option value="America/Argentina/Buenos_Aires">Buenos Aires (GMT-3)</option>
+                <option value="America/Sao_Paulo">São Paulo (GMT-3)</option>
+                <option value="America/Montevideo">Montevideo (GMT-3)</option>
+                <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
+                <option value="America/New_York">Nueva York (GMT-5)</option>
+                <option value="America/Chicago">Chicago (GMT-6)</option>
+                <option value="America/Los_Angeles">Los Ángeles (GMT-8)</option>
+                <option value="America/Bogota">Bogotá (GMT-5)</option>
+                <option value="America/Lima">Lima (GMT-5)</option>
+                <option value="America/Santiago">Santiago de Chile (GMT-4)</option>
+                <option value="America/Caracas">Caracas (GMT-4)</option>
+                <option value="America/Toronto">Toronto (GMT-5)</option>
+                <option value="America/Havana">La Habana (GMT-5)</option>
+                <option value="America/Anchorage">Anchorage (GMT-9)</option>
+                <option value="America/Juneau">Juneau (GMT-9)</option>
+                <option value="America/Denver">Denver (GMT-7)</option>
+
+                {/* Europa */}
+                <option value="Europe/Madrid">Madrid (GMT+1)</option>
+                <option value="Europe/London">Londres (GMT+0)</option>
+                <option value="Europe/Berlin">Berlín (GMT+1)</option>
+                <option value="Europe/Paris">París (GMT+1)</option>
+                <option value="Europe/Rome">Roma (GMT+1)</option>
+                <option value="Europe/Moscow">Moscú (GMT+3)</option>
+                <option value="Europe/Amsterdam">Ámsterdam (GMT+1)</option>
+                <option value="Europe/Oslo">Oslo (GMT+1)</option>
+                <option value="Europe/Stockholm">Estocolmo (GMT+1)</option>
+
+                {/* Asia */}
+                <option value="Asia/Tokyo">Tokio (GMT+9)</option>
+                <option value="Asia/Shanghai">Shanghái (GMT+8)</option>
+                <option value="Asia/Singapore">Singapur (GMT+8)</option>
+                <option value="Asia/Dubai">Dubái (GMT+4)</option>
+                <option value="Asia/Kolkata">India (GMT+5:30)</option>
+                <option value="Asia/Seoul">Seúl (GMT+9)</option>
+                <option value="Asia/Manila">Manila (GMT+8)</option>
+                <option value="Asia/Bangkok">Bangkok (GMT+7)</option>
+
+                {/* Oceanía */}
+                <option value="Australia/Sydney">Sídney (GMT+10)</option>
+                <option value="Australia/Melbourne">Melbourne (GMT+10)</option>
+                <option value="Pacific/Auckland">Auckland (GMT+12)</option>
+                <option value="Pacific/Honolulu">Honolulu (GMT-10)</option>
+                <option value="Pacific/Fiji">Fiyi (GMT+12)</option>
+
+                {/* UTC */}
+                <option value="UTC">UTC</option>
+              </select>
+
+              <label htmlFor="timeFormat">Formato de hora</label>
+              <select
+                id="timeFormat"
+                value={displayOptions.timeFormat}
+                onChange={(e) => setDisplayOptions(prev => ({ ...prev, timeFormat: e.target.value }))}
+              >
+                <option value="24h">24 horas</option>
+                <option value="12h">12 horas (AM/PM)</option>
+              </select>
+            </div>
+          </section>
+
           <section className="config-section">
             <h3>Notificaciones</h3>
             <ComingSoonOption label="Activar recordatorios" />
