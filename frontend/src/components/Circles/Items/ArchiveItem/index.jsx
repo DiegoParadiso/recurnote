@@ -3,6 +3,7 @@ import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
+import './ArchivoItem.css';
 
 export default function ArchivoItem({
   id,
@@ -60,7 +61,13 @@ export default function ArchivoItem({
     const newName = prompt('Ingrese el nuevo nombre del archivo:', item.content?.fileData?.name || '');
     if (newName && newName.trim() !== '') {
       const updatedFileData = { ...item.content.fileData, name: newName.trim() };
-      onUpdate?.(id, { ...item.content, fileData: updatedFileData }, null, { width: item.width, height: item.height }, { x, y });
+      onUpdate?.(
+        id,
+        { ...item.content, fileData: updatedFileData },
+        null,
+        { width: item.width, height: item.height },
+        { x, y }
+      );
     }
   };
 
@@ -132,17 +139,7 @@ export default function ArchivoItem({
             className={`archivo-item-container ${showOnlyImage ? 'show-only-image' : ''}`}
             onClick={handleContainerClick}
             style={{
-              height: '100%',
-              width: '100%',
-              overflow: 'hidden',
-              color: 'var(--color-text-primary)',
               cursor: !item.content?.fileData ? 'pointer' : 'default',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: showOnlyImage ? 'center' : 'flex-start',
-              padding: showOnlyImage ? 0 : '8px 4px',
-              position: 'relative',
             }}
           >
             {isImage && (
@@ -151,15 +148,6 @@ export default function ArchivoItem({
                 alt={item.content.fileData.name}
                 className="archivo-image"
                 onDoubleClick={handleImageClick}
-                style={{
-                  maxHeight: showOnlyImage ? '100%' : 100,
-                  maxWidth: showOnlyImage ? '100%' : '100%',
-                  objectFit: 'contain',
-                  borderRadius: 4,
-                  userSelect: 'none',
-                  cursor: 'pointer',
-                  marginBottom: showOnlyImage ? 0 : 6,
-                }}
                 title="Doble click para expandir/colapsar imagen"
               />
             )}
@@ -167,36 +155,33 @@ export default function ArchivoItem({
             {!showOnlyImage && item.content?.fileData && (
               <>
                 <p
-                  className="truncate w-full"
+                  className="truncate"
+                  title={item.content.fileData.name}
                   style={{
                     marginTop: isImage ? 6 : 0,
-                    fontSize: '10px',
-                    textAlign: 'center',
-                    userSelect: 'text',
                   }}
-                  title={item.content.fileData.name}
                 >
                   {item.content.fileData.name}
                 </p>
-                <p
-                  className="text-[8px] text-gray-500"
-                  style={{ marginTop: 2, marginBottom: 4, textAlign: 'center' }}
-                >
+                <p className="text-gray-500" style={{ marginTop: 2, marginBottom: 4 }}>
                   {(item.content.fileData.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
+
+                {isSmallScreen && (
+                  <button
+                    onClick={handleDownload}
+                    className="btn-download"
+                    type="button"
+                    title="Descargar archivo"
+                  >
+                    Descargar
+                  </button>
+                )}
               </>
             )}
 
             {!item.content?.fileData && (
-              <div
-                style={{
-                  marginTop: 20,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  opacity: 0.6,
-                }}
-              >
+              <div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="28"

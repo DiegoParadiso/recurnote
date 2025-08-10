@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
+import './NoteItem.css';
 
 export default function NoteItem({
   id,
@@ -24,18 +25,17 @@ export default function NoteItem({
 
   const computedMinHeight = height;
 
-  // Simplificado: actualiza siempre el contenido
   const handleTextChange = (e) => {
     onUpdate(id, e.target.value);
   };
 
   return (
     <WithContextMenu
-  onDelete={() => onDelete?.(id)}
-  extraOptions={[
-    { label: 'Duplicar', onClick: () => console.log('Duplicar', id) }
-  ]}
->
+      onDelete={() => onDelete?.(id)}
+      extraOptions={[
+        { label: 'Duplicar', onClick: () => console.log('Duplicar', id) },
+      ]}
+    >
       <UnifiedContainer
         x={x}
         y={y}
@@ -62,9 +62,9 @@ export default function NoteItem({
         maxRadius={circleSize / 2}
         isSmallScreen={isSmallScreen}
       >
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 pointer-events-none select-none">
+        <div className="noteitem-draghandle">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="w-[6px] h-[6px] bg-neutral-400/30 rounded-full" />
+            <div key={i} className="noteitem-dot" />
           ))}
         </div>
         <textarea
@@ -72,13 +72,7 @@ export default function NoteItem({
           value={content}
           onChange={handleTextChange}
           placeholder="Escribe aquí..."
-          className="pl-6 pr-2 pt-1 text-[10px] rounded-md w-full h-full outline-none resize-none"
-          style={{
-            backgroundColor: 'var(--color-neutral)',
-            color: 'var(--color-text-primary)',
-            overflow: 'hidden',
-            wordBreak: 'break-word',
-          }}
+          className="noteitem-textarea"
         />
       </UnifiedContainer>
     </WithContextMenu>
