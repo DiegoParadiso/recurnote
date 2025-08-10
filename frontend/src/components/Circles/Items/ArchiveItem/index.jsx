@@ -17,8 +17,8 @@ export default function ArchivoItem({
   cy,
   circleSize,
   isSmallScreen,
-  onItemDrag,  // <-- agregado
-  onItemDrop,  // <-- agregado
+  onItemDrag,
+  onItemDrop,
 }) {
   const fileInputRef = useRef();
   const [showOnlyImage, setShowOnlyImage] = useState(false);
@@ -56,6 +56,22 @@ export default function ArchivoItem({
     document.body.removeChild(link);
   };
 
+  const renameFile = () => {
+    const newName = prompt('Ingrese el nuevo nombre del archivo:', item.content?.fileData?.name || '');
+    if (newName && newName.trim() !== '') {
+      const updatedFileData = { ...item.content.fileData, name: newName.trim() };
+      onUpdate?.(id, { ...item.content, fileData: updatedFileData }, null, { width: item.width, height: item.height }, { x, y });
+    }
+  };
+
+  const duplicateFile = () => {
+    alert('Función duplicar archivo (debes implementar)');
+  };
+
+  const toggleShowOnlyImage = () => {
+    setShowOnlyImage((prev) => !prev);
+  };
+
   const isImage =
     item.content?.fileData?.type === 'image/jpeg' ||
     item.content?.fileData?.type === 'image/png';
@@ -67,7 +83,15 @@ export default function ArchivoItem({
 
   return (
     <>
-      <WithContextMenu onDelete={() => onDelete?.(id)}>
+      <WithContextMenu
+        onDelete={() => onDelete?.(id)}
+        extraOptions={[
+          { label: 'Renombrar archivo', onClick: renameFile },
+          { label: 'Duplicar archivo', onClick: duplicateFile },
+          { label: showOnlyImage ? 'Mostrar todo' : 'Mostrar solo imagen', onClick: toggleShowOnlyImage },
+          { label: 'Descargar archivo', onClick: handleDownload },
+        ]}
+      >
         <UnifiedContainer
           x={x}
           y={y}
@@ -86,7 +110,7 @@ export default function ArchivoItem({
               { width: item.width || maxWidth, height: item.height || maxHeight },
               { x: newX, y: newY }
             );
-            onItemDrag?.(id, { x: newX, y: newY });  // <-- aviso drag
+            onItemDrag?.(id, { x: newX, y: newY });
           }}
           onResize={(newSize) => {
             onUpdate?.(
@@ -96,11 +120,9 @@ export default function ArchivoItem({
               { width: newSize.width, height: newSize.height },
               { x: x, y: y }
             );
-            // Podrías avisar onResize también si querés:
-            // onResize?.({ width: newSize.width, height: newSize.height });
           }}
           onDrop={() => {
-            onItemDrop?.(id);  // <-- aviso drop
+            onItemDrop?.(id);
           }}
           circleCenter={{ cx, cy }}
           maxRadius={circleSize / 2}
@@ -162,14 +184,6 @@ export default function ArchivoItem({
                 >
                   {(item.content.fileData.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
-                <button
-                  onClick={handleDownload}
-                  className="btn-download"
-                  type="button"
-                  title="Descargar archivo"
-                >
-                  Descargar
-                </button>
               </>
             )}
 
@@ -216,31 +230,6 @@ export default function ArchivoItem({
         onClose={() => setToastMessage('')}
         duration={3000}
       />
-
-      <style>{`
-        .btn-download {
-          background-color: var(--color-bg);
-          border: 1px solid var(--color-text-secondary);
-          color: var(--color-text-primary);
-          padding: 2px 6px;
-          font-size: 9px;
-          border-radius: 3px;
-          cursor: pointer;
-          user-select: none;
-          transition: background-color 0.2s ease;
-        }
-        .btn-download:hover {
-          background-color: var(--color-bg-2);
-        }
-        html.dark .btn-download {
-          background-color: var(--color-bg-2);
-          border-color: var(--color-text-secondary);
-          color: var(--color-text-primary);
-        }
-        html.dark .btn-download:hover {
-          background-color: var(--color-bg);
-        }
-      `}</style>
     </>
   );
 }

@@ -50,34 +50,52 @@ export default function TaskItem({
     onUpdate?.(id, newTasks, newChecks);
   };
 
-  return (
-    <WithContextMenu onDelete={() => onDelete?.(id)}>
-      <UnifiedContainer
-        x={x}
-        y={y}
-        rotation={rotationEnabled ? rotation : 0}
-        width={item.width || 200}
-        height={computedMinHeight}
-        minWidth={120}
-        maxWidth={400}
-        minHeight={computedMinHeight}
-        maxHeight={computedMinHeight}
-        onMove={({ x, y }) => {
-          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y });
-          onItemDrag?.(id, { x, y });   // <-- Aviso que se mueve
-        }}
-        onResize={(newSize) => {
-          const newWidth = Math.min(newSize.width, 400);
-          onUpdate?.(id, item.content || [], item.checked || [], { width: newWidth, height: computedMinHeight });
-          onResize?.({ width: newWidth, height: computedMinHeight });
-        }}
-        onDrop={() => {
-          onItemDrop?.(id);             // <-- Aviso que terminó de mover
-        }}
-        circleCenter={{ cx, cy }}
-        maxRadius={circleSize / 2}
-        isSmallScreen={isSmallScreen}
-      >
+return (
+  <WithContextMenu
+    onDelete={() => onDelete?.(id)}
+    extraOptions={[
+      {
+        label: "Duplicar",
+        onClick: () => {
+          console.log("Duplicar tarea:", id);
+          // Aquí podrías clonar el item
+        },
+      },
+      {
+        label: "Marcar todas como completadas",
+        onClick: () => {
+          const allChecked = (item.content || []).map(() => true);
+          onUpdate?.(id, item.content || [], allChecked);
+        },
+      },
+    ]}
+  >
+    <UnifiedContainer
+      x={x}
+      y={y}
+      rotation={rotationEnabled ? rotation : 0}
+      width={item.width || 200}
+      height={computedMinHeight}
+      minWidth={120}
+      maxWidth={400}
+      minHeight={computedMinHeight}
+      maxHeight={computedMinHeight}
+      onMove={({ x, y }) => {
+        onUpdate?.(id, item.content || [], item.checked || [], null, { x, y });
+        onItemDrag?.(id, { x, y });
+      }}
+      onResize={(newSize) => {
+        const newWidth = Math.min(newSize.width, 400);
+        onUpdate?.(id, item.content || [], item.checked || [], { width: newWidth, height: computedMinHeight });
+        onResize?.({ width: newWidth, height: computedMinHeight });
+      }}
+      onDrop={() => {
+        onItemDrop?.(id);
+      }}
+      circleCenter={{ cx, cy }}
+      maxRadius={circleSize / 2}
+      isSmallScreen={isSmallScreen}
+    >
         <div
           className="text-[10px] flex flex-col gap-1"
           style={{
