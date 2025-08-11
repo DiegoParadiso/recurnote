@@ -3,8 +3,22 @@ import { sequelize } from '../config/db.js';
 import { User } from './user.model.js';
 
 export const Item = sequelize.define('Item', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+    onDelete: 'CASCADE',
+  },
   date: {
-    type: DataTypes.DATEONLY,  // solo fecha
+    type: DataTypes.DATEONLY,
     allowNull: false,
   },
   x: {
@@ -26,12 +40,22 @@ export const Item = sequelize.define('Item', {
   item_data: {
     type: DataTypes.JSONB,
     allowNull: false,
-  }
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
 }, {
-  timestamps: true, 
   tableName: 'items',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
 // Relaciones
-User.hasMany(Item, { foreignKey: 'user_id', onDelete: 'CASCADE' });
-Item.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(Item, { foreignKey: 'user_id', onDelete: 'CASCADE', sourceKey: 'id', as: 'items' });
+Item.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id', as: 'user' });
