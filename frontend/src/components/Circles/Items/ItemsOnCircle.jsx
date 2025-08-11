@@ -21,66 +21,15 @@ export default function ItemsOnCircle({
       {items.map((item) => {
         if (!item) return null;
 
-        const label = typeof item.label === 'string' ? item.label : '';
+        const label = typeof item.label === 'string' ? item.label : null;
+        if (!label) return null;
+
         const angleInRadians = (item.angle * Math.PI) / 180;
         const x = cx + item.distance * Math.cos(angleInRadians);
         const y = cy + item.distance * Math.sin(angleInRadians);
 
         const rotation = rotationEnabled && !isSmallScreen ? -rotationAngle : 0;
 
-        // Placeholder for pending items (awaiting server id)
-        if (item._pending) {
-          return (
-            <div
-              key={item.id}
-              style={{
-                position: 'absolute',
-                left: x,
-                top: y,
-                transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-                width: 14,
-                height: 14,
-                borderRadius: '9999px',
-                backgroundColor: 'var(--color-text-secondary)',
-                opacity: 0.4,
-              }}
-              title="Guardando..."
-            />
-          );
-        }
-
-        // Guard: if label missing, render generic chip
-        if (!label) {
-          return (
-            <div
-              key={item.id}
-              draggable
-              onDragStart={(e) => onNoteDragStart(e, item.id)}
-              style={{
-                position: 'absolute',
-                left: x,
-                top: y,
-                cursor: 'grab',
-                transform: `rotate(${rotation}deg)`,
-                transformOrigin: 'center',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '9999px',
-                fontSize: '0.75rem',
-                fontWeight: '600',
-                border: '1px solid var(--color-text-secondary)',
-                backgroundColor: 'var(--color-bg)',
-                color: 'var(--color-text-primary)',
-                backdropFilter: 'blur(4px)',
-                userSelect: 'none',
-              }}
-              title="Item"
-            >
-              Item
-            </div>
-          );
-        }
-
-        // Render Tarea
         if (label === 'Tarea') {
           return (
             <TaskItem
@@ -104,7 +53,6 @@ export default function ItemsOnCircle({
           );
         }
 
-        // Render Nota
         if (label.toLowerCase().includes('nota')) {
           return (
             <NoteItem
@@ -128,7 +76,6 @@ export default function ItemsOnCircle({
           );
         }
 
-        // Render Archivo
         if (label === 'Archivo') {
           return (
             <ArchiveItem
@@ -151,7 +98,7 @@ export default function ItemsOnCircle({
           );
         }
 
-        // Fallback genérico
+        // Otros labels: chip genérico con el texto del label
         return (
           <div
             key={item.id}
@@ -174,9 +121,9 @@ export default function ItemsOnCircle({
               backdropFilter: 'blur(4px)',
               userSelect: 'none',
             }}
-            title={label || 'Item'}
+            title={label}
           >
-            {label || 'Item'}
+            {label}
           </div>
         );
       })}

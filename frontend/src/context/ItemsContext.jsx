@@ -15,10 +15,26 @@ export const ItemsProvider = ({ children }) => {
     })
       .then(res => res.json())
       .then(data => {
-        const expanded = data.map(item => ({
-          ...item,
-          ...(item.item_data || {})
-        }));
+        const expanded = data
+          .map(item => ({
+            ...item,
+            ...(item.item_data || {}),
+          }))
+          .map(item => {
+            const angle = Number(item.angle ?? 0);
+            const distance = Number(item.distance ?? 120);
+            const width = Number(item.width ?? (item.label === 'Tarea' ? 200 : 150));
+            const height = Number(item.height ?? (item.label === 'Tarea' ? 120 : 80));
+            return {
+              ...item,
+              angle: Number.isFinite(angle) ? angle : 0,
+              distance: Number.isFinite(distance) ? distance : 120,
+              width: Number.isFinite(width) ? width : (item.label === 'Tarea' ? 200 : 150),
+              height: Number.isFinite(height) ? height : (item.label === 'Tarea' ? 120 : 80),
+            };
+          })
+          .filter(item => !!item.label && item.date);
+
         const grouped = expanded.reduce((acc, item) => {
           const dateKey = item.date; // 'YYYY-MM-DD'
           if (!acc[dateKey]) acc[dateKey] = [];
@@ -32,9 +48,14 @@ export const ItemsProvider = ({ children }) => {
 
   async function addItem(item) {
     if (!token) return null;
-    const { date, x, y, rotation, rotation_enabled, ...itemData } = item;
+    const { date, x, y, rotation, rotation_enabled, label, ...rest } = item;
 
-    // 1) Optimista: insertar placeholder rápido
+    const itemData = { ...rest };
+    if (label === 'Tarea') {
+      if (!Array.isArray(itemData.content)) itemData.content = [''];
+      if (!Array.isArray(itemData.checked)) itemData.checked = [false];
+    }
+
     const placeholder = {
       id: `tmp_${Math.random().toString(36).slice(2)}`,
       date,
@@ -42,7 +63,8 @@ export const ItemsProvider = ({ children }) => {
       y,
       rotation: rotation ?? 0,
       rotation_enabled: rotation_enabled ?? true,
-      item_data: itemData,
+      item_data: { label, ...itemData },
+      label,
       ...itemData,
       _pending: true,
     };
@@ -51,14 +73,13 @@ export const ItemsProvider = ({ children }) => {
       [date]: [...(prev[date] || []), placeholder],
     }));
 
-    // 2) Enviar al servidor
     const payload = {
       date,
       x,
       y,
       rotation: rotation ?? 0,
       rotation_enabled: rotation_enabled ?? true,
-      item_data: itemData,
+      item_data: { label, ...itemData },
     };
 
     try {
@@ -74,14 +95,12 @@ export const ItemsProvider = ({ children }) => {
       const saved = await res.json();
       const expanded = { ...saved, ...(saved.item_data || {}) };
 
-      // 3) Reemplazar placeholder por el real
       setItemsByDate(prev => ({
         ...prev,
         [date]: (prev[date] || []).map(i => i.id === placeholder.id ? expanded : i)
       }));
       return expanded;
     } catch (e) {
-      // 4) Revertir placeholder en caso de error
       setItemsByDate(prev => ({
         ...prev,
         [date]: (prev[date] || []).filter(i => i.id !== placeholder.id)

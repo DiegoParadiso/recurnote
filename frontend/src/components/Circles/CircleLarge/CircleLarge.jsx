@@ -13,7 +13,6 @@ import { useItems } from '../../../context/ItemsContext';
 import BottomToast from '../../common/BottomToast';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, onItemDrop, displayOptions }) {
-  // Contexto global con items organizados por fecha
   const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
 
   const { width } = useWindowDimensions();
@@ -22,7 +21,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const [rotationAngle, setRotationAngle] = useState(0);
   const rotationSpeed = 2;
   const [toastMessage, setToastMessage] = useState('');
-  // Control de rotación con mouse
   const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
     containerRef,
     rotationAngle,
@@ -30,7 +28,18 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     rotationSpeed,
   });
 
-  // Ajustar tamaño según ancho de ventana (responsive)
+  // debounce map por item id
+  const debounceTimersRef = useRef(new Map());
+  const scheduleUpdate = (id, changes, delayMs = 500) => {
+    const timers = debounceTimersRef.current;
+    if (timers.has(id)) clearTimeout(timers.get(id));
+    const t = setTimeout(() => {
+      updateItem(id, changes).catch(() => {});
+      timers.delete(id);
+    }, delayMs);
+    timers.set(id, t);
+  };
+
   useEffect(() => {
     if (width <= 640) {
       setCircleSize(Math.min(width - 40, 360));
@@ -39,7 +48,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     }
   }, [width]);
 
-  // Cuando rota el círculo, actualizo el ángulo de los items del día seleccionado en contexto
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
     if (delta !== 0 && selectedDay) {
@@ -51,14 +59,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           angle: (item.angle + delta) % 360,
         })),
       }));
-      // Server-side: bulk updates could be added; for now, skip to reduce traffic
     }
     prevRotationRef.current = rotationAngle;
   }, [rotationAngle, selectedDay, setItemsByDate, prevRotationRef]);
 
 const selectedDate = selectedDay ? (() => {
   const zone = displayOptions?.timeZone || DateTime.local().zoneName;
-  // toma la hora actual en la zona elegida y le asigna la fecha seleccionada
   return DateTime.now().setZone(zone).set({
     day: selectedDay.day,
     month: selectedDay.month,
@@ -99,7 +105,6 @@ const displayText = selectedDate && displayParts.length
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
-  // Hook para manejar drag & drop sobre el círculo
   const handleDrop = useHandleDrop({
     containerRef,
     setItemsByDate,
@@ -109,13 +114,13 @@ const displayText = selectedDate && displayParts.length
     onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
   });
 
-  // Eventos drag para los items
   const handleNoteDragStart = (e, itemId) => {
-    e.dataTransfer.setData('source', 'dropped');
-    e.dataTransfer.setData('itemId', itemId.toString());
+    if (e.dataTransfer) {
+      e.dataTransfer.setData('source', 'dropped');
+      e.dataTransfer.setData('itemId', String(itemId));
+    }
   };
 
-  // Actualizar item (contenido, posición polar, tamaño, etc)
   const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
@@ -126,13 +131,19 @@ const displayText = selectedDate && displayParts.length
         if (item.id !== id) return item;
         const updated = { ...item };
 
-        if (Array.isArray(newContent)) updated.checked = newPolar;
-        if (newContent !== undefined) updated.content = newContent;
+        // contenido/checked en tareas
+        if (Array.isArray(newContent)) {
+          updated.content = newContent;
+          if (Array.isArray(newPolar)) updated.checked = newPolar;
+        } else if (newContent !== undefined) {
+          updated.content = newContent;
+        }
+
         if (maybeSize?.width && maybeSize?.height) {
           updated.width = maybeSize.width;
           updated.height = maybeSize.height;
         }
-        if (newPolar) {
+        if (newPolar && typeof newPolar === 'object' && !Array.isArray(newPolar)) {
           updated.angle = newPolar.angle ?? item.angle;
           updated.distance = newPolar.distance ?? item.distance;
         }
@@ -150,33 +161,21 @@ const displayText = selectedDate && displayParts.length
       }),
     }));
 
-    // Persistir en servidor (best-effort)
+    const idIsNumeric = typeof id === 'number' && Number.isFinite(id);
+    if (!idIsNumeric) return;
+
+    // Debounce contenido/tamaño; posición se guarda en onDrop
     const changes = {};
-    if (Array.isArray(newContent)) changes.checked = newContent; // for task lists
-    if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
+    if (Array.isArray(newContent)) changes.content = newContent;
+    else if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
+    if (Array.isArray(newPolar)) changes.checked = newPolar;
     if (maybeSize?.width && maybeSize?.height) {
       changes.width = maybeSize.width;
       changes.height = maybeSize.height;
     }
-    if (newPolar) {
-      changes.angle = newPolar.angle;
-      changes.distance = newPolar.distance;
-    }
-    if (newPosition) {
-      const dx = newPosition.x - cx;
-      const dy = newPosition.y - cy;
-      const radians = (-rotationAngle * Math.PI) / 180;
-      const rotatedX = dx * Math.cos(radians) - dy * Math.sin(radians);
-      const rotatedY = dx * Math.sin(radians) + dy * Math.cos(radians);
-      changes.x = rotatedX;
-      changes.y = rotatedY;
-    }
-    if (Object.keys(changes).length) {
-      updateItem(id, changes).catch(() => {});
-    }
+    if (Object.keys(changes).length) scheduleUpdate(id, changes, 500);
   };
 
-  // Borrar item por id
   const handleDeleteItem = (id) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
@@ -185,7 +184,28 @@ const displayText = selectedDate && displayParts.length
       ...prev,
       [dateKey]: prev[dateKey].filter((item) => item.id !== id),
     }));
-    deleteItem(id).catch(() => {});
+    const idIsNumeric = typeof id === 'number' && Number.isFinite(id);
+    if (idIsNumeric) deleteItem(id).catch(() => {});
+  };
+
+  const persistPositionOnDrop = (id) => {
+    const idIsNumeric = typeof id === 'number' && Number.isFinite(id);
+    if (!idIsNumeric) return;
+    const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
+    if (!dateKey) return;
+    const item = (itemsByDate[dateKey] || []).find(i => i.id === id);
+    if (!item) return;
+    const angleRad = (item.angle * Math.PI) / 180;
+    const x = item.distance * Math.cos(angleRad);
+    const y = item.distance * Math.sin(angleRad);
+    updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch(() => {});
+  };
+
+  const handleItemDrop = (id) => {
+    // primero delega a quien maneja papelera, etc.
+    onItemDrop?.(id);
+    // luego persiste posición
+    persistPositionOnDrop(id);
   };
 
   const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
@@ -199,7 +219,6 @@ const displayText = selectedDate && displayParts.length
         margin: '0 auto',
       }}
     >
-      {/* CircleSmall solo en desktop cuando showSmall */}
       {!isSmallScreen && showSmall && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 10 }}>
           <CircleSmall
@@ -211,7 +230,6 @@ const displayText = selectedDate && displayParts.length
         </div>
       )}
 
-      {/* CircleSmall móvil */}
       {isSmallScreen && showSmall && (
         <div
           className="fixed z-[10] flex items-center justify-center"
@@ -271,7 +289,6 @@ const displayText = selectedDate && displayParts.length
           />
         )}
 
-
         {selectedDay && (
           <div style={{ transform: isSmallScreen ? 'none' : `rotate(${-rotationAngle}deg)` }}>
             <NotesArea dayInfo={selectedDay} />
@@ -284,7 +301,7 @@ const displayText = selectedDate && displayParts.length
           cy={cy}
           rotationAngle={rotationAngle}
           onItemDrag={onItemDrag}
-          onItemDrop={onItemDrop}
+          onItemDrop={handleItemDrop}
           onNoteDragStart={handleNoteDragStart}
           onNoteUpdate={handleNoteUpdate}
           onDeleteItem={handleDeleteItem}

@@ -8,11 +8,12 @@ export default function useItemsForDays(itemsByDate) {
 
   useEffect(() => {
     const now = DateTime.now();
-    setStartDate(now);
+    const today = now.startOf('day');
+    setStartDate(today);
 
     const fechasConItems = Object.keys(itemsByDate)
       .map(key => DateTime.fromISO(key))
-      .filter(date => date >= now);
+      .filter(date => date >= today);
 
     if (fechasConItems.length === 0) {
       setItemsForDays([]);
@@ -22,7 +23,7 @@ export default function useItemsForDays(itemsByDate) {
     const maxDate = fechasConItems.reduce((a, b) => (a > b ? a : b));
     const itemsList = [];
 
-    for (let date = now; date <= maxDate; date = date.plus({ days: 1 })) {
+    for (let date = today; date <= maxDate; date = date.plus({ days: 1 })) {
       const key = formatDateKey(date.toObject());
       const items = itemsByDate[key] || [];
       if (items.length > 0) {

@@ -16,13 +16,14 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
   const scrollContainerRef = useRef(null);
   useAutoScrollOnHover(scrollContainerRef, isHoveringTop, isHoveringBottom);
 
-  const toggleTaskCheck = (dateKey, index) => {
-    const currentItems = itemsByDate[dateKey];
+  // Toggle sólo la tarea del item indicado
+  const toggleTaskCheck = (dateKey, itemId, taskIndex) => {
+    const currentItems = itemsByDate[dateKey] || [];
     const updatedItems = currentItems.map(item => {
-      if (item.label === 'Tarea') {
+      if (item.id === itemId && item.label === 'Tarea') {
         const checks = [...(item.checked || [])];
-        checks[index] = !checks[index];
-        // Persistir en servidor
+        checks[taskIndex] = !checks[taskIndex];
+        // Persistir en servidor solo para este item
         updateItem(item.id, { checked: checks }).catch(() => {});
         return { ...item, checked: checks };
       }

@@ -33,7 +33,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsB
                 type="checkbox"
                 className="checkbox-input"
                 checked={item.checked?.[idx] || false}
-                onChange={() => toggleTaskCheck(dateKey, idx)}
+                onChange={() => toggleTaskCheck(dateKey, item.id, idx)}
               />
               <span
                 className={`checkbox-box ${item.checked?.[idx] ? 'checked' : ''}`}

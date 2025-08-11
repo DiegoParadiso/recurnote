@@ -33,7 +33,17 @@ export async function updateItem(req, res) {
     const item = await Item.findOne({ where: { id, user_id: req.user.id } });
     if (!item) return res.status(404).json({ message: 'Item no encontrado' });
 
-    await item.update(req.body);
+    const { item_data: incomingItemData, ...rest } = req.body;
+
+    const updatePayload = { ...rest };
+    if (incomingItemData && typeof incomingItemData === 'object') {
+      updatePayload.item_data = {
+        ...(item.item_data || {}),
+        ...incomingItemData,
+      };
+    }
+
+    await item.update(updatePayload);
     res.json(item);
   } catch (err) {
     res.status(500).json({ message: 'Error al actualizar item', error: err.message });
