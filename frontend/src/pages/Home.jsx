@@ -184,19 +184,19 @@ export default function Home() {
                 backgroundColor: 'transparent',
               }}
             >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  height: '100vh',
-                  width: 'var(--sidebar-width)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--color-bg)',
-                  transition: 'var(--transition-all)',
-                }}
-              >
+                             <div
+                 style={{
+                   position: 'absolute',
+                   top: 0,
+                   right: 0,
+                   height: '100vh',
+                   width: 'var(--sidebar-width)',
+                   border: 'none',
+                   borderRadius: '8px',
+                   backgroundColor: 'var(--color-bg)',
+                   transition: 'var(--transition-all)',
+                 }}
+               >
                 <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} />
               </div>
             </div>
@@ -303,20 +303,20 @@ export default function Home() {
                 pointerEvents: 'auto',
               }}
             >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  height: '100vh',
-                  width: 'var(--sidebar-width)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--color-bg)',
-                  transition: 'var(--transition-all)',
-                  zIndex: 'var(--z-high)',
-                }}
-              >
+                             <div
+                 style={{
+                   position: 'absolute',
+                   top: 0,
+                   right: 0,
+                   height: '100vh',
+                   width: 'var(--sidebar-width)',
+                   border: 'none',
+                   borderRadius: '8px',
+                   backgroundColor: 'var(--color-bg)',
+                   transition: 'var(--transition-all)',
+                   zIndex: 'var(--z-high)',
+                 }}
+               >
                 <SidebarDayView
                   selectedDay={selectedDay}
                   setSelectedDay={setSelectedDay}

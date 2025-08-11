@@ -279,7 +279,7 @@ const displayText = selectedDate && displayParts.length
           height: isSmallScreen ? '100dvh' : circleSize,
           margin: isSmallScreen ? undefined : '0 auto',
           transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
-          borderColor: isSmallScreen ? 'transparent' : 'var(--color-border)',
+          borderColor: isSmallScreen ? 'transparent' : 'var(--color-text-primary)',
           borderStyle: isSmallScreen ? 'none' : 'solid',
         }}
       >
