@@ -33,30 +33,61 @@ export const ItemsProvider = ({ children }) => {
   async function addItem(item) {
     if (!token) return null;
     const { date, x, y, rotation, rotation_enabled, ...itemData } = item;
+
+    // 1) Optimista: insertar placeholder rápido
+    const placeholder = {
+      id: `tmp_${Math.random().toString(36).slice(2)}`,
+      date,
+      x,
+      y,
+      rotation: rotation ?? 0,
+      rotation_enabled: rotation_enabled ?? true,
+      item_data: itemData,
+      ...itemData,
+      _pending: true,
+    };
+    setItemsByDate(prev => ({
+      ...prev,
+      [date]: [...(prev[date] || []), placeholder],
+    }));
+
+    // 2) Enviar al servidor
     const payload = {
       date,
       x,
       y,
-      rotation,
-      rotation_enabled,
-      item_data: itemData
+      rotation: rotation ?? 0,
+      rotation_enabled: rotation_enabled ?? true,
+      item_data: itemData,
     };
-    const res = await fetch(`${API_URL}/api/items`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('Error creating item');
-    const saved = await res.json();
-    const expanded = { ...saved, ...(saved.item_data || {}) };
-    setItemsByDate(prev => {
-      const dateKey = expanded.date;
-      return { ...prev, [dateKey]: [...(prev[dateKey] || []), expanded] };
-    });
-    return expanded;
+
+    try {
+      const res = await fetch(`${API_URL}/api/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Error creating item');
+      const saved = await res.json();
+      const expanded = { ...saved, ...(saved.item_data || {}) };
+
+      // 3) Reemplazar placeholder por el real
+      setItemsByDate(prev => ({
+        ...prev,
+        [date]: (prev[date] || []).map(i => i.id === placeholder.id ? expanded : i)
+      }));
+      return expanded;
+    } catch (e) {
+      // 4) Revertir placeholder en caso de error
+      setItemsByDate(prev => ({
+        ...prev,
+        [date]: (prev[date] || []).filter(i => i.id !== placeholder.id)
+      }));
+      return null;
+    }
   }
 
   async function updateItem(id, changes) {
@@ -79,8 +110,8 @@ export const ItemsProvider = ({ children }) => {
     }).catch(() => {});
     setItemsByDate(prev => {
       const newState = { ...prev };
-      for (const date in newState) {
-        newState[date] = newState[date].map(i => i.id === id ? { ...i, ...changes } : i);
+      for (const dateKey in newState) {
+        newState[dateKey] = newState[dateKey].map(i => i.id === id ? { ...i, ...changes } : i);
       }
       return newState;
     });
