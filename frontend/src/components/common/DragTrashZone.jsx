@@ -12,7 +12,7 @@ export default function DragTrashZone({ isActive, isOverTrash }) {
         transform: 'translateX(-50%)',
         width: 50,
         height: 50,
-        zIndex: 100,
+        zIndex: 'var(--z-floating)',
         pointerEvents: 'none',
         display: 'flex',
         justifyContent: 'center',

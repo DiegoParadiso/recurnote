@@ -15,7 +15,7 @@ export default function EmptyLogo({ circleSize, isSmallScreen }) {
         opacity: 'var(--logo-opacity)',
         pointerEvents: 'none',
         userSelect: 'none',
-        zIndex: 0,
+        zIndex: 'var(--z-base)',
         transform: `translate(-20%, -20%) rotate(35deg)`,
         transformOrigin: 'center center',
         filter: `brightness(var(--logo-brightness)) invert(var(--logo-invert))`,

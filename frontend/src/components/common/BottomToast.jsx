@@ -38,7 +38,7 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
         ${visible ? 'translate-y-0' : 'translate-y-full'}
       `}
       style={{
-        zIndex: 9999,
+        zIndex: 'var(--z-toast)',
         willChange: 'transform',
         backgroundColor: 'var(--color-bg)',
         borderColor: 'var(--color-text-secondary)',

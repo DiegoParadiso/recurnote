@@ -9,7 +9,8 @@
   --color-text-primary: #292524;
   --color-text-secondary: #d6d3d1;
   --color-highlight: #44403c;
-  --bg-highlight: #e6e4e2; 
+  --bg-highlight: #e6e4e2;
+  --color-border: #d6d3d1; 
 
   --daybutton-selected-bg: var(--color-highlight);
   --daybutton-selected-border: var(--color-text-primary);
@@ -49,6 +50,33 @@
   --sidebar-archivo-separator-border: #d4d4d4;
   --sidebar-archivo-dark-tab-bg: #3a3a3a;
   --sidebar-archivo-dark-separator-border: #50555D;
+
+  /* Layout móvil */
+  --mobile-bottom-offset: 60px;
+  --mobile-carousel-height: 96px;
+
+  /* Sidebars */
+  --sidebar-width: 260px;
+  --sidebar-hover-strip-width: 60px;
+  --navbar-top-offset: 60px;
+  --mobile-right-overlay-gap: 50px; /* ancho = calc(100vw - gap) */
+
+  /* Z-Index scale */
+  --z-base: 1;
+  --z-low: 10;
+  --z-mid: 20;
+  --z-high: 30;
+  --z-overlay: 40;
+  --z-modal: 70;
+  --z-floating: 100;
+  --z-toast: 9999;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.7s ease;
+  --transition-all: all 0.3s ease;
+  --transition-colors: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.dark {
@@ -63,6 +91,7 @@ html.dark {
   --color-text-secondary: #50555D;
   --color-highlight: #f5f5f5;
   --bg-highlight: #222222;
+  --color-border: #50555D;
 
   --daybutton-selected-bg: #3a3a3a;
   --daybutton-selected-border: var(--color-text-secondary);
@@ -102,4 +131,11 @@ html.dark {
   --sidebar-archivo-separator-border: #d4d4d4;
   --sidebar-archivo-dark-tab-bg: #3a3a3a;
   --sidebar-archivo-dark-separator-border: #50555D;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.7s ease;
+  --transition-all: all 0.3s ease;
+  --transition-colors: background-color 0.3s ease, color 0.3s ease;
 }

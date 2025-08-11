@@ -220,7 +220,7 @@ const displayText = selectedDate && displayParts.length
       }}
     >
       {!isSmallScreen && showSmall && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 10 }}>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 'var(--z-low)' }}>
           <CircleSmall
             onDayClick={setSelectedDay}
             isSmallScreen={false}
@@ -232,7 +232,7 @@ const displayText = selectedDate && displayParts.length
 
       {isSmallScreen && showSmall && (
         <div
-          className="fixed z-[10] flex items-center justify-center"
+          className="fixed flex items-center justify-center"
           style={{
             backgroundColor: 'var(--color-bg)',
             borderRadius: '50%',
@@ -241,6 +241,7 @@ const displayText = selectedDate && displayParts.length
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
+            zIndex: 'var(--z-low)'
           }}
         >
           <CircleSmall

@@ -66,7 +66,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             ? 'sidebar-mobile'
             : isRightSidebarPinned
             ? 'absolute right-0 top-0 cursor-default'
-            : 'absolute right-[-260px] top-0 group-hover:right-0 cursor-default'
+            : 'absolute -right-[var(--sidebar-width)] top-0 group-hover:right-0 cursor-default'
         } sidebar-container`}
       >
         <div className="px-4 md:pt-7 pb-7 flex-shrink-0">

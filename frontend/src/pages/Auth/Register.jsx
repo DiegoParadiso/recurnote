@@ -35,7 +35,7 @@ export default function Register() {
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-      <div className="auth-box" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
         <h2>Registrarse</h2>
         <form onSubmit={handleSubmit}>
           <input

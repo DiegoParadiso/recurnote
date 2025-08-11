@@ -8,10 +8,12 @@ import ConfigButton from '../components/Preferences/ConfigButton';
 import ConfigPanel from '../components/Preferences/ConfigPanel';
 import ThemeToggle from '../components/Preferences/ThemeToggle';
 import useIsMobile from '../hooks/useIsMobile';
+import useSidebarLayout from '../hooks/useSidebarLayout';
 import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles';
 import MobileBottomControls from '../components/common/MobileBottomControls';
 
 import DragTrashZone from '../components/common/DragTrashZone'; 
+import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
 
 import { useItems } from '../context/ItemsContext';
 import { useNotes } from '../context/NotesContext';
@@ -21,17 +23,23 @@ export default function Home() {
   const { itemsByDate, setItemsByDate, addItem } = useItems();
   const { selectedDay, setSelectedDay } = useNotes();
 
-  const [showSmall, setShowSmall] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-  const [showLeftSidebarMobile, setShowLeftSidebarMobile] = useState(false);
-  const [showRightSidebarMobile, setShowRightSidebarMobile] = useState(false);
+  const isMobile = useIsMobile();
+  const {
+    showSmall,
+    setShowSmall,
+    showLeftSidebarMobile,
+    setShowLeftSidebarMobile,
+    showRightSidebarMobile,
+    setShowRightSidebarMobile,
+    leftSidebarMobileWrapperStyle,
+  } = useSidebarLayout(selectedDay, isMobile);
   const [showConfig, setShowConfig] = useState(false);
 
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
   const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
 
-  const isMobile = useIsMobile();
   const [draggedItem, setDraggedItem] = useState(null); 
   const [isOverTrash, setIsOverTrash] = useState(false);
 
@@ -107,15 +115,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (!selectedDay) {
-      setShowSmall(true);
-    } else {
-      if (isMobile) {
-        setShowLeftSidebarMobile(true); 
-      } else {
-        setShowLeftSidebar(true); 
-      }
-    }
+    if (selectedDay && !isMobile) setShowLeftSidebar(true);
   }, [selectedDay, isMobile]);
 
   return (
@@ -124,7 +124,7 @@ export default function Home() {
       style={{
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text-primary)',
-        transition: 'background-color 0.3s ease, color 0.3s ease',
+        transition: 'var(--transition-colors)',
       }}
     >
       {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
@@ -160,12 +160,12 @@ export default function Home() {
             <div
               className="hidden sm:block"
               style={{
-                zIndex: 30,
+                zIndex: 'var(--z-high)',
                 position: 'fixed',
                 border: '1px solid var(--color-border)',
                 borderRadius: '8px',
                 backgroundColor: 'var(--color-bg)',
-                transition: 'all 0.3s ease',
+                transition: 'var(--transition-all)',
               }}
             >
               <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} isLeftSidebarPinned={true} />
@@ -176,11 +176,11 @@ export default function Home() {
               style={{
                 pointerEvents: 'auto',
                 position: 'fixed',
-                top: '60px', 
+                top: 'var(--navbar-top-offset)', 
                 left: 0,
-                height: 'calc(100vh - 60px)', 
-                width: '60px',
-                zIndex: 40,
+                height: `calc(100vh - var(--navbar-top-offset))`, 
+                width: 'var(--sidebar-hover-strip-width)',
+                zIndex: 'var(--z-overlay)',
                 backgroundColor: 'transparent',
               }}
             >
@@ -190,11 +190,11 @@ export default function Home() {
                   top: 0,
                   right: 0,
                   height: '100vh',
-                  width: '260px',
+                  width: 'var(--sidebar-width)',
                   border: '1px solid var(--color-border)',
                   borderRadius: '8px',
                   backgroundColor: 'var(--color-bg)',
-                  transition: 'all 0.3s ease',
+                  transition: 'var(--transition-all)',
                 }}
               >
                 <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} />
@@ -206,7 +206,7 @@ export default function Home() {
 
       {/* Sidebar izquierdo móvil */}
       {showLeftSidebarMobile && isMobile && (
-        <div className="fixed left-0 right-0 bottom-[64px] z-40">
+        <div className={`fixed left-0 right-0 z-40`} style={leftSidebarMobileWrapperStyle}>
           <CurvedSidebar showConfig={showConfig} isMobile={true} onSelectItem={handleSelectItem} />
         </div>
       )}
@@ -217,7 +217,7 @@ export default function Home() {
         style={{
           borderRadius: '12px',
           backgroundColor: 'var(--color-bg)',
-          transition: 'all 0.3s ease',
+          transition: 'var(--transition-all)',
           width: isMobile ? '100vw' : 'auto',
         }}
       >
@@ -260,7 +260,7 @@ export default function Home() {
               border: 'none',
               fontSize: '1.2rem',
               userSelect: 'none',
-              transition: 'color 0.3s ease',
+              transition: 'var(--transition-normal)',
             }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
@@ -284,7 +284,7 @@ export default function Home() {
                   border: '1px solid var(--color-border)',
                   borderRadius: '8px',
                   backgroundColor: 'var(--color-text-secondary)',
-                  transition: 'all 0.3s ease',
+                  transition: 'var(--transition-all)',
                 }}
               />
             </div>
@@ -294,10 +294,10 @@ export default function Home() {
               className="hidden sm:block opacity-0 hover:opacity-100 transition-opacity duration-200 ease-in-out"
               style={{
                 position: 'fixed',
-                top: '60px',
+                top: 'var(--navbar-top-offset)',
                 right: 0,
-                height: 'calc(100vh - 60px)', 
-                width: '60px',
+                height: `calc(100vh - var(--navbar-top-offset))`, 
+                width: 'var(--sidebar-hover-strip-width)',
                 zIndex: 40,
                 backgroundColor: 'transparent',
                 pointerEvents: 'auto',
@@ -309,12 +309,12 @@ export default function Home() {
                   top: 0,
                   right: 0,
                   height: '100vh',
-                  width: '260px',
+                  width: 'var(--sidebar-width)',
                   border: '1px solid var(--color-border)',
                   borderRadius: '8px',
                   backgroundColor: 'var(--color-bg)',
-                  transition: 'all 0.3s ease',
-                  zIndex: 30,
+                  transition: 'var(--transition-all)',
+                  zIndex: 'var(--z-high)',
                 }}
               >
                 <SidebarDayView
@@ -333,7 +333,7 @@ export default function Home() {
             <button
               onClick={() => setShowRightSidebar(v => !v)}
               aria-label="Toggle right sidebar"
-              className="fixed right-0 top-[50vh] transform -translate-y-1/2 z-10 hidden sm:flex cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300"
+              className="fixed right-0 top-[50vh] transform -translate-y-1/2 z-10 hidden sm:flex cursor-pointer items-center justify-center w-8 h-8 text-gray-300"
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -352,16 +352,7 @@ export default function Home() {
 
       {/* Sidebar derecho móvil */}
       {showRightSidebarMobile && isMobile && (
-        <div
-          className="fixed top-0 bottom-0 right-0"
-          style={{
-            width: 'calc(100vw - 50px)',
-            backgroundColor: 'var(--color-bg)',
-            padding: '1rem',
-            overflow: 'auto',
-            zIndex: 70,
-          }}
-        >
+        <RightSidebarOverlay>
           <SidebarDayView
             selectedDay={selectedDay}
             setSelectedDay={setSelectedDay}
@@ -370,7 +361,7 @@ export default function Home() {
             onClose={() => setShowRightSidebarMobile(false)}
             setShowSmall={setShowSmall}
           />
-        </div>
+        </RightSidebarOverlay>
       )}
 
       {/* Panel de configuración */}
@@ -406,17 +397,6 @@ export default function Home() {
         onToggleRight={() => setShowRightSidebarMobile(true)}
       />
 
-      {/* Keyframes para animaciones (si no están ya definidos en CSS global) */}
-      <style>{`
-        @keyframes slideLeftRight {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(-6px); }
-        }
-        @keyframes slideRightLeft {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(6px); }
-        }
-      `}</style>
     </div>
   );
 }
