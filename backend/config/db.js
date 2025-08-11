@@ -2,14 +2,21 @@ import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const DATABASE_URL = process.env.DATABASE_URL;
+const PGSSLMODE = process.env.PGSSLMODE || 'require'; // 'require' for Neon, 'disable' for local
+
+const useSSL = PGSSLMODE !== 'disable';
+
+export const sequelize = new Sequelize(DATABASE_URL, {
   dialect: 'postgres',
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
-  },
+  dialectOptions: useSSL
+    ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      }
+    : {},
   logging: false,
 });
 

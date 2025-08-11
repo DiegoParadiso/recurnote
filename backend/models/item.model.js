@@ -12,7 +12,7 @@ export const Item = sequelize.define('Item', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'users',
+      model: User, // Correct: reference the Sequelize model (table "Users")
       key: 'id',
     },
     onDelete: 'CASCADE',

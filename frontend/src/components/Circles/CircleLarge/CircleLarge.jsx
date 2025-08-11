@@ -14,7 +14,7 @@ import BottomToast from '../../common/BottomToast';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, onItemDrop, displayOptions }) {
   // Contexto global con items organizados por fecha
-  const { itemsByDate, setItemsByDate } = useItems();
+  const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
 
   const { width } = useWindowDimensions();
   const containerRef = useRef(null);
@@ -51,6 +51,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           angle: (item.angle + delta) % 360,
         })),
       }));
+      // Server-side: bulk updates could be added; for now, skip to reduce traffic
     }
     prevRotationRef.current = rotationAngle;
   }, [rotationAngle, selectedDay, setItemsByDate, prevRotationRef]);
@@ -101,13 +102,10 @@ const displayText = selectedDate && displayParts.length
   // Hook para manejar drag & drop sobre el círculo
   const handleDrop = useHandleDrop({
     containerRef,
-    itemsByDate,
     setItemsByDate,
     selectedDay,
     rotationAngle,
     radius,
-    cx,
-    cy,
     onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
   });
 
@@ -151,6 +149,31 @@ const displayText = selectedDate && displayParts.length
         return updated;
       }),
     }));
+
+    // Persistir en servidor (best-effort)
+    const changes = {};
+    if (Array.isArray(newContent)) changes.checked = newContent; // for task lists
+    if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
+    if (maybeSize?.width && maybeSize?.height) {
+      changes.width = maybeSize.width;
+      changes.height = maybeSize.height;
+    }
+    if (newPolar) {
+      changes.angle = newPolar.angle;
+      changes.distance = newPolar.distance;
+    }
+    if (newPosition) {
+      const dx = newPosition.x - cx;
+      const dy = newPosition.y - cy;
+      const radians = (-rotationAngle * Math.PI) / 180;
+      const rotatedX = dx * Math.cos(radians) - dy * Math.sin(radians);
+      const rotatedY = dx * Math.sin(radians) + dy * Math.cos(radians);
+      changes.x = rotatedX;
+      changes.y = rotatedY;
+    }
+    if (Object.keys(changes).length) {
+      updateItem(id, changes).catch(() => {});
+    }
   };
 
   // Borrar item por id
@@ -162,9 +185,9 @@ const displayText = selectedDate && displayParts.length
       ...prev,
       [dateKey]: prev[dateKey].filter((item) => item.id !== id),
     }));
+    deleteItem(id).catch(() => {});
   };
 
-  // Items para el día seleccionado (pueden ser [] si no hay)
   const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
 
   return (

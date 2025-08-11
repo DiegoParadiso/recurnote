@@ -1,10 +1,17 @@
 import React from 'react';
 import './ItemRenderer.css';
+import { useItems } from '../../../context/ItemsContext';
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsByDate }) {
-  const handleDelete = (e) => {
+  const { deleteItem } = useItems();
+
+  const handleDelete = async (e) => {
     e.preventDefault();
     if (!window.confirm('¿Eliminar este ítem?')) return;
+
+    try {
+      await deleteItem(item.id);
+    } catch {}
 
     setItemsByDate((prev) => ({
       ...prev,

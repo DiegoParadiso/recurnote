@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import formatDateKey from '../utils/formatDateKey';
+import { useItems } from '../context/ItemsContext';
 
 export default function useHandleDrop({
   containerRef,
@@ -9,101 +10,95 @@ export default function useHandleDrop({
   radius,
   onInvalidDrop,
 }) {
-const handleDrop = useCallback(
-  (e) => {
-    e.preventDefault();
+  const { addItem, updateItem, deleteItem } = useItems();
 
-    if (!containerRef.current || !selectedDay) {
-      if (typeof onInvalidDrop === 'function') {
-        onInvalidDrop();
-      }
-      return;
-    }
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    const mouseX = e.clientX - centerX;
-    const mouseY = e.clientY - centerY;
-
-    const rad = (rotationAngle * Math.PI) / 180;
-    let rotatedX = mouseX * Math.cos(rad) + mouseY * Math.sin(rad);
-    let rotatedY = -mouseX * Math.sin(rad) + mouseY * Math.cos(rad);
-
-    const distance = Math.hypot(rotatedX, rotatedY);
-
-    let angle = (Math.atan2(rotatedY, rotatedX) * 180) / Math.PI;
-    angle = (angle + 360) % 360;
-
-    const source = e.dataTransfer.getData('source');
-    const label = e.dataTransfer.getData('label') || 'Nota';
-    const itemId = e.dataTransfer.getData('itemId');
-    const dateKey = formatDateKey(selectedDay);
-
-    if (distance > radius) {
-      // Si está fuera del círculo y es un item que ya estaba, eliminarlo
-      if (source === 'dropped' && itemId) {
-        setItemsByDate((prev) => {
-          const itemsForDate = prev[dateKey] || [];
-          return {
-            ...prev,
-            [dateKey]: itemsForDate.filter(item => item.id.toString() !== itemId),
-          };
-        });
-        return;
-      }
-      // Si es un nuevo item (sidebar) y está fuera, no agregar y opcionalmente avisar
-      if (source === 'sidebar') {
+      if (!containerRef.current || !selectedDay) {
         if (typeof onInvalidDrop === 'function') {
           onInvalidDrop();
         }
         return;
       }
-    }
 
-    // Si está dentro del círculo: agregar o actualizar
+      const rect = containerRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-    setItemsByDate((prev) => {
-      const itemsForDate = prev[dateKey] || [];
+      const mouseX = e.clientX - centerX;
+      const mouseY = e.clientY - centerY;
 
+      const rad = (rotationAngle * Math.PI) / 180;
+      let rotatedX = mouseX * Math.cos(rad) + mouseY * Math.sin(rad);
+      let rotatedY = -mouseX * Math.sin(rad) + mouseY * Math.cos(rad);
+
+      const distance = Math.hypot(rotatedX, rotatedY);
+
+      let angle = (Math.atan2(rotatedY, rotatedX) * 180) / Math.PI;
+      angle = (angle + 360) % 360;
+
+      const source = e.dataTransfer.getData('source');
+      const label = e.dataTransfer.getData('label') || 'Nota';
+      const itemId = e.dataTransfer.getData('itemId');
+      const dateKey = formatDateKey(selectedDay);
+
+      // Fuera del círculo
+      if (distance > radius) {
+        if (source === 'dropped' && itemId) {
+          setItemsByDate((prev) => {
+            const itemsForDate = prev[dateKey] || [];
+            return {
+              ...prev,
+              [dateKey]: itemsForDate.filter((item) => item.id.toString() !== itemId),
+            };
+          });
+          deleteItem(Number(itemId)).catch(() => {});
+          return;
+        }
+        if (source === 'sidebar') {
+          if (typeof onInvalidDrop === 'function') onInvalidDrop();
+          return;
+        }
+      }
+
+      // Dentro del círculo
       if (source === 'sidebar') {
-        const newItem = {
-          id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+        // No añadir localmente para evitar id temporal. Persistimos y el contexto insertará el item guardado.
+        addItem({
+          date: dateKey,
+          x: rotatedX,
+          y: rotatedY,
+          rotation: 0,
+          rotation_enabled: true,
           label,
           angle,
           distance,
           content: label === 'Tarea' ? [''] : '',
-          ...(label === 'Tarea' && { checked: [false] }),
+          ...(label === 'Tarea' ? { checked: [false] } : {}),
           width: label === 'Tarea' ? 200 : 100,
           height: label === 'Tarea' ? 150 : 100,
-        };
-
-        return {
-          ...prev,
-          [dateKey]: [...itemsForDate, newItem],
-        };
+        }).catch(() => {});
+        return;
       }
 
       if (source === 'dropped' && itemId) {
-        const updatedItems = itemsForDate.map((item) => {
-          if (item.id.toString() === itemId) {
-            return { ...item, angle, distance };
-          }
-          return item;
+        setItemsByDate((prev) => {
+          const itemsForDate = prev[dateKey] || [];
+          const updatedItems = itemsForDate.map((item) =>
+            item.id.toString() === itemId ? { ...item, angle, distance } : item
+          );
+        
+          return { ...prev, [dateKey]: updatedItems };
         });
 
-        return {
-          ...prev,
-          [dateKey]: updatedItems,
-        };
+        updateItem(Number(itemId), { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
+        return;
       }
-
-      return prev;
-    });
-  },
-  [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop]
-);
+    },
+    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop, addItem, updateItem, deleteItem]
+  );
 
   return handleDrop;
 }

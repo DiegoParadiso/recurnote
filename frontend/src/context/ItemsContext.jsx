@@ -15,25 +15,23 @@ export const ItemsProvider = ({ children }) => {
     })
       .then(res => res.json())
       .then(data => {
-        // Expande item_data al nivel raíz
         const expanded = data.map(item => ({
           ...item,
           ...(item.item_data || {})
         }));
-        // Agrupa items por fecha YYYY-MM-DD
         const grouped = expanded.reduce((acc, item) => {
-          const dateKey = item.date; // debe venir en formato 'YYYY-MM-DD'
+          const dateKey = item.date; // 'YYYY-MM-DD'
           if (!acc[dateKey]) acc[dateKey] = [];
           acc[dateKey].push(item);
           return acc;
         }, {});
         setItemsByDate(grouped);
-      });
+      })
+      .catch(() => {});
   }, [user, token]);
 
   async function addItem(item) {
-    if (!token) return;
-    // Empaquetar los datos en item_data para el backend
+    if (!token) return null;
     const { date, x, y, rotation, rotation_enabled, ...itemData } = item;
     const payload = {
       date,
@@ -51,17 +49,17 @@ export const ItemsProvider = ({ children }) => {
       },
       body: JSON.stringify(payload)
     });
+    if (!res.ok) throw new Error('Error creating item');
     const saved = await res.json();
-    // Expandir item_data al nivel raíz
     const expanded = { ...saved, ...(saved.item_data || {}) };
     setItemsByDate(prev => {
       const dateKey = expanded.date;
       return { ...prev, [dateKey]: [...(prev[dateKey] || []), expanded] };
     });
+    return expanded;
   }
 
   async function updateItem(id, changes) {
-    // Empaquetar los cambios en item_data si corresponde
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
     const payload = {
       ...(date !== undefined ? { date } : {}),
@@ -78,7 +76,7 @@ export const ItemsProvider = ({ children }) => {
         Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(payload)
-    });
+    }).catch(() => {});
     setItemsByDate(prev => {
       const newState = { ...prev };
       for (const date in newState) {
@@ -92,7 +90,7 @@ export const ItemsProvider = ({ children }) => {
     await fetch(`${API_URL}/api/items/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
-    });
+    }).catch(() => {});
     setItemsByDate(prev => {
       const newState = {};
       for (const date in prev) {

@@ -7,7 +7,7 @@ import useItemsForDays from './hooks/useItemsForDays';
 import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned }) {
-  const { itemsByDate, setItemsByDate } = useItems();
+  const { itemsByDate, setItemsByDate, updateItem } = useItems();
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
 
   const [isHoveringTop, setIsHoveringTop] = useState(false);
@@ -22,6 +22,8 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
       if (item.label === 'Tarea') {
         const checks = [...(item.checked || [])];
         checks[index] = !checks[index];
+        // Persistir en servidor
+        updateItem(item.id, { checked: checks }).catch(() => {});
         return { ...item, checked: checks };
       }
       return item;

@@ -18,7 +18,7 @@ import { useNotes } from '../context/NotesContext';
 
 export default function Home() {
   
-  const { itemsByDate, setItemsByDate } = useItems();
+  const { itemsByDate, setItemsByDate, addItem } = useItems();
   const { selectedDay, setSelectedDay } = useNotes();
 
   const [showSmall, setShowSmall] = useState(true);
@@ -70,47 +70,40 @@ export default function Home() {
     setIsOverTrash(isOverTrashZone(draggedItem));
   }, [draggedItem]);
 
-  function handleSelectItem(item) {
+  async function handleSelectItem(item) {
     if (!dateKey) {
       alert('Seleccioná un día primero');
       return;
     }
 
-    const handleDeleteItemById = (id) => {
-      if (!selectedDay) return;
-      const dateKey = DateTime.fromObject(selectedDay).toISODate();
-      setItemsByDate(prev => ({
-        ...prev,
-        [dateKey]: (prev[dateKey] || []).filter(item => item.id !== id),
-      }));
-    };
-
-    const handleItemDrop = () => {
-      if (draggedItem && isOverTrashZone(draggedItem)) {
-        handleDeleteItemById(draggedItem.id);
-      }
-      setDraggedItem(null);
-      setIsOverTrash(false);
-    };
+    // posición por defecto: aleatoria en anillo medio
+    const angle = Math.random() * 360;
+    const distance = 120;
+    const rad = (angle * Math.PI) / 180;
+    const x = distance * Math.cos(rad);
+    const y = distance * Math.sin(rad);
 
     const newItem = {
-      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
       label: item.label,
-      angle: Math.random() * 360,
-      distance: 120,
+      angle,
+      distance,
       content: item.label === 'Tarea' ? [''] : '',
       ...(item.label === 'Tarea' && { checked: [false] }),
       width: item.label === 'Tarea' ? 200 : 100,
       height: item.label === 'Tarea' ? 150 : 100,
     };
 
-    setItemsByDate(prev => {
-      const prevItems = prev[dateKey] || [];
-      return {
-        ...prev,
-        [dateKey]: [...prevItems, newItem],
-      };
-    });
+    // Persistencia (ItemsContext hará el setItemsByDate con el id real)
+    try {
+      await addItem({
+        date: dateKey,
+        x,
+        y,
+        rotation: 0,
+        rotation_enabled: true,
+        ...newItem,
+      });
+    } catch {}
   }
 
   useEffect(() => {
