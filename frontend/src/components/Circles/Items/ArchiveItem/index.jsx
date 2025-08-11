@@ -3,7 +3,7 @@ import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
-import './ArchivoItem.css';
+import '../../../../styles/components/circles/items/ArchivoItem.css';
 
 export default function ArchivoItem({
   id,

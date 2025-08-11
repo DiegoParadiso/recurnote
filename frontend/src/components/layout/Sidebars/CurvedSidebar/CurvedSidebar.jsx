@@ -1,4 +1,4 @@
-import './CurvedSidebar.css';
+import '../../../../styles/layouts/sidebars/CurvedSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
 

@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { useItems } from '../../../context/ItemsContext';
+import { useItems } from '../../../../context/ItemsContext';
 import ItemsList from './ItemsList';
 import ItemRenderer from './ItemRenderer';
-import './SidebarDayView.css';
+import '../../../../styles/layouts/sidebars/SidebarDayView.css';
 import useItemsForDays from './hooks/useItemsForDays';
 import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
@@ -76,7 +76,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         <div
           ref={scrollContainerRef}
           className="sidebar-scroll-area scroll-hidden"
-          style={{ position: 'relative', zIndex: 20 }}
+          style={{ position: 'relative', zIndex: 'var(--z-mid)' }}
         >
           <ItemsList
             itemsForDays={itemsForDays}

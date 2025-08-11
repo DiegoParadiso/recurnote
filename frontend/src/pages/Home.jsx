@@ -1,30 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { DateTime } from 'luxon'; 
 import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
-import SidebarDayView from '../components/Sidebars/SidebarDayView/SidebarDayView';
-import CurvedSidebar from '../components/Sidebars/CurvedSidebar/CurvedSidebar';
+import SidebarDayView from '../components/layout/Sidebars/SidebarDayView/SidebarDayView';
+import CurvedSidebar from '../components/layout/Sidebars/CurvedSidebar/CurvedSidebar';
 import ConfigButton from '../components/Preferences/ConfigButton';
 import ConfigPanel from '../components/Preferences/ConfigPanel';
 import ThemeToggle from '../components/Preferences/ThemeToggle';
 import useIsMobile from '../hooks/useIsMobile';
 import useSidebarLayout from '../hooks/useSidebarLayout';
+import { useHomeLogic } from '../hooks/useHomeLogic';
 import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles';
 import MobileBottomControls from '../components/common/MobileBottomControls';
-
 import DragTrashZone from '../components/common/DragTrashZone'; 
 import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
-
 import { useItems } from '../context/ItemsContext';
 import { useNotes } from '../context/NotesContext';
 
 export default function Home() {
-  
-  const { itemsByDate, setItemsByDate, addItem } = useItems();
+  const { deleteItem } = useItems();
   const { selectedDay, setSelectedDay } = useNotes();
+  const {
+    showRightSidebar,
+    setShowRightSidebar,
+    showLeftSidebar,
+    setShowLeftSidebar,
+    showConfig,
+    setShowConfig,
+    isRightSidebarPinned,
+    setIsRightSidebarPinned,
+    isLeftSidebarPinned,
+    setIsLeftSidebarPinned,
+    draggedItem,
+    setDraggedItem,
+    isOverTrash,
+    setIsOverTrash,
+    displayOptions,
+    setDisplayOptions,
+    handleSelectItem,
+    itemsByDate,
+    setItemsByDate,
+  } = useHomeLogic();
 
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const isMobile = useIsMobile();
   const {
     showSmall,
@@ -35,28 +52,9 @@ export default function Home() {
     setShowRightSidebarMobile,
     leftSidebarMobileWrapperStyle,
   } = useSidebarLayout(selectedDay, isMobile);
-  const [showConfig, setShowConfig] = useState(false);
-
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
-  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
-
-  const [draggedItem, setDraggedItem] = useState(null); 
-  const [isOverTrash, setIsOverTrash] = useState(false);
 
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
-
   const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
-
-    const [displayOptions, setDisplayOptions] = useState({
-      year: true,
-      month: true,
-      week: false,
-      weekday: true,
-      day: true,
-      time: false,
-      timeZone: 'America/Argentina/Buenos_Aires',
-      timeFormat: '24h'
-    });
 
 
   function isOverTrashZone(pos) {
@@ -78,40 +76,12 @@ export default function Home() {
     setIsOverTrash(isOverTrashZone(draggedItem));
   }, [draggedItem]);
 
-  async function handleSelectItem(item) {
+  async function handleSelectItemLocal(item) {
     if (!dateKey) {
       alert('Seleccioná un día primero');
       return;
     }
-
-    // posición por defecto: aleatoria en anillo medio
-    const angle = Math.random() * 360;
-    const distance = 120;
-    const rad = (angle * Math.PI) / 180;
-    const x = distance * Math.cos(rad);
-    const y = distance * Math.sin(rad);
-
-    const newItem = {
-      label: item.label,
-      angle,
-      distance,
-      content: item.label === 'Tarea' ? [''] : '',
-      ...(item.label === 'Tarea' && { checked: [false] }),
-      width: item.label === 'Tarea' ? 200 : 100,
-      height: item.label === 'Tarea' ? 150 : 100,
-    };
-
-    // Persistencia (ItemsContext hará el setItemsByDate con el id real)
-    try {
-      await addItem({
-        date: dateKey,
-        x,
-        y,
-        rotation: 0,
-        rotation_enabled: true,
-        ...newItem,
-      });
-    } catch {}
+    await handleSelectItem(item, dateKey);
   }
 
   useEffect(() => {
@@ -168,7 +138,7 @@ export default function Home() {
                 transition: 'var(--transition-all)',
               }}
             >
-              <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} isLeftSidebarPinned={true} />
+                             <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItemLocal} isLeftSidebarPinned={true} />
             </div>
           ) : (
             <div
@@ -197,7 +167,7 @@ export default function Home() {
                    transition: 'var(--transition-all)',
                  }}
                >
-                <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItem} />
+                                 <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItemLocal} />
               </div>
             </div>
           )}
@@ -207,7 +177,7 @@ export default function Home() {
       {/* Sidebar izquierdo móvil */}
       {showLeftSidebarMobile && isMobile && (
         <div className={`fixed left-0 right-0 z-40`} style={leftSidebarMobileWrapperStyle}>
-          <CurvedSidebar showConfig={showConfig} isMobile={true} onSelectItem={handleSelectItem} />
+                     <CurvedSidebar showConfig={showConfig} isMobile={true} onSelectItem={handleSelectItemLocal} />
         </div>
       )}
 
@@ -226,13 +196,18 @@ export default function Home() {
           displayOptions={displayOptions}
           selectedDay={selectedDay}
           onItemDrag={(itemId, pos) => setDraggedItem({ id: itemId, ...pos })}
-          onItemDrop={() => {
+          onItemDrop={async () => {
             if (draggedItem && isOverTrash) {
               setItemsByDate(prev => {
                 if (!dateKey) return prev;
                 const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
                 return { ...prev, [dateKey]: filtered };
               });
+              // Si el id es numérico, también borrar en backend
+              const numericId = Number(draggedItem.id);
+              if (Number.isFinite(numericId)) {
+                try { await deleteItem(numericId); } catch {}
+              }
             }
             setDraggedItem(null);
             setIsOverTrash(false);
@@ -298,7 +273,7 @@ export default function Home() {
                 right: 0,
                 height: `calc(100vh - var(--navbar-top-offset))`, 
                 width: 'var(--sidebar-hover-strip-width)',
-                zIndex: 40,
+                zIndex: 'var(--z-overlay)',
                 backgroundColor: 'transparent',
                 pointerEvents: 'auto',
               }}

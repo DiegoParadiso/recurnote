@@ -10,13 +10,13 @@ code, .mono {
 /* Para CircleSmall */
 .circle-small-wrapper {
   position: relative;
-  z-index: 20;
+  z-index: var(--z-mid);
 }
 
 /* Para notas */
 .note-item {
   position: absolute;
-  z-index: 5;
+  z-index: var(--z-base);
 }
 
 /* Ocultar scrollbar para elementos con scroll vertical */

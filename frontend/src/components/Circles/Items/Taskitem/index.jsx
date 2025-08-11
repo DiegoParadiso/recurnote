@@ -1,7 +1,7 @@
 import React from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
-import './TaskItem.css';
+import '../../../../styles/components/circles/items/TaskItem.css';
 
 export default function TaskItem({
   id,

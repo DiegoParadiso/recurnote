@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { CheckSquare } from 'lucide-react';
-import './SidebarItem.css';
+import '../../../../styles/layouts/sidebars/SidebarItem.css';
 
 export default function SidebarItem({ item, onMobileDragStart, onClick }) {
   const base = 'sidebar-item';

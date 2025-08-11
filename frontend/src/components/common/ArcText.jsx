@@ -11,7 +11,7 @@ export default function ArcText({ circleSize, radius, cx, cy, text }) {
         width: circleSize,
         height: circleSize,
         pointerEvents: 'none',
-        zIndex: 10,
+        zIndex: 'var(--z-low)',
       }}
     >
       <svg viewBox={`0 0 ${circleSize} ${circleSize}`} preserveAspectRatio="xMidYMid meet">

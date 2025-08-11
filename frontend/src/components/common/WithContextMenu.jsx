@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import './contextmenu.css';
+import '../../styles/components/common/contextmenu.css';
 
 export default function WithContextMenu({ onDelete, children, extraOptions = [] }) {
   const [menuPos, setMenuPos] = useState(null);

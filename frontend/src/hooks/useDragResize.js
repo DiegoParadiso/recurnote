@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { limitPositionInsideCircle } from '../utils/geometry';
+import { limitPositionInsideCircle } from '../utils/helpers/geometry';
 
 export const useDragResize = ({
   pos,

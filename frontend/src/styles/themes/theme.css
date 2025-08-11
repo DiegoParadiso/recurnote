@@ -64,11 +64,12 @@
   /* Z-Index scale */
   --z-base: 1;
   --z-low: 10;
-  --z-mid: 20;
-  --z-high: 30;
-  --z-overlay: 40;
-  --z-modal: 70;
-  --z-floating: 100;
+  --z-mid-low: 15;
+  --z-mid: 25;
+  --z-high: 35;
+  --z-overlay: 45;
+  --z-modal: 75;
+  --z-floating: 105;
   --z-toast: 9999;
 
   /* Transitions */

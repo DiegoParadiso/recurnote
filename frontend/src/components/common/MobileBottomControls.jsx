@@ -1,4 +1,4 @@
-import './MobileBottomControls.css';
+import '../../styles/components/common/MobileBottomControls.css';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function MobileBottomControls({ showSmall, setShowSmall, onToggleLeft, onToggleRight }) {

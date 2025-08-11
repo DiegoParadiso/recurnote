@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
-import './NoteItem.css';
+import '../../../../styles/components/circles/items/NoteItem.css';
 
 export default function NoteItem({
   id,

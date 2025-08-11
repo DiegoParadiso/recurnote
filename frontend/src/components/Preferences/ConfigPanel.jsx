@@ -3,7 +3,7 @@ import { Clock, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import useIsMobile from '../../hooks/useIsMobile';
-import './ConfigPanel.css';
+import '../../styles/components/preferences/ConfigPanel.css';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -149,7 +149,7 @@ export default function ConfigPanel({
 
           <section className="config-section">
             <h3>Idioma y región</h3>
-            <div className="visualization-header-options idioma-region-options">
+            <div className="visualization-header-options">
               <label htmlFor="timezone">Zona horaria</label>
               <select
                 id="timezone"

@@ -10,14 +10,12 @@ export default function CircleSmall({
   setSelectedDay,
   size,
 }) {
-  // Forzamos tamaño fijo para móviles (ej: 350)
   const circleSize = size ?? 350;
 
   const [currentDate, setCurrentDate] = useState(DateTime.now());
   const { handleMouseDown, handleMouseUp, handleTouchStart, handleTouchEnd } =
     useSwipeMonthNavigation(setCurrentDate);
 
-  // Variables fijas para mantener diseño antiguo y proporciones perfectas
   const radius = circleSize / 2 - 25;
   const center = circleSize / 2;
   const buttonSize = 27;
@@ -31,7 +29,7 @@ export default function CircleSmall({
     width: `${circleSize}px`,
     height: `${circleSize}px`,
     margin: '0 auto',
-    zIndex: 20,
+    zIndex: 'var(--z-high)',
     backgroundColor: 'var(--color-bg)',
     color: 'var(--color-text-primary)',
     border: '1px solid var(--color-text-primary)',

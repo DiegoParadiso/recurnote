@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import formatDateKey from '../utils/formatDateKey';
+import { formatDateKey } from '../utils/formatDateKey';
 import { useItems } from '../context/ItemsContext';
 
 export default function useHandleDrop({

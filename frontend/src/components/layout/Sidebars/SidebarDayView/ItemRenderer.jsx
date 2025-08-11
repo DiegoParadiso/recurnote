@@ -1,6 +1,6 @@
 import React from 'react';
-import './ItemRenderer.css';
-import { useItems } from '../../../context/ItemsContext';
+import '../../../../styles/layouts/sidebars/ItemRenderer.css';
+import { useItems } from '../../../../context/ItemsContext';
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsByDate }) {
   const { deleteItem } = useItems();

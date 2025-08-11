@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDragResize } from '../../hooks/useDragResize';
-import { limitPositionInsideCircle } from '../../utils/geometry';
+import { limitPositionInsideCircle } from '../../utils/helpers/geometry';
 import { getContainerStyle } from '../../utils/styles/getContainerStyle';
 
 export default function UnifiedContainer({
@@ -122,6 +122,7 @@ useEffect(() => {
       onTouchStart={onTouchStartDrag}
       onMouseUp={handleMouseUp}
       onTouchEnd={handleTouchEnd}
+      
       onContextMenu={onContextMenu}
       style={getContainerStyle({
         pos,
@@ -149,7 +150,7 @@ useEffect(() => {
             bottom: 0,
             cursor: 'nwse-resize',
             borderRadius: '2px',
-            zIndex: 10,
+            zIndex: 'var(--z-low)',
           }}
         />
       )}

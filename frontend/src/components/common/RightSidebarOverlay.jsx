@@ -1,5 +1,5 @@
 import React from 'react';
-import { RIGHT_SIDEBAR_MOBILE_WIDTH, RIGHT_SIDEBAR_Z_INDEX } from '../../utils/constants';
+import { RIGHT_SIDEBAR_MOBILE_WIDTH } from '../../utils/constants/layout';
 
 export default function RightSidebarOverlay({ children }) {
   return (
@@ -10,7 +10,7 @@ export default function RightSidebarOverlay({ children }) {
         backgroundColor: 'var(--color-bg)',
         padding: 0,
         overflow: 'hidden',
-        zIndex: RIGHT_SIDEBAR_Z_INDEX,
+        zIndex: 'var(--z-modal)',
       }}
     >
       {children}
