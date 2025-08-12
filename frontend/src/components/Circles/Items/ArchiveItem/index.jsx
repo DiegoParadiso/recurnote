@@ -137,6 +137,16 @@ export default function ArchivoItem({
           onDrop={() => {
             onItemDrop?.(id);
           }}
+          onDragStart={(e) => {
+            console.log('ArchiveItem onDragStart:', id);
+            onItemDrag?.(id, { x, y });
+          }}
+          onDrag={(e) => {
+            if (e.clientX && e.clientY) {
+              console.log('ArchiveItem onDrag:', id, { x: e.clientX, y: e.clientY });
+              onItemDrag?.(id, { x: e.clientX, y: e.clientY });
+            }
+          }}
           circleCenter={{ cx, cy }}
           maxRadius={circleSize / 2}
           isSmallScreen={isSmallScreen}

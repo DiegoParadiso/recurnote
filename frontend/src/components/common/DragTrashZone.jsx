@@ -1,7 +1,18 @@
 import React from 'react';
 
-export default function DragTrashZone({ isActive, isOverTrash }) {
+export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, draggedItem }) {
   if (!isActive) return null;
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (draggedItem && onItemDrop) {
+      onItemDrop();
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
 
   return (
     <div
@@ -13,12 +24,15 @@ export default function DragTrashZone({ isActive, isOverTrash }) {
         width: 50,
         height: 50,
         zIndex: 'var(--z-floating)',
-        pointerEvents: 'none',
+        pointerEvents: isActive ? 'auto' : 'none',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         color: 'var(--color-text-primary)',
+        cursor: isActive ? 'pointer' : 'default',
       }}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
     >
       {isOverTrash ? (
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">

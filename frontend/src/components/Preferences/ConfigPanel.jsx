@@ -87,13 +87,34 @@ export default function ConfigPanel({
   setDisplayOptions,
 }) {
   const isMobile = useIsMobile();
-  const { token } = useAuth();
+  const { token, user, refreshMe } = useAuth();
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  // Cargar preferencias guardadas al abrir el panel (solo la primera vez)
+  useEffect(() => {
+    if (show && user?.preferences && !pendingRef.current) {
+      const prefs = user.preferences;
+      
+      // Aplicar preferencias de visualización solo si no están ya configuradas
+      if (prefs.displayOptions) {
+        setDisplayOptions(prev => ({ ...prev, ...prefs.displayOptions }));
+      }
+      
+      // NO aplicar preferencias de UI automáticamente - dejar que los toggles funcionen
+      // Las preferencias de UI se cargan desde useHomeLogic
+      
+      // Aplicar preferencias del círculo solo si no están ya configuradas
+      if (prefs.circle && prefs.circle.showSmall !== undefined && showSmall === true) {
+        setShowSmall(prefs.circle.showSmall);
+      }
+    }
+  }, [show, user?.preferences, setDisplayOptions, setShowSmall, showSmall]);
 
   useEffect(() => {
     if (!token) return;
     if (!show) return;
+    
     const prefs = {
       displayOptions,
       ui: {
@@ -102,17 +123,34 @@ export default function ConfigPanel({
       },
       circle: { showSmall },
     };
+    
     // Debounce 500ms
     if (pendingRef.current) clearTimeout(pendingRef.current);
-    pendingRef.current = setTimeout(() => {
-      fetch(`${API_URL}/api/auth/preferences`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ preferences: prefs }),
-      }).catch(() => {});
+    pendingRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/preferences`, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json', 
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ preferences: prefs }),
+        });
+        
+        if (response.ok) {
+          // Actualizar el usuario local con las nuevas preferencias
+          const updatedUser = { ...user, preferences: prefs };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          // NO refrescar el usuario automáticamente para evitar conflictos
+          // await refreshMe();
+        }
+      } catch (error) {
+        console.error('Error saving preferences:', error);
+      }
     }, 500);
+    
     return () => pendingRef.current && clearTimeout(pendingRef.current);
-  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, showSmall, show, token]);
+  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, showSmall, show, token, user, refreshMe]);
   if (!show) return null;
 
   const options = [

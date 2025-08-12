@@ -22,14 +22,11 @@ import { useNotes } from '../context/NotesContext';
 export default function Home() {
   const { deleteItem } = useItems();
   const { selectedDay, setSelectedDay } = useNotes();
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-  const [showConfig, setShowConfig] = useState(false);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
-  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
-  const [draggedItem, setDraggedItem] = useState(null);
+  // Eliminar el estado local draggedItem para usar el de useHomeLogic
+  // const [draggedItem, setDraggedItem] = useState(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
-  const [toast, setToast] = useState('');
+  // Eliminar el estado local toast para usar el de useHomeLogic
+  // const [toast, setToast] = useState('');
   
   // Variables faltantes restauradas
   const [itemsByDate, setItemsByDate] = useState({});
@@ -59,6 +56,22 @@ export default function Home() {
     recenterCircleSmall,
     displayOptions,
     setDisplayOptions,
+    showRightSidebar,
+    setShowRightSidebar,
+    showLeftSidebar,
+    setShowLeftSidebar,
+    showConfig,
+    setShowConfig,
+    isRightSidebarPinned,
+    setIsRightSidebarPinned,
+    isLeftSidebarPinned,
+    setIsLeftSidebarPinned,
+    handleSelectItem,
+    setToast,
+    toast,
+    addItem,
+    draggedItem,
+    setDraggedItem,
   } = useHomeLogic();
 
   const isMobile = useIsMobile();
@@ -107,18 +120,6 @@ export default function Home() {
       return;
     }
     await handleSelectItem(item, dateKey);
-  }
-
-  // Funciones faltantes restauradas
-  async function handleSelectItem(item, dateKey) {
-    try {
-      // Lógica para agregar item
-      console.log('Adding item:', item, 'to date:', dateKey);
-      // Aquí iría la lógica real de agregar item
-    } catch (error) {
-      console.error('Error adding item:', error);
-      setToast('Error al agregar el item');
-    }
   }
 
   async function handleDeleteItem(itemId) {
@@ -226,20 +227,35 @@ export default function Home() {
           showSmall={showSmall}
           displayOptions={displayOptions}
           selectedDay={selectedDay}
-          onItemDrag={(itemId, pos) => setDraggedItem({ id: itemId, ...pos })}
+          onItemDrag={(itemId, pos) => {
+            const newDraggedItem = { id: itemId, ...pos };
+            setDraggedItem(newDraggedItem);
+          }}
           onItemDrop={async () => {
+            // Solo procesar si realmente hay un item arrastrado y está sobre la papelera
             if (draggedItem && isOverTrash) {
-              setItemsByDate(prev => {
-                if (!dateKey) return prev;
-                const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
-                return { ...prev, [dateKey]: filtered };
-              });
-              // Si el id es numérico, también borrar en backend
-              const numericId = Number(draggedItem.id);
-              if (Number.isFinite(numericId)) {
-                try { await deleteItem(numericId); } catch {}
+              try {
+                // Eliminar del estado local
+                setItemsByDate(prev => {
+                  if (!dateKey) return prev;
+                  const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
+                  return { ...prev, [dateKey]: filtered };
+                });
+                
+                // Si el id es numérico, también borrar en backend
+                const numericId = Number(draggedItem.id);
+                if (Number.isFinite(numericId)) {
+                  try { await deleteItem(numericId); } catch {}
+                }
+                
+                setToast('Item eliminado correctamente');
+              } catch (error) {
+                console.error('Error deleting item:', error);
+                setToast('Error al eliminar el item');
               }
             }
+            
+            // SIEMPRE limpiar estados cuando se suelta un item
             setDraggedItem(null);
             setIsOverTrash(false);
           }}
@@ -363,8 +379,8 @@ export default function Home() {
       {/* Desktop Sidebar Toggles - Pegados a los bordes */}
       {!isMobile && (
         <DesktopSidebarToggles
-          onToggleLeft={() => setIsLeftSidebarPinned(v => !v)}
-          onToggleRight={() => setIsRightSidebarPinned(v => !v)}
+          onToggleLeft={() => setIsLeftSidebarPinned(prev => !prev)}
+          onToggleRight={() => setIsRightSidebarPinned(prev => !prev)}
           isLeftSidebarPinned={isLeftSidebarPinned}
           isRightSidebarPinned={isRightSidebarPinned}
         />
@@ -386,7 +402,70 @@ export default function Home() {
 
       {/* Papelera DragTrashZone SOLO en mobile y si hay draggedItem */}
       {isMobile && (
-        <DragTrashZone isActive={!!draggedItem} isOverTrash={isOverTrash} />
+        <DragTrashZone 
+          isActive={!!draggedItem} 
+          isOverTrash={isOverTrash}
+          onItemDrop={async () => {
+            console.log('DragTrashZone onItemDrop ejecutado', { draggedItem, isOverTrash, dateKey });
+            
+            if (draggedItem && isOverTrash) {
+              try {
+                // Buscar el item en todas las fechas si no hay dateKey
+                if (!dateKey) {
+                  console.log('No hay dateKey, buscando item en todas las fechas');
+                  setItemsByDate(prev => {
+                    const newState = { ...prev };
+                    let itemFound = false;
+                    
+                    // Buscar en todas las fechas
+                    Object.keys(newState).forEach(date => {
+                      const items = newState[date] || [];
+                      const itemIndex = items.findIndex(i => i.id === draggedItem.id);
+                      if (itemIndex !== -1) {
+                        newState[date] = items.filter(i => i.id !== draggedItem.id);
+                        itemFound = true;
+                        console.log(`Item eliminado de la fecha: ${date}`);
+                      }
+                    });
+                    
+                    if (!itemFound) {
+                      console.log('Item no encontrado en ninguna fecha');
+                    }
+                    
+                    return newState;
+                  });
+                } else {
+                  // Eliminar del estado local usando dateKey
+                  console.log(`Eliminando item de la fecha: ${dateKey}`);
+                  setItemsByDate(prev => {
+                    const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
+                    return { ...prev, [dateKey]: filtered };
+                  });
+                }
+                
+                // Si el id es numérico, también borrar en backend
+                const numericId = Number(draggedItem.id);
+                if (Number.isFinite(numericId)) {
+                  console.log(`Eliminando item del backend con ID: ${numericId}`);
+                  await deleteItem(numericId);
+                }
+                
+                setToast('Item eliminado correctamente');
+                console.log('Item eliminado exitosamente');
+              } catch (error) {
+                console.error('Error deleting item:', error);
+                setToast('Error al eliminar el item');
+              }
+            } else {
+              console.log('Condiciones no cumplidas para eliminar:', { draggedItem, isOverTrash });
+            }
+            
+            // SIEMPRE limpiar estados cuando se suelta un item
+            setDraggedItem(null);
+            setIsOverTrash(false);
+          }}
+          draggedItem={draggedItem}
+        />
       )}
 
       {/* Controles inferiores móviles */}

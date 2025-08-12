@@ -16,6 +16,7 @@ export function useHomeLogic() {
   const [draggedItem, setDraggedItem] = useState(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [toast, setToast] = useState('');
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   // CircleSmall en Desktop - posición y drag global (sobre Home)
   const smallSize = 350;
@@ -155,23 +156,109 @@ export function useHomeLogic() {
     timeFormat: '24h'
   });
 
+  // Sincronizar displayOptions con las preferencias del usuario
+  useEffect(() => {
+    if (user?.preferences?.displayOptions) {
+      setDisplayOptions(prev => ({ ...prev, ...user.preferences.displayOptions }));
+    }
+  }, [user?.preferences?.displayOptions]);
+
+  // Sincronizar estados de UI con las preferencias del usuario (solo al cargar)
+  useEffect(() => {
+    if (user?.preferences?.ui && !preferencesLoaded) {
+      const ui = user.preferences.ui;
+      if (ui.leftSidebarPinned !== undefined) {
+        setIsLeftSidebarPinned(ui.leftSidebarPinned);
+      }
+      if (ui.rightSidebarPinned !== undefined) {
+        setIsRightSidebarPinned(ui.rightSidebarPinned);
+      }
+      setPreferencesLoaded(true);
+    }
+  }, [user?.preferences?.ui, preferencesLoaded]);
+
+  // Función para guardar preferencias de UI
+  const saveUIPreferences = async (uiChanges) => {
+    if (!token) return;
+    try {
+      await fetch(`${API_URL}/api/auth/preferences`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ 
+          preferences: { 
+            ui: { 
+              ...(user?.preferences?.ui || {}), 
+              ...uiChanges 
+            } 
+          } 
+        }),
+      });
+    } catch (error) {
+      console.error('Error saving UI preferences:', error);
+    }
+  };
+
+  // Wrappers para los setters que también guardan las preferencias
+  const setLeftSidebarPinnedWithSave = (value) => {
+    setIsLeftSidebarPinned(value);
+    saveUIPreferences({ leftSidebarPinned: value });
+  };
+
+  const setRightSidebarPinnedWithSave = (value) => {
+    setIsRightSidebarPinned(value);
+    saveUIPreferences({ rightSidebarPinned: value });
+  };
+
   function isOverTrashZone(pos) {
     if (!pos) return false;
-    const trashX = 0;
+    // Coordenadas que coinciden con DragTrashZone (left: 25, top: 5)
+    const trashX = 0; // DragTrashZone está en left: 25, pero transform: translateX(-50%) lo centra
     const trashY = 5;
-    const trashWidth = 80;
-    const trashHeight = 80;
+    const trashWidth = 50; // DragTrashZone width: 50
+    const trashHeight = 50; // DragTrashZone height: 50
 
-    return (
+    const isOver = (
       pos.x >= trashX &&
       pos.x <= trashX + trashWidth &&
       pos.y >= trashY &&
       pos.y <= trashY + trashHeight
     );
+
+    return isOver;
   }
 
   useEffect(() => {
     setIsOverTrash(isOverTrashZone(draggedItem));
+  }, [draggedItem]);
+
+  // Resetear draggedItem si no hay un item siendo arrastrado
+  useEffect(() => {
+    if (draggedItem) {
+      // Si draggedItem existe, verificar si realmente hay un drag activo
+      // Esto se puede hacer escuchando eventos globales de mouse/touch
+      const handleGlobalMouseUp = () => {
+        // Pequeño delay para asegurar que el onDrop se procese primero
+        setTimeout(() => {
+          setDraggedItem(null);
+          setIsOverTrash(false);
+        }, 100);
+      };
+
+      const handleGlobalTouchEnd = () => {
+        setTimeout(() => {
+          setDraggedItem(null);
+          setIsOverTrash(false);
+        }, 100);
+      };
+
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchend', handleGlobalTouchEnd);
+
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('touchend', handleGlobalTouchEnd);
+      };
+    }
   }, [draggedItem]);
 
   async function handleSelectItem(item, dateKey) {
@@ -226,9 +313,9 @@ export function useHomeLogic() {
     showConfig,
     setShowConfig,
     isRightSidebarPinned,
-    setIsRightSidebarPinned,
+    setIsRightSidebarPinned: setRightSidebarPinnedWithSave,
     isLeftSidebarPinned,
-    setIsLeftSidebarPinned,
+    setIsLeftSidebarPinned: setLeftSidebarPinnedWithSave,
     draggedItem,
     setDraggedItem,
     isOverTrash,

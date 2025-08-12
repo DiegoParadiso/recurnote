@@ -8,7 +8,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  console.log('API URL:', API_URL);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -22,11 +21,20 @@ export function AuthProvider({ children }) {
 
   async function refreshMe() {
     if (!token) return;
-    const res = await fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) return;
-    const me = await res.json();
-    setUser((prev) => ({ ...(prev || {}), ...me }));
-    localStorage.setItem('user', JSON.stringify({ ...(user || {}), ...me }));
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      if (!res.ok) return;
+      const me = await res.json();
+      const updatedUser = { ...(user || {}), ...me };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      return null;
+    }
   }
 
   async function login(email, password) {
