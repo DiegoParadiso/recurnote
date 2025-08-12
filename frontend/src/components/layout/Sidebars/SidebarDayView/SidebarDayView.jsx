@@ -6,7 +6,7 @@ import '../../../../styles/layouts/sidebars/SidebarDayView.css';
 import useItemsForDays from './hooks/useItemsForDays';
 import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
-export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned }) {
+export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { itemsByDate, setItemsByDate, updateItem } = useItems();
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
 
@@ -15,6 +15,19 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
 
   const scrollContainerRef = useRef(null);
   useAutoScrollOnHover(scrollContainerRef, isHoveringTop, isHoveringBottom);
+
+  // Manejar hover interno
+  const handleMouseEnter = () => {
+    if (onHover && !isRightSidebarPinned) {
+      onHover(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (onHover && !isRightSidebarPinned) {
+      onHover(false);
+    }
+  };
 
   // Toggle sólo la tarea del item indicado
   const toggleTaskCheck = (dateKey, itemId, taskIndex) => {
@@ -45,7 +58,11 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
   }
 
   return (
-    <div className={`fixed ${isMobile ? 'inset-0 z-50 flex flex-col bg-[var(--color-bg)]' : 'top-0 right-0 h-screen w-[30px] group z-50'}`}>
+    <div 
+      className={`fixed ${isMobile ? 'inset-0 z-50 flex flex-col bg-[var(--color-bg)]' : 'top-0 right-0 h-screen w-[30px] group z-50'}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Botón cerrar solo en móviles */}
       {isMobile && (
         <button

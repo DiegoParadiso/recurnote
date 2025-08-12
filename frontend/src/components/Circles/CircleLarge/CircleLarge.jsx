@@ -77,16 +77,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         isSmallScreen={isSmallScreen}
       />
 
-      {!isSmallScreen && showSmall && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 'var(--z-high)' }}>
-          <CircleSmall
-            onDayClick={setSelectedDay}
-            isSmallScreen={false}
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-          />
-        </div>
-      )}
+      {/* CircleSmall en desktop ahora se renderiza en Home para drag global */}
 
       {isSmallScreen && showSmall && (
         <div
@@ -120,6 +111,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
+        id="circle-large-container"
         className={
           isSmallScreen
             ? 'absolute inset-0 flex items-center justify-center z-[1]'
@@ -132,6 +124,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
           borderColor: isSmallScreen ? 'transparent' : 'var(--color-text-primary)',
           borderStyle: isSmallScreen ? 'none' : 'solid',
+          position: 'relative',
         }}
       >
         {!selectedDay && (

@@ -95,7 +95,10 @@ export const ItemsProvider = ({ children }) => {
         },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('Error creating item');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Error creando item');
+      }
       const saved = await res.json();
       const expanded = expandItem(saved);
 
@@ -109,7 +112,7 @@ export const ItemsProvider = ({ children }) => {
         ...prev,
         [date]: (prev[date] || []).filter(i => i.id !== placeholder.id)
       }));
-      return null;
+      throw e;
     }
   }
 

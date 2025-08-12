@@ -2,7 +2,7 @@ import '../../../../styles/layouts/sidebars/CurvedSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
 
-export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false }) {
+export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false, onHover }) {
   const [items] = useState([
     { id: 1, label: 'nota' },
     { id: 2, label: 'Tarea' },
@@ -10,14 +10,29 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
     { id: 4, label: 'Archivo' },
   ]);
 
+  // Manejar hover interno
+  const handleMouseEnter = () => {
+    if (onHover && !isLeftSidebarPinned) {
+      onHover(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (onHover && !isLeftSidebarPinned) {
+      onHover(false);
+    }
+  };
+
   return (
-        <div
-          className={`curved-sidebar-container 
-            ${showConfigPanel ? 'config-open' : ''} 
-            ${isMobile ? 'mobile' : ''} 
-            ${isLeftSidebarPinned ? 'pinned' : ''}  /* clase para fijar */
-          `}
-        >
+    <div
+      className={`curved-sidebar-container 
+        ${showConfigPanel ? 'config-open' : ''} 
+        ${isMobile ? 'mobile' : ''} 
+        ${isLeftSidebarPinned ? 'pinned' : ''}  /* clase para fijar */
+      `}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {!isMobile && <div className="curved-sidebar-hover-zone" />}
       <div className="scroll-hidden curved-sidebar-panel">
         {items

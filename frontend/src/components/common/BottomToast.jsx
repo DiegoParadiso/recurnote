@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import useIsMobile from '../../hooks/useIsMobile';
 
 export default function BottomToast({ message, onClose, duration = 2000 }) {
   const [visible, setVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const onCloseRef = useRef(onClose);
+  const isMobile = useIsMobile();
+
+  // Mantener siempre la última referencia de onClose sin reiniciar el efecto principal
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!message) return;
@@ -15,7 +24,7 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
       setVisible(false);
       setTimeout(() => {
         setShouldRender(false);
-        onClose();
+        onCloseRef.current?.();
       }, 700);
     }, duration);
 
@@ -23,19 +32,32 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
       clearTimeout(appearTimeout);
       clearTimeout(hideTimer);
     };
-  }, [message, duration, onClose]);
+  }, [message, duration]);
 
   if (!shouldRender) return null;
+
+  const basePositionClass = isMobile
+    ? 'top-0 left-1/2 -translate-x-1/2'
+    : 'bottom-0 left-1/2 -translate-x-1/2';
+
+  const slideClass = visible
+    ? 'translate-y-0'
+    : isMobile
+      ? '-translate-y-full'
+      : 'translate-y-full';
+
+  const roundedClass = isMobile ? 'rounded-b-xl rounded-t-none border-b border-x' : 'rounded-t-xl rounded-b-none border-t border-x';
 
   return (
     <div
       className={`
-        fixed bottom-0 left-1/2 transform -translate-x-1/2
-        px-6 py-2 text-sm w-fit max-w-[90%]
-        rounded-t-xl rounded-b-none shadow-md border-t border-x
+        fixed transform ${basePositionClass}
+        px-6 py-2 text-sm
+        ${roundedClass} shadow-md
         backdrop-blur-md normal-case
+        flex justify-center
         transition-transform duration-700 ease-out
-        ${visible ? 'translate-y-0' : 'translate-y-full'}
+        ${slideClass}
       `}
       style={{
         zIndex: 'var(--z-toast)',
@@ -43,9 +65,14 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
         backgroundColor: 'var(--color-bg)',
         borderColor: 'var(--color-text-secondary)',
         color: 'var(--color-text-primary)',
+        width: isMobile ? 'calc(100vw - 24px)' : 'auto',
+        maxWidth: isMobile ? '640px' : '600px',
       }}
     >
-      {message}
+      <span className="inline-flex items-center gap-2 text-center">
+        <AlertTriangle size={16} aria-hidden="true" />
+        <span>{message}</span>
+      </span>
     </div>
   );
 }

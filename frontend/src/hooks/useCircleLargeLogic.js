@@ -53,7 +53,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, onItemDrop) {
     }
   };
 
-  const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition, cx, cy) => {
+  const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
 
@@ -91,6 +91,9 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, onItemDrop) {
           updated.distance = Math.sqrt(rotatedX ** 2 + rotatedY ** 2);
         }
         
+        if (extra && typeof extra === 'object') {
+          Object.assign(updated, extra);
+        }
         return updated;
       }),
     }));
@@ -106,6 +109,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, onItemDrop) {
       changes.width = maybeSize.width;
       changes.height = maybeSize.height;
     }
+    if (extra && typeof extra === 'object') Object.assign(changes, extra);
     if (Object.keys(changes).length) scheduleUpdate(id, changes, 500);
   };
 

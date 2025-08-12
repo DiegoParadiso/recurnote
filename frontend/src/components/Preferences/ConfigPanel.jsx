@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Clock, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -87,6 +87,32 @@ export default function ConfigPanel({
   setDisplayOptions,
 }) {
   const isMobile = useIsMobile();
+  const { token } = useAuth();
+  const pendingRef = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  useEffect(() => {
+    if (!token) return;
+    if (!show) return;
+    const prefs = {
+      displayOptions,
+      ui: {
+        leftSidebarPinned: isLeftSidebarPinned,
+        rightSidebarPinned: isRightSidebarPinned,
+      },
+      circle: { showSmall },
+    };
+    // Debounce 500ms
+    if (pendingRef.current) clearTimeout(pendingRef.current);
+    pendingRef.current = setTimeout(() => {
+      fetch(`${API_URL}/api/auth/preferences`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ preferences: prefs }),
+      }).catch(() => {});
+    }, 500);
+    return () => pendingRef.current && clearTimeout(pendingRef.current);
+  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, showSmall, show, token]);
   if (!show) return null;
 
   const options = [

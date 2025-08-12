@@ -20,6 +20,15 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
+  async function refreshMe() {
+    if (!token) return;
+    const res = await fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return;
+    const me = await res.json();
+    setUser((prev) => ({ ...(prev || {}), ...me }));
+    localStorage.setItem('user', JSON.stringify({ ...(user || {}), ...me }));
+  }
+
   async function login(email, password) {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
@@ -62,7 +71,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, register, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, register, loading, refreshMe }}>
       {children}
     </AuthContext.Provider>
   );

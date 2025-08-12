@@ -5,18 +5,30 @@
   width: 80px;
   top: calc(50vh - 100px);
   height: 200px;
-  z-index: var(--z-overlay);
+  z-index: var(--z-modal);
+  background-color: transparent;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.curved-sidebar-container:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .curved-sidebar-container.config-open {
   z-index: var(--z-low);
 }
 
-/* Zona hover */
+/* Zona hover - completamente invisible por defecto */
 .curved-sidebar-hover-zone {
   width: 100%;
   height: 100%;
   cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.curved-sidebar-hover-zone:hover {
+  background-color: rgba(0, 0, 0, 0.01);
 }
 
 .curved-sidebar-panel {
@@ -39,7 +51,7 @@
   gap: 1.5rem;
   overflow-y: auto;
   padding: 2rem;
-  z-index: var(--z-mid);
+  z-index: var(--z-modal);
 }
 
 .curved-sidebar-container:hover .curved-sidebar-panel {

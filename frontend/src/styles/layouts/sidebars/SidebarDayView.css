@@ -3,9 +3,14 @@
   border: 1px solid var(--color-text-secondary);
   width: var(--sidebar-width);
   height: 100vh;
-  transition: right 0.3s ease-in-out;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
+  opacity: 0.98;
+}
+
+.sidebar-container:hover {
+  opacity: 1;
 }
 
 /* Posición oculta por defecto para el hover en desktop */

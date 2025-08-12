@@ -44,8 +44,8 @@ export default function ItemsOnCircle({
               onItemDrag={onItemDrag}
               onItemDrop={onItemDrop}
               onUpdate={(...args) => {
-                const [id, newContent, newPolar, maybeSize, newPosition] = args;
-                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy);
+                const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
+                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
               }}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
@@ -70,8 +70,8 @@ export default function ItemsOnCircle({
               onItemDrag={onItemDrag}
               onItemDrop={onItemDrop}
               onUpdate={(...args) => {
-                const [id, newContent, newPolar, maybeSize, newPosition] = args;
-                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy);
+                const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
+                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
               }}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
@@ -92,7 +92,10 @@ export default function ItemsOnCircle({
               rotation={rotation}
               rotationEnabled={rotationEnabled}  
               item={item}
-              onUpdate={onNoteUpdate}
+              onUpdate={(...args) => {
+                const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
+                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
+              }}
               onDelete={onDeleteItem}
               onItemDrag={onItemDrag}
               onItemDrop={onItemDrop}

@@ -4,6 +4,7 @@ import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
 import '../../../../styles/components/circles/items/ArchivoItem.css';
+import { useAuth } from '../../../../context/AuthContext';
 
 export default function ArchivoItem({
   id,
@@ -22,11 +23,12 @@ export default function ArchivoItem({
   onItemDrop,
 }) {
   const fileInputRef = useRef();
-  const [showOnlyImage, setShowOnlyImage] = useState(false);
+  const [showOnlyImage, setShowOnlyImage] = useState(!!item.showOnlyImage);
   const [toastMessage, setToastMessage] = useState('');
+  const { user } = useAuth();
 
   const onFileChange = (e) => {
-    const { error } = handleFile(e, onUpdate, id, item, x, y, setShowOnlyImage);
+    const { error } = handleFile(e, onUpdate, id, item, x, y, setShowOnlyImage, !!user?.is_vip);
     if (error) {
       setToastMessage(error);
     } else {
@@ -42,7 +44,11 @@ export default function ArchivoItem({
 
   const handleImageClick = (e) => {
     e.stopPropagation();
-    setShowOnlyImage((prev) => !prev);
+    setShowOnlyImage((prev) => {
+      const next = !prev;
+      onUpdate?.(id, item.content || {}, null, null, null, { showOnlyImage: next });
+      return next;
+    });
   };
 
   const handleDownload = (e) => {

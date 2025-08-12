@@ -1,6 +1,7 @@
-export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight }) {
+export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isLeftSidebarPinned, isRightSidebarPinned }) {
   return (
     <>
+      {/* Toggle derecho - pegado al borde derecho */}
       <button
         onClick={onToggleRight}
         aria-label="Toggle right sidebar"
@@ -10,6 +11,8 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight }) {
           transform: 'translateY(-50%)',
           background: 'transparent',
           border: 'none',
+          opacity: isRightSidebarPinned ? 0.3 : 1,
+          transition: 'opacity 0.3s ease',
         }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">
@@ -17,6 +20,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight }) {
         </svg>
       </button>
 
+      {/* Toggle izquierdo - pegado al borde izquierdo */}
       <button
         onClick={onToggleLeft}
         aria-label="Toggle left sidebar"
@@ -26,6 +30,8 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight }) {
           transform: 'translateY(-50%)',
           background: 'transparent',
           border: 'none',
+          opacity: isLeftSidebarPinned ? 0.3 : 1,
+          transition: 'opacity 0.3s ease',
         }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">
@@ -35,12 +41,12 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight }) {
 
       <style>{`
         @keyframes slideLeftRight {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(-6px); }
+          0%, 100% { transform: translateX(0) translateY(-50%); }
+          50% { transform: translateX(-6px) translateY(-50%); }
         }
         @keyframes slideRightLeft {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(6px); }
+          0%, 100% { transform: translateX(0) translateY(-50%); }
+          50% { transform: translateX(6px) translateY(-50%); }
         }
       `}</style>
     </>

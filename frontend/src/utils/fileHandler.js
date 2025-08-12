@@ -1,11 +1,11 @@
-export const MAX_MB = 5;
+export const MAX_MB = 3; // Para cuentas gratuitas; VIP se valida en backend
 
-export function handleFile(e, onUpdate, id, item, x, y, showOnlyImageSetter) {
+export function handleFile(e, onUpdate, id, item, x, y, showOnlyImageSetter, isVip = false) {
   const file = e.target.files[0];
   if (!file) return { error: null };
 
   const sizeMB = file.size / (1024 * 1024);
-  if (sizeMB > MAX_MB) {
+  if (!isVip && sizeMB > MAX_MB) {
     return { error: `El archivo excede el límite de ${MAX_MB} MB` };
   }
 

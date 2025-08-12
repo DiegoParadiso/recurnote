@@ -2,6 +2,11 @@ import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
 
 export const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -15,5 +20,15 @@ export const User = sequelize.define('User', {
   password: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  is_vip: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  preferences: {
+    type: DataTypes.JSONB,
+    allowNull: false,
+    defaultValue: {},
   },
 });

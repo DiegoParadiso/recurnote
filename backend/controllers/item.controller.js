@@ -24,6 +24,32 @@ export async function createItem(req, res) {
     if (typeof item_data === 'string') {
       try { item_data = JSON.parse(item_data); } catch { item_data = {}; }
     }
+
+    // Restricciones para usuarios no VIP
+    const isVip = !!req.user?.is_vip;
+    if (!isVip) {
+      // Limitar cantidad total de items del usuario
+      const itemCount = await Item.count({ where: { user_id: req.user.id } });
+      if (itemCount >= 15) {
+        return res.status(403).json({
+          message: 'Límite alcanzado: las cuentas gratuitas pueden crear hasta 15 items.'
+        });
+      }
+
+      // Si es un item tipo Archivo, validar tamaño máximo de 3MB
+      const label = item_data?.label || item_data?.type || '';
+      if (label === 'Archivo' || label.toLowerCase() === 'archivo') {
+        const sizeBytes = item_data?.content?.fileData?.size;
+        if (typeof sizeBytes === 'number') {
+          const sizeMB = sizeBytes / (1024 * 1024);
+          if (sizeMB > 3) {
+            return res.status(413).json({
+              message: 'El archivo excede el límite de 3MB para cuentas gratuitas.'
+            });
+          }
+        }
+      }
+    }
     const newItem = await Item.create({
       date,
       x,
@@ -48,6 +74,23 @@ export async function updateItem(req, res) {
     let { item_data: incomingItemData, ...rest } = req.body;
     if (typeof incomingItemData === 'string') {
       try { incomingItemData = JSON.parse(incomingItemData); } catch { incomingItemData = undefined; }
+    }
+
+    // Restricción de tamaño de archivo para cuentas gratuitas al actualizar un Archivo
+    const isVip = !!req.user?.is_vip;
+    if (!isVip && incomingItemData && typeof incomingItemData === 'object') {
+      const effectiveLabel = incomingItemData?.label || item.item_data?.label || '';
+      if (effectiveLabel === 'Archivo' || String(effectiveLabel).toLowerCase() === 'archivo') {
+        const sizeBytes = incomingItemData?.content?.fileData?.size;
+        if (typeof sizeBytes === 'number') {
+          const sizeMB = sizeBytes / (1024 * 1024);
+          if (sizeMB > 3) {
+            return res.status(413).json({
+              message: 'El archivo excede el límite de 3MB para cuentas gratuitas. Hazte VIP para subir archivos más grandes.'
+            });
+          }
+        }
+      }
     }
 
     const updatePayload = { ...rest };

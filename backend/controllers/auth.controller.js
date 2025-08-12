@@ -10,7 +10,7 @@ export async function register(req, res) {
     if (userExists) return res.status(400).json({ message: 'El email ya está registrado' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({ name, email, password: hashedPassword, preferences: {} });
 
     res.status(201).json({ message: 'Usuario registrado correctamente' });
   } catch (err) {
@@ -31,10 +31,32 @@ export async function login(req, res) {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
     res.json({
-      user: { id: user.id, name: user.name, email: user.email },
+      user: { id: user.id, name: user.name, email: user.email, is_vip: !!user.is_vip, preferences: user.preferences || {} },
       token,
     });
   } catch (err) {
     res.status(500).json({ message: 'Error al iniciar sesión', error: err.message });
+  }
+}
+
+export async function getMe(req, res) {
+  try {
+    const user = req.user;
+    res.json({ id: user.id, name: user.name, email: user.email, is_vip: !!user.is_vip, preferences: user.preferences || {} });
+  } catch (err) {
+    res.status(500).json({ message: 'Error al obtener usuario', error: err.message });
+  }
+}
+
+export async function updatePreferences(req, res) {
+  try {
+    const { preferences } = req.body;
+    if (!preferences || typeof preferences !== 'object') {
+      return res.status(400).json({ message: 'Preferencias inválidas' });
+    }
+    await req.user.update({ preferences: { ...(req.user.preferences || {}), ...preferences } });
+    res.json({ preferences: req.user.preferences || {} });
+  } catch (err) {
+    res.status(500).json({ message: 'Error al actualizar preferencias', error: err.message });
   }
 }

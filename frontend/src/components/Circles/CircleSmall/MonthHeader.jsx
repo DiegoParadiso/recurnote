@@ -1,3 +1,6 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { DateTime } from 'luxon';
+
 export default function MonthHeader({ date, position, onClick }) {
   const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
 
