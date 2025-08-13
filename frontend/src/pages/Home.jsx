@@ -16,26 +16,23 @@ import MobileBottomControls from '../components/common/MobileBottomControls';
 import DragTrashZone from '../components/common/DragTrashZone'; 
 import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
 import { useItems } from '../context/ItemsContext';
+import { useAuth } from '../context/AuthContext';
 import BottomToast from '../components/common/BottomToast';
+import RefreshButton from '../components/common/RefreshButton';
+import CircleSmallWithContextMenu from '../components/common/CircleSmallWithContextMenu';
 import { useNotes } from '../context/NotesContext';
 
 export default function Home() {
-  const { deleteItem } = useItems();
+  const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus } = useItems();
+  const { user, loading: authLoading } = useAuth();
   const { selectedDay, setSelectedDay } = useNotes();
-  // Eliminar el estado local draggedItem para usar el de useHomeLogic
-  // const [draggedItem, setDraggedItem] = useState(null);
+
   const [isOverTrash, setIsOverTrash] = useState(false);
-  // Eliminar el estado local toast para usar el de useHomeLogic
-  // const [toast, setToast] = useState('');
-  
-  // Variables faltantes restauradas
-  const [itemsByDate, setItemsByDate] = useState({});
-  
-  // Estados para controlar visibilidad de sidebars por hover
+
+
   const [showLeftSidebarHover, setShowLeftSidebarHover] = useState(false);
   const [showRightSidebarHover, setShowRightSidebarHover] = useState(false);
 
-  // Handlers para controlar visibilidad por hover
   const handleLeftSidebarHover = (isHovering) => {
     if (!isLeftSidebarPinned) {
       setShowLeftSidebarHover(isHovering);
@@ -53,6 +50,7 @@ export default function Home() {
     smallSize,
     onCircleSmallMouseDown,
     onCircleSmallDoubleClick,
+    resetCircleSmallToDefault,
     recenterCircleSmall,
     displayOptions,
     setDisplayOptions,
@@ -69,7 +67,6 @@ export default function Home() {
     handleSelectItem,
     setToast,
     toast,
-    addItem,
     draggedItem,
     setDraggedItem,
   } = useHomeLogic();
@@ -107,12 +104,14 @@ export default function Home() {
     setIsOverTrash(isOverTrashZone(draggedItem));
   }, [draggedItem]);
 
-  // Recentrar CircleSmall en desktop cuando se muestra o cambia el layout relevante
+
+
+  // Cargar posición del CircleSmall cuando se muestre en desktop
   useEffect(() => {
-    if (!isMobile && showSmall) {
+    if (!isMobile && showSmall && (!circleSmallPos.x || !circleSmallPos.y)) {
       recenterCircleSmall();
     }
-  }, [isMobile, showSmall, recenterCircleSmall]);
+  }, [isMobile, showSmall, circleSmallPos.x, circleSmallPos.y, recenterCircleSmall]);
 
   async function handleSelectItemLocal(item) {
     if (!dateKey) {
@@ -143,28 +142,39 @@ export default function Home() {
     >
       {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
       {isMobile && !draggedItem && (
-        <>
-          <div
-            className="fixed top-3 left-3 z-[30] sm:hidden"
-            aria-label="Mostrar configuración móvil"
-          >
+        <div className="fixed top-3 left-0 right-0 z-[30] sm:hidden flex justify-between items-center px-4">
+          <div className="w-10 h-10 flex items-center justify-center" aria-label="Mostrar configuración móvil">
             <ConfigButton onToggle={() => setShowConfig(v => !v)} />
           </div>
-          <div
-            className="fixed top-3 right-3 z-[30] sm:hidden"
-            aria-label="Toggle tema oscuro móvil"
-          >
+          <div className="w-10 h-10 flex items-center justify-center" aria-label="Recargar items">
+            <RefreshButton 
+              onClick={refreshItems}
+              loading={syncStatus === 'syncing'}
+            />
+          </div>
+          <div className="w-10 h-10 flex items-center justify-center" aria-label="Toggle tema oscuro móvil">
             <ThemeToggle />
           </div>
-        </>
+        </div>
       )}
 
       {/* Botones Config y Tema desktop */}
       <div
-        className="fixed top-3 left-3 z-[20] hidden sm:flex gap-3 items-center"
+        className="fixed top-3 left-3 z-[20] hidden sm:flex gap-2 items-center"
       >
-        <ConfigButton onToggle={() => setShowConfig(v => !v)} />
-        <ThemeToggle />
+        <div className="w-10 h-10 flex items-center justify-center">
+          <ConfigButton onToggle={() => setShowConfig(v => !v)} />
+        </div>
+        <div className="w-10 h-10 flex items-center justify-center">
+          <ThemeToggle />
+        </div>
+        <div className="w-10 h-10 flex items-center justify-center">
+          <RefreshButton 
+            onClick={refreshItems}
+            loading={syncStatus === 'syncing'}
+            isDesktop={true}
+          />
+        </div>
       </div>
       
       {!isMobile && (
@@ -213,6 +223,34 @@ export default function Home() {
         </div>
       )}
 
+
+
+      {/* Indicador de error para items */}
+      {itemsError && (
+        <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="flex items-center">
+            <span className="mr-2">⚠️</span>
+            <span>{itemsError}</span>
+            <button 
+              onClick={refreshItems}
+              className="ml-4 bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje cuando no hay items y no está cargando */}
+      {!authLoading && !itemsLoading && !itemsError && Object.keys(itemsByDate).length === 0 && user && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+          <div className="flex items-center">
+            <span className="mr-2">ℹ️</span>
+            <span>No hay items creados aún. ¡Comienza agregando algunos!</span>
+          </div>
+        </div>
+      )}
+
       {/* Contenido principal */}
       <div
         className="relative flex items-center justify-center px-4 sm:px-0"
@@ -235,14 +273,7 @@ export default function Home() {
             // Solo procesar si realmente hay un item arrastrado y está sobre la papelera
             if (draggedItem && isOverTrash) {
               try {
-                // Eliminar del estado local
-                setItemsByDate(prev => {
-                  if (!dateKey) return prev;
-                  const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
-                  return { ...prev, [dateKey]: filtered };
-                });
-                
-                // Si el id es numérico, también borrar en backend
+                // Si el id es numérico, borrar en backend
                 const numericId = Number(draggedItem.id);
                 if (Number.isFinite(numericId)) {
                   try { await deleteItem(numericId); } catch {}
@@ -266,7 +297,7 @@ export default function Home() {
           items={itemsForSelectedDay}
           setItems={newItemsForDay => {
             if (!dateKey) return;
-            setItemsByDate(prev => ({ ...prev, [dateKey]: newItemsForDay }));
+
           }}
         />
 
@@ -294,29 +325,34 @@ export default function Home() {
 
       {/* CircleSmall draggable global en Desktop */}
       {!isMobile && showSmall && circleSmallPos.x != null && circleSmallPos.y != null && (
-        <div
-          className="fixed"
-          onMouseDownCapture={onCircleSmallMouseDown}
-          onDoubleClick={onCircleSmallDoubleClick}
-          style={{
-            zIndex: 'var(--z-high)',
-            cursor: 'grab',
-            left: circleSmallPos.x,
-            top: circleSmallPos.y,
-            width: smallSize,
-            height: smallSize,
-            borderRadius: '50%',
-            pointerEvents: 'auto',
-          }}
+        <CircleSmallWithContextMenu
+          onResetPosition={resetCircleSmallToDefault}
+          onHide={() => setShowSmall(false)}
         >
-          <CircleSmall
-            onDayClick={setSelectedDay}
-            isSmallScreen={false}
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-            size={smallSize}
-          />
-        </div>
+          <div
+            className="fixed"
+            onMouseDownCapture={onCircleSmallMouseDown}
+            onDoubleClick={onCircleSmallDoubleClick}
+            style={{
+              zIndex: 'var(--z-high)',
+              cursor: 'grab',
+              left: circleSmallPos.x,
+              top: circleSmallPos.y,
+              width: smallSize,
+              height: smallSize,
+              borderRadius: '50%',
+              pointerEvents: 'auto',
+            }}
+          >
+            <CircleSmall
+              onDayClick={setSelectedDay}
+              isSmallScreen={false}
+              selectedDay={selectedDay}
+              setSelectedDay={setSelectedDay}
+              size={smallSize}
+            />
+          </div>
+        </CircleSmallWithContextMenu>
       )}
 
       {!isMobile && (
@@ -410,40 +446,7 @@ export default function Home() {
             
             if (draggedItem && isOverTrash) {
               try {
-                // Buscar el item en todas las fechas si no hay dateKey
-                if (!dateKey) {
-                  console.log('No hay dateKey, buscando item en todas las fechas');
-                  setItemsByDate(prev => {
-                    const newState = { ...prev };
-                    let itemFound = false;
-                    
-                    // Buscar en todas las fechas
-                    Object.keys(newState).forEach(date => {
-                      const items = newState[date] || [];
-                      const itemIndex = items.findIndex(i => i.id === draggedItem.id);
-                      if (itemIndex !== -1) {
-                        newState[date] = items.filter(i => i.id !== draggedItem.id);
-                        itemFound = true;
-                        console.log(`Item eliminado de la fecha: ${date}`);
-                      }
-                    });
-                    
-                    if (!itemFound) {
-                      console.log('Item no encontrado en ninguna fecha');
-                    }
-                    
-                    return newState;
-                  });
-                } else {
-                  // Eliminar del estado local usando dateKey
-                  console.log(`Eliminando item de la fecha: ${dateKey}`);
-                  setItemsByDate(prev => {
-                    const filtered = (prev[dateKey] || []).filter(i => i.id !== draggedItem.id);
-                    return { ...prev, [dateKey]: filtered };
-                  });
-                }
-                
-                // Si el id es numérico, también borrar en backend
+                // Si el id es numérico, borrar en backend
                 const numericId = Number(draggedItem.id);
                 if (Number.isFinite(numericId)) {
                   console.log(`Eliminando item del backend con ID: ${numericId}`);

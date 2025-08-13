@@ -12,9 +12,21 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       aria-label="Toggle tema claro/oscuro"
-      style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+      className="p-2 transition-colors cursor-pointer"
+      style={{ 
+        background: 'transparent', 
+        border: 'none', 
+        color: 'var(--color-text-primary)',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = 'var(--color-muted)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = 'var(--color-text-primary)';
+      }}
     >
-      {isLightTheme ? <Moon size={24} /> : <Sun size={24} />}
+      {isLightTheme ? <Moon size={20} /> : <Sun size={20} />}
     </button>
   );
 }

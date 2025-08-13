@@ -34,11 +34,9 @@ function AppRoutes() {
 
 function AppContent() {
   return (
-    <ItemsProvider>
-      <NotesProvider>
-        <AppRoutes />
-      </NotesProvider>
-    </ItemsProvider>
+    <NotesProvider>
+      <AppRoutes />
+    </NotesProvider>
   );
 }
 
@@ -46,7 +44,9 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <AppContent />
+        <ItemsProvider>
+          <AppContent />
+        </ItemsProvider>
       </ThemeProvider>
     </AuthProvider>
   );

@@ -9,14 +9,50 @@ export function AuthProvider({ children }) {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const savedToken = localStorage.getItem('token');
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
-      setToken(savedToken);
+  // Función para inicializar la autenticación
+  const initializeAuth = async () => {
+    try {
+      const savedUser = localStorage.getItem('user');
+      const savedToken = localStorage.getItem('token');
+      
+      if (savedUser && savedToken) {
+        // Verificar si el token sigue siendo válido
+        const isValid = await validateToken(savedToken);
+        if (isValid) {
+          setUser(JSON.parse(savedUser));
+          setToken(savedToken);
+          // Refrescar datos del usuario
+          await refreshMe();
+        } else {
+          // Token inválido, limpiar localStorage
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing auth:', error);
+      // En caso de error, limpiar localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  // Función para validar token
+  const validateToken = async (tokenToValidate) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, { 
+        headers: { Authorization: `Bearer ${tokenToValidate}` } 
+      });
+      return res.ok;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    initializeAuth();
   }, []);
 
   async function refreshMe() {

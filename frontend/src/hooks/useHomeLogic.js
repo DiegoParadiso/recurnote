@@ -4,7 +4,7 @@ import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
 
 export function useHomeLogic() {
-  const { itemsByDate, setItemsByDate, addItem } = useItems();
+  const { itemsByDate, addItem } = useItems();
   const { user, token } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   
@@ -29,8 +29,7 @@ export function useHomeLogic() {
     const circleEl = document.getElementById('circle-large-container');
     if (circleEl) {
       const rect = circleEl.getBoundingClientRect();
-      const borderInset = 4; // mantenerlo dentro del borde del círculo grande
-      const x = rect.left + rect.width - smallSize - borderInset; // bien pegado al borde derecho
+      const x = rect.left + rect.width - smallSize; // bien pegado al borde derecho
       const y = rect.top + rect.height / 2 - smallSize / 2; // centrado vertical
       return { x: Math.max(0, x), y: Math.max(0, y) };
     }
@@ -78,16 +77,7 @@ export function useHomeLogic() {
     return () => window.removeEventListener('resize', handleResize);
   }, [circleSmallPos.x, circleSmallPos.y, smallSize]);
 
-  const persistCircleSmallPos = async (pos) => {
-    if (!token) return;
-    try {
-      await fetch(`${API_URL}/api/auth/preferences`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ preferences: { ui: { circleSmallPos: pos } } }),
-      });
-    } catch {}
-  };
+
 
   const onCircleSmallMouseDown = useCallback((e) => {
     if (window.innerWidth <= 640) return;
@@ -95,21 +85,31 @@ export function useHomeLogic() {
     e.stopPropagation();
     const startX = e.clientX;
     const startY = e.clientY;
+    
+    // Usar la posición actual del estado
+    const currentPos = circleSmallPos;
+    if (currentPos.x == null || currentPos.y == null) return;
+    
     dragOffsetRef.current = {
-      dx: startX - (circleSmallPos.x ?? 0),
-      dy: startY - (circleSmallPos.y ?? 0),
+      dx: startX - currentPos.x,
+      dy: startY - currentPos.y,
     };
     draggingSmallRef.current = true;
 
     const onMove = (ev) => {
       ev.preventDefault();
       if (!draggingSmallRef.current) return;
+      
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const rawX = ev.clientX - dragOffsetRef.current.dx;
       const rawY = ev.clientY - dragOffsetRef.current.dy;
+      
+      // Calcular nueva posición con límites
       const x = Math.min(Math.max(0, rawX), vw - smallSize);
       const y = Math.min(Math.max(0, rawY), vh - smallSize);
+      
+      // Actualizar posición en tiempo real
       setCircleSmallPos({ x, y });
     };
 
@@ -119,22 +119,33 @@ export function useHomeLogic() {
       draggingSmallRef.current = false;
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
-      if (circleSmallPos.x != null && circleSmallPos.y != null) persistCircleSmallPos(circleSmallPos);
+      
+
     };
 
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
-  }, [circleSmallPos.x, circleSmallPos.y]);
+  }, [circleSmallPos]);
 
   const onCircleSmallDoubleClick = useCallback(() => {
     if (window.innerWidth <= 640) return;
     const def = computeDefaultSmallPos();
     setCircleSmallPos(def);
-    persistCircleSmallPos(def);
   }, []);
+
+  // Función para resetear a la posición original (usada por el menú contextual)
+  const resetCircleSmallToDefault = useCallback(() => {
+    if (window.innerWidth <= 640) return;
+    const def = computeDefaultSmallPos();
+    setCircleSmallPos(def);
+  }, []);
+
+
 
   const recenterCircleSmall = useCallback(() => {
     if (window.innerWidth <= 640) return;
+    
+    // Usar posición por defecto
     const pos = computeDefaultSmallPos();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -143,7 +154,7 @@ export function useHomeLogic() {
       y: Math.min(Math.max(0, pos.y), vh - smallSize),
     };
     setCircleSmallPos(clamped);
-  }, []);
+  }, [smallSize, computeDefaultSmallPos]);
 
   const [displayOptions, setDisplayOptions] = useState({
     year: true,
@@ -324,13 +335,14 @@ export function useHomeLogic() {
     setDisplayOptions,
     handleSelectItem,
     itemsByDate,
-    setItemsByDate,
+    addItem,
     toast,
     setToast,
     circleSmallPos,
     smallSize,
     onCircleSmallMouseDown,
     onCircleSmallDoubleClick,
+    resetCircleSmallToDefault,
     recenterCircleSmall,
   };
 }

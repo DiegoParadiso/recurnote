@@ -5,11 +5,22 @@ export default function ConfigButton({ onToggle }) {
     <button
       onClick={onToggle}
       aria-label="Abrir configuración"
-      className="p-1 text-neutral-500 hover:text-neutral-700 active:scale-95 transition-transform cursor-pointer"
+      className="p-2 transition-colors cursor-pointer"
       title="Configuración"
-      style={{ background: 'transparent', border: 'none', color: 'var(--color-text-primary)' }}
+      style={{ 
+        background: 'transparent', 
+        border: 'none', 
+        color: 'var(--color-text-primary)',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = 'var(--color-muted)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = 'var(--color-text-primary)';
+      }}
     >
-      <SlidersHorizontal size={24} />
+      <SlidersHorizontal size={20} />
     </button>
   );
 }
