@@ -29,7 +29,6 @@ export default function CircleSmall({
     width: `${circleSize}px`,
     height: `${circleSize}px`,
     margin: '0 auto',
-    zIndex: 'var(--z-high)',
     backgroundColor: 'var(--color-bg)',
     color: 'var(--color-text-primary)',
     border: '1px solid var(--color-text-primary)',
@@ -39,7 +38,7 @@ export default function CircleSmall({
 
   return (
     <div
-      className="uppercase font-ibm rounded-full overflow-hidden"
+      className="uppercase font-ibm rounded-full overflow-hidden z-high"
       onWheel={(e) => {
         e.preventDefault();
         const direction = e.deltaY > 0 ? 1 : -1;

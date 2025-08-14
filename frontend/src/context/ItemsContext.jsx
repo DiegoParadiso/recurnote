@@ -261,7 +261,7 @@ export const ItemsProvider = ({ children }) => {
     };
     
     try {
-      await fetch(`${API_URL}/api/items/${id}`, {
+      const response = await fetch(`${API_URL}/api/items/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -269,6 +269,16 @@ export const ItemsProvider = ({ children }) => {
         },
         body: JSON.stringify(payload)
       });
+      
+      // Solo lanzar error si hay un problema real de red o servidor
+      if (!response.ok) {
+        // Si el item no existe (404), no es un error crítico
+        if (response.status === 404) {
+          console.log(`Item ${id} no encontrado`);
+        } else {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
+      }
       
       setItemsByDate(prev => {
         const newState = { ...prev };
@@ -291,7 +301,14 @@ export const ItemsProvider = ({ children }) => {
         newSet.delete(operationId);
         return newSet;
       });
-      throw error;
+      
+      // Solo lanzar error si es un problema real de red
+      if (error.name === 'TypeError' || error.message.includes('fetch')) {
+        throw error;
+      }
+      
+      // Para otros errores, solo logear y no lanzar excepción
+      console.error('Error al actualizar item:', error);
     }
   }
 
@@ -301,10 +318,20 @@ export const ItemsProvider = ({ children }) => {
     setPendingOperations(prev => new Set([...prev, operationId]));
     
     try {
-      await fetch(`${API_URL}/api/items/${id}`, {
+      const response = await fetch(`${API_URL}/api/items/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Solo lanzar error si hay un problema real de red o servidor
+      if (!response.ok) {
+        // Si el item no existe (404) o ya fue eliminado, no es un error crítico
+        if (response.status === 404) {
+          console.log(`Item ${id} no encontrado o ya eliminado`);
+        } else {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
+      }
       
       setItemsByDate(prev => {
         const newState = {};
@@ -327,7 +354,14 @@ export const ItemsProvider = ({ children }) => {
         newSet.delete(operationId);
         return newSet;
       });
-      throw error;
+      
+      // Solo lanzar error si es un problema real de red
+      if (error.name === 'TypeError' || error.message.includes('fetch')) {
+        throw error;
+      }
+      
+      // Para otros errores, solo logear y no lanzar excepción
+      console.error('Error al eliminar item:', error);
     }
   }
 

@@ -35,17 +35,17 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
 
   // Texto arqueado en pantallas grandes
   return (
-          <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: circleSize,
-          height: circleSize,
-          pointerEvents: 'none',
-          zIndex: 'var(--z-mid-low)',
-          color: 'var(--color-text-primary)',
-        }}
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: circleSize,
+        height: circleSize,
+        pointerEvents: 'none',
+        zIndex: 'var(--z-mid-low)',
+        color: 'var(--color-text-primary)',
+      }}
     >
       <svg
         viewBox={`0 0 ${circleSize} ${circleSize}`}

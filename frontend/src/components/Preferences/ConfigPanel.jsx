@@ -104,12 +104,10 @@ export default function ConfigPanel({
       // NO aplicar preferencias de UI automáticamente - dejar que los toggles funcionen
       // Las preferencias de UI se cargan desde useHomeLogic
       
-      // Aplicar preferencias del círculo solo si no están ya configuradas
-      if (prefs.circle && prefs.circle.showSmall !== undefined && showSmall === true) {
-        setShowSmall(prefs.circle.showSmall);
-      }
+      // NO aplicar preferencias del círculo automáticamente para evitar conflictos
+      // El estado de showSmall se maneja desde el componente padre
     }
-  }, [show, user?.preferences, setDisplayOptions, setShowSmall, showSmall]);
+  }, [show, user?.preferences, setDisplayOptions]);
 
   useEffect(() => {
     if (!token) return;
@@ -121,7 +119,8 @@ export default function ConfigPanel({
         leftSidebarPinned: isLeftSidebarPinned,
         rightSidebarPinned: isRightSidebarPinned,
       },
-      circle: { showSmall },
+      // NO guardar showSmall en preferencias para evitar conflictos
+      // El estado de showSmall se maneja desde el componente padre
     };
     
     // Debounce 500ms
@@ -150,7 +149,7 @@ export default function ConfigPanel({
     }, 500);
     
     return () => pendingRef.current && clearTimeout(pendingRef.current);
-  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, showSmall, show, token, user, refreshMe]);
+  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, show, token, user, refreshMe]);
   if (!show) return null;
 
   const options = [

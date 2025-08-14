@@ -16,6 +16,7 @@ import MobileBottomControls from '../components/common/MobileBottomControls';
 import DragTrashZone from '../components/common/DragTrashZone'; 
 import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
 import { useItems } from '../context/ItemsContext';
+import { useLocal } from '../context/LocalContext';
 import { useAuth } from '../context/AuthContext';
 import BottomToast from '../components/common/BottomToast';
 import RefreshButton from '../components/common/RefreshButton';
@@ -25,8 +26,9 @@ import LocalUserIndicator from '../components/common/LocalUserIndicator';
 import LocalMigrationHandler from '../components/common/LocalMigrationHandler';
 
 export default function Home() {
-  const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus, isRetrying, retryCount } = useItems();
-  const { user, loading: authLoading } = useAuth();
+  const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus, isRetrying, retryCount, setItemsByDate } = useItems();
+  const { setLocalItemsByDate } = useLocal();
+  const { user, loading: authLoading, token } = useAuth();
   const { selectedDay, setSelectedDay } = useNotes();
 
   const [isOverTrash, setIsOverTrash] = useState(false);
@@ -125,7 +127,42 @@ export default function Home() {
 
   async function handleDeleteItem(itemId) {
     try {
-      await deleteItem(itemId);
+      // Solo eliminar del servidor si es un item autenticado (ID numérico)
+      const idIsNumeric = typeof itemId === 'number' && Number.isFinite(itemId);
+      
+      if (idIsNumeric && user && token) {
+        // Item del servidor - eliminar del backend
+        await deleteItem(itemId);
+        
+        // También eliminar del estado local
+        setItemsByDate(prev => {
+          const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
+          if (!dateKey) return prev;
+          
+          const currentItems = prev[dateKey] || [];
+          if (!currentItems.length) return prev;
+          
+          return {
+            ...prev,
+            [dateKey]: currentItems.filter((item) => item.id !== itemId),
+          };
+        });
+      } else {
+        // Es un item local - eliminar del estado local
+        setLocalItemsByDate(prev => {
+          const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
+          if (!dateKey) return prev;
+          
+          const currentItems = prev[dateKey] || [];
+          if (!currentItems.length) return prev;
+          
+          return {
+            ...prev,
+            [dateKey]: currentItems.filter((item) => item.id !== itemId),
+          };
+        });
+      }
+      
       setToast('Item eliminado correctamente');
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -244,16 +281,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Mensaje cuando no hay items y no está cargando */}
-      {!authLoading && !itemsLoading && !itemsError && Object.keys(itemsByDate).length === 0 && user && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
-          <div className="flex items-center">
-            <span className="mr-2">ℹ️</span>
-            <span>No hay items creados aún. ¡Comienza agregando algunos!</span>
-          </div>
-        </div>
-      )}
-
       {/* Contenido principal */}
       <div
         className="relative flex items-center justify-center px-4 sm:px-0"
@@ -269,8 +296,17 @@ export default function Home() {
           displayOptions={displayOptions}
           selectedDay={selectedDay}
           onItemDrag={(itemId, pos) => {
-            const newDraggedItem = { id: itemId, ...pos };
-            setDraggedItem(newDraggedItem);
+            if (pos && pos.action === 'drop') {
+              // Es un drop, verificar si está sobre la papelera
+              if (isOverTrash) {
+                // Ejecutar la lógica de eliminación
+                handleDeleteItem(itemId);
+              }
+            } else if (pos && pos.x !== undefined && pos.y !== undefined) {
+              // Es un drag en progreso
+              const newDraggedItem = { id: itemId, ...pos };
+              setDraggedItem(newDraggedItem);
+            }
           }}
           setSelectedDay={day => {
             setSelectedDay(day);
@@ -424,25 +460,21 @@ export default function Home() {
           isActive={!!draggedItem} 
           isOverTrash={isOverTrash}
           onItemDrop={async () => {
-            console.log('DragTrashZone onItemDrop ejecutado', { draggedItem, isOverTrash, dateKey });
             
             if (draggedItem && isOverTrash) {
               try {
                 // Si el id es numérico, borrar en backend
                 const numericId = Number(draggedItem.id);
                 if (Number.isFinite(numericId)) {
-                  console.log(`Eliminando item del backend con ID: ${numericId}`);
                   await deleteItem(numericId);
                 }
                 
                 setToast('Item eliminado correctamente');
-                console.log('Item eliminado exitosamente');
               } catch (error) {
                 console.error('Error deleting item:', error);
                 setToast('Error al eliminar el item');
               }
             } else {
-              console.log('Condiciones no cumplidas para eliminar:', { draggedItem, isOverTrash });
             }
             
             // SIEMPRE limpiar estados cuando se suelta un item

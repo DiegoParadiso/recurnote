@@ -35,13 +35,15 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
   const setLocalItemsByDateRef = useRef(setLocalItemsByDate);
   const userRef = useRef(user);
   const tokenRef = useRef(token);
+  const onItemDragRef = useRef(onItemDrag);
 
   useEffect(() => {
     setItemsByDateRef.current = setItemsByDate;
     setLocalItemsByDateRef.current = setLocalItemsByDate;
     userRef.current = user;
     tokenRef.current = token;
-  }, [setItemsByDate, setLocalItemsByDate, user, token]);
+    onItemDragRef.current = onItemDrag;
+  }, [setItemsByDate, setLocalItemsByDate, user, token, onItemDrag]);
   
   const scheduleUpdate = useCallback((id, changes, delayMs = 500) => {
     const timers = debounceTimersRef.current;
@@ -213,6 +215,11 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
   const handleItemDrop = (id) => {
     // Solo persistir la posición, no llamar a onItemDrop del componente padre
     persistPositionOnDrop(id);
+    
+    // También llamar al onItemDrop del componente padre si existe
+    if (onItemDragRef.current) {
+      onItemDragRef.current(id, { action: 'drop' });
+    }
   };
 
   // El manejo de drop depende del radius del círculo,

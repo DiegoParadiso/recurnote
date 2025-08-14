@@ -31,7 +31,10 @@ export const useDragResize = ({
       if (e.touches && e.touches.length === 1) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
-        e.preventDefault();
+        // Solo prevenir el comportamiento por defecto si realmente estamos haciendo drag
+        if (isDragging.current || isResizing.current) {
+          e.preventDefault();
+        }
       } else if (e.clientX !== undefined && e.clientY !== undefined) {
         clientX = e.clientX;
         clientY = e.clientY;
@@ -61,8 +64,8 @@ export const useDragResize = ({
         );
 
         setPos({ x: limited.x, y: limited.y });
-      onMove?.({ x: limited.x, y: limited.y });
-      onDrag?.({ x: limited.x, y: limited.y }); 
+        onMove?.({ x: limited.x, y: limited.y });
+        onDrag?.({ x: limited.x, y: limited.y }); 
       } else if (isResizing.current) {
         const dx = clientX - resizeStartPos.current.mouseX;
         const dy = clientY - resizeStartPos.current.mouseY;

@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDragResize } from '../../hooks/useDragResize';
 import { limitPositionInsideCircle } from '../../utils/helpers/geometry';
 import { getContainerStyle } from '../../utils/styles/getContainerStyle';
-import useIsMobile from '../../hooks/useIsMobile';
 
 export default function UnifiedContainer({
   x, y, width, height, rotation = 0,
@@ -23,14 +22,6 @@ export default function UnifiedContainer({
   const containerRef = useRef(null);
   const [pos, setPos] = useState({ x, y });
   const [sizeState, setSizeState] = useState({ width, height });
-  const isMobile = useIsMobile();
-  
-  // Refs para manejar long press vs drag
-  const touchStartTimeRef = useRef(null);
-  const touchStartPosRef = useRef(null);
-  const longPressThreshold = 500; // 500ms para long press
-  const moveThreshold = 10; // 10px para considerar movimiento
-  const isLongPressModeRef = useRef(false);
 
   useEffect(() => {
     const limited = limitPositionInsideCircle(
@@ -65,11 +56,6 @@ export default function UnifiedContainer({
       onDrop?.();
       isDragging.current = false;
     }
-    
-    // Limpiar refs de long press
-    touchStartTimeRef.current = null;
-    touchStartPosRef.current = null;
-    isLongPressModeRef.current = false;
   };
   
   const onMouseDownDrag = (e) => {
@@ -93,61 +79,18 @@ export default function UnifiedContainer({
     if (e.touches.length !== 1) return;
 
     const touch = e.touches[0];
-    const now = Date.now();
     
-    // Guardar tiempo y posición inicial
-    touchStartTimeRef.current = now;
-    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
-    
-    // En móviles, esperar un poco antes de activar el drag
-    if (isMobile) {
-      setTimeout(() => {
-        // Solo activar drag si no es long press y se movió
-        if (touchStartTimeRef.current === now && !isLongPressModeRef.current) {
-          const currentTouch = e.touches[0];
-          if (currentTouch) {
-            const deltaX = Math.abs(currentTouch.clientX - touchStartPosRef.current.x);
-            const deltaY = Math.abs(currentTouch.clientY - touchStartPosRef.current.y);
-            
-            if (deltaX > moveThreshold || deltaY > moveThreshold) {
-              e.stopPropagation();
-              isDragging.current = true;
-              dragStartPos.current = {
-                mouseX: currentTouch.clientX,
-                mouseY: currentTouch.clientY,
-                x: pos.x,
-                y: pos.y,
-                containerRotation: -rotation,
-              };
-            }
-          }
-        }
-      }, longPressThreshold);
-    } else {
-      // En desktop, comportamiento normal
-      e.stopPropagation();
-      isDragging.current = true;
-      dragStartPos.current = {
-        mouseX: touch.clientX,
-        mouseY: touch.clientY,
-        x: pos.x,
-        y: pos.y,
-        containerRotation: -rotation,
-      };
-    }
+    // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
+    // Solo registrar la posición inicial
+    isDragging.current = true;
+    dragStartPos.current = {
+      mouseX: touch.clientX,
+      mouseY: touch.clientY,
+      x: pos.x,
+      y: pos.y,
+      containerRotation: -rotation,
+    };
   };
-
-  // Función para marcar que estamos en modo long press
-  const setLongPressMode = useCallback((isLongPress) => {
-    isLongPressModeRef.current = isLongPress;
-  }, []);
-
-  // Exponer la función para que WithContextMenu pueda usarla
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.setLongPressMode = setLongPressMode;
-    }
-  }, [setLongPressMode]);
 
   const onMouseDownResize = (e) => {
     if (disableResize) return;
@@ -204,14 +147,13 @@ export default function UnifiedContainer({
           data-resize-handle="true"
           onMouseDown={onMouseDownResize}
           onTouchStart={onTouchStartResize}
-          className="resize-handle-native"
+          className="resize-handle-native z-low"
           style={{
             position: 'absolute',
             right: 0,
             bottom: 0,
             cursor: 'nwse-resize',
             borderRadius: '2px',
-            zIndex: 'var(--z-low)',
           }}
         />
       )}

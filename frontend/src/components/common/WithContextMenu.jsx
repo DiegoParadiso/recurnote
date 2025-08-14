@@ -6,17 +6,15 @@ import '../../styles/components/common/contextmenu.css';
 export default function WithContextMenu({ onDelete, children, extraOptions = [] }) {
   const [menuPos, setMenuPos] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
-  const [isLongPressing, setIsLongPressing] = useState(false);
   const menuRef = useRef(null);
   const isMobile = useIsMobile();
   
   // Refs para long press
   const longPressTimerRef = useRef(null);
-  const longPressThreshold = 500; // 500ms para activar long press
+  const longPressThreshold = 800; // 800ms para activar long press
   const touchStartPosRef = useRef(null);
-  const isLongPressActiveRef = useRef(false);
   const hasMovedRef = useRef(false);
-  const moveThreshold = 10; // 10px para considerar que se movió
+  const moveThreshold = 25; // 25px para considerar que se movió (aumentado para no interferir con drag)
 
   useEffect(() => {
     setPortalTarget(document.body);
@@ -43,9 +41,6 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
     
     // Obtener posición del touch
     const touch = e.touches[0];
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
     
     // Calcular posición absoluta para el menú
     let menuX = touch.clientX;
@@ -75,18 +70,11 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
       }
     }
     
-    // Notificar al UnifiedContainer que estamos en modo long press
-    if (e.currentTarget.setLongPressMode) {
-      e.currentTarget.setLongPressMode(true);
-    }
-    
     // Cerrar menú existente y abrir nuevo
     setMenuPos(null);
     setTimeout(() => {
       setMenuPos({ x: menuX, y: menuY });
     }, 0);
-    
-    isLongPressActiveRef.current = true;
   }, [isMobile]);
 
   // Función para manejar touch start
@@ -96,12 +84,8 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
     const touch = e.touches[0];
     touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
     hasMovedRef.current = false;
-    isLongPressActiveRef.current = false;
     
-    // Mostrar indicador visual de long press
-    setIsLongPressing(true);
-    
-    // Iniciar timer para long press
+    // Iniciar timer para long press solo si no se está haciendo drag
     longPressTimerRef.current = setTimeout(() => {
       if (!hasMovedRef.current) {
         handleLongPress(e);
@@ -120,15 +104,9 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
     // Si se movió más del umbral, cancelar long press
     if (deltaX > moveThreshold || deltaY > moveThreshold) {
       hasMovedRef.current = true;
-      setIsLongPressing(false);
       if (longPressTimerRef.current) {
         clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = null;
-      }
-      
-      // Notificar al UnifiedContainer que no estamos en modo long press
-      if (e.currentTarget.setLongPressMode) {
-        e.currentTarget.setLongPressMode(false);
       }
     }
   }, [isMobile]);
@@ -136,9 +114,6 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
   // Función para manejar touch end
   const handleTouchEnd = useCallback((e) => {
     if (!isMobile) return;
-    
-    // Ocultar indicador visual
-    setIsLongPressing(false);
     
     // Limpiar timer
     if (longPressTimerRef.current) {
@@ -149,11 +124,6 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
     // Limpiar refs
     touchStartPosRef.current = null;
     hasMovedRef.current = false;
-    
-    // Notificar al UnifiedContainer que no estamos en modo long press
-    if (e.currentTarget.setLongPressMode) {
-      e.currentTarget.setLongPressMode(false);
-    }
   }, [isMobile]);
 
   const closeMenu = useCallback(() => setMenuPos(null), []);
@@ -169,30 +139,15 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
         closeMenu();
       }
     };
-    
-    // Para móviles, también cerrar con touch
-    const handleTouchStartOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        closeMenu();
-      }
-    };
 
     window.addEventListener('click', handleClick);
     window.addEventListener('contextmenu', handleContextMenuOutside);
-    
-    // Agregar listener de touch para móviles
-    if (isMobile) {
-      window.addEventListener('touchstart', handleTouchStartOutside, { passive: true });
-    }
 
     return () => {
       window.removeEventListener('click', handleClick);
       window.removeEventListener('contextmenu', handleContextMenuOutside);
-      if (isMobile) {
-        window.removeEventListener('touchstart', handleTouchStartOutside);
-      }
     };
-  }, [closeMenu, isMobile]);
+  }, [closeMenu]);
 
   // Limpiar timer al desmontar
   useEffect(() => {
@@ -214,28 +169,6 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
   return (
     <>
       {childrenWithEvents}
-
-      {/* Indicador visual de long press en móviles */}
-      {isMobile && isLongPressing && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            fontSize: '14px',
-            zIndex: 'var(--z-toast)',
-            pointerEvents: 'none',
-            animation: 'fadeInOut 0.5s ease-in-out',
-          }}
-        >
-          Mantén presionado...
-        </div>
-      )}
 
       {menuPos && portalTarget &&
         createPortal(
