@@ -13,6 +13,13 @@
   backdrop-filter: blur(6px);
   user-select: none;
   color: var(--color-text-primary);
+  /* Mejorar para dispositivos táctiles */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Opción del menú */
@@ -24,6 +31,9 @@
   border-left: 3px solid transparent;
   display: flex;
   align-items: center;
+  /* Mejorar para dispositivos táctiles */
+  min-height: 44px; /* Tamaño mínimo recomendado para touch */
+  touch-action: manipulation;
 }
 
 /* Hover suave con borde izquierdo minimal */
@@ -33,11 +43,33 @@
   color: var(--color-highlight);
 }
 
+/* Estilo específico para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .context-menu-item {
+    /* En dispositivos táctiles, mostrar feedback visual inmediato */
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+  
+  .context-menu-item:active {
+    background-color: var(--bg-highlight);
+    border-left-color: var(--color-highlight);
+    color: var(--color-highlight);
+  }
+}
 
 .context-menu-item-danger:hover {
   background-color: var(--bg-highlight);
   color: #ff4d4d;
   border-left-color: #ff4d4d;
+}
+
+/* Estilo específico para dispositivos táctiles - peligro */
+@media (hover: none) and (pointer: coarse) {
+  .context-menu-item-danger:active {
+    background-color: var(--bg-highlight);
+    color: #ff4d4d;
+    border-left-color: #ff4d4d;
+  }
 }
 
 /* Animación de aparición */
@@ -49,5 +81,53 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* Animación de vibración sutil para móviles */
+@keyframes mobileVibrate {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1px);
+  }
+  75% {
+    transform: translateX(1px);
+  }
+}
+
+/* Animación para el indicador de long press */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+/* Mejoras para móviles */
+@media (max-width: 640px) {
+  .context-menu {
+    /* Asegurar que el menú sea visible en móviles */
+    min-width: 160px;
+    max-width: 250px;
+    font-size: 14px;
+    /* Mejorar sombra para móviles */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    /* Agregar vibración sutil en móviles */
+    animation: fadeInScale 0.15s ease-out forwards, mobileVibrate 0.3s ease-out 0.15s;
+  }
+  
+  .context-menu-item {
+    padding: 12px 16px;
+    min-height: 48px; /* Tamaño mínimo para móviles */
   }
 }

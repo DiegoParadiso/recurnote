@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDragResize } from '../../hooks/useDragResize';
 import { limitPositionInsideCircle } from '../../utils/helpers/geometry';
 import { getContainerStyle } from '../../utils/styles/getContainerStyle';
+import useIsMobile from '../../hooks/useIsMobile';
 
 export default function UnifiedContainer({
   x, y, width, height, rotation = 0,
@@ -22,17 +23,25 @@ export default function UnifiedContainer({
   const containerRef = useRef(null);
   const [pos, setPos] = useState({ x, y });
   const [sizeState, setSizeState] = useState({ width, height });
+  const isMobile = useIsMobile();
+  
+  // Refs para manejar long press vs drag
+  const touchStartTimeRef = useRef(null);
+  const touchStartPosRef = useRef(null);
+  const longPressThreshold = 500; // 500ms para long press
+  const moveThreshold = 10; // 10px para considerar movimiento
+  const isLongPressModeRef = useRef(false);
 
-useEffect(() => {
-  const limited = limitPositionInsideCircle(
-    x, y, width, height, circleCenter, maxRadius, isSmallScreen
-  );
-  setPos({ x: limited.x, y: limited.y });
-  setSizeState({
-    width: Math.min(Math.max(width, minWidth), maxWidth),
-    height: Math.min(Math.max(height, minHeight), maxHeight),
-  });
-}, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen]);
+  useEffect(() => {
+    const limited = limitPositionInsideCircle(
+      x, y, width, height, circleCenter, maxRadius, isSmallScreen
+    );
+    setPos({ x: limited.x, y: limited.y });
+    setSizeState({
+      width: Math.min(Math.max(width, minWidth), maxWidth),
+      height: Math.min(Math.max(height, minHeight), maxHeight),
+    });
+  }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen]);
 
     const { isDragging, isResizing, dragStartPos, resizeStartPos } = useDragResize({
     pos, setPos, sizeState, setSizeState,
@@ -43,6 +52,7 @@ useEffect(() => {
     rotation,
     isSmallScreen,
   });
+  
   const handleMouseUp = (e) => {
     if (isDragging.current) {
       onDrop?.();
@@ -55,7 +65,13 @@ useEffect(() => {
       onDrop?.();
       isDragging.current = false;
     }
+    
+    // Limpiar refs de long press
+    touchStartTimeRef.current = null;
+    touchStartPosRef.current = null;
+    isLongPressModeRef.current = false;
   };
+  
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
 
@@ -77,16 +93,61 @@ useEffect(() => {
     if (e.touches.length !== 1) return;
 
     const touch = e.touches[0];
-    e.stopPropagation();
-    isDragging.current = true;
-    dragStartPos.current = {
-      mouseX: touch.clientX,
-      mouseY: touch.clientY,
-      x: pos.x,
-      y: pos.y,
-      containerRotation: -rotation,
-    };
+    const now = Date.now();
+    
+    // Guardar tiempo y posición inicial
+    touchStartTimeRef.current = now;
+    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+    
+    // En móviles, esperar un poco antes de activar el drag
+    if (isMobile) {
+      setTimeout(() => {
+        // Solo activar drag si no es long press y se movió
+        if (touchStartTimeRef.current === now && !isLongPressModeRef.current) {
+          const currentTouch = e.touches[0];
+          if (currentTouch) {
+            const deltaX = Math.abs(currentTouch.clientX - touchStartPosRef.current.x);
+            const deltaY = Math.abs(currentTouch.clientY - touchStartPosRef.current.y);
+            
+            if (deltaX > moveThreshold || deltaY > moveThreshold) {
+              e.stopPropagation();
+              isDragging.current = true;
+              dragStartPos.current = {
+                mouseX: currentTouch.clientX,
+                mouseY: currentTouch.clientY,
+                x: pos.x,
+                y: pos.y,
+                containerRotation: -rotation,
+              };
+            }
+          }
+        }
+      }, longPressThreshold);
+    } else {
+      // En desktop, comportamiento normal
+      e.stopPropagation();
+      isDragging.current = true;
+      dragStartPos.current = {
+        mouseX: touch.clientX,
+        mouseY: touch.clientY,
+        x: pos.x,
+        y: pos.y,
+        containerRotation: -rotation,
+      };
+    }
   };
+
+  // Función para marcar que estamos en modo long press
+  const setLongPressMode = useCallback((isLongPress) => {
+    isLongPressModeRef.current = isLongPress;
+  }, []);
+
+  // Exponer la función para que WithContextMenu pueda usarla
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.setLongPressMode = setLongPressMode;
+    }
+  }, [setLongPressMode]);
 
   const onMouseDownResize = (e) => {
     if (disableResize) return;

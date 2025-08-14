@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 
 const ItemsContext = createContext();
@@ -9,6 +9,9 @@ export const ItemsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pendingOperations, setPendingOperations] = useState(new Set());
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const retryTimeoutRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   function expandItem(raw) {
@@ -32,14 +35,16 @@ export const ItemsProvider = ({ children }) => {
   }
 
   // Función para cargar items
-  const loadItems = useCallback(async () => {
+  const loadItems = useCallback(async (isRetry = false) => {
     if (!user || !token) {
       setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      if (!isRetry) {
+        setLoading(true);
+      }
       setError(null);
       
       const response = await fetch(`${API_URL}/api/items`, {
@@ -63,13 +68,51 @@ export const ItemsProvider = ({ children }) => {
       }, {});
       
       setItemsByDate(grouped);
+      setRetryCount(0); // Reset retry count on success
+      setIsRetrying(false);
     } catch (err) {
       console.error('Error loading items:', err);
       setError(err.message);
+      
+      // Solo intentar reintento automático si no es un reintento manual
+      if (!isRetry && user && token) {
+        scheduleRetry();
+      }
     } finally {
       setLoading(false);
     }
   }, [user, token, API_URL]);
+
+  // Función para programar reintento automático
+  const scheduleRetry = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+
+    const maxRetries = 5;
+    if (retryCount >= maxRetries) {
+      console.log('Máximo número de reintentos alcanzado');
+      setIsRetrying(false);
+      return;
+    }
+
+    setIsRetrying(true);
+    const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Delay exponencial, máximo 30 segundos
+    
+    retryTimeoutRef.current = setTimeout(() => {
+      setRetryCount(prev => prev + 1);
+      loadItems(true); // Marcar como reintento
+    }, delay);
+  }, [retryCount, loadItems]);
+
+  // Limpiar timeout al desmontar
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Cargar items cuando cambie la autenticación
   useEffect(() => {
@@ -80,6 +123,11 @@ export const ItemsProvider = ({ children }) => {
 
   // Función para recargar items manualmente
   const refreshItems = () => {
+    setRetryCount(0);
+    setIsRetrying(false);
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
     loadItems();
   };
 
@@ -293,7 +341,9 @@ export const ItemsProvider = ({ children }) => {
       loading, 
       error, 
       refreshItems,
-      syncStatus: getSyncStatus()
+      syncStatus: getSyncStatus(),
+      isRetrying,
+      retryCount
     }}>
       {children}
     </ItemsContext.Provider>

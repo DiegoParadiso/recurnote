@@ -25,7 +25,7 @@ import LocalUserIndicator from '../components/common/LocalUserIndicator';
 import LocalMigrationHandler from '../components/common/LocalMigrationHandler';
 
 export default function Home() {
-  const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus } = useItems();
+  const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus, isRetrying, retryCount } = useItems();
   const { user, loading: authLoading } = useAuth();
   const { selectedDay, setSelectedDay } = useNotes();
 
@@ -227,18 +227,19 @@ export default function Home() {
 
 
 
-      {/* Indicador de error para items */}
+      {/* Indicador de error para items con reintento automático */}
       {itemsError && (
         <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <div className="flex items-center">
             <span className="mr-2">⚠️</span>
-            <span>{itemsError}</span>
-            <button 
-              onClick={refreshItems}
-              className="ml-4 bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
-            >
-              Reintentar
-            </button>
+            <div>
+              <div>{itemsError}</div>
+              {isRetrying && (
+                <div className="text-sm text-red-600 mt-1">
+                  Reintentando automáticamente... (intento {retryCount + 1}/5)
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
