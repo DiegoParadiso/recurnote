@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 
 export const AuthContext = createContext();
 
@@ -6,6 +6,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [migrationStatus, setMigrationStatus] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -90,6 +91,9 @@ export function AuthProvider({ children }) {
     setToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('token', data.token);
+
+    // Marcar que se debe hacer migración después del login
+    setMigrationStatus('pending');
   }
 
   async function register(name, email, password) {
@@ -104,18 +108,45 @@ export function AuthProvider({ children }) {
       throw new Error(errorData.message || 'Error en registro');
     }
 
-    return await response.json();
+    const data = await response.json();
+    
+    // Después del registro exitoso, hacer login automático
+    setUser(data.user);
+    setToken(data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('token', data.token);
+
+    // Marcar que se debe hacer migración después del registro
+    setMigrationStatus('pending');
+    
+    return data;
   }
 
   function logout() {
     setUser(null);
     setToken(null);
+    setMigrationStatus(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
   }
 
+  // Función para marcar migración como completada
+  const markMigrationComplete = useCallback((status = 'completed') => {
+    setMigrationStatus(status);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, register, loading, refreshMe }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      register, 
+      loading, 
+      refreshMe,
+      migrationStatus,
+      markMigrationComplete
+    }}>
       {children}
     </AuthContext.Provider>
   );

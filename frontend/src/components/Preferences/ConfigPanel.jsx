@@ -209,6 +209,15 @@ export default function ConfigPanel({
                 />
               </div>
             )}
+
+            <div className="visualization-header-options">
+              <ToggleOption
+                id="toggle-account-indicator"
+                label="Mostrar indicador de cuenta"
+                value={displayOptions.showAccountIndicator}
+                onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
+              />
+            </div>
           </section>
 
           <section className="config-section">

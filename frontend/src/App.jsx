@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { ItemsProvider } from './context/ItemsContext';
+import { LocalProvider } from './context/LocalContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotesProvider } from './context/NotesContext';
 import { AuthProvider } from './context/AuthContext';
@@ -32,22 +33,18 @@ function AppRoutes() {
   );
 }
 
-function AppContent() {
-  return (
-    <NotesProvider>
-      <AppRoutes />
-    </NotesProvider>
-  );
-}
-
 function App() {
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <ItemsProvider>
-          <AppContent />
-        </ItemsProvider>
-      </ThemeProvider>
+      <LocalProvider>
+        <ThemeProvider>
+          <ItemsProvider>
+            <NotesProvider>
+              <AppRoutes />
+            </NotesProvider>
+          </ItemsProvider>
+        </ThemeProvider>
+      </LocalProvider>
     </AuthProvider>
   );
 }

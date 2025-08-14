@@ -11,7 +11,7 @@ import { formatDateKey } from '../../../utils/formatDateKey';
 import BottomToast from '../../common/BottomToast';
 import useHandleDrop from '../../../hooks/useDropHandler';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, onItemDrop, displayOptions }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions }) {
   const { width } = useWindowDimensions();
   const [circleSize, setCircleSize] = useState(680);
   
@@ -30,7 +30,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     handleItemDrop,
     itemsByDate,
     setItemsByDate,
-  } = useCircleLargeLogic(selectedDay, onItemDrag, onItemDrop);
+  } = useCircleLargeLogic(selectedDay, onItemDrag);
 
   useEffect(() => {
     if (width <= 640) {
@@ -52,7 +52,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
 
   const handleDrop = useHandleDrop({
     containerRef,
-    setItemsByDate,
+    setItemsByDate: setItemsByDate, // Usar la función correcta del hook
     selectedDay,
     rotationAngle,
     radius,

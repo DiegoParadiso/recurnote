@@ -21,6 +21,8 @@ import BottomToast from '../components/common/BottomToast';
 import RefreshButton from '../components/common/RefreshButton';
 import CircleSmallWithContextMenu from '../components/common/CircleSmallWithContextMenu';
 import { useNotes } from '../context/NotesContext';
+import LocalUserIndicator from '../components/common/LocalUserIndicator';
+import LocalMigrationHandler from '../components/common/LocalMigrationHandler';
 
 export default function Home() {
   const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus } = useItems();
@@ -269,27 +271,6 @@ export default function Home() {
             const newDraggedItem = { id: itemId, ...pos };
             setDraggedItem(newDraggedItem);
           }}
-          onItemDrop={async () => {
-            // Solo procesar si realmente hay un item arrastrado y está sobre la papelera
-            if (draggedItem && isOverTrash) {
-              try {
-                // Si el id es numérico, borrar en backend
-                const numericId = Number(draggedItem.id);
-                if (Number.isFinite(numericId)) {
-                  try { await deleteItem(numericId); } catch {}
-                }
-                
-                setToast('Item eliminado correctamente');
-              } catch (error) {
-                console.error('Error deleting item:', error);
-                setToast('Error al eliminar el item');
-              }
-            }
-            
-            // SIEMPRE limpiar estados cuando se suelta un item
-            setDraggedItem(null);
-            setIsOverTrash(false);
-          }}
           setSelectedDay={day => {
             setSelectedDay(day);
             if (isMobile) setShowSmall(false);
@@ -483,6 +464,12 @@ export default function Home() {
         setSelectedDay={setSelectedDay}
         isMobile={isMobile}
       />
+
+      {/* Indicador de usuario local */}
+      <LocalUserIndicator showAccountIndicator={displayOptions.showAccountIndicator !== false} />
+      
+      {/* Handler de migración local */}
+      <LocalMigrationHandler />
 
       {/* BottomToast global */}
       <BottomToast message={toast} onClose={() => setToast('')} />

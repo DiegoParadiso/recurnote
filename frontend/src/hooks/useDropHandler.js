@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { formatDateKey } from '../utils/formatDateKey';
 import { useItems } from '../context/ItemsContext';
+import { useLocal } from '../context/LocalContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function useHandleDrop({
   containerRef,
@@ -11,6 +13,8 @@ export default function useHandleDrop({
   onInvalidDrop,
 }) {
   const { addItem, updateItem, deleteItem } = useItems();
+  const { addLocalItem, updateLocalItem, deleteLocalItem } = useLocal();
+  const { user, token } = useAuth();
 
   const handleDrop = useCallback(
     (e) => {
@@ -44,17 +48,27 @@ export default function useHandleDrop({
       const itemId = e.dataTransfer.getData('itemId');
       const dateKey = formatDateKey(selectedDay);
 
-      // Fuera del círculo
+      // Fuera del círculo - solo eliminar si es un drop intencional
       if (distance > radius) {
         if (source === 'dropped' && itemId) {
-          setItemsByDate((prev) => {
-            const itemsForDate = prev[dateKey] || [];
-            return {
-              ...prev,
-              [dateKey]: itemsForDate.filter((item) => item.id.toString() !== itemId),
-            };
-          });
-          deleteItem(Number(itemId)).catch(() => {});
+          // Solo eliminar si realmente se está arrastrando fuera del círculo intencionalmente
+          // Determinar si es item local o del servidor
+          const idIsNumeric = typeof Number(itemId) === 'number' && Number.isFinite(Number(itemId));
+          
+          if (idIsNumeric && user && token) {
+            // Item del servidor
+            setItemsByDate((prev) => {
+              const itemsForDate = prev[dateKey] || [];
+              return {
+                ...prev,
+                [dateKey]: itemsForDate.filter((item) => item.id.toString() !== itemId),
+              };
+            });
+            deleteItem(Number(itemId)).catch(() => {});
+          } else {
+            // Item local
+            deleteLocalItem(itemId);
+          }
           return;
         }
         if (source === 'sidebar') {
@@ -65,39 +79,66 @@ export default function useHandleDrop({
 
       // Dentro del círculo
       if (source === 'sidebar') {
-        // No añadir localmente para evitar id temporal. Persistimos y el contexto insertará el item guardado.
-        addItem({
-          date: dateKey,
-          x: rotatedX,
-          y: rotatedY,
-          rotation: 0,
-          rotation_enabled: true,
-          label,
-          angle,
-          distance,
-          content: label === 'Tarea' ? [''] : '',
-          ...(label === 'Tarea' ? { checked: [false] } : {}),
-          width: label === 'Tarea' ? 200 : 100,
-          height: label === 'Tarea' ? 150 : 100,
-        }).catch(() => {});
+        if (user && token) {
+          // Usuario autenticado - usar servidor
+          addItem({
+            date: dateKey,
+            x: rotatedX,
+            y: rotatedY,
+            rotation: 0,
+            rotation_enabled: true,
+            label,
+            angle,
+            distance,
+            content: label === 'Tarea' ? [''] : '',
+            ...(label === 'Tarea' ? { checked: [false] } : {}),
+            width: label === 'Tarea' ? 200 : 100,
+            height: label === 'Tarea' ? 150 : 100,
+          }).catch(() => {});
+        } else {
+          // Usuario no autenticado - usar localStorage
+          addLocalItem({
+            date: dateKey,
+            x: rotatedX,
+            y: rotatedY,
+            rotation: 0,
+            rotation_enabled: true,
+            label,
+            angle,
+            distance,
+            content: label === 'Tarea' ? [''] : '',
+            ...(label === 'Tarea' ? { checked: [false] } : {}),
+            width: label === 'Tarea' ? 200 : 100,
+            height: label === 'Tarea' ? 150 : 100,
+          });
+        }
         return;
       }
 
       if (source === 'dropped' && itemId) {
-        setItemsByDate((prev) => {
-          const itemsForDate = prev[dateKey] || [];
-          const updatedItems = itemsForDate.map((item) =>
-            item.id.toString() === itemId ? { ...item, angle, distance } : item
-          );
+        // Determinar si es item local o del servidor
+        const idIsNumeric = typeof Number(itemId) === 'number' && Number.isFinite(Number(itemId));
         
-          return { ...prev, [dateKey]: updatedItems };
-        });
+        if (idIsNumeric && user && token) {
+          // Item del servidor
+          setItemsByDate((prev) => {
+            const itemsForDate = prev[dateKey] || [];
+            const updatedItems = itemsForDate.map((item) =>
+              item.id.toString() === itemId ? { ...item, angle, distance } : item
+            );
+          
+            return { ...prev, [dateKey]: updatedItems };
+          });
 
-        updateItem(Number(itemId), { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
+          updateItem(Number(itemId), { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
+        } else {
+          // Item local
+          updateLocalItem(itemId, { angle, distance, x: rotatedX, y: rotatedY });
+        }
         return;
       }
     },
-    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop, addItem, updateItem, deleteItem]
+    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop, addItem, updateItem, deleteItem, addLocalItem, updateLocalItem, deleteLocalItem, user, token]
   );
 
   return handleDrop;

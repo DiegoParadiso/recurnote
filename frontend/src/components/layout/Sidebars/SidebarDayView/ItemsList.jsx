@@ -1,8 +1,9 @@
 
 import React from 'react';
 import DayItemGroup from './DayItemGroup';
+import ItemRenderer from './ItemRenderer';
 
-export default function ItemsList({ itemsForDays, setSelectedDay, renderItem }) {
+export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, isLocalMode }) {
   if (itemsForDays.length === 0) {
     return <p className="text-[10px] italic">No hay ítems para los próximos días.</p>;
   }
@@ -15,7 +16,15 @@ export default function ItemsList({ itemsForDays, setSelectedDay, renderItem }) 
           date={date}
           items={items}
           onDaySelect={setSelectedDay}
-          renderItem={renderItem}
+          renderItem={(item, dateKey) => (
+            <ItemRenderer
+              item={item}
+              dateKey={dateKey}
+              toggleTaskCheck={toggleTaskCheck}
+              isLocalMode={isLocalMode}
+              key={item.id}
+            />
+          )}
         />
       ))}
     </>

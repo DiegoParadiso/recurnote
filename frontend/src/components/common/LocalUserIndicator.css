@@ -1,0 +1,25 @@
+@keyframes localIndicatorBlink {
+  0%, 40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  60%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.local-user-indicator .blinking-dot {
+  animation: localIndicatorBlink 1.5s ease-in-out infinite !important;
+  box-shadow: 0 0 4px currentColor !important;
+}
+
+/* Respaldo para casos donde la clase específica no funcione */
+.blinking-dot {
+  animation: localIndicatorBlink 1.5s ease-in-out infinite !important;
+  box-shadow: 0 0 4px currentColor !important;
+}

@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DateTime } from 'luxon';
 import { useItems } from '../context/ItemsContext';
+import { useLocal } from '../context/LocalContext';
 import { useAuth } from '../context/AuthContext';
 
 export function useHomeLogic() {
   const { itemsByDate, addItem } = useItems();
+  const { localItemsByDate, addLocalItem, localToastMessage, localToastDuration, clearLocalToast } = useLocal();
   const { user, token } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   
@@ -17,6 +19,14 @@ export function useHomeLogic() {
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [toast, setToast] = useState('');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+
+  const combinedItemsByDate = useCallback(() => {
+    if (user && token) {
+      return itemsByDate || {};
+    } else {
+      return localItemsByDate || {};
+    }
+  }, [user, token, itemsByDate, localItemsByDate]);
 
   // CircleSmall en Desktop - posición y drag global (sobre Home)
   const smallSize = 350;
@@ -164,7 +174,8 @@ export function useHomeLogic() {
     day: true,
     time: false,
     timeZone: 'America/Argentina/Buenos_Aires',
-    timeFormat: '24h'
+    timeFormat: '24h',
+    showAccountIndicator: true,
   });
 
   // Sincronizar displayOptions con las preferencias del usuario
@@ -272,30 +283,13 @@ export function useHomeLogic() {
     }
   }, [draggedItem]);
 
-  async function handleSelectItem(item, dateKey) {
+  const handleSelectItem = useCallback(async (item, dateKey) => {
     if (!dateKey) {
       setToast('Seleccioná un día primero');
       return;
     }
 
-    const angle = Math.random() * 360;
-    const distance = 120;
-    const rad = (angle * Math.PI) / 180;
-    const x = distance * Math.cos(rad);
-    const y = distance * Math.sin(rad);
-
-    const newItem = {
-      label: item.label,
-      angle,
-      distance,
-      content: item.label === 'Tarea' ? [''] : '',
-      ...(item.label === 'Tarea' && { checked: [false] }),
-      width: item.label === 'Tarea' ? 200 : 100,
-      height: item.label === 'Tarea' ? 150 : 100,
-    };
-
-    try {
-      // Límite en UI para cuentas no VIP: 15 items totales
+    if (user && token) {
       if (!user?.is_vip) {
         const totalCount = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
         if (totalCount >= 15) {
@@ -303,18 +297,80 @@ export function useHomeLogic() {
           return;
         }
       }
-      await addItem({
+
+      const angle = Math.random() * 360;
+      const distance = 120;
+      const rad = (angle * Math.PI) / 180;
+
+      const newItem = {
+        label: item.label,
+        angle,
+        distance,
+        x: distance * Math.cos(rad),
+        y: distance * Math.sin(rad),
+        content: item.label === 'Tarea' ? [''] : '',
+        ...(item.label === 'Tarea' && { checked: [false] }),
+        width: item.label === 'Tarea' ? 200 : 100,
+        height: item.label === 'Tarea' ? 150 : 100,
+      };
+
+      try {
+        await addItem({
+          date: dateKey,
+          rotation: 0,
+          rotation_enabled: true,
+          ...newItem,
+        });
+      } catch (e) {
+        setToast(e?.message || 'No se pudo crear el item');
+      }
+    } else {
+      const angle = Math.random() * 360;
+      const distance = 120;
+      const rad = (angle * Math.PI) / 180;
+
+      const newItem = {
+        label: item.label,
+        angle,
+        distance,
+        x: distance * Math.cos(rad),
+        y: distance * Math.sin(rad),
+        content: item.label === 'Tarea' ? [''] : '',
+        ...(item.label === 'Tarea' && { checked: [false] }),
+        width: item.label === 'Tarea' ? 200 : 100,
+        height: item.label === 'Tarea' ? 150 : 100,
+      };
+
+      const result = addLocalItem({
         date: dateKey,
-        x,
-        y,
         rotation: 0,
         rotation_enabled: true,
         ...newItem,
       });
-    } catch (e) {
-      setToast(e?.message || 'No se pudo crear el item');
+
+                if (result) {
+            // Item creado localmente - sin toast
+          }
     }
-  }
+  }, [user, token, itemsByDate, addItem, addLocalItem, setToast]);
+
+  useEffect(() => {
+    if (localToastMessage) {
+      setToast(localToastMessage);
+      // Usar setTimeout para evitar re-renders inmediatos
+      setTimeout(() => {
+        clearLocalToast();
+      }, 100);
+    }
+  }, [localToastMessage, localToastDuration, clearLocalToast]);
+
+  const memoizedCombinedItemsByDate = useMemo(() => {
+    if (user && token) {
+      return itemsByDate || {};
+    } else {
+      return localItemsByDate || {};
+    }
+  }, [user, token, itemsByDate, localItemsByDate]);
 
   return {
     showRightSidebar,
@@ -334,7 +390,7 @@ export function useHomeLogic() {
     displayOptions,
     setDisplayOptions,
     handleSelectItem,
-    itemsByDate,
+    itemsByDate: memoizedCombinedItemsByDate,
     addItem,
     toast,
     setToast,

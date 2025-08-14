@@ -1,22 +1,27 @@
 import React from 'react';
 import '../../../../styles/layouts/sidebars/ItemRenderer.css';
 import { useItems } from '../../../../context/ItemsContext';
+import { useLocal } from '../../../../context/LocalContext';
+import { useAuth } from '../../../../context/AuthContext';
 
-export default function ItemRenderer({ item, dateKey, toggleTaskCheck, setItemsByDate }) {
+export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMode }) {
   const { deleteItem } = useItems();
+  const { deleteLocalItem } = useLocal();
+  const { user, token } = useAuth();
 
   const handleDelete = async (e) => {
     e.preventDefault();
     if (!window.confirm('¿Eliminar este ítem?')) return;
 
-    try {
-      await deleteItem(item.id);
-    } catch {}
-
-    setItemsByDate((prev) => ({
-      ...prev,
-      [dateKey]: (prev[dateKey] || []).filter((i) => i.id !== item.id),
-    }));
+    if (user && token) {
+      // Modo usuario autenticado - usar servidor
+      try {
+        await deleteItem(item.id);
+      } catch {}
+    } else {
+      // Modo local - usar localStorage
+      deleteLocalItem(item.id);
+    }
   };
 
   if (item.label === 'Tarea') {

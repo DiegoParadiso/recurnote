@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useItems } from '../../../../context/ItemsContext';
+import { useLocal } from '../../../../context/LocalContext';
+import { useAuth } from '../../../../context/AuthContext';
 import ItemsList from './ItemsList';
 import ItemRenderer from './ItemRenderer';
 import '../../../../styles/layouts/sidebars/SidebarDayView.css';
@@ -8,6 +10,8 @@ import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { itemsByDate, setItemsByDate, updateItem } = useItems();
+  const { localItemsByDate, updateLocalItem, setLocalItemsByDate } = useLocal();
+  const { user, token } = useAuth();
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
 
   const [isHoveringTop, setIsHoveringTop] = useState(false);
@@ -31,22 +35,44 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
 
   // Toggle sólo la tarea del item indicado
   const toggleTaskCheck = (dateKey, itemId, taskIndex) => {
-    const currentItems = itemsByDate[dateKey] || [];
-    const updatedItems = currentItems.map(item => {
-      if (item.id === itemId && item.label === 'Tarea') {
-        const checks = [...(item.checked || [])];
-        checks[taskIndex] = !checks[taskIndex];
-        // Persistir en servidor solo para este item
-        updateItem(item.id, { checked: checks }).catch(() => {});
-        return { ...item, checked: checks };
-      }
-      return item;
-    });
+    if (user && token) {
+      // Modo usuario autenticado - usar servidor
+      const currentItems = itemsByDate[dateKey] || [];
+      const updatedItems = currentItems.map(item => {
+        if (item.id === itemId && item.label === 'Tarea') {
+          const checks = [...(item.checked || [])];
+          checks[taskIndex] = !checks[taskIndex];
+          // Persistir en servidor solo para este item
+          updateItem(item.id, { checked: checks }).catch(() => {});
+          return { ...item, checked: checks };
+        }
+        return item;
+      });
 
-    setItemsByDate(prev => ({
-      ...prev,
-      [dateKey]: updatedItems,
-    }));
+      setItemsByDate(prev => ({
+        ...prev,
+        [dateKey]: updatedItems,
+      }));
+    } else {
+      // Modo local - usar localStorage
+      const currentItems = (localItemsByDate || {})[dateKey] || [];
+      const updatedItems = currentItems.map(item => {
+        if (item.id === itemId && item.label === 'Tarea') {
+          const checks = [...(item.checked || [])];
+          checks[taskIndex] = !checks[taskIndex];
+          // Persistir en localStorage
+          updateLocalItem(item.id, { checked: checks });
+          return { ...item, checked: checks };
+        }
+        return item;
+      });
+      
+      // Actualizar el estado local
+      setLocalItemsByDate(prev => ({
+        ...prev,
+        [dateKey]: updatedItems,
+      }));
+    }
   };
 
   function handleDaySelect(day) {
@@ -98,39 +124,10 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
           <ItemsList
             itemsForDays={itemsForDays}
             setSelectedDay={handleDaySelect}
-            renderItem={(item, dateKey) => (
-              <ItemRenderer
-                item={item}
-                dateKey={dateKey}
-                toggleTaskCheck={toggleTaskCheck}
-                setItemsByDate={setItemsByDate}
-                key={item.id}
-              />
-            )}
+            toggleTaskCheck={toggleTaskCheck}
+            isLocalMode={!user || !token}
           />
         </div>
-
-        {!isMobile && (
-          <>
-            <div
-              className="absolute top-[2px] left-0 right-0 h-[72px] z-30 cursor-default"
-              onMouseEnter={() => setIsHoveringTop(true)}
-              onMouseLeave={() => setIsHoveringTop(false)}
-            />
-            <div
-              className="absolute bottom-[10px] left-0 right-0 h-[70px] z-30 cursor-default"
-              onMouseEnter={() => setIsHoveringBottom(true)}
-              onMouseLeave={() => setIsHoveringBottom(false)}
-            />
-          </>
-        )}
-
-        {startDate && (
-          <div className="sidebar-footer">
-            Mostrando desde{' '}
-            <strong>{startDate.setLocale('es').toFormat('cccc d LLLL')}</strong>
-          </div>
-        )}
       </div>
     </div>
   );
