@@ -1,10 +1,11 @@
 import { Sun, Moon } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext'; // importa el hook
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ThemeToggle() {
-  const { isLightTheme, setIsLightTheme } = useTheme();
+  const { isLightTheme, setIsLightTheme, isAutoTheme } = useTheme();
 
   const toggleTheme = () => {
+    // Al cambiar manualmente, se desactiva automáticamente el modo automático
     setIsLightTheme(!isLightTheme);
   };
 
@@ -25,6 +26,7 @@ export default function ThemeToggle() {
       onMouseLeave={(e) => {
         e.currentTarget.style.color = 'var(--color-text-primary)';
       }}
+      title={isAutoTheme ? "Modo automático activo - Click para cambiar manualmente" : "Cambiar tema"}
     >
       {isLightTheme ? <Moon size={20} /> : <Sun size={20} />}
     </button>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Clock, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
 import '../../styles/components/preferences/ConfigPanel.css';
 
@@ -88,6 +89,7 @@ export default function ConfigPanel({
 }) {
   const isMobile = useIsMobile();
   const { token, user, refreshMe } = useAuth();
+  const { isLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme } = useTheme();
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -176,6 +178,24 @@ export default function ConfigPanel({
           <section className="config-section">
             <h3>Sesión</h3>
             <SessionOptions />
+          </section>
+
+          <section className="config-section">
+            <h3>Apariencia</h3>
+            <div className="visualization-header-options">
+              <ToggleOption
+                id="toggle-auto-theme"
+                label="Modo día/noche automático"
+                value={isAutoTheme}
+                onChange={(value) => {
+                  if (value) {
+                    enableAutoTheme();
+                  } else {
+                    disableAutoTheme();
+                  }
+                }}
+              />
+            </div>
           </section>
 
           <section className="config-section">
