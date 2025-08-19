@@ -24,18 +24,30 @@ export default function useItemsForDays(itemsByDate) {
       return;
     }
 
+    // Obtener todas las fechas que tienen items
     const fechasConItems = Object.keys(currentItemsByDate)
-      .map(key => DateTime.fromISO(key))
-      .filter(date => date >= today);
+      .map(key => {
+        try {
+          return DateTime.fromISO(key);
+        } catch (error) {
+          console.warn('Fecha inválida:', key);
+          return null;
+        }
+      })
+      .filter(date => date && date.isValid && date >= today);
 
     if (fechasConItems.length === 0) {
       setItemsForDays([]);
       return;
     }
 
-    const maxDate = fechasConItems.reduce((a, b) => (a > b ? a : b));
+    // Ordenar fechas y obtener la fecha máxima
+    fechasConItems.sort((a, b) => a.toMillis() - b.toMillis());
+    const maxDate = fechasConItems[fechasConItems.length - 1];
+    
     const itemsList = [];
 
+    // Generar lista de días desde hoy hasta la fecha máxima
     for (let date = today; date <= maxDate; date = date.plus({ days: 1 })) {
       const key = formatDateKey(date.toObject());
       const items = currentItemsByDate[key] || [];

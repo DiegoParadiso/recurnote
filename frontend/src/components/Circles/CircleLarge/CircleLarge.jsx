@@ -56,13 +56,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
-  // Usar items combinados según el contexto
-  const combinedItemsByDate = user && token ? hookItemsByDate : contextItemsByDate;
-  const itemsForSelectedDay = selectedDay ? combinedItemsByDate[formatDateKey(selectedDay)] || [] : [];
+  // Usar items del ItemsContext (que maneja tanto servidor como local)
+  const itemsForSelectedDay = selectedDay ? contextItemsByDate[formatDateKey(selectedDay)] || [] : [];
 
   const handleDrop = useHandleDrop({
     containerRef,
-    setItemsByDate: user && token ? hookSetItemsByDate : setLocalItemsByDate, // Usar el contexto correcto
+    setItemsByDate: contextSetItemsByDate, // Usar siempre el ItemsContext
     selectedDay,
     rotationAngle,
     radius,

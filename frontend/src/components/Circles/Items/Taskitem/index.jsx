@@ -81,7 +81,14 @@ export default function TaskItem({
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
         onMove={({ x, y }) => {
-          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y });
+          // Calcular el ángulo y distancia desde el centro del círculo
+          const dx = x - cx;
+          const dy = y - cy;
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Actualizar la posición del item
+          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y }, { angle, distance });
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {

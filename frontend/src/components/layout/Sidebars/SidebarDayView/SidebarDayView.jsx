@@ -13,7 +13,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
   
   // Usar items del ItemsContext (que maneja tanto servidor como local)
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
-
+  
   const [isHoveringTop, setIsHoveringTop] = useState(false);
   const [isHoveringBottom, setIsHoveringBottom] = useState(false);
 

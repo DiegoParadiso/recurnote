@@ -23,7 +23,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
 
   const debounceTimersRef = useRef(new Map());
   
-  const combinedItemsByDate = user && token ? itemsByDate : {};
+  const combinedItemsByDate = itemsByDate || {};
   
   // Asegurar que combinedItemsByDate siempre sea un objeto
   const safeCombinedItemsByDate = combinedItemsByDate || {};
@@ -45,9 +45,10 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const timers = debounceTimersRef.current;
     if (timers.has(id)) clearTimeout(timers.get(id));
     const t = setTimeout(() => {
-      if (userRef.current && tokenRef.current) {
-        updateItem(id, changes).catch(() => {});
-      }
+      // Usar updateItem del ItemsContext para todo (tanto servidor como local)
+      updateItem(id, changes).catch((error) => {
+        console.error('Error updating item:', error);
+      });
       timers.delete(id);
     }, delayMs);
     timers.set(id, t);
@@ -58,12 +59,8 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     if (delta !== 0 && selectedDay) {
       const dateKey = formatDateKey(selectedDay);
       
-      // Usar la función correcta según el modo
-      const setCombinedFunc = userRef.current && tokenRef.current 
-        ? setItemsByDateRef.current 
-        : setItemsByDateRef.current;
-        
-      setCombinedFunc((prev) => {
+      // Actualizar el estado visual inmediatamente para todos los items
+      setItemsByDateRef.current((prev) => {
         const currentItems = prev[dateKey] || [];
         if (!currentItems.length) return prev;
         
@@ -88,146 +85,40 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     }
   };
 
-  const handleNoteUpdate = (id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra) => {
+  const handleNoteUpdate = useCallback((id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
 
-    // Usar la función correcta según el modo
-    const setCombinedFunc = userRef.current && tokenRef.current 
-      ? setItemsByDateRef.current 
-      : setItemsByDateRef.current;
+    console.log('🔍 handleNoteUpdate llamado:', { id, newContent, newPolar, maybeSize, newPosition, extra });
 
-    setCombinedFunc((prev) => {
-      const currentItems = prev[dateKey] || [];
-      if (!currentItems.length) return prev;
-      
-      const updatedItems = currentItems.map((item) => {
-        if (item.id !== id) return item;
-        const updated = { ...item };
-
-        if (Array.isArray(newContent)) {
-          updated.content = newContent;
-          if (Array.isArray(newPolar)) updated.checked = newPolar;
-        } else if (newContent !== undefined) {
-          updated.content = newContent;
-        }
-
-        if (maybeSize?.width && maybeSize?.height) {
-          updated.width = maybeSize.width;
-          updated.height = maybeSize.height;
-        }
-        
-        if (newPolar && typeof newPolar === 'object' && !Array.isArray(newPolar)) {
-          updated.angle = newPolar.angle ?? item.angle;
-          updated.distance = newPolar.distance ?? item.distance;
-        }
-        
-        if (newPosition) {
-          const dx = newPosition.x - cx;
-          const dy = newPosition.y - cy;
-          const radians = (-rotationAngle * Math.PI) / 180;
-          const rotatedX = dx * Math.cos(radians) - dy * Math.sin(radians);
-          const rotatedY = dx * Math.sin(radians) + dy * Math.cos(radians);
-          const angle = (Math.atan2(rotatedY, rotatedX) * 180) / Math.PI;
-          updated.angle = (angle + rotationAngle + 360) % 360;
-          updated.distance = Math.sqrt(rotatedX ** 2 + rotatedY ** 2);
-        }
-        
-        if (extra && typeof extra === 'object') {
-          Object.assign(updated, extra);
-        }
-        return updated;
-      });
-      
-      return {
-        ...prev,
-        [dateKey]: updatedItems,
-      };
-    });
-
-    // Programar actualización para items del servidor Y locales
-    const idIsNumeric = typeof id === 'number' && Number.isFinite(id);
-    if (idIsNumeric && userRef.current && tokenRef.current) {
-      // Item del servidor
-      const changes = {};
-      if (Array.isArray(newContent)) changes.content = newContent;
-      else if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
-      if (Array.isArray(newPolar)) changes.checked = newPolar;
-      if (maybeSize?.width && maybeSize?.height) {
-        changes.width = maybeSize.width;
-        changes.height = maybeSize.height;
-      }
-      if (extra && typeof extra === 'object') Object.assign(changes, extra);
-      if (Object.keys(changes).length) scheduleUpdate(id, changes, 500);
-    } else {
-      // Item local - actualizar inmediatamente en localStorage Y estado visual
-      const changes = {};
-      if (Array.isArray(newContent)) changes.content = newContent;
-      else if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
-      if (Array.isArray(newPolar)) changes.checked = newPolar;
-      if (maybeSize?.width && maybeSize?.height) {
-        changes.width = maybeSize.width;
-        changes.height = maybeSize.height;
-      }
-      if (extra && typeof extra === 'object') Object.assign(changes, extra);
-      if (Object.keys(changes).length) {
-        updateItem(id, changes);
-        
-        // También actualizar el estado visual inmediatamente para items locales
-        setItemsByDateRef.current((prev) => {
-          const currentItems = prev[dateKey] || [];
-          if (!currentItems.length) return prev;
-          
-          const updatedItems = currentItems.map((item) => {
-            if (item.id === id) {
-              const updated = { ...item };
-              if (Array.isArray(newContent)) updated.content = newContent;
-              else if (newContent !== undefined && !Array.isArray(newContent)) updated.content = newContent;
-              if (Array.isArray(newPolar)) updated.checked = newPolar;
-              if (maybeSize?.width && maybeSize?.height) {
-                updated.width = maybeSize.width;
-                updated.height = maybeSize.height;
-              }
-              if (extra && typeof extra === 'object') Object.assign(updated, extra);
-              return updated;
-            }
-            return item;
-          });
-          
-          return {
-            ...prev,
-            [dateKey]: updatedItems,
-          };
-        });
-      }
+    // Usar updateItem del ItemsContext para todo (tanto servidor como local)
+    const changes = {};
+    if (Array.isArray(newContent)) changes.content = newContent;
+    else if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
+    if (Array.isArray(newPolar)) changes.checked = newPolar;
+    if (maybeSize?.width && maybeSize?.height) {
+      changes.width = maybeSize.width;
+      changes.height = maybeSize.height;
     }
-  };
+    if (extra && typeof extra === 'object') Object.assign(changes, extra);
+    
+    console.log('🔍 Cambios a aplicar:', changes);
+    
+    if (Object.keys(changes).length) {
+      updateItem(id, changes).catch((error) => {
+        console.error('Error updating item:', error);
+      });
+    }
+  }, [selectedDay, updateItem]);
 
   const handleDeleteItem = useCallback((id) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
 
-    // Solo eliminar del servidor si es un item autenticado (ID numérico)
-    const idIsNumeric = typeof id === 'number' && Number.isFinite(id);
-    
-    if (idIsNumeric && userRef.current && tokenRef.current) {
-      // Item del servidor - usar setItemsByDate
-      setItemsByDateRef.current((prev) => {
-        const currentItems = prev[dateKey] || [];
-        if (!currentItems.length) return prev;
-        
-        return {
-          ...prev,
-          [dateKey]: currentItems.filter((item) => item.id !== id),
-        };
-      });
-      
-      // Eliminar del servidor
-      deleteItem(id).catch(() => {});
-    } else {
-      // Es un item local - usar deleteLocalItem
-      // deleteLocalItem(id); // This line was removed from the new_code, so it's removed here.
-    }
+    // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
+    deleteItem(id).catch((error) => {
+      console.error('Error deleting item:', error);
+    });
   }, [selectedDay, deleteItem]);
 
   const persistPositionOnDrop = useCallback((id) => {
@@ -241,31 +132,11 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const x = item.distance * Math.cos(angleRad);
     const y = item.distance * Math.sin(angleRad);
     
-    if (user && token && typeof id === 'number' && Number.isFinite(id)) {
-      // Item del servidor
-      updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch(() => {});
-    } else {
-      // Item local - actualizar tanto localStorage como estado visual
-      // updateLocalItem(id, { angle: item.angle, distance: item.distance, x, y }); // This line was removed from the new_code, so it's removed here.
-      
-      // Actualizar el estado visual inmediatamente para que se mueva en tiempo real
-      setItemsByDateRef.current((prev) => {
-        const currentItems = prev[dateKey] || [];
-        if (!currentItems.length) return prev;
-        
-        const updatedItems = currentItems.map((item) =>
-          item.id === id 
-            ? { ...item, angle: item.angle, distance: item.distance, x, y }
-            : item
-        );
-        
-        return {
-          ...prev,
-          [dateKey]: updatedItems,
-        };
-      });
-    }
-  }, [selectedDay, safeCombinedItemsByDate, updateItem, user, token]);
+    // Usar updateItem del ItemsContext para todo (tanto servidor como local)
+    updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch((error) => {
+      console.error('Error updating item position:', error);
+    });
+  }, [selectedDay, safeCombinedItemsByDate, updateItem]);
 
   const handleItemDrop = (id) => {
     // Solo persistir la posición, no llamar a onItemDrop del componente padre

@@ -49,25 +49,8 @@ export default function useHandleDrop({
       // Fuera del círculo - solo eliminar si es un drop intencional
       if (distance > radius) {
         if (source === 'dropped' && itemId) {
-          // Solo eliminar si realmente se está arrastrando fuera del círculo intencionalmente
-          // Determinar si es item local o del servidor
-          const idIsNumeric = typeof Number(itemId) === 'number' && Number.isFinite(Number(itemId));
-          
-          if (idIsNumeric && user && token) {
-            // Item del servidor
-            setItemsByDate((prev) => {
-              const itemsForDate = prev[dateKey] || [];
-              return {
-                ...prev,
-                [dateKey]: itemsForDate.filter((item) => item.id.toString() !== itemId),
-              };
-            });
-            deleteItem(Number(itemId)).catch(() => {});
-          } else {
-            // Item local
-            // No hay lógica de eliminación local aquí, ya que el item se elimina del servidor
-            // Si el item es local, no se hace nada aquí.
-          }
+          // Eliminar item (tanto local como del servidor)
+          deleteItem(itemId).catch(() => {});
           return;
         }
         if (source === 'sidebar') {
@@ -78,51 +61,27 @@ export default function useHandleDrop({
 
       // Dentro del círculo
       if (source === 'sidebar') {
-        if (user && token) {
-          // Usuario autenticado - usar servidor
-          addItem({
-            date: dateKey,
-            x: rotatedX,
-            y: rotatedY,
-            rotation: 0,
-            rotation_enabled: true,
-            label,
-            angle,
-            distance,
-            content: label === 'Tarea' ? [''] : '',
-            ...(label === 'Tarea' ? { checked: [false] } : {}),
-            width: label === 'Tarea' ? 200 : 100,
-            height: label === 'Tarea' ? 150 : 100,
-          }).catch(() => {});
-        } else {
-          // Usuario no autenticado - usar localStorage
-          // No hay lógica de añadir local aquí, ya que el item se añade al servidor
-          // Si el usuario no está autenticado, no se hace nada aquí.
-        }
+        // Crear nuevo item (tanto local como del servidor)
+        addItem({
+          date: dateKey,
+          x: rotatedX,
+          y: rotatedY,
+          rotation: 0,
+          rotation_enabled: true,
+          label,
+          angle,
+          distance,
+          content: label === 'Tarea' ? [''] : '',
+          ...(label === 'Tarea' ? { checked: [false] } : {}),
+          width: label === 'Tarea' ? 200 : 100,
+          height: label === 'Tarea' ? 150 : 100,
+        }).catch(() => {});
         return;
       }
 
       if (source === 'dropped' && itemId) {
-        // Determinar si es item local o del servidor
-        const idIsNumeric = typeof Number(itemId) === 'number' && Number.isFinite(Number(itemId));
-        
-        if (idIsNumeric && user && token) {
-          // Item del servidor
-          setItemsByDate((prev) => {
-            const itemsForDate = prev[dateKey] || [];
-            const updatedItems = itemsForDate.map((item) =>
-              item.id.toString() === itemId ? { ...item, angle, distance } : item
-            );
-          
-            return { ...prev, [dateKey]: updatedItems };
-          });
-
-          updateItem(Number(itemId), { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
-        } else {
-          // Item local
-          // No hay lógica de actualizar local aquí, ya que el item se actualiza en el servidor
-          // Si el item es local, no se hace nada aquí.
-        }
+        // Mover item existente (tanto local como del servidor)
+        updateItem(itemId, { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
         return;
       }
     },

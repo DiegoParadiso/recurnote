@@ -89,6 +89,29 @@ export default function ArchivoItem({
     item.content?.fileData?.type === 'image/jpeg' ||
     item.content?.fileData?.type === 'image/png';
 
+  // Determinar qué opciones mostrar en el menú contextual
+  const getContextMenuOptions = () => {
+    const options = [];
+    
+    // Solo mostrar opciones si hay un archivo subido
+    if (item.content?.fileData && item.content?.base64) {
+      options.push({ label: 'Renombrar archivo', onClick: renameFile });
+      options.push({ label: 'Duplicar archivo', onClick: duplicateFile });
+      
+      // Solo mostrar opción de imagen si es realmente una imagen
+      if (isImage) {
+        options.push({ 
+          label: showOnlyImage ? 'Mostrar todo' : 'Mostrar solo imagen', 
+          onClick: toggleShowOnlyImage 
+        });
+      }
+      
+      options.push({ label: 'Descargar archivo', onClick: handleDownload });
+    }
+    
+    return options;
+  };
+
   const minWidth = showOnlyImage ? 120 : 120;
   const maxWidth = showOnlyImage ? 800 : 300;
   const minHeight = showOnlyImage ? 120 : isImage ? 140 : 80;
@@ -98,12 +121,7 @@ export default function ArchivoItem({
     <>
       <WithContextMenu
         onDelete={() => onDelete?.(id)}
-        extraOptions={[
-          { label: 'Renombrar archivo', onClick: renameFile },
-          { label: 'Duplicar archivo', onClick: duplicateFile },
-          { label: showOnlyImage ? 'Mostrar todo' : 'Mostrar solo imagen', onClick: toggleShowOnlyImage },
-          { label: 'Descargar archivo', onClick: handleDownload },
-        ]}
+        extraOptions={getContextMenuOptions()}
       >
         <UnifiedContainer
           x={x}
@@ -116,12 +134,19 @@ export default function ArchivoItem({
           minHeight={minHeight}
           maxHeight={maxHeight}
           onMove={({ x: newX, y: newY }) => {
+            // Calcular el ángulo y distancia desde el centro del círculo
+            const dx = newX - cx;
+            const dy = newY - cy;
+            const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
             onUpdate?.(
               id,
               item.content || {},
               null,
               { width: item.width || maxWidth, height: item.height || maxHeight },
-              { x: newX, y: newY }
+              { x: newX, y: newY },
+              { angle, distance }
             );
             onItemDrag?.(id, { x: newX, y: newY });
           }}

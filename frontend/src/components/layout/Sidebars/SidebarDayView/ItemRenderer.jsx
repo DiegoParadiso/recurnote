@@ -7,6 +7,20 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
   const { deleteItem } = useItems();
   const { user, token } = useAuth();
 
+  // Función para determinar si el item tiene contenido real
+  const hasRealContent = (content) => {
+    if (!content) return false;
+    if (typeof content === 'string') return content.trim().length > 0;
+    if (Array.isArray(content)) return content.some(item => item && item.trim && item.trim().length > 0);
+    if (typeof content === 'object') {
+      // Para archivos, verificar si realmente hay datos
+      if (content.fileData && content.base64) return true;
+      // Para otros objetos, verificar si no está vacío
+      return Object.keys(content).length > 0 && JSON.stringify(content) !== '{}';
+    }
+    return false;
+  };
+
   const handleDelete = async (e) => {
     e.preventDefault();
     if (!window.confirm('¿Eliminar este ítem?')) return;
@@ -19,16 +33,28 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
     }
   };
 
+  const renderDeleteButton = () => (
+    <button
+      onClick={handleDelete}
+      className={`delete-btn text-xs text-gray-400 hover:text-gray-600 transition-colors ${
+        !hasRealContent(item.content) ? 'centered' : ''
+      }`}
+      title="Eliminar item"
+    >
+      ×
+    </button>
+  );
+
   if (item.label === 'Tarea') {
     return (
       <div
         key={item.id}
-        onContextMenu={handleDelete}
-        className="w-full rounded p-2 item-card border shadow-sm text-[10px]"
+        className="w-full rounded p-2 item-card border shadow-sm text-[10px] relative min-h-[2.5rem]"
       >
+        {renderDeleteButton()}
         {(item.content || []).map((task, idx) => (
-          <div key={idx} className="flex items-center gap-2 mb-1">
-            <label className="checkbox-label relative cursor-pointer select-none">
+          <div key={idx} className="flex items-start gap-2 mb-1">
+            <label className="checkbox-label relative cursor-pointer select-none flex-shrink-0">
               <input
                 type="checkbox"
                 className="checkbox-input"
@@ -53,8 +79,11 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
                 </svg>
               </span>
             </label>
-            <span className={item.checked?.[idx] ? 'line-through' : ''}>
-              {task}
+            <span 
+              className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'text-gray-400 italic'}`}
+              style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
+            >
+              {item.content?.[idx] || 'Tarea sin descripción'}
             </span>
           </div>
         ))}
@@ -65,10 +94,12 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
   return (
     <div
       key={item.id}
-      onContextMenu={handleDelete}
-      className="w-full rounded p-2 item-card border shadow-sm text-[10px]"
+      className={`w-full rounded p-2 item-card border shadow-sm text-[10px] relative min-h-[2.5rem] ${
+        !hasRealContent(item.content) ? 'empty-content' : ''
+      }`}
       title={typeof item.content === 'object' ? JSON.stringify(item.content) : item.content}
     >
+      {renderDeleteButton()}
       {typeof item.content === 'object' && item.content.fileData && item.content.base64 ? (
         <a
           href={item.content.base64}
@@ -78,10 +109,18 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
         >
           {item.content.fileData.name}
         </a>
+      ) : !hasRealContent(item.content) ? (
+        <div className="empty-content-placeholder">
+          <span className="text-gray-400 italic">Sin contenido</span>
+        </div>
       ) : typeof item.content === 'object' ? (
-        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(item.content, null, 2)}</pre>
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '9px', lineHeight: '1.2', margin: 0 }}>
+          {JSON.stringify(item.content, null, 2)}
+        </pre>
       ) : (
-        item.content
+        <div style={{ wordBreak: 'break-word', lineHeight: '1.3' }}>
+          {item.content}
+        </div>
       )}
     </div>
   );

@@ -20,10 +20,19 @@ export const ItemsProvider = ({ children }) => {
       const localItems = localStorage.getItem('localItems');
       if (localItems) {
         const parsed = JSON.parse(localItems);
-        setItemsByDate(parsed);
+        // Verificar que los items tengan la estructura correcta
+        if (parsed && typeof parsed === 'object') {
+          setItemsByDate(parsed);
+        } else {
+          console.warn('Items locales tienen estructura inválida:', parsed);
+          setItemsByDate({});
+        }
+      } else {
+        setItemsByDate({});
       }
     } catch (error) {
       console.error('Error loading local items:', error);
+      setItemsByDate({});
     }
   }, []);
 
@@ -267,6 +276,14 @@ export const ItemsProvider = ({ children }) => {
         throw e;
       }
     } else {
+      // Usuario no autenticado - verificar límite local
+      const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+      const maxLocalItems = 5;
+      
+      if (totalLocalItems >= maxLocalItems) {
+        throw new Error(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+      }
+
       // Usuario no autenticado - guardar localmente
       const newItem = {
         id: `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
