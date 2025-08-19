@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DateTime } from 'luxon';
 import { useItems } from '../context/ItemsContext';
-import { useLocal } from '../context/LocalContext';
 import { useAuth } from '../context/AuthContext';
 
 export function useHomeLogic() {
   const { itemsByDate, addItem } = useItems();
-  const { localItemsByDate, addLocalItem, localToastMessage, localToastDuration, clearLocalToast } = useLocal();
   const { user, token } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   
@@ -24,9 +22,9 @@ export function useHomeLogic() {
     if (user && token) {
       return itemsByDate || {};
     } else {
-      return localItemsByDate || {};
+      return {}; // No hay localItemsByDate en este hook
     }
-  }, [user, token, itemsByDate, localItemsByDate]);
+  }, [user, token, itemsByDate]);
 
   // CircleSmall en Desktop - posición y drag global (sobre Home)
   const smallSize = 350;
@@ -289,88 +287,45 @@ export function useHomeLogic() {
       return;
     }
 
-    if (user && token) {
-      if (!user?.is_vip) {
-        const totalCount = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
-        if (totalCount >= 15) {
-          setToast('Haz alcanzado el límite de 15 items para cuentas gratuitas.');
-          return;
-        }
-      }
+    const angle = Math.random() * 360;
+    const distance = 120;
+    const rad = (angle * Math.PI) / 180;
 
-      const angle = Math.random() * 360;
-      const distance = 120;
-      const rad = (angle * Math.PI) / 180;
+    const newItem = {
+      label: item.label,
+      angle,
+      distance,
+      x: distance * Math.cos(rad),
+      y: distance * Math.sin(rad),
+      content: item.label === 'Tarea' ? [''] : '',
+      ...(item.label === 'Tarea' && { checked: [false] }),
+      width: item.label === 'Tarea' ? 200 : 100,
+      height: item.label === 'Tarea' ? 150 : 100,
+    };
 
-      const newItem = {
-        label: item.label,
-        angle,
-        distance,
-        x: distance * Math.cos(rad),
-        y: distance * Math.sin(rad),
-        content: item.label === 'Tarea' ? [''] : '',
-        ...(item.label === 'Tarea' && { checked: [false] }),
-        width: item.label === 'Tarea' ? 200 : 100,
-        height: item.label === 'Tarea' ? 150 : 100,
-      };
-
-      try {
-        await addItem({
-          date: dateKey,
-          rotation: 0,
-          rotation_enabled: true,
-          ...newItem,
-        });
-      } catch (e) {
-        setToast(e?.message || 'No se pudo crear el item');
-      }
-    } else {
-      const angle = Math.random() * 360;
-      const distance = 120;
-      const rad = (angle * Math.PI) / 180;
-
-      const newItem = {
-        label: item.label,
-        angle,
-        distance,
-        x: distance * Math.cos(rad),
-        y: distance * Math.sin(rad),
-        content: item.label === 'Tarea' ? [''] : '',
-        ...(item.label === 'Tarea' && { checked: [false] }),
-        width: item.label === 'Tarea' ? 200 : 100,
-        height: item.label === 'Tarea' ? 150 : 100,
-      };
-
-      const result = addLocalItem({
+    try {
+      await addItem({
         date: dateKey,
         rotation: 0,
         rotation_enabled: true,
         ...newItem,
       });
-
-                if (result) {
-            // Item creado localmente - sin toast
-          }
+    } catch (e) {
+      setToast(e?.message || 'No se pudo crear el item');
     }
-  }, [user, token, itemsByDate, addItem, addLocalItem, setToast]);
+  }, [addItem, setToast]);
 
   useEffect(() => {
-    if (localToastMessage) {
-      setToast(localToastMessage);
-      // Usar setTimeout para evitar re-renders inmediatos
-      setTimeout(() => {
-        clearLocalToast();
-      }, 100);
-    }
-  }, [localToastMessage, localToastDuration, clearLocalToast]);
+    // No hay toast local, por lo que no se necesita este efecto
+  }, []);
 
   const memoizedCombinedItemsByDate = useMemo(() => {
     if (user && token) {
       return itemsByDate || {};
     } else {
-      return localItemsByDate || {};
+      return {}; // No hay localItemsByDate en este hook
     }
-  }, [user, token, itemsByDate, localItemsByDate]);
+  }, [user, token, itemsByDate]);
 
   return {
     showRightSidebar,

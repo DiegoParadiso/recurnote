@@ -1,14 +1,16 @@
 import { useCallback } from 'react';
-import { useLocal } from '../context/LocalContext';
 import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
 
 export function useLocalMigration() {
-  const { migrateLocalItems, getTotalLocalItems } = useLocal();
+  const { itemsByDate, setItemsByDate } = useItems();
   const { addItem } = useItems();
   const { markMigrationComplete } = useAuth();
 
-  const hasLocalItems = getTotalLocalItems() > 0;
+  // Verificar si hay items locales (items que no son del servidor)
+  const hasLocalItems = Object.values(itemsByDate).some(items => 
+    items.some(item => item._local === true)
+  );
 
   const performMigration = useCallback(async () => {
     if (!hasLocalItems) {
@@ -17,7 +19,16 @@ export function useLocalMigration() {
     }
 
     try {
-      const localItems = migrateLocalItems();
+      // Obtener todos los items locales
+      const localItems = [];
+      Object.values(itemsByDate).forEach(items => {
+        items.forEach(item => {
+          if (item._local === true) {
+            localItems.push(item);
+          }
+        });
+      });
+
       let migratedCount = 0;
       let failedCount = 0;
 
@@ -42,6 +53,17 @@ export function useLocalMigration() {
         }
       }
 
+      // Limpiar items locales después de la migración exitosa
+      if (migratedCount > 0) {
+        setItemsByDate(prev => {
+          const newState = {};
+          Object.keys(prev).forEach(dateKey => {
+            newState[dateKey] = prev[dateKey].filter(item => item._local !== true);
+          });
+          return newState;
+        });
+      }
+
       markMigrationComplete('completed');
       return { 
         success: true, 
@@ -57,7 +79,7 @@ export function useLocalMigration() {
         error: error.message || 'Error durante la migración'
       };
     }
-  }, [hasLocalItems, migrateLocalItems, addItem, markMigrationComplete]);
+  }, [hasLocalItems, itemsByDate, addItem, markMigrationComplete, setItemsByDate]);
 
   return {
     hasLocalItems,

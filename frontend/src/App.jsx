@@ -3,7 +3,6 @@ import Home from './pages/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { ItemsProvider } from './context/ItemsContext';
-import { LocalProvider } from './context/LocalContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotesProvider } from './context/NotesContext';
 import { AuthProvider } from './context/AuthContext';
@@ -36,15 +35,13 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <LocalProvider>
-        <ThemeProvider>
-          <ItemsProvider>
-            <NotesProvider>
-              <AppRoutes />
-            </NotesProvider>
-          </ItemsProvider>
-        </ThemeProvider>
-      </LocalProvider>
+      <ThemeProvider>
+        <ItemsProvider>
+          <NotesProvider>
+            <AppRoutes />
+          </NotesProvider>
+        </ItemsProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

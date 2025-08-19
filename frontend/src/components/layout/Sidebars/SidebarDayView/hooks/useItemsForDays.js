@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import { formatDateKey } from '../../../../../utils/formatDateKey';
-import { useLocal } from '../../../../../context/LocalContext';
 import { useAuth } from '../../../../../context/AuthContext';
 
 export default function useItemsForDays(itemsByDate) {
   const [itemsForDays, setItemsForDays] = useState([]);
   const [startDate, setStartDate] = useState(null);
-  const { localItemsByDate } = useLocal();
   const { user, token } = useAuth();
 
-  // Combinar items del servidor y locales
+  // Usar itemsByDate del ItemsContext (que ahora incluye tanto servidor como local)
   const combinedItemsByDate = () => {
-    if (user && token) {
-      return itemsByDate || {};
-    } else {
-      return localItemsByDate || {};
-    }
+    return itemsByDate || {};
   };
 
   useEffect(() => {
@@ -51,7 +45,7 @@ export default function useItemsForDays(itemsByDate) {
     }
 
     setItemsForDays(itemsList);
-  }, [itemsByDate, localItemsByDate, user, token]);
+  }, [itemsByDate, user, token]);
 
   return { itemsForDays, startDate };
 }

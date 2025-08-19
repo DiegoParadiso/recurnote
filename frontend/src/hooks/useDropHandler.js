@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { formatDateKey } from '../utils/formatDateKey';
 import { useItems } from '../context/ItemsContext';
-import { useLocal } from '../context/LocalContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function useHandleDrop({
@@ -13,7 +12,6 @@ export default function useHandleDrop({
   onInvalidDrop,
 }) {
   const { addItem, updateItem, deleteItem } = useItems();
-  const { addLocalItem, updateLocalItem, deleteLocalItem } = useLocal();
   const { user, token } = useAuth();
 
   const handleDrop = useCallback(
@@ -67,7 +65,8 @@ export default function useHandleDrop({
             deleteItem(Number(itemId)).catch(() => {});
           } else {
             // Item local
-            deleteLocalItem(itemId);
+            // No hay lógica de eliminación local aquí, ya que el item se elimina del servidor
+            // Si el item es local, no se hace nada aquí.
           }
           return;
         }
@@ -97,20 +96,8 @@ export default function useHandleDrop({
           }).catch(() => {});
         } else {
           // Usuario no autenticado - usar localStorage
-          addLocalItem({
-            date: dateKey,
-            x: rotatedX,
-            y: rotatedY,
-            rotation: 0,
-            rotation_enabled: true,
-            label,
-            angle,
-            distance,
-            content: label === 'Tarea' ? [''] : '',
-            ...(label === 'Tarea' ? { checked: [false] } : {}),
-            width: label === 'Tarea' ? 200 : 100,
-            height: label === 'Tarea' ? 150 : 100,
-          });
+          // No hay lógica de añadir local aquí, ya que el item se añade al servidor
+          // Si el usuario no está autenticado, no se hace nada aquí.
         }
         return;
       }
@@ -133,12 +120,13 @@ export default function useHandleDrop({
           updateItem(Number(itemId), { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
         } else {
           // Item local
-          updateLocalItem(itemId, { angle, distance, x: rotatedX, y: rotatedY });
+          // No hay lógica de actualizar local aquí, ya que el item se actualiza en el servidor
+          // Si el item es local, no se hace nada aquí.
         }
         return;
       }
     },
-    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop, addItem, updateItem, deleteItem, addLocalItem, updateLocalItem, deleteLocalItem, user, token]
+    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop, addItem, updateItem, deleteItem, user, token]
   );
 
   return handleDrop;

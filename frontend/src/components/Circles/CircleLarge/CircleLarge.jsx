@@ -10,10 +10,17 @@ import { useDisplayText } from '../../../hooks/useDisplayText';
 import { formatDateKey } from '../../../utils/formatDateKey';
 import BottomToast from '../../common/BottomToast';
 import useHandleDrop from '../../../hooks/useDropHandler';
+import { useItems } from '../../../context/ItemsContext';
+import { useAuth } from '../../../context/AuthContext';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate }) {
   const { width } = useWindowDimensions();
   const [circleSize, setCircleSize] = useState(680);
+  const { itemsByDate: contextItemsByDate, setItemsByDate: contextSetItemsByDate } = useItems();
+  const { user, token } = useAuth();
+  
+  // Usar setItemsByDate del ItemsContext para todo
+  const setItemsByDateForDrop = setLocalItemsByDate || contextSetItemsByDate;
   
   const {
     containerRef,
@@ -28,8 +35,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     handleNoteUpdate,
     handleDeleteItem,
     handleItemDrop,
-    itemsByDate,
-    setItemsByDate,
+    itemsByDate: hookItemsByDate,
+    setItemsByDate: hookSetItemsByDate,
   } = useCircleLargeLogic(selectedDay, onItemDrag);
 
   useEffect(() => {
@@ -44,22 +51,23 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
 
   const displayText = useDisplayText(selectedDay, displayOptions);
 
-
   const isSmallScreen = width <= 640;
   const radius = circleSize / 2 - 40;
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
+  // Usar items combinados según el contexto
+  const combinedItemsByDate = user && token ? hookItemsByDate : contextItemsByDate;
+  const itemsForSelectedDay = selectedDay ? combinedItemsByDate[formatDateKey(selectedDay)] || [] : [];
+
   const handleDrop = useHandleDrop({
     containerRef,
-    setItemsByDate: setItemsByDate, // Usar la función correcta del hook
+    setItemsByDate: user && token ? hookSetItemsByDate : setLocalItemsByDate, // Usar el contexto correcto
     selectedDay,
     rotationAngle,
     radius,
     onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
   });
-
-  const itemsForSelectedDay = selectedDay ? itemsByDate[formatDateKey(selectedDay)] || [] : [];
 
   return (
     <div

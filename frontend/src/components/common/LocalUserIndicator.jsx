@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useLocal } from '../../context/LocalContext';
 import { useItems } from '../../context/ItemsContext';
 import { useAuth } from '../../context/AuthContext';
 import useIsMobile from '../../hooks/useIsMobile';
 import './LocalUserIndicator.css';
 
 export default function LocalUserIndicator({ showAccountIndicator = true }) {
-  const { getTotalLocalItems } = useLocal();
   const { itemsByDate } = useItems();
   const { user, token } = useAuth();
   const isMobile = useIsMobile();
   const [isBlinking, setIsBlinking] = useState(false);
 
-  // Efecto de parpadeo para TODOS los modos
   useEffect(() => {
     const interval = setInterval(() => {
       setIsBlinking(prev => !prev);
@@ -50,8 +47,8 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
       };
     }
   } else {
-    // Modo local
-    totalItems = getTotalLocalItems();
+    // Modo local - usar itemsByDate que ahora incluye items locales
+    totalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
     maxItems = 5;
     remainingSlots = Math.max(0, maxItems - totalItems);
     modeInfo = {

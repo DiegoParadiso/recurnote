@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { useItems } from '../../../../context/ItemsContext';
-import { useLocal } from '../../../../context/LocalContext';
 import { useAuth } from '../../../../context/AuthContext';
 import ItemsList from './ItemsList';
 import ItemRenderer from './ItemRenderer';
@@ -10,8 +9,9 @@ import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { itemsByDate, setItemsByDate, updateItem } = useItems();
-  const { localItemsByDate, updateLocalItem, setLocalItemsByDate } = useLocal();
   const { user, token } = useAuth();
+  
+  // Usar items del ItemsContext (que maneja tanto servidor como local)
   const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
 
   const [isHoveringTop, setIsHoveringTop] = useState(false);
@@ -35,44 +35,23 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
 
   // Toggle sólo la tarea del item indicado
   const toggleTaskCheck = (dateKey, itemId, taskIndex) => {
-    if (user && token) {
-      // Modo usuario autenticado - usar servidor
-      const currentItems = itemsByDate[dateKey] || [];
-      const updatedItems = currentItems.map(item => {
-        if (item.id === itemId && item.label === 'Tarea') {
-          const checks = [...(item.checked || [])];
-          checks[taskIndex] = !checks[taskIndex];
-          // Persistir en servidor solo para este item
-          updateItem(item.id, { checked: checks }).catch(() => {});
-          return { ...item, checked: checks };
-        }
-        return item;
-      });
+    // Usar updateItem del ItemsContext para todo (tanto servidor como local)
+    const currentItems = itemsByDate[dateKey] || [];
+    const updatedItems = currentItems.map(item => {
+      if (item.id === itemId && item.label === 'Tarea') {
+        const checks = [...(item.checked || [])];
+        checks[taskIndex] = !checks[taskIndex];
+        // Persistir usando updateItem (que maneja tanto servidor como local)
+        updateItem(item.id, { checked: checks }).catch(() => {});
+        return { ...item, checked: checks };
+      }
+      return item;
+    });
 
-      setItemsByDate(prev => ({
-        ...prev,
-        [dateKey]: updatedItems,
-      }));
-    } else {
-      // Modo local - usar localStorage
-      const currentItems = (localItemsByDate || {})[dateKey] || [];
-      const updatedItems = currentItems.map(item => {
-        if (item.id === itemId && item.label === 'Tarea') {
-          const checks = [...(item.checked || [])];
-          checks[taskIndex] = !checks[taskIndex];
-          // Persistir en localStorage
-          updateLocalItem(item.id, { checked: checks });
-          return { ...item, checked: checks };
-        }
-        return item;
-      });
-      
-      // Actualizar el estado local
-      setLocalItemsByDate(prev => ({
-        ...prev,
-        [dateKey]: updatedItems,
-      }));
-    }
+    setItemsByDate(prev => ({
+      ...prev,
+      [dateKey]: updatedItems,
+    }));
   };
 
   function handleDaySelect(day) {

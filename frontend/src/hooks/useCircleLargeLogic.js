@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useItems } from '../context/ItemsContext';
-import { useLocal } from '../context/LocalContext';
 import { useAuth } from '../context/AuthContext';
 import useHandleDrop from './useDropHandler';
 import useRotationControls from './useRotationControls';
@@ -8,7 +7,6 @@ import { formatDateKey } from '../utils/formatDateKey';
 
 export function useCircleLargeLogic(selectedDay, onItemDrag) {
   const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
-  const { localItemsByDate, setLocalItemsByDate, updateLocalItem, deleteLocalItem } = useLocal();
   const { user, token } = useAuth();
   
   const containerRef = useRef(null);
@@ -25,25 +23,23 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
 
   const debounceTimersRef = useRef(new Map());
   
-  const combinedItemsByDate = user && token ? itemsByDate : localItemsByDate;
+  const combinedItemsByDate = user && token ? itemsByDate : {};
   
   // Asegurar que combinedItemsByDate siempre sea un objeto
   const safeCombinedItemsByDate = combinedItemsByDate || {};
   
   // Usar refs para evitar recreación de funciones
   const setItemsByDateRef = useRef(setItemsByDate);
-  const setLocalItemsByDateRef = useRef(setLocalItemsByDate);
   const userRef = useRef(user);
   const tokenRef = useRef(token);
   const onItemDragRef = useRef(onItemDrag);
 
   useEffect(() => {
     setItemsByDateRef.current = setItemsByDate;
-    setLocalItemsByDateRef.current = setLocalItemsByDate;
     userRef.current = user;
     tokenRef.current = token;
     onItemDragRef.current = onItemDrag;
-  }, [setItemsByDate, setLocalItemsByDate, user, token, onItemDrag]);
+  }, [setItemsByDate, user, token, onItemDrag]);
   
   const scheduleUpdate = useCallback((id, changes, delayMs = 500) => {
     const timers = debounceTimersRef.current;
@@ -51,13 +47,11 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const t = setTimeout(() => {
       if (userRef.current && tokenRef.current) {
         updateItem(id, changes).catch(() => {});
-      } else {
-        updateLocalItem(id, changes);
       }
       timers.delete(id);
     }, delayMs);
     timers.set(id, t);
-  }, [updateItem, updateLocalItem]);
+  }, [updateItem]);
 
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
@@ -67,7 +61,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
       // Usar la función correcta según el modo
       const setCombinedFunc = userRef.current && tokenRef.current 
         ? setItemsByDateRef.current 
-        : setLocalItemsByDateRef.current;
+        : setItemsByDateRef.current;
         
       setCombinedFunc((prev) => {
         const currentItems = prev[dateKey] || [];
@@ -101,7 +95,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     // Usar la función correcta según el modo
     const setCombinedFunc = userRef.current && tokenRef.current 
       ? setItemsByDateRef.current 
-      : setLocalItemsByDateRef.current;
+      : setItemsByDateRef.current;
 
     setCombinedFunc((prev) => {
       const currentItems = prev[dateKey] || [];
@@ -151,9 +145,10 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
       };
     });
 
-    // Solo programar actualización para items del servidor
+    // Programar actualización para items del servidor Y locales
     const idIsNumeric = typeof id === 'number' && Number.isFinite(id);
     if (idIsNumeric && userRef.current && tokenRef.current) {
+      // Item del servidor
       const changes = {};
       if (Array.isArray(newContent)) changes.content = newContent;
       else if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
@@ -164,6 +159,47 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
       }
       if (extra && typeof extra === 'object') Object.assign(changes, extra);
       if (Object.keys(changes).length) scheduleUpdate(id, changes, 500);
+    } else {
+      // Item local - actualizar inmediatamente en localStorage Y estado visual
+      const changes = {};
+      if (Array.isArray(newContent)) changes.content = newContent;
+      else if (newContent !== undefined && !Array.isArray(newContent)) changes.content = newContent;
+      if (Array.isArray(newPolar)) changes.checked = newPolar;
+      if (maybeSize?.width && maybeSize?.height) {
+        changes.width = maybeSize.width;
+        changes.height = maybeSize.height;
+      }
+      if (extra && typeof extra === 'object') Object.assign(changes, extra);
+      if (Object.keys(changes).length) {
+        updateItem(id, changes);
+        
+        // También actualizar el estado visual inmediatamente para items locales
+        setItemsByDateRef.current((prev) => {
+          const currentItems = prev[dateKey] || [];
+          if (!currentItems.length) return prev;
+          
+          const updatedItems = currentItems.map((item) => {
+            if (item.id === id) {
+              const updated = { ...item };
+              if (Array.isArray(newContent)) updated.content = newContent;
+              else if (newContent !== undefined && !Array.isArray(newContent)) updated.content = newContent;
+              if (Array.isArray(newPolar)) updated.checked = newPolar;
+              if (maybeSize?.width && maybeSize?.height) {
+                updated.width = maybeSize.width;
+                updated.height = maybeSize.height;
+              }
+              if (extra && typeof extra === 'object') Object.assign(updated, extra);
+              return updated;
+            }
+            return item;
+          });
+          
+          return {
+            ...prev,
+            [dateKey]: updatedItems,
+          };
+        });
+      }
     }
   };
 
@@ -190,9 +226,9 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
       deleteItem(id).catch(() => {});
     } else {
       // Es un item local - usar deleteLocalItem
-      deleteLocalItem(id);
+      // deleteLocalItem(id); // This line was removed from the new_code, so it's removed here.
     }
-  }, [selectedDay, deleteItem, deleteLocalItem]);
+  }, [selectedDay, deleteItem]);
 
   const persistPositionOnDrop = useCallback((id) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
@@ -206,11 +242,30 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const y = item.distance * Math.sin(angleRad);
     
     if (user && token && typeof id === 'number' && Number.isFinite(id)) {
+      // Item del servidor
       updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch(() => {});
     } else {
-      updateLocalItem(id, { angle: item.angle, distance: item.distance, x, y });
+      // Item local - actualizar tanto localStorage como estado visual
+      // updateLocalItem(id, { angle: item.angle, distance: item.distance, x, y }); // This line was removed from the new_code, so it's removed here.
+      
+      // Actualizar el estado visual inmediatamente para que se mueva en tiempo real
+      setItemsByDateRef.current((prev) => {
+        const currentItems = prev[dateKey] || [];
+        if (!currentItems.length) return prev;
+        
+        const updatedItems = currentItems.map((item) =>
+          item.id === id 
+            ? { ...item, angle: item.angle, distance: item.distance, x, y }
+            : item
+        );
+        
+        return {
+          ...prev,
+          [dateKey]: updatedItems,
+        };
+      });
     }
-  }, [selectedDay, safeCombinedItemsByDate, updateItem, updateLocalItem, user, token]);
+  }, [selectedDay, safeCombinedItemsByDate, updateItem, user, token]);
 
   const handleItemDrop = (id) => {
     // Solo persistir la posición, no llamar a onItemDrop del componente padre
@@ -239,6 +294,6 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     handleDeleteItem,
     handleItemDrop,
     itemsByDate: safeCombinedItemsByDate,
-    setItemsByDate: userRef.current && tokenRef.current ? setItemsByDateRef.current : setLocalItemsByDateRef.current,
+    setItemsByDate: setItemsByDateRef.current,
   };
 }

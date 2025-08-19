@@ -16,7 +16,6 @@ import MobileBottomControls from '../components/common/MobileBottomControls';
 import DragTrashZone from '../components/common/DragTrashZone'; 
 import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
 import { useItems } from '../context/ItemsContext';
-import { useLocal } from '../context/LocalContext';
 import { useAuth } from '../context/AuthContext';
 import BottomToast from '../components/common/BottomToast';
 import RefreshButton from '../components/common/RefreshButton';
@@ -27,7 +26,6 @@ import LocalMigrationHandler from '../components/common/LocalMigrationHandler';
 
 export default function Home() {
   const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus, isRetrying, retryCount, setItemsByDate } = useItems();
-  const { setLocalItemsByDate } = useLocal();
   const { user, loading: authLoading, token } = useAuth();
   const { selectedDay, setSelectedDay } = useNotes();
 
@@ -73,7 +71,11 @@ export default function Home() {
     toast,
     draggedItem,
     setDraggedItem,
+    itemsByDate: combinedItemsByDate, // Usar los items combinados
   } = useHomeLogic();
+
+  // Usar setItemsByDate del ItemsContext para todo
+  const safeSetItemsByDate = setItemsByDate;
 
   const isMobile = useIsMobile();
   const {
@@ -87,7 +89,7 @@ export default function Home() {
   } = useSidebarLayout(selectedDay, isMobile);
 
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
-  const itemsForSelectedDay = dateKey ? itemsByDate[dateKey] || [] : [];
+  const itemsForSelectedDay = dateKey ? combinedItemsByDate[dateKey] || [] : [];
 
   function isOverTrashZone(pos) {
     if (!pos) return false;
@@ -127,42 +129,8 @@ export default function Home() {
 
   async function handleDeleteItem(itemId) {
     try {
-      // Solo eliminar del servidor si es un item autenticado (ID numérico)
-      const idIsNumeric = typeof itemId === 'number' && Number.isFinite(itemId);
-      
-      if (idIsNumeric && user && token) {
-        // Item del servidor - eliminar del backend
-        await deleteItem(itemId);
-        
-        // También eliminar del estado local
-        setItemsByDate(prev => {
-          const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
-          if (!dateKey) return prev;
-          
-          const currentItems = prev[dateKey] || [];
-          if (!currentItems.length) return prev;
-          
-          return {
-            ...prev,
-            [dateKey]: currentItems.filter((item) => item.id !== itemId),
-          };
-        });
-      } else {
-        // Es un item local - eliminar del estado local
-        setLocalItemsByDate(prev => {
-          const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
-          if (!dateKey) return prev;
-          
-          const currentItems = prev[dateKey] || [];
-          if (!currentItems.length) return prev;
-          
-          return {
-            ...prev,
-            [dateKey]: currentItems.filter((item) => item.id !== itemId),
-          };
-        });
-      }
-      
+      // Usar solo setItemsByDate del ItemsContext
+      await deleteItem(itemId);
       setToast('Item eliminado correctamente');
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -317,6 +285,7 @@ export default function Home() {
             if (!dateKey) return;
 
           }}
+          setLocalItemsByDate={safeSetItemsByDate}
         />
 
         {/* Botón toggle mostrar pequeño (solo desktop) */}
