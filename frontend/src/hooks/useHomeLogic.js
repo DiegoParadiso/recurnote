@@ -16,6 +16,7 @@ export function useHomeLogic() {
   const [draggedItem, setDraggedItem] = useState(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [toast, setToast] = useState('');
+  const [errorToast, setErrorToast] = useState('');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   const combinedItemsByDate = useCallback(() => {
@@ -214,7 +215,7 @@ export function useHomeLogic() {
         }),
       });
     } catch (error) {
-      console.error('Error saving UI preferences:', error);
+      setErrorToast('Error al guardar las preferencias de UI');
     }
   };
 
@@ -355,5 +356,7 @@ export function useHomeLogic() {
     onCircleSmallDoubleClick,
     resetCircleSmallToDefault,
     recenterCircleSmall,
+    errorToast,
+    setErrorToast,
   };
 }

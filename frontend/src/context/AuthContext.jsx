@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import BottomToast from '../components/common/BottomToast';
 
 export const AuthContext = createContext();
 
@@ -7,6 +8,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [migrationStatus, setMigrationStatus] = useState(null);
+  const [errorToast, setErrorToast] = useState('');
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -31,7 +33,6 @@ export function AuthProvider({ children }) {
         }
       }
     } catch (error) {
-      console.error('Error initializing auth:', error);
       // En caso de error, limpiar localStorage
       localStorage.removeItem('user');
       localStorage.removeItem('token');
@@ -69,7 +70,6 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(updatedUser));
       return updatedUser;
     } catch (error) {
-      console.error('Error refreshing user:', error);
       return null;
     }
   }
@@ -136,19 +136,29 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      login, 
-      logout, 
-      register, 
-      loading, 
-      refreshMe,
-      migrationStatus,
-      markMigrationComplete
-    }}>
-      {children}
-    </AuthContext.Provider>
+    <>
+      <AuthContext.Provider value={{ 
+        user, 
+        token, 
+        login, 
+        logout, 
+        register, 
+        loading, 
+        refreshMe,
+        migrationStatus,
+        markMigrationComplete,
+        errorToast,
+        setErrorToast
+      }}>
+        {children}
+      </AuthContext.Provider>
+      
+      <BottomToast 
+        message={errorToast} 
+        onClose={() => setErrorToast('')} 
+        duration={5000}
+      />
+    </>
   );
 }
 

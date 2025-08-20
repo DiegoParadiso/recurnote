@@ -28,9 +28,9 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
     // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
     try {
       await deleteItem(item.id);
-    } catch (error) {
-      console.error('Error deleting item:', error);
-    }
+            } catch (error) {
+          // Error silencioso al eliminar item
+        }
   };
 
   const renderDeleteButton = () => (

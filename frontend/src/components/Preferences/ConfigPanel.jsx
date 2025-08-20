@@ -145,9 +145,9 @@ export default function ConfigPanel({
           // NO refrescar el usuario automáticamente para evitar conflictos
           // await refreshMe();
         }
-      } catch (error) {
-        console.error('Error saving preferences:', error);
-      }
+              } catch (error) {
+          // Error silencioso al guardar preferencias
+        }
     }, 500);
     
     return () => pendingRef.current && clearTimeout(pendingRef.current);

@@ -30,7 +30,6 @@ export default function useItemsForDays(itemsByDate) {
         try {
           return DateTime.fromISO(key);
         } catch (error) {
-          console.warn('Fecha inválida:', key);
           return null;
         }
       })

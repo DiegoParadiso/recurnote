@@ -33,7 +33,7 @@ export default function NoteItem({
     <WithContextMenu
       onDelete={() => onDelete?.(id)}
       extraOptions={[
-        { label: 'Duplicar', onClick: () => console.log('Duplicar', id) },
+        { label: 'Duplicar', onClick: () => {} },
       ]}
     >
       <UnifiedContainer

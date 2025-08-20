@@ -72,6 +72,8 @@ export default function Home() {
     draggedItem,
     setDraggedItem,
     itemsByDate: combinedItemsByDate, // Usar los items combinados
+    errorToast,
+    setErrorToast,
   } = useHomeLogic();
 
   // Usar setItemsByDate del ItemsContext para todo
@@ -133,7 +135,6 @@ export default function Home() {
       await deleteItem(itemId);
       setToast('Item eliminado correctamente');
     } catch (error) {
-      console.error('Error deleting item:', error);
       setToast('Error al eliminar el item');
     }
   }
@@ -439,10 +440,9 @@ export default function Home() {
                 }
                 
                 setToast('Item eliminado correctamente');
-              } catch (error) {
-                console.error('Error deleting item:', error);
-                setToast('Error al eliminar el item');
-              }
+                              } catch (error) {
+                  setToast('Error al eliminar el item');
+                }
             } else {
             }
             
@@ -473,8 +473,11 @@ export default function Home() {
       {/* Handler de migración local */}
       <LocalMigrationHandler />
 
-      {/* BottomToast global */}
-      <BottomToast message={toast} onClose={() => setToast('')} />
-    </div>
-  );
+              {/* BottomToast global */}
+        <BottomToast message={toast} onClose={() => setToast('')} />
+        
+        {/* BottomToast para errores */}
+        <BottomToast message={errorToast} onClose={() => setErrorToast('')} duration={5000} />
+      </div>
+    );
 }

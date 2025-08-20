@@ -55,12 +55,7 @@ export default function TaskItem({
     <WithContextMenu
       onDelete={() => onDelete?.(id)}
       extraOptions={[
-        {
-          label: "Duplicar",
-          onClick: () => {
-            console.log("Duplicar tarea:", id);
-          },
-        },
+        { label: 'Duplicar', onClick: () => {} },
         {
           label: "Marcar todas como completadas",
           onClick: () => {

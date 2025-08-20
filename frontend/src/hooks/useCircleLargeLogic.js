@@ -12,6 +12,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
   const containerRef = useRef(null);
   const [rotationAngle, setRotationAngle] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
+  const [errorToast, setErrorToast] = useState('');
   
   const rotationSpeed = 2;
   const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
@@ -89,8 +90,6 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
 
-    console.log('🔍 handleNoteUpdate llamado:', { id, newContent, newPolar, maybeSize, newPosition, extra });
-
     // Usar updateItem del ItemsContext para todo (tanto servidor como local)
     const changes = {};
     if (Array.isArray(newContent)) changes.content = newContent;
@@ -102,11 +101,9 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     }
     if (extra && typeof extra === 'object') Object.assign(changes, extra);
     
-    console.log('🔍 Cambios a aplicar:', changes);
-    
     if (Object.keys(changes).length) {
       updateItem(id, changes).catch((error) => {
-        console.error('Error updating item:', error);
+        setErrorToast('Error al actualizar el elemento');
       });
     }
   }, [selectedDay, updateItem]);
@@ -117,7 +114,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
 
     // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
     deleteItem(id).catch((error) => {
-      console.error('Error deleting item:', error);
+      setErrorToast('Error al eliminar el elemento');
     });
   }, [selectedDay, deleteItem]);
 
@@ -134,7 +131,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     
     // Usar updateItem del ItemsContext para todo (tanto servidor como local)
     updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch((error) => {
-      console.error('Error updating item position:', error);
+      setErrorToast('Error al actualizar la posición del elemento');
     });
   }, [selectedDay, safeCombinedItemsByDate, updateItem]);
 
@@ -157,6 +154,8 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     setRotationAngle,
     toastMessage,
     setToastMessage,
+    errorToast,
+    setErrorToast,
     onMouseDown,
     onMouseMove,
     onMouseUp,

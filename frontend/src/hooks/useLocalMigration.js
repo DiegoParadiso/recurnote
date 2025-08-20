@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -6,6 +6,7 @@ export function useLocalMigration() {
   const { itemsByDate, setItemsByDate } = useItems();
   const { addItem } = useItems();
   const { markMigrationComplete } = useAuth();
+  const [errorToast, setErrorToast] = useState('');
 
   // Verificar si hay items locales (items que no son del servidor)
   const hasLocalItems = Object.values(itemsByDate).some(items => 
@@ -48,7 +49,7 @@ export function useLocalMigration() {
           });
           migratedCount++;
         } catch (error) {
-          console.error('Error migrating item:', error);
+          setErrorToast('Error durante la migración');
           failedCount++;
         }
       }
@@ -72,7 +73,7 @@ export function useLocalMigration() {
         message: `${migratedCount} elementos migrados exitosamente${failedCount > 0 ? `, ${failedCount} fallaron` : ''}`
       };
     } catch (error) {
-      console.error('Migration failed:', error);
+      setErrorToast('Error durante la migración');
       markMigrationComplete('failed');
       return { 
         success: false, 
@@ -83,6 +84,8 @@ export function useLocalMigration() {
 
   return {
     hasLocalItems,
-    performMigration
+    performMigration,
+    errorToast,
+    setErrorToast
   };
 }

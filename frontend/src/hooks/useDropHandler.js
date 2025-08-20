@@ -1,18 +1,16 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { formatDateKey } from '../utils/formatDateKey';
 import { useItems } from '../context/ItemsContext';
-import { useAuth } from '../context/AuthContext';
 
 export default function useHandleDrop({
   containerRef,
-  setItemsByDate,
   selectedDay,
   rotationAngle,
   radius,
   onInvalidDrop,
 }) {
   const { addItem, updateItem, deleteItem } = useItems();
-  const { user, token } = useAuth();
+  const [errorToast, setErrorToast] = useState('');
 
   const handleDrop = useCallback(
     (e) => {
@@ -49,8 +47,11 @@ export default function useHandleDrop({
       // Fuera del círculo - solo eliminar si es un drop intencional
       if (distance > radius) {
         if (source === 'dropped' && itemId) {
-          // Eliminar item (tanto local como del servidor)
-          deleteItem(itemId).catch(() => {});
+          // Solo eliminar si realmente se está arrastrando fuera del círculo intencionalmente
+          // ItemsContext maneja automáticamente tanto items locales como del servidor
+          deleteItem(itemId).catch((error) => {
+            setErrorToast('Error al eliminar el elemento');
+          });
           return;
         }
         if (source === 'sidebar') {
@@ -61,7 +62,7 @@ export default function useHandleDrop({
 
       // Dentro del círculo
       if (source === 'sidebar') {
-        // Crear nuevo item (tanto local como del servidor)
+        // ItemsContext maneja automáticamente tanto items locales como del servidor
         addItem({
           date: dateKey,
           x: rotatedX,
@@ -75,18 +76,27 @@ export default function useHandleDrop({
           ...(label === 'Tarea' ? { checked: [false] } : {}),
           width: label === 'Tarea' ? 200 : 100,
           height: label === 'Tarea' ? 150 : 100,
-        }).catch(() => {});
+        }).catch((error) => {
+          setErrorToast('Error al crear el elemento');
+        });
         return;
       }
 
       if (source === 'dropped' && itemId) {
-        // Mover item existente (tanto local como del servidor)
-        updateItem(itemId, { angle, distance, x: rotatedX, y: rotatedY }).catch(() => {});
+        // ItemsContext maneja automáticamente tanto items locales como del servidor
+        updateItem(itemId, {
+          x: rotatedX,
+          y: rotatedY,
+          angle,
+          distance,
+        }).catch((error) => {
+          setErrorToast('Error al actualizar el elemento');
+        });
         return;
       }
     },
-    [containerRef, selectedDay, rotationAngle, radius, setItemsByDate, onInvalidDrop, addItem, updateItem, deleteItem, user, token]
+    [addItem, updateItem, deleteItem, selectedDay, rotationAngle, radius, onInvalidDrop, containerRef]
   );
 
-  return handleDrop;
+  return { handleDrop, errorToast, setErrorToast };
 }

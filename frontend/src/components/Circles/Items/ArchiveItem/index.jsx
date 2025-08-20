@@ -163,12 +163,10 @@ export default function ArchivoItem({
             onItemDrop?.(id);
           }}
           onDragStart={(e) => {
-            console.log('ArchiveItem onDragStart:', id);
             onItemDrag?.(id, { x, y });
           }}
           onDrag={(e) => {
             if (e.clientX && e.clientY) {
-              console.log('ArchiveItem onDrag:', id, { x: e.clientX, y: e.clientY });
               onItemDrag?.(id, { x: e.clientX, y: e.clientY });
             }
           }}

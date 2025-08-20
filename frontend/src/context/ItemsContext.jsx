@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import BottomToast from '../components/common/BottomToast';
 
 const ItemsContext = createContext();
 
@@ -11,6 +12,7 @@ export const ItemsProvider = ({ children }) => {
   const [pendingOperations, setPendingOperations] = useState(new Set());
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [errorToast, setErrorToast] = useState('');
   const retryTimeoutRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -24,16 +26,14 @@ export const ItemsProvider = ({ children }) => {
         if (parsed && typeof parsed === 'object') {
           setItemsByDate(parsed);
         } else {
-          console.warn('Items locales tienen estructura inválida:', parsed);
           setItemsByDate({});
         }
       } else {
         setItemsByDate({});
       }
-    } catch (error) {
-      console.error('Error loading local items:', error);
-      setItemsByDate({});
-    }
+          } catch (error) {
+        setItemsByDate({});
+      }
   }, []);
 
   // Función para guardar items en localStorage
@@ -41,7 +41,7 @@ export const ItemsProvider = ({ children }) => {
     try {
       localStorage.setItem('localItems', JSON.stringify(items));
     } catch (error) {
-      console.error('Error saving local items:', error);
+      // Error silencioso al guardar items locales
     }
   }, []);
 
@@ -104,7 +104,6 @@ export const ItemsProvider = ({ children }) => {
       setRetryCount(0); // Reset retry count on success
       setIsRetrying(false);
     } catch (err) {
-      console.error('Error loading items:', err);
       setError(err.message);
       
       // Solo intentar reintento automático si no es un reintento manual
@@ -123,11 +122,10 @@ export const ItemsProvider = ({ children }) => {
     }
 
     const maxRetries = 5;
-    if (retryCount >= maxRetries) {
-      console.log('Máximo número de reintentos alcanzado');
-      setIsRetrying(false);
-      return;
-    }
+            if (retryCount >= maxRetries) {
+          setIsRetrying(false);
+          return;
+        }
 
     setIsRetrying(true);
     const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Delay exponencial, máximo 30 segundos
@@ -357,12 +355,12 @@ export const ItemsProvider = ({ children }) => {
         
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-          // Si el item no existe (404), no es un error crítico
-          if (response.status === 404) {
-            console.log(`Item ${id} no encontrado`);
-          } else {
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-          }
+                  // Si el item no existe (404), no es un error crítico
+        if (response.status === 404) {
+          // Item no encontrado, no es un error crítico
+        } else {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
         }
         
         // Remover operación pendiente
@@ -384,8 +382,7 @@ export const ItemsProvider = ({ children }) => {
           throw error;
         }
         
-        // Para otros errores, solo logear y no lanzar excepción
-        console.error('Error al actualizar item:', error);
+        // Para otros errores, no hacer nada
       }
     }
     // Si es modo local, no hacer nada más - ya se guardó en localStorage
@@ -420,12 +417,12 @@ export const ItemsProvider = ({ children }) => {
         
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-          // Si el item no existe (404) o ya fue eliminado, no es un error crítico
-          if (response.status === 404) {
-            console.log(`Item ${id} no encontrado o ya eliminado`);
-          } else {
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-          }
+                  // Si el item no existe (404) o ya fue eliminado, no es un error crítico
+        if (response.status === 404) {
+          // Item no encontrado o ya eliminado, no es un error crítico
+        } else {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
         }
         
         // Remover operación pendiente
@@ -447,29 +444,38 @@ export const ItemsProvider = ({ children }) => {
           throw error;
         }
         
-        // Para otros errores, solo logear y no lanzar excepción
-        console.error('Error al eliminar item:', error);
+        // Para otros errores, no hacer nada
       }
     }
     // Si es modo local, no hacer nada más - ya se guardó en localStorage
   }
 
   return (
-    <ItemsContext.Provider value={{ 
-      itemsByDate, 
-      setItemsByDate, 
-      addItem, 
-      updateItem, 
-      deleteItem, 
-      loading, 
-      error, 
-      refreshItems,
-      syncStatus: getSyncStatus(),
-      isRetrying,
-      retryCount
-    }}>
-      {children}
-    </ItemsContext.Provider>
+    <>
+      <ItemsContext.Provider value={{ 
+        itemsByDate, 
+        setItemsByDate, 
+        addItem, 
+        updateItem, 
+        deleteItem, 
+        loading, 
+        error, 
+        refreshItems,
+        syncStatus: getSyncStatus(),
+        isRetrying,
+        retryCount,
+        errorToast,
+        setErrorToast
+      }}>
+        {children}
+      </ItemsContext.Provider>
+      
+      <BottomToast 
+        message={errorToast} 
+        onClose={() => setErrorToast('')} 
+        duration={5000}
+      />
+    </>
   );
 };
 

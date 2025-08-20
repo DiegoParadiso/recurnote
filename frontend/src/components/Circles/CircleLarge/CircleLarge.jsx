@@ -28,12 +28,14 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     setRotationAngle,
     toastMessage,
     setToastMessage,
+    errorToast,
+    setErrorToast,
     onMouseDown,
     onMouseMove,
     onMouseUp,
     handleNoteDragStart,
     handleNoteUpdate,
-    handleDeleteItem,
+    handleItemDelete,
     handleItemDrop,
     itemsByDate: hookItemsByDate,
     setItemsByDate: hookSetItemsByDate,
@@ -59,9 +61,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   // Usar items del ItemsContext (que maneja tanto servidor como local)
   const itemsForSelectedDay = selectedDay ? contextItemsByDate[formatDateKey(selectedDay)] || [] : [];
 
-  const handleDrop = useHandleDrop({
+  const { handleDrop: handleDropFunction, errorToast: dropErrorToast, setErrorToast: setDropErrorToast } = useHandleDrop({
     containerRef,
-    setItemsByDate: contextSetItemsByDate, // Usar siempre el ItemsContext
     selectedDay,
     rotationAngle,
     radius,
@@ -113,7 +114,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
       <div
         ref={containerRef}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
+        onDrop={handleDropFunction}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
@@ -156,13 +157,16 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           onItemDrop={handleItemDrop}
           onNoteDragStart={handleNoteDragStart}
           onNoteUpdate={handleNoteUpdate}
-          onDeleteItem={handleDeleteItem}
+          onDeleteItem={handleItemDelete}
           circleSize={circleSize}
           isSmallScreen={isSmallScreen}
         />
       </div>
 
       <BottomToast message={toastMessage} onClose={() => setToastMessage('')} />
+      
+      {/* BottomToast para errores del hook useHandleDrop */}
+      <BottomToast message={dropErrorToast} onClose={() => setDropErrorToast('')} duration={5000} />
     </div>
   );
 }

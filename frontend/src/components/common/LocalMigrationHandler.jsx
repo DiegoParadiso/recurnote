@@ -19,7 +19,6 @@ export default function LocalMigrationHandler() {
             setMigrationToast(result.error || 'Error durante la migración');
           }
         } catch (error) {
-          console.error('Migration error:', error);
           setMigrationToast('Error durante la migración');
         }
       };
