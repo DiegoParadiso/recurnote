@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { Clock, User, LogOut } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Clock, User, LogOut, Trash2, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useItems } from '../../context/ItemsContext';
 import useIsMobile from '../../hooks/useIsMobile';
+import BottomToast from '../common/BottomToast';
 import '../../styles/components/preferences/ConfigPanel.css';
 
 function ToggleOption({ id, label, value, onChange }) {
@@ -71,6 +73,255 @@ function SessionOptions() {
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+function DataManagementOptions() {
+  const { user, token } = useAuth();
+  const { itemsByDate, deleteItem, setItemsByDate } = useItems();
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [isDeletingPast, setIsDeletingPast] = useState(false);
+  const [showConfirmAll, setShowConfirmAll] = useState(false);
+  const [showConfirmPast, setShowConfirmPast] = useState(false);
+  const [errorToast, setErrorToast] = useState('');
+
+  // Calcular estadísticas
+  const totalItems = Object.values(itemsByDate).reduce((acc, items) => acc + items.length, 0);
+  
+  const pastItems = Object.entries(itemsByDate).reduce((acc, [dateKey, items]) => {
+    try {
+      // Intentar parsear la fecha en diferentes formatos
+      let date;
+      if (dateKey.includes('-')) {
+        // Formato ISO (YYYY-MM-DD)
+        date = new Date(dateKey);
+      } else {
+        // Formato personalizado, intentar parsear
+        const parts = dateKey.split('/');
+        if (parts.length === 3) {
+          // Formato DD/MM/YYYY o MM/DD/YYYY
+          date = new Date(parts[2], parts[1] - 1, parts[0]);
+        } else {
+          date = new Date(dateKey);
+        }
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (date < today && !isNaN(date.getTime())) {
+        acc.count += items.length;
+        acc.dates.push({ dateKey, items });
+      }
+    } catch (error) {
+      console.error('Error parseando fecha:', dateKey, error);
+    }
+    return acc;
+  }, { count: 0, dates: [] });
+
+  const handleDeleteAllItems = async () => {
+    setIsDeletingAll(true);
+    setShowConfirmAll(false);
+
+    try {
+      if (user && token) {
+        // Usuario autenticado - eliminar del servidor
+        const deletePromises = Object.values(itemsByDate).flat().map(item => 
+          deleteItem(item.id).catch(error => {
+            console.error('Error eliminando item:', error);
+            return null; // Continuar con otros items
+          })
+        );
+
+        await Promise.all(deletePromises);
+        setErrorToast('Todos los items han sido eliminados del servidor');
+      } else {
+        // Usuario no autenticado - limpiar contexto y localStorage
+        setItemsByDate({});
+        localStorage.removeItem('localItems');
+        setErrorToast('Todos los items locales han sido eliminados');
+      }
+    } catch (error) {
+      setErrorToast('Error al eliminar todos los items');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
+  const handleDeletePastItems = async () => {
+    setIsDeletingPast(true);
+    setShowConfirmPast(false);
+
+    try {
+      if (user && token) {
+        // Usuario autenticado - eliminar del servidor
+        const deletePromises = pastItems.dates.flatMap(({ items }) => 
+          items.map(item => 
+            deleteItem(item.id).catch(error => {
+              console.error('Error eliminando item del pasado:', error);
+              return null; // Continuar con otros items
+            })
+          )
+        );
+
+        await Promise.all(deletePromises);
+        setErrorToast(`${pastItems.count} items de días pasados han sido eliminados del servidor`);
+      } else {
+        // Usuario no autenticado - actualizar el contexto local
+        const updatedItemsByDate = { ...itemsByDate };
+        
+        // Eliminar las fechas que contienen items del pasado
+        pastItems.dates.forEach(({ dateKey }) => {
+          delete updatedItemsByDate[dateKey];
+        });
+        
+        // Actualizar el contexto
+        setItemsByDate(updatedItemsByDate);
+        
+        // También limpiar localStorage si existe
+        try {
+          const localItems = JSON.parse(localStorage.getItem('localItems') || '{}');
+          const updatedLocalItems = {};
+          
+          Object.entries(localItems).forEach(([dateKey, items]) => {
+            const date = new Date(dateKey);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (date >= today) {
+              updatedLocalItems[dateKey] = items;
+            }
+          });
+          
+          localStorage.setItem('localItems', JSON.stringify(updatedLocalItems));
+        } catch (error) {
+          console.error('Error actualizando localStorage:', error);
+        }
+        
+        setErrorToast(`${pastItems.count} items de días pasados han sido eliminados`);
+      }
+    } catch (error) {
+      setErrorToast('Error al eliminar items de días pasados');
+    } finally {
+      setIsDeletingPast(false);
+    }
+  };
+
+  // No mostrar mensaje de autenticación requerida, permitir que funcione para ambos casos
+
+  return (
+    <div className="data-management-options">
+      <div className="data-stats">
+        <div className="stat-item">
+          <span className="stat-label">Total de items:</span>
+          <span className="stat-value">{totalItems}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Items pasados:</span>
+          <span className="stat-value">{pastItems.count}</span>
+        </div>
+        {!user && (
+          <div className="stat-item full-width">
+            <span className="stat-label">Modo:</span>
+            <span className="stat-value">Local</span>
+          </div>
+        )}
+      </div>
+
+      <div className="danger-zone">
+        <h4>Eliminación</h4>
+
+        <div className="danger-actions">
+          <button
+            className="danger-button"
+            onClick={() => setShowConfirmPast(true)}
+            disabled={isDeletingPast || pastItems.count === 0}
+          >
+            <Trash2 size={16} />
+            {isDeletingPast ? 'Eliminando...' : 'Eliminar items pasados'}
+          </button>
+
+          <button
+            className="danger-button"
+            onClick={() => setShowConfirmAll(true)}
+            disabled={isDeletingAll || totalItems === 0}
+          >
+            <Trash2 size={16} />
+            {isDeletingAll ? 'Eliminando...' : 'Eliminar todos los items'}
+          </button>
+        </div>
+      </div>
+
+      {/* Confirmación para eliminar items de días pasados */}
+      {showConfirmPast && (
+        <div className="confirmation-overlay">
+          <div className="confirmation-modal">
+            <h4>Confirmar eliminación</h4>
+            <p>¿Estás seguro de que quieres eliminar {pastItems.count} items de días pasados?</p>
+            <div className="info-container">
+              <div className="info-item">Esta acción no se puede deshacer</div>
+              {!user && (
+                <div className="info-item">Los items se eliminarán del almacenamiento</div>
+              )}
+            </div>
+            <div className="confirmation-buttons">
+              <button
+                className="confirm-button"
+                onClick={handleDeletePastItems}
+                disabled={isDeletingPast}
+              >
+                {isDeletingPast ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+              <button
+                className="cancel-button"
+                onClick={() => setShowConfirmPast(false)}
+                disabled={isDeletingPast}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmación para eliminar todos los items */}
+      {showConfirmAll && (
+        <div className="confirmation-overlay">
+          <div className="confirmation-modal">
+            <h4>Confirmar eliminación total</h4>
+            <p>¿Estás completamente seguro de que quieres eliminar TODOS los {totalItems} items?</p>
+            <div className="info-container">
+              <div className="info-item">Esta acción no se puede deshacer</div>
+              {!user && (
+                <div className="info-item">Los items se eliminarán del almacenamiento</div>
+              )}
+            </div>
+            <div className="confirmation-buttons">
+              <button
+                className="confirm-button"
+                onClick={handleDeleteAllItems}
+                disabled={isDeletingAll}
+              >
+                {isDeletingAll ? 'Eliminando...' : 'Sí, eliminar todo'}
+              </button>
+              <button
+                className="cancel-button"
+                onClick={() => setShowConfirmAll(false)}
+                disabled={isDeletingAll}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <BottomToast 
+        message={errorToast} 
+        onClose={() => setErrorToast('')} 
+        duration={5000}
+      />
     </div>
   );
 }
@@ -339,6 +590,11 @@ export default function ConfigPanel({
             <ComingSoonOption label="Texto grande" />
             <ComingSoonOption label="Navegación con teclado" />
             <ComingSoonOption label="Animaciones reducidas" />
+          </section>
+
+          <section className="config-section">
+            <h3>Gestión de Datos</h3>
+            <DataManagementOptions />
           </section>
         </main>
       </aside>

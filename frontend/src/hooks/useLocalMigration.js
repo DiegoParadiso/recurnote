@@ -1,23 +1,43 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
 
 export function useLocalMigration() {
   const { itemsByDate, setItemsByDate } = useItems();
-  const { addItem } = useItems();
+  const { addItem, user, token } = useItems();
   const { markMigrationComplete } = useAuth();
   const [errorToast, setErrorToast] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const migrationInProgressRef = useRef(false);
 
   // Verificar si hay items locales (items que no son del servidor)
-  const hasLocalItems = Object.values(itemsByDate).some(items => 
-    items.some(item => item._local === true)
-  );
+  const hasLocalItems = useCallback(() => {
+    return Object.values(itemsByDate).some(items => 
+      items.some(item => item._local === true)
+    );
+  }, [itemsByDate]);
 
   const performMigration = useCallback(async () => {
-    if (!hasLocalItems) {
+    // Prevenir múltiples migraciones simultáneas
+    if (migrationInProgressRef.current || isMigrating) {
+      return { success: false, error: 'Migración ya en progreso' };
+    }
+
+    // Verificar que haya items locales antes de empezar
+    if (!hasLocalItems()) {
       markMigrationComplete('no-items');
       return { success: true, migratedCount: 0 };
     }
+
+    // Verificar autenticación
+    if (!user || !token) {
+      setErrorToast('Debes estar autenticado para migrar datos');
+      markMigrationComplete('failed');
+      return { success: false, error: 'No autenticado' };
+    }
+
+    setIsMigrating(true);
+    migrationInProgressRef.current = true;
 
     try {
       // Obtener todos los items locales
@@ -30,9 +50,15 @@ export function useLocalMigration() {
         });
       });
 
+      if (localItems.length === 0) {
+        markMigrationComplete('no-items');
+        return { success: true, migratedCount: 0 };
+      }
+
       let migratedCount = 0;
       let failedCount = 0;
 
+      // Migrar items uno por uno con delay para evitar sobrecarga
       for (const item of localItems) {
         try {
           await addItem({
@@ -48,9 +74,19 @@ export function useLocalMigration() {
             height: item.height,
           });
           migratedCount++;
+          
+          // Pequeño delay entre items para evitar sobrecarga
+          await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
-          setErrorToast('Error durante la migración');
+          console.error('Error migrando item:', error);
           failedCount++;
+          
+          // Si es un error de autenticación (403), detener la migración
+          if (error.message?.includes('403') || error.message?.includes('Unauthorized')) {
+            setErrorToast('Error de autenticación. Por favor, inicia sesión nuevamente.');
+            markMigrationComplete('failed');
+            return { success: false, error: 'Error de autenticación' };
+          }
         }
       }
 
@@ -73,19 +109,24 @@ export function useLocalMigration() {
         message: `${migratedCount} elementos migrados exitosamente${failedCount > 0 ? `, ${failedCount} fallaron` : ''}`
       };
     } catch (error) {
+      console.error('Error general en migración:', error);
       setErrorToast('Error durante la migración');
       markMigrationComplete('failed');
       return { 
         success: false, 
         error: error.message || 'Error durante la migración'
       };
+    } finally {
+      setIsMigrating(false);
+      migrationInProgressRef.current = false;
     }
-  }, [hasLocalItems, itemsByDate, addItem, markMigrationComplete, setItemsByDate]);
+  }, [hasLocalItems, itemsByDate, addItem, markMigrationComplete, setItemsByDate, user, token, isMigrating]);
 
   return {
-    hasLocalItems,
+    hasLocalItems: hasLocalItems(),
     performMigration,
     errorToast,
-    setErrorToast
+    setErrorToast,
+    isMigrating
   };
 }

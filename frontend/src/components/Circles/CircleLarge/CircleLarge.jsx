@@ -35,7 +35,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     onMouseUp,
     handleNoteDragStart,
     handleNoteUpdate,
-    handleItemDelete,
+    handleDeleteItem,
     handleItemDrop,
     itemsByDate: hookItemsByDate,
     setItemsByDate: hookSetItemsByDate,
@@ -157,7 +157,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           onItemDrop={handleItemDrop}
           onNoteDragStart={handleNoteDragStart}
           onNoteUpdate={handleNoteUpdate}
-          onDeleteItem={handleItemDelete}
+          onDeleteItem={handleDeleteItem}
           circleSize={circleSize}
           isSmallScreen={isSmallScreen}
         />

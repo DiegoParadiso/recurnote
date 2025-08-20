@@ -5,7 +5,7 @@ import BottomToast from '../components/common/BottomToast';
 const ItemsContext = createContext();
 
 export const ItemsProvider = ({ children }) => {
-  const { user, token, loading: authLoading } = useAuth();
+  const { user, token, loading: authLoading, refreshMe } = useAuth();
   const [itemsByDate, setItemsByDate] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -85,7 +85,28 @@ export const ItemsProvider = ({ children }) => {
       });
       
       if (!response.ok) {
-        throw new Error('Error al cargar items');
+        let errorMessage = 'Error al cargar items';
+        
+        // Manejar errores específicos de autenticación
+        if (response.status === 403 || response.status === 401) {
+          // Intentar refrescar el token
+          try {
+            const refreshedUser = await refreshMe();
+            if (refreshedUser) {
+              // Token refrescado exitosamente, reintentar la operación
+              return loadItems(true);
+            }
+          } catch (refreshError) {
+            // Si falla el refresh, mostrar error de autenticación
+            if (response.status === 403) {
+              errorMessage = 'Error de autenticación. Por favor, inicia sesión nuevamente.';
+            } else if (response.status === 401) {
+              errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+            }
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
@@ -113,7 +134,7 @@ export const ItemsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user, token, API_URL, loadLocalItems]);
+  }, [user, token, API_URL, loadLocalItems, refreshMe]);
 
   // Función para programar reintento automático
   const scheduleRetry = useCallback(() => {
@@ -240,7 +261,28 @@ export const ItemsProvider = ({ children }) => {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || 'Error creando item');
+          let errorMessage = err.message || 'Error creando item';
+          
+          // Manejar errores específicos de autenticación
+          if (res.status === 403 || res.status === 401) {
+            // Intentar refrescar el token
+            try {
+              const refreshedUser = await refreshMe();
+              if (refreshedUser) {
+                // Token refrescado exitosamente, reintentar la operación
+                return addItem(item);
+              }
+            } catch (refreshError) {
+              // Si falla el refresh, mostrar error de autenticación
+              if (res.status === 403) {
+                errorMessage = 'Error de autenticación. Por favor, inicia sesión nuevamente.';
+              } else if (res.status === 401) {
+                errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+              }
+            }
+          }
+          
+          throw new Error(errorMessage);
         }
         const saved = await res.json();
         const expanded = expandItem(saved);
@@ -355,12 +397,28 @@ export const ItemsProvider = ({ children }) => {
         
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-                  // Si el item no existe (404), no es un error crítico
-        if (response.status === 404) {
-          // Item no encontrado, no es un error crítico
-        } else {
-          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-        }
+          // Si el item no existe (404), no es un error crítico
+          if (response.status === 404) {
+            // Item no encontrado, no es un error crítico
+          } else if (response.status === 403 || response.status === 401) {
+            // Intentar refrescar el token
+            try {
+              const refreshedUser = await refreshMe();
+              if (refreshedUser) {
+                // Token refrescado exitosamente, reintentar la operación
+                return updateItem(id, changes);
+              }
+            } catch (refreshError) {
+              // Si falla el refresh, mostrar error de autenticación
+              if (response.status === 403) {
+                throw new Error('Error de autenticación. Por favor, inicia sesión nuevamente.');
+              } else if (response.status === 401) {
+                throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+              }
+            }
+          } else {
+            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+          }
         }
         
         // Remover operación pendiente
@@ -417,12 +475,28 @@ export const ItemsProvider = ({ children }) => {
         
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-                  // Si el item no existe (404) o ya fue eliminado, no es un error crítico
-        if (response.status === 404) {
-          // Item no encontrado o ya eliminado, no es un error crítico
-        } else {
-          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-        }
+          // Si el item no existe (404) o ya fue eliminado, no es un error crítico
+          if (response.status === 404) {
+            // Item no encontrado o ya eliminado, no es un error crítico
+          } else if (response.status === 403 || response.status === 401) {
+            // Intentar refrescar el token
+            try {
+              const refreshedUser = await refreshMe();
+              if (refreshedUser) {
+                // Token refrescado exitosamente, reintentar la operación
+                return deleteItem(id);
+              }
+            } catch (refreshError) {
+              // Si falla el refresh, mostrar error de autenticación
+              if (response.status === 403) {
+                throw new Error('Error de autenticación. Por favor, inicia sesión nuevamente.');
+              } else if (response.status === 401) {
+                throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+              }
+            }
+          } else {
+            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+          }
         }
         
         // Remover operación pendiente
