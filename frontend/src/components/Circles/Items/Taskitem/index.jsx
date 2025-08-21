@@ -1,6 +1,7 @@
 import React from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
+import { useItems } from '../../../../context/ItemsContext';
 import '../../../../styles/components/circles/items/TaskItem.css';
 
 export default function TaskItem({
@@ -32,6 +33,16 @@ export default function TaskItem({
       ? Math.min(baseHeight + visibleTasksCount * taskHeight, 400)
       : Math.min(baseHeight + visibleTasksCount * taskHeight + buttonHeight, 400);
 
+  const { duplicateItem } = useItems();
+
+  const handleDuplicate = async () => {
+    try {
+      await duplicateItem(id);
+    } catch (error) {
+      console.error('Error al duplicar item:', error);
+    }
+  };
+
   const handleTaskChange = (index, value) => {
     const updatedTasks = [...(item.content || [])];
     updatedTasks[index] = value;
@@ -55,7 +66,7 @@ export default function TaskItem({
     <WithContextMenu
       onDelete={() => onDelete?.(id)}
       extraOptions={[
-        { label: 'Duplicar', onClick: () => {} },
+        { label: 'Duplicar', onClick: handleDuplicate },
         {
           label: "Marcar todas como completadas",
           onClick: () => {
@@ -76,6 +87,13 @@ export default function TaskItem({
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
         onMove={({ x, y }) => {
+          // NO recalcular posición automáticamente para items recién duplicados
+          if (item._justDuplicated) {
+            // Solo actualizar la posición visual, no recalcular ángulo/distance
+            onItemDrag?.(id, { x, y });
+            return;
+          }
+          
           // Calcular el ángulo y distancia desde el centro del círculo
           const dx = x - cx;
           const dy = y - cy;

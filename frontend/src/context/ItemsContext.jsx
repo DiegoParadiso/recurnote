@@ -2,10 +2,23 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useAuth } from './AuthContext';
 import BottomToast from '../components/common/BottomToast';
 
+// Función debounce simple
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 const ItemsContext = createContext();
 
 export const ItemsProvider = ({ children }) => {
-  const { user, token, loading: authLoading, refreshMe } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const [itemsByDate, setItemsByDate] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,6 +26,7 @@ export const ItemsProvider = ({ children }) => {
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const [errorToast, setErrorToast] = useState('');
+
   const retryTimeoutRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -52,17 +66,31 @@ export const ItemsProvider = ({ children }) => {
       try { itemData = JSON.parse(itemData); } catch { itemData = {}; }
     }
     const merged = { ...raw, ...(itemData || {}) };
+    
+    // PRESERVAR las coordenadas x, y originales si existen
+    const x = Number(merged.x);
+    const y = Number(merged.y);
     const angle = Number(merged.angle ?? 0);
     const distance = Number(merged.distance ?? 120);
     const width = Number(merged.width ?? (merged.label === 'Tarea' ? 200 : 150));
     const height = Number(merged.height ?? (merged.label === 'Tarea' ? 120 : 80));
-    return {
+    
+
+    
+    const result = {
       ...merged,
+      // Solo usar x, y calculados si no existen los originales
+      x: Number.isFinite(x) ? x : distance * Math.cos((angle * Math.PI) / 180),
+      y: Number.isFinite(y) ? y : distance * Math.sin((angle * Math.PI) / 180),
       angle: Number.isFinite(angle) ? angle : 0,
       distance: Number.isFinite(distance) ? distance : 120,
       width: Number.isFinite(width) ? width : (merged.label === 'Tarea' ? 200 : 150),
       height: Number.isFinite(height) ? height : (merged.label === 'Tarea' ? 120 : 80),
     };
+    
+
+    
+    return result;
   }
 
   // Función para cargar items
@@ -85,35 +113,27 @@ export const ItemsProvider = ({ children }) => {
       });
       
       if (!response.ok) {
-        let errorMessage = 'Error al cargar items';
-        
-        // Manejar errores específicos de autenticación
-        if (response.status === 403 || response.status === 401) {
-          // Intentar refrescar el token
-          try {
-            const refreshedUser = await refreshMe();
-            if (refreshedUser) {
-              // Token refrescado exitosamente, reintentar la operación
-              return loadItems(true);
-            }
-          } catch (refreshError) {
-            // Si falla el refresh, mostrar error de autenticación
-            if (response.status === 403) {
-              errorMessage = 'Error de autenticación. Por favor, inicia sesión nuevamente.';
-            } else if (response.status === 401) {
-              errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
-            }
-          }
-        }
-        
-        throw new Error(errorMessage);
+        throw new Error('Error al cargar items');
       }
       
       const data = await response.json();
+      
       const expanded = data
         .map(expandItem)
-        .filter(item => !!item.label && item.date);
-
+        .filter(item => item && item.date) // Solo verificar que exista y tenga fecha
+        .map(item => {
+          // ASEGURAR que todos los items tengan label para renderizar
+          if (!item.label) {
+            // Intentar extraer label del item_data si existe
+            if (item.item_data && item.item_data.label) {
+              item.label = item.item_data.label;
+            } else {
+              item.label = 'Item sin nombre';
+            }
+          }
+          return item;
+                });
+  
       const grouped = expanded.reduce((acc, item) => {
         const dateKey = item.date;
         if (!acc[dateKey]) acc[dateKey] = [];
@@ -121,7 +141,19 @@ export const ItemsProvider = ({ children }) => {
         return acc;
       }, {});
       
-      setItemsByDate(grouped);
+      // Combinar con items duplicados recientes que no estén en el servidor
+      const combined = { ...grouped };
+      for (const dateKey in itemsByDate) {
+        if (!combined[dateKey]) {
+          combined[dateKey] = [];
+        }
+        // Agregar items duplicados recientes Y items que deben mantenerse en el estado
+        const preservedItems = itemsByDate[dateKey].filter(item => 
+          item._skipLoadItems || item._keepInState
+        );
+        combined[dateKey] = [...combined[dateKey], ...preservedItems];
+      }
+      setItemsByDate(combined);
       setRetryCount(0); // Reset retry count on success
       setIsRetrying(false);
     } catch (err) {
@@ -134,7 +166,7 @@ export const ItemsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user, token, API_URL, loadLocalItems, refreshMe]);
+  }, [user, token, API_URL, loadLocalItems]);
 
   // Función para programar reintento automático
   const scheduleRetry = useCallback(() => {
@@ -171,7 +203,16 @@ export const ItemsProvider = ({ children }) => {
     if (!authLoading) {
       loadItems();
     }
-  }, [user, token, authLoading, loadItems]);
+  }, [user, token, authLoading]);
+
+  // Debounce para loadItems - evitar múltiples ejecuciones seguidas
+  const debouncedLoadItems = useCallback(
+    debounce(() => {
+  
+      loadItems();
+    }, 1000), // 1 segundo de delay
+    [loadItems]
+  );
 
   // Función para recargar items manualmente
   const refreshItems = () => {
@@ -182,6 +223,9 @@ export const ItemsProvider = ({ children }) => {
     }
     loadItems();
   };
+
+  // Función para desbloquear loadItems después de duplicación
+
 
   // Función para calcular el estado de sincronización
   const getSyncStatus = useCallback(() => {
@@ -261,28 +305,7 @@ export const ItemsProvider = ({ children }) => {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          let errorMessage = err.message || 'Error creando item';
-          
-          // Manejar errores específicos de autenticación
-          if (res.status === 403 || res.status === 401) {
-            // Intentar refrescar el token
-            try {
-              const refreshedUser = await refreshMe();
-              if (refreshedUser) {
-                // Token refrescado exitosamente, reintentar la operación
-                return addItem(item);
-              }
-            } catch (refreshError) {
-              // Si falla el refresh, mostrar error de autenticación
-              if (res.status === 403) {
-                errorMessage = 'Error de autenticación. Por favor, inicia sesión nuevamente.';
-              } else if (res.status === 401) {
-                errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
-              }
-            }
-          }
-          
-          throw new Error(errorMessage);
+          throw new Error(err.message || 'Error creando item');
         }
         const saved = await res.json();
         const expanded = expandItem(saved);
@@ -355,6 +378,27 @@ export const ItemsProvider = ({ children }) => {
   async function updateItem(id, changes) {
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
     
+    // Log para detectar cuándo se está moviendo un item
+    if (x !== undefined || y !== undefined) {
+  
+    }
+    
+    // INTERCEPTAR: Si es un item recién duplicado y se está moviendo, forzar posición original
+    if ((x !== undefined || y !== undefined) && !changes._forcePosition) {
+      const currentItem = Object.values(itemsByDate).flat().find(i => i.id === id);
+      if (currentItem && currentItem._justDuplicated) {
+        // Forzar la posición original del item duplicado
+        const forcedChanges = {
+          ...changes,
+          x: currentItem._originalX || currentItem.x,
+          y: currentItem._originalY || currentItem.y,
+          _forcePosition: true, // Marcar para evitar recursión
+          _justDuplicated: false // Ya no es recién duplicado
+        };
+        return await updateItem(id, forcedChanges);
+      }
+    }
+    
     // Actualizar estado visual inmediatamente para ambos casos
     setItemsByDate(prev => {
       const newState = { ...prev };
@@ -397,28 +441,12 @@ export const ItemsProvider = ({ children }) => {
         
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-          // Si el item no existe (404), no es un error crítico
-          if (response.status === 404) {
-            // Item no encontrado, no es un error crítico
-          } else if (response.status === 403 || response.status === 401) {
-            // Intentar refrescar el token
-            try {
-              const refreshedUser = await refreshMe();
-              if (refreshedUser) {
-                // Token refrescado exitosamente, reintentar la operación
-                return updateItem(id, changes);
-              }
-            } catch (refreshError) {
-              // Si falla el refresh, mostrar error de autenticación
-              if (response.status === 403) {
-                throw new Error('Error de autenticación. Por favor, inicia sesión nuevamente.');
-              } else if (response.status === 401) {
-                throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-              }
-            }
-          } else {
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-          }
+                  // Si el item no existe (404), no es un error crítico
+        if (response.status === 404) {
+          // Item no encontrado, no es un error crítico
+        } else {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
         }
         
         // Remover operación pendiente
@@ -444,6 +472,149 @@ export const ItemsProvider = ({ children }) => {
       }
     }
     // Si es modo local, no hacer nada más - ya se guardó en localStorage
+  }
+
+  async function duplicateItem(id) {
+    try {
+      // Encontrar el item a duplicar
+      let itemToDuplicate = null;
+      let itemDate = null;
+      
+      for (const date in itemsByDate) {
+        const item = itemsByDate[date].find(i => i.id === id);
+        if (item) {
+          itemToDuplicate = item;
+          itemDate = date;
+          break;
+        }
+      }
+      
+      if (!itemToDuplicate) {
+        throw new Error('Item no encontrado');
+      }
+    
+      // Crear una copia del item con nueva posición - AL LADO del original
+      const offsetX = 120; // 120px a la derecha del item original
+      const newX = (itemToDuplicate.x || 0) + offsetX;
+      const newY = itemToDuplicate.y || 0; // Misma altura
+      
+      // Calcular el nuevo ángulo y distancia desde el centro del círculo
+      const dx = newX;
+      const dy = newY;
+      const newAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+      const newDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Crear el item duplicado
+      const duplicatedItem = {
+        ...itemToDuplicate,
+        id: user && token ? `tmp_${Math.random().toString(36).slice(2)}` : `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        angle: newAngle,
+        distance: newDistance,
+        x: newX,
+        y: newY,
+        _pending: user && token ? true : false,
+        _local: !user || !token ? true : false,
+        _justDuplicated: true,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Agregar al estado visual inmediatamente
+      setItemsByDate(prev => {
+        const newState = { ...prev };
+        if (!newState[itemDate]) {
+          newState[itemDate] = [];
+        }
+        newState[itemDate] = [...newState[itemDate], duplicatedItem];
+        return newState;
+      });
+      
+      // Si es modo local, guardar en localStorage
+      if (!user || !token) {
+        saveLocalItems(itemsByDate);
+        return duplicatedItem;
+      }
+      
+      // Si es modo premium, sincronizar con el servidor
+      const payload = {
+        date: itemDate,
+        x: newX,
+        y: newY,
+        rotation: itemToDuplicate.rotation || 0,
+        rotation_enabled: itemToDuplicate.rotation_enabled ?? true,
+        item_data: {
+          label: itemToDuplicate.label,
+          width: itemToDuplicate.width,
+          height: itemToDuplicate.height
+        }
+      };
+      
+      // Agregar contenido específico según el tipo de item
+      if (itemToDuplicate.label === 'Tarea') {
+        payload.item_data.content = itemToDuplicate.content || [''];
+        payload.item_data.checked = itemToDuplicate.checked || [false];
+      } else if (itemToDuplicate.label === 'Nota') {
+        payload.item_data.content = itemToDuplicate.content || '';
+      } else if (itemToDuplicate.label === 'Archivo' && itemToDuplicate.content?.fileData) {
+        payload.item_data.content = {
+          fileData: itemToDuplicate.content.fileData,
+          base64: itemToDuplicate.content.base64
+        };
+              }
+        
+        const result = await addItem(payload);
+      
+      // Reemplazar el item temporal con el resultado del servidor
+      
+      // VERIFICAR si el ID del servidor ya existe en el estado
+      const allItemsInState = Object.values(itemsByDate).flat();
+      const existingItemWithServerId = allItemsInState.find(i => i.id === result.id);
+      if (existingItemWithServerId) {
+        // Generar un nuevo ID único para evitar conflictos
+        const newUniqueId = `duplicated_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        result.id = newUniqueId;
+      }
+      
+      setItemsByDate(prev => {
+        const newState = { ...prev };
+        for (const dateKey in newState) {
+          // FILTRAR el item temporal y AGREGAR el nuevo del servidor
+          
+          // ELIMINAR tanto el item temporal como cualquier item con el mismo ID del servidor
+          const itemsLimpios = newState[dateKey].filter(i => 
+            i.id !== duplicatedItem.id && i.id !== result.id
+          );
+          
+          // Crear el item final combinando datos del servidor con los del original
+          const itemFinal = {
+            ...itemToDuplicate, // Preservar todos los datos del original
+            ...result, // Sobrescribir con datos del servidor (ID, fechas, etc.)
+            // FORZAR las coordenadas calculadas para evitar teletransporte
+            x: newX,
+            y: newY,
+            angle: newAngle,
+            distance: newDistance,
+            // ASEGURAR que tenga todas las propiedades necesarias para renderizar
+            label: itemToDuplicate.label || 'Item duplicado',
+            width: itemToDuplicate.width || 150,
+            height: itemToDuplicate.height || 100,
+            _pending: false,
+            _justDuplicated: false
+          };
+          
+          newState[dateKey] = [
+            ...itemsLimpios, // Solo items únicos
+            itemFinal // Agregar item final completo
+          ];
+        }
+        
+        return newState;
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('Error al duplicar item:', error);
+      throw error;
+    }
   }
 
   async function deleteItem(id) {
@@ -475,28 +646,12 @@ export const ItemsProvider = ({ children }) => {
         
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-          // Si el item no existe (404) o ya fue eliminado, no es un error crítico
-          if (response.status === 404) {
-            // Item no encontrado o ya eliminado, no es un error crítico
-          } else if (response.status === 403 || response.status === 401) {
-            // Intentar refrescar el token
-            try {
-              const refreshedUser = await refreshMe();
-              if (refreshedUser) {
-                // Token refrescado exitosamente, reintentar la operación
-                return deleteItem(id);
-              }
-            } catch (refreshError) {
-              // Si falla el refresh, mostrar error de autenticación
-              if (response.status === 403) {
-                throw new Error('Error de autenticación. Por favor, inicia sesión nuevamente.');
-              } else if (response.status === 401) {
-                throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-              }
-            }
-          } else {
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-          }
+                  // Si el item no existe (404) o ya fue eliminado, no es un error crítico
+        if (response.status === 404) {
+          // Item no encontrado o ya eliminado, no es un error crítico
+        } else {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
         }
         
         // Remover operación pendiente
@@ -532,9 +687,11 @@ export const ItemsProvider = ({ children }) => {
         addItem, 
         updateItem, 
         deleteItem, 
+        duplicateItem,
         loading, 
         error, 
         refreshItems,
+ // Función para desbloquear loadItems
         syncStatus: getSyncStatus(),
         isRetrying,
         retryCount,

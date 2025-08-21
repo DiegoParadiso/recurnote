@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
+import { useItems } from '../../../../context/ItemsContext';
 import '../../../../styles/components/circles/items/NoteItem.css';
 
 export default function NoteItem({
@@ -22,6 +23,15 @@ export default function NoteItem({
 }) {
   const textareaRef = useRef(null);
   const { content = '', width = 150, height = 80 } = item;
+  const { duplicateItem } = useItems();
+
+  const handleDuplicate = async () => {
+    try {
+      await duplicateItem(id);
+    } catch (error) {
+      console.error('Error al duplicar item:', error);
+    }
+  };
 
   const computedMinHeight = height;
 
@@ -33,7 +43,7 @@ export default function NoteItem({
     <WithContextMenu
       onDelete={() => onDelete?.(id)}
       extraOptions={[
-        { label: 'Duplicar', onClick: () => {} },
+        { label: 'Duplicar', onClick: handleDuplicate },
       ]}
     >
       <UnifiedContainer
@@ -47,6 +57,13 @@ export default function NoteItem({
         maxWidth={224}
         maxHeight={computedMinHeight}
         onMove={({ x, y }) => {
+          // NO recalcular posición automáticamente para items recién duplicados
+          if (item._justDuplicated) {
+            // Solo actualizar la posición visual, no recalcular ángulo/distance
+            onItemDrag?.(id, { x, y });
+            return;
+          }
+          
           // Calcular el ángulo y distancia desde el centro del círculo
           const dx = x - cx;
           const dy = y - cy;

@@ -50,6 +50,10 @@ export async function createItem(req, res) {
         }
       }
     }
+    console.log('📝 Creando item en base de datos con:', {
+      date, x, y, rotation, rotation_enabled, item_data, user_id: req.user.id
+    });
+    
     const newItem = await Item.create({
       date,
       x,
@@ -59,8 +63,10 @@ export async function createItem(req, res) {
       item_data,
       user_id: req.user.id
     });
+    
     res.json(newItem);
   } catch (err) {
+    console.error('Error en createItem:', err);
     res.status(500).json({ message: 'Error al crear item', error: err.message });
   }
 }
@@ -100,11 +106,13 @@ export async function updateItem(req, res) {
         ...incomingItemData,
       };
     }
-
+    
     await item.update(updatePayload);
+    
     const plain = item.toJSON();
     res.json(plain);
   } catch (err) {
+    console.error('Error en updateItem:', err);
     res.status(500).json({ message: 'Error al actualizar item', error: err.message });
   }
 }

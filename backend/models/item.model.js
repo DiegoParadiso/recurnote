@@ -54,6 +54,12 @@ export const Item = sequelize.define('Item', {
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
+          indexes: [
+          {
+            fields: ['user_id', 'date'],
+            name: 'idx_user_date'
+          }
+        ]
 });
 
 // Relaciones

@@ -96,7 +96,7 @@ export default function ItemsOnCircle({
                 const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
                 onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
               }}
-              onDelete={() => onDeleteItem(item.id)}
+              onDelete={onDeleteItem}
               onItemDrag={onItemDrag}
               onItemDrop={onItemDrop}
               cx={cx}

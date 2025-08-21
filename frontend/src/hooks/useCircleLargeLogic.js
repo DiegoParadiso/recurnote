@@ -125,6 +125,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const item = (safeCombinedItemsByDate[dateKey] || []).find(i => i.id === id);
     if (!item) return;
     
+    // SIEMPRE recalcular posición para mantener consistencia con el círculo
     const angleRad = (item.angle * Math.PI) / 180;
     const x = item.distance * Math.cos(angleRad);
     const y = item.distance * Math.sin(angleRad);

@@ -3,6 +3,7 @@ import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
+import { useItems } from '../../../../context/ItemsContext';
 import '../../../../styles/components/circles/items/ArchivoItem.css';
 import { useAuth } from '../../../../context/AuthContext';
 
@@ -77,8 +78,14 @@ export default function ArchivoItem({
     }
   };
 
-  const duplicateFile = () => {
-    alert('Función duplicar archivo (debes implementar)');
+  const { duplicateItem } = useItems();
+
+  const duplicateFile = async () => {
+    try {
+      await duplicateItem(id);
+    } catch (error) {
+      console.error('Error al duplicar archivo:', error);
+    }
   };
 
   const toggleShowOnlyImage = () => {
@@ -134,6 +141,13 @@ export default function ArchivoItem({
           minHeight={minHeight}
           maxHeight={maxHeight}
           onMove={({ x: newX, y: newY }) => {
+            // NO recalcular posición automáticamente para items recién duplicados
+            if (item._justDuplicated) {
+              // Solo actualizar la posición visual, no recalcular ángulo/distance
+              onItemDrag?.(id, { x: newX, y: newY });
+              return;
+            }
+            
             // Calcular el ángulo y distancia desde el centro del círculo
             const dx = newX - cx;
             const dy = newY - cy;

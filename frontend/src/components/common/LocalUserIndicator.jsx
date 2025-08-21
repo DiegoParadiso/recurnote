@@ -62,11 +62,7 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
 
   // Estilos inline para el parpadeo
   const dotStyle = {
-    backgroundColor: user?.is_vip 
-      ? 'var(--color-accent)' 
-      : user && token 
-        ? '#9ca3af'
-        : '#9ca3af', 
+    backgroundColor: '#9ca3af', // Mismo color para todos los modos
     opacity: isBlinking ? 0.6 : 1, // Ahora titila en todos los modos
     transform: isBlinking ? 'scale(0.95)' : 'scale(1)',
     transition: 'all 0.4s ease-in-out',
