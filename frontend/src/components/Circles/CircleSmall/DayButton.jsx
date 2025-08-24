@@ -31,8 +31,8 @@ export default function DayButton({
             ? 'var(--daybutton-selected-bg)'
             : 'var(--daybutton-bg)',
           borderColor: isSelected
-            ? 'var(--daybutton-selected-border)'
-            : 'var(--daybutton-border)',
+            ? '#a3a3a3'
+            : '#a3a3a3',
           transition: 'background-color 0.3s ease, border-color 0.3s ease',
         }}
       >

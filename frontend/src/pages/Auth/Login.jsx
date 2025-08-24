@@ -133,7 +133,13 @@ export default function Login() {
 
   // Verificar si el formulario es válido
   const isFormValid = () => {
-    return Object.values(formData).every(value => value.trim() !== '') && Object.keys(errors).length === 0;
+    // Verificar que todos los campos estén llenos
+    const fieldsFilled = Object.values(formData).every(value => value.trim() !== '');
+    
+    // Verificar que no haya errores activos
+    const noActiveErrors = Object.values(errors).every(error => !error || error === '');
+    
+    return fieldsFilled && noActiveErrors;
   };
 
   return (

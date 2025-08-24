@@ -171,9 +171,15 @@ export default function Register() {
 
   // Verificar si el formulario es válido
   const isFormValid = () => {
-    return Object.values(formData).every(value => 
+    // Verificar que todos los campos estén llenos
+    const fieldsFilled = Object.values(formData).every(value => 
       typeof value === 'boolean' ? value : value.trim() !== ''
-    ) && Object.keys(errors).length === 0;
+    );
+    
+    // Verificar que no haya errores activos
+    const noActiveErrors = Object.values(errors).every(error => !error || error === '');
+    
+    return fieldsFilled && noActiveErrors;
   };
 
   return (

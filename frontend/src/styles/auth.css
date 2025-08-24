@@ -115,7 +115,7 @@
   background: rgba(73, 80, 87, 0.1); /* Gris con transparencia */
   border-radius: 4px;
   border: 1px solid rgba(73, 80, 87, 0.3); /* Gris con transparencia */
-  color: #495057; /* Gris oscuro */
+  color: var(--color-minimal-primary); /* Gris oscuro */
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
@@ -171,7 +171,7 @@
   top: 9px; /* Mitad del checkbox (18px / 2) */
   width: 12px;
   height: 12px;
-  color: #495057; /* Gris oscuro para el check */
+  color: var(--color-minimal-primary); /* Gris oscuro para el check */
   font-size: 11px;
   font-weight: bold;
   line-height: 12px;
@@ -182,17 +182,17 @@
 }
 
 .checkbox-label:hover .checkbox-text::before {
-  border-color: #495057;
+  border-color: var(--color-minimal-primary);
 }
 
 .checkbox-label input[type="checkbox"]:focus + .checkbox-text::before {
-  outline: 2px solid #495057;
+  outline: 2px solid var(--color-minimal-primary);
   outline-offset: 2px;
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkbox-text::before {
   background-color: transparent; /* Sin fondo */
-  border-color: #495057;
+  border-color: var(--color-minimal-primary);
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkbox-text::after {
@@ -210,32 +210,34 @@
 }
 
 .link-terms {
-  color: #495057;
+  color: var(--color-minimal-primary);
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .link-terms:hover {
-  color: #343a40;
+  color: var(--color-minimal-accent);
 }
 
 /* Botón de envío */
 .submit-button {
   margin-top: 1rem;
   padding: 0.75rem;
-  background-color: #495057;
-  color: white;
-  font-weight: 500;
+  background-color: var(--color-minimal-primary);
+  color: #ffffff; /* Blanco fijo para máximo contraste */
+  font-weight: 600; /* Más peso para mejor legibilidad */
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Sombra sutil para mejor contraste */
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: #343a40;
+  background-color: var(--color-minimal-accent);
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil en hover */
 }
 
 .submit-button:disabled {
@@ -292,7 +294,7 @@
 
 .status-icon.success {
   background-color: rgba(73, 80, 87, 0.2);
-  color: #495057;
+  color: var(--color-minimal-primary);
 }
 
 .status-icon.error {
@@ -330,7 +332,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid var(--color-neutral-darker);
-  border-top: 4px solid #495057;
+  border-top: 4px solid var(--color-minimal-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
