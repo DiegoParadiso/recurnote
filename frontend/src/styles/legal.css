@@ -1,0 +1,144 @@
+/* src/styles/legal.css */
+
+.legal-container {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.legal-content {
+  background-color: var(--color-neutral);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: none;
+  width: 100%;
+  max-width: 800px;
+  border: 1px solid var(--color-neutral-dark);
+  margin-top: 2rem;
+}
+
+.legal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-neutral-darker);
+}
+
+.legal-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.legal-date {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.legal-body {
+  line-height: 1.6;
+}
+
+.legal-body section {
+  margin-bottom: 2rem;
+}
+
+.legal-body h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--color-text-primary);
+  border-left: 3px solid #495057; /* Gris oscuro elegante */
+  padding-left: 1rem;
+}
+
+.legal-body p {
+  margin-bottom: 1rem;
+  color: var(--color-text-primary);
+  text-align: justify;
+}
+
+.legal-body ul {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.legal-body li {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.legal-body strong {
+  color: #495057; /* Gris oscuro elegante */
+  font-weight: 600;
+}
+
+.legal-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-neutral-darker);
+  text-align: center;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #495057; /* Gris oscuro elegante */
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background-color: #343a40; /* Gris más oscuro para hover */
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .legal-container {
+    padding: 1rem;
+  }
+  
+  .legal-content {
+    margin-top: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .legal-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .legal-body h2 {
+    font-size: 1.2rem;
+  }
+  
+  .legal-body ul {
+    padding-left: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-content {
+    padding: 1rem;
+  }
+  
+  .legal-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .legal-body h2 {
+    font-size: 1.1rem;
+  }
+}

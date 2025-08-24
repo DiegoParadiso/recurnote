@@ -96,30 +96,30 @@ export function AuthProvider({ children }) {
     setMigrationStatus('pending');
   }
 
-  async function register(name, email, password) {
-    const response = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
+  async function register(name, email, password, confirmPassword, acceptTerms) {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, confirmPassword, acceptTerms }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error en registro');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error en registro');
+      }
+
+      const data = await response.json();
+      
+      // No hacer login automático después del registro
+      // El usuario debe verificar su email primero
+      
+      return data;
+    } catch (error) {
+      // Usar bottomtoast para mostrar errores
+      setErrorToast(error.message || 'Error en el registro');
+      throw error;
     }
-
-    const data = await response.json();
-    
-    // Después del registro exitoso, hacer login automático
-    setUser(data.user);
-    setToken(data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    localStorage.setItem('token', data.token);
-
-    // Marcar que se debe hacer migración después del registro
-    setMigrationStatus('pending');
-    
-    return data;
   }
 
   function logout() {
