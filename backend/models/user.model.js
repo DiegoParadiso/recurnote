@@ -72,18 +72,18 @@ export const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: {},
   },
-  created_at: {
+  createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW,
   },
-  updated_at: {
+  updatedAt: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW,
   }
 }, {
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 });
