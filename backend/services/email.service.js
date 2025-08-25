@@ -3,6 +3,13 @@ import crypto from 'crypto';
 
 class EmailService {
   constructor() {
+    // Verificar si tenemos configuración SMTP
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.warn('⚠️  Configuración SMTP no encontrada. Los emails no se enviarán.');
+      this.transporter = null;
+      return;
+    }
+
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: process.env.SMTP_PORT || 587,
@@ -11,6 +18,10 @@ class EmailService {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Configuración de timeout
+      connectionTimeout: 10000, // 10 segundos
+      greetingTimeout: 10000,   // 10 segundos
+      socketTimeout: 10000      // 10 segundos
     });
   }
 
@@ -26,6 +37,12 @@ class EmailService {
 
   // Enviar email de verificación
   async sendVerificationEmail(email, name, token) {
+    // Verificar si tenemos configuración SMTP
+    if (!this.transporter) {
+      console.warn('⚠️  No se puede enviar email: configuración SMTP no disponible');
+      return false;
+    }
+
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
     
     const mailOptions = {
