@@ -37,6 +37,11 @@ export const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: false,
   },
+  preferences: {
+    type: DataTypes.JSONB,
+    allowNull: false,
+    defaultValue: {},
+  },
   email_verified: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
@@ -49,41 +54,7 @@ export const User = sequelize.define('User', {
   email_verification_expires: {
     type: DataTypes.DATE,
     allowNull: true,
-  },
-  password_reset_token: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  password_reset_expires: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  account_status: {
-    type: DataTypes.ENUM('pending', 'active', 'suspended', 'deleted'),
-    allowNull: false,
-    defaultValue: 'pending',
-  },
-  last_login: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  preferences: {
-    type: DataTypes.JSONB,
-    allowNull: false,
-    defaultValue: {},
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
   }
 }, {
-  timestamps: true,
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  timestamps: true
 });

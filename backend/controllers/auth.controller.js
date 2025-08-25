@@ -52,8 +52,7 @@ export async function register(req, res) {
       password: hashedPassword, 
       preferences: {},
       email_verification_token: verificationToken,
-      email_verification_expires: verificationExpires,
-      account_status: 'pending'
+      email_verification_expires: verificationExpires
     });
 
     // Enviar email de verificación
@@ -74,7 +73,7 @@ export async function register(req, res) {
         id: user.id,
         name: user.name,
         email: user.email,
-        account_status: user.account_status
+        email_verified: user.email_verified
       }
     });
 
@@ -235,18 +234,11 @@ export async function login(req, res) {
     }
 
     // Verificar si la cuenta está activa
-    if (user.account_status !== 'active') {
-      if (user.account_status === 'pending') {
-        return res.status(403).json({ 
-          message: 'Tu cuenta no ha sido verificada. Revisa tu email o solicita un nuevo enlace de verificación.',
-          errors: ['Cuenta no verificada'],
-          requiresVerification: true
-        });
-      }
-      
+    if (!user.email_verified) {
       return res.status(403).json({ 
-        message: 'Tu cuenta ha sido suspendida o eliminada',
-        errors: ['Cuenta suspendida o eliminada']
+        message: 'Tu cuenta no ha sido verificada. Revisa tu email o solicita un nuevo enlace de verificación.',
+        errors: ['Cuenta no verificada'],
+        requiresVerification: true
       });
     }
 
@@ -255,14 +247,11 @@ export async function login(req, res) {
       { 
         id: user.id, 
         email: user.email,
-        account_status: user.account_status
+        email_verified: user.email_verified
       }, 
       process.env.JWT_SECRET, 
       { expiresIn: '24h' }
     );
-
-    // Actualizar último login
-    await user.update({ last_login: new Date() });
 
     res.json({
       user: { 
@@ -271,7 +260,7 @@ export async function login(req, res) {
         email: user.email, 
         is_vip: !!user.is_vip, 
         preferences: user.preferences || {},
-        account_status: user.account_status
+        email_verified: user.email_verified
       },
       token,
     });
@@ -403,7 +392,6 @@ export async function getMe(req, res) {
       email: user.email, 
       is_vip: !!user.is_vip, 
       preferences: user.preferences || {},
-      account_status: user.account_status,
       email_verified: user.email_verified
     });
   } catch (err) {

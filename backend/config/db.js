@@ -19,6 +19,12 @@ export const sequelize = new Sequelize(DATABASE_URL, {
       }
     : {},
   logging: false,
+  define: {
+    underscored: true,
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+  }
 });
 
 export async function connectDB() {

@@ -51,9 +51,7 @@ export const Item = sequelize.define('Item', {
   },
 }, {
   tableName: 'items',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
+  timestamps: true
 });
 
 // Relaciones
