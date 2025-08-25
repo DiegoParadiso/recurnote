@@ -13,16 +13,87 @@ class EmailService {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: process.env.SMTP_PORT || 587,
-      secure: false,
+      secure: false, // true para 465, false para otros puertos
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      // Configuración de timeout
-      connectionTimeout: 10000, // 10 segundos
-      greetingTimeout: 10000,   // 10 segundos
-      socketTimeout: 10000      // 10 segundos
+      // Configuración de timeout mejorada
+      connectionTimeout: 30000, // 30 segundos (aumentado de 10)
+      greetingTimeout: 30000,   // 30 segundos (aumentado de 10)
+      socketTimeout: 30000,     // 30 segundos (aumentado de 10)
+      // Configuraciones adicionales para mejorar la estabilidad
+      pool: false, // Deshabilitar pool para evitar problemas de conexión
+      maxConnections: 1, // Máximo una conexión a la vez
+      maxMessages: 1, // Máximo un mensaje por conexión
+      // Configuración TLS
+      tls: {
+        rejectUnauthorized: false, // Para desarrollo, en producción debería ser true
+        ciphers: 'SSLv3'
+      }
     });
+
+    // Verificar la conexión al inicializar
+    this.verifyConnection();
+  }
+
+  // Verificar la conexión SMTP
+  async verifyConnection() {
+    if (!this.transporter) return;
+
+    try {
+      console.log('🔍 Verificando conexión SMTP...');
+      await this.transporter.verify();
+      console.log('✅ Conexión SMTP verificada exitosamente');
+    } catch (error) {
+      console.error('❌ Error verificando conexión SMTP:', error);
+      console.error('📧 Detalles del error:', {
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode
+      });
+    }
+  }
+
+  // Función para enviar email con reintentos
+  async sendEmailWithRetry(mailOptions, maxRetries = 3) {
+    if (!this.transporter) {
+      console.warn('⚠️  No se puede enviar email: configuración SMTP no disponible');
+      return false;
+    }
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📧 Intentando enviar email (intento ${attempt}/${maxRetries})...`);
+        
+        const result = await this.transporter.sendMail(mailOptions);
+        console.log('✅ Email enviado exitosamente:', {
+          messageId: result.messageId,
+          to: mailOptions.to,
+          subject: mailOptions.subject
+        });
+        
+        return true;
+      } catch (error) {
+        console.error(`❌ Error en intento ${attempt}/${maxRetries}:`, {
+          error: error.message,
+          code: error.code,
+          command: error.command,
+          response: error.response
+        });
+
+        // Si es el último intento, lanzar el error
+        if (attempt === maxRetries) {
+          throw error;
+        }
+
+        // Esperar antes del siguiente intento (backoff exponencial)
+        const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+        console.log(`⏳ Esperando ${waitTime}ms antes del siguiente intento...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
   }
 
   // Generar token de verificación
@@ -37,12 +108,6 @@ class EmailService {
 
   // Enviar email de verificación
   async sendVerificationEmail(email, name, token) {
-    // Verificar si tenemos configuración SMTP
-    if (!this.transporter) {
-      console.warn('⚠️  No se puede enviar email: configuración SMTP no disponible');
-      return false;
-    }
-
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
     
     const mailOptions = {
@@ -105,10 +170,14 @@ class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      return true;
+      return await this.sendEmailWithRetry(mailOptions);
     } catch (error) {
-      console.error('Error enviando email de verificación:', error);
+      console.error('❌ Error enviando email de verificación después de reintentos:', {
+        error: error.message,
+        code: error.code,
+        email: email,
+        name: name
+      });
       return false;
     }
   }
@@ -177,10 +246,14 @@ class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      return true;
+      return await this.sendEmailWithRetry(mailOptions);
     } catch (error) {
-      console.error('Error enviando email de reset de contraseña:', error);
+      console.error('❌ Error enviando email de reset de contraseña después de reintentos:', {
+        error: error.message,
+        code: error.code,
+        email: email,
+        name: name
+      });
       return false;
     }
   }
