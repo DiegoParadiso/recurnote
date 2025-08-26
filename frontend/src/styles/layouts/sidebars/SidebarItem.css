@@ -19,6 +19,9 @@
 
 .sidebar-item:hover {
   background-color: var(--sidebar-item-hover-bg);
+  border-color: var(--color-empty-content-border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 html.dark .sidebar-item {
@@ -27,6 +30,8 @@ html.dark .sidebar-item {
 
 html.dark .sidebar-item:hover {
   background-color: var(--sidebar-item-dark-hover-bg);
+  border-color: var(--color-empty-content-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* NOTA */
@@ -43,8 +48,14 @@ html.dark .sidebar-item:hover {
 .sidebar-item-nota .dot {
   width: 6px;
   height: 6px;
-  background-color: rgba(120, 120, 120, 0.3);
+  background-color: var(--color-empty-content);
   border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item-nota:hover .dot {
+  background-color: var(--color-highlight);
+  transform: scale(1.2);
 }
 
 /* TAREA */
@@ -58,9 +69,15 @@ html.dark .sidebar-item:hover {
 
 .sidebar-item-tarea .bar {
   height: 6px;
-  background-color: var(--sidebar-tarea-bar-bg);
+  background-color: var(--color-empty-content);
   border-radius: 9999px;
   flex: 1;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item-tarea:hover .bar {
+  background-color: var(--color-highlight);
+  transform: scaleY(1.3);
 }
 
 html.dark .sidebar-item-tarea .check-line {
@@ -68,7 +85,12 @@ html.dark .sidebar-item-tarea .check-line {
 }
 
 html.dark .sidebar-item-tarea .bar {
-  background-color: var(--sidebar-tarea-dark-bar-bg);
+  background-color: var(--color-empty-content);
+}
+
+html.dark .sidebar-item-tarea:hover .bar {
+  background-color: var(--color-highlight);
+  transform: scaleY(1.3);
 }
 
 /* EVENTO */
@@ -87,7 +109,13 @@ html.dark .sidebar-item-tarea .bar {
   top: 9px;
   left: 0;
   width: 100%;
-  border-top: 2px solid var(--sidebar-evento-topline-border);
+  border-top: 2px solid var(--color-empty-content);
+  transition: all 0.2s ease;
+}
+
+.sidebar-item-evento:hover .top-line {
+  border-color: var(--color-highlight);
+  border-width: 3px;
 }
 
 .sidebar-item-evento .row {
@@ -99,57 +127,173 @@ html.dark .sidebar-item-tarea .bar {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  background-color: var(--sidebar-evento-block-bg);
+  background-color: var(--color-empty-content);
+  transition: all 0.2s ease;
 }
 
 .sidebar-item-evento .block.light {
-  background-color: var(--sidebar-evento-block-light-bg);
+  background-color: var(--color-empty-content);
+  opacity: 0.7;
+}
+
+.sidebar-item-evento:hover .block {
+  background-color: var(--color-highlight);
+  transform: scale(1.1);
+}
+
+.sidebar-item-evento:hover .block.light {
+  background-color: var(--color-highlight);
+  opacity: 0.9;
+  transform: scale(1.1);
 }
 
 html.dark .sidebar-item-evento .top-line {
-  border-top-color: var(--sidebar-evento-dark-topline-border);
+  border-color: var(--color-empty-content);
 }
 
 html.dark .sidebar-item-evento .block {
-  background-color: var(--sidebar-evento-dark-block-bg);
+  background-color: var(--color-empty-content);
 }
 
 html.dark .sidebar-item-evento .block.light {
-  background-color: var(--sidebar-evento-dark-block-light-bg);
+  background-color: var(--color-empty-content);
+  opacity: 0.7;
+}
+
+html.dark .sidebar-item-evento:hover .top-line {
+  border-color: var(--color-highlight);
+  border-width: 3px;
+}
+
+html.dark .sidebar-item-evento:hover .block {
+  background-color: var(--color-highlight);
+  transform: scale(1.1);
+}
+
+html.dark .sidebar-item-evento:hover .block.light {
+  background-color: var(--color-highlight);
+  opacity: 0.9;
+  transform: scale(1.1);
 }
 
 /* ARCHIVO */
+.sidebar-item-archivo {
+  position: relative;
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding-left: 8px;
+}
+
 .sidebar-item-archivo .top-bar {
   position: absolute;
-  top: 24px;
+  top: 9px;
   left: 0;
-  width: 80%;
-  border-top: 2px solid var(--sidebar-archivo-topbar-border);
+  width: 100%;
+  border-top: 2px solid var(--color-empty-content);
+  transition: all 0.2s ease;
+}
+
+.sidebar-item-archivo:hover .top-bar {
+  border-color: var(--color-highlight);
+  border-width: 3px;
 }
 
 .sidebar-item-archivo .tab {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 16px;
-  width: 40%;
-  background-color: var(--sidebar-archivo-tab-bg);
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
+  width: 20px;
+  height: 8px;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--color-empty-content);
+  transition: all 0.2s ease;
+}
+
+.sidebar-item-archivo:hover .tab {
+  background-color: var(--color-highlight);
+  transform: scaleX(1.2);
 }
 
 .sidebar-item-archivo .separator {
-  position: absolute;
-  top: 16px;
-  left: 0;
   width: 100%;
-  border-top: 1px solid var(--sidebar-archivo-separator-border);
+  border-top: 1px solid var(--color-empty-content);
+  transition: all 0.2s ease;
+}
+
+.sidebar-item-archivo:hover .separator {
+  border-color: var(--color-highlight);
+  border-width: 2px;
+}
+
+html.dark .sidebar-item-archivo .top-bar {
+  border-color: var(--color-empty-content);
 }
 
 html.dark .sidebar-item-archivo .tab {
-  background-color: var(--sidebar-archivo-dark-tab-bg);
+  background-color: var(--color-empty-content);
 }
 
 html.dark .sidebar-item-archivo .separator {
-  border-top-color: var(--sidebar-archivo-dark-separator-border);
+  border-color: var(--color-empty-content);
+}
+
+html.dark .sidebar-item-archivo:hover .top-bar {
+  border-color: var(--color-highlight);
+  border-width: 3px;
+}
+
+html.dark .sidebar-item-archivo:hover .tab {
+  background-color: var(--color-highlight);
+  transform: scaleX(1.2);
+}
+
+html.dark .sidebar-item-archivo:hover .separator {
+  border-color: var(--color-highlight);
+  border-width: 2px;
+}
+
+/* Estados activos y mejoras visuales */
+.sidebar-item:active {
+  cursor: grabbing;
+  transform: translateY(-1px);
+}
+
+.sidebar-item:focus-visible {
+  outline: 2px solid var(--color-highlight);
+  outline-offset: 2px;
+}
+
+/* Animaciones suaves para todos los elementos */
+.sidebar-item * {
+  transition: all 0.2s ease;
+}
+
+/* --- MEDIA QUERY PARA MÓVILES --- */
+@media (max-width: 640px) {
+  .sidebar-item {
+    width: 100px;
+    height: 60px;
+    padding: 0.4rem;
+  }
+  
+  .sidebar-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sidebar-item-nota .dot {
+    width: 5px;
+    height: 5px;
+    gap: 5px;
+  }
+  
+  .sidebar-item-evento .block {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .sidebar-item-archivo .tab {
+    width: 18px;
+    height: 7px;
+  }
 }
