@@ -31,7 +31,7 @@ export default function CircleSmall({
     margin: '0 auto',
     backgroundColor: 'var(--color-bg)',
     color: 'var(--color-text-primary)',
-    border: '1px solid var(--color-text-primary)',
+    border: '1px solid var(--circle-border-light)',
     borderRadius: '9999px', // círculo perfecto
     transition: 'background-color 0.3s ease, color 0.3s ease',
   };

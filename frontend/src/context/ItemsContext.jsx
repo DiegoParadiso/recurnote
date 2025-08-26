@@ -530,7 +530,15 @@ export const ItemsProvider = ({ children }) => {
       
       // Si es modo local, guardar en localStorage
       if (!user || !token) {
-        saveLocalItems(itemsByDate);
+        // Crear el nuevo estado que incluye el item duplicado
+        const newState = { ...itemsByDate };
+        if (!newState[itemDate]) {
+          newState[itemDate] = [];
+        }
+        newState[itemDate] = [...newState[itemDate], duplicatedItem];
+        
+        // Guardar en localStorage con el estado actualizado
+        saveLocalItems(newState);
         return duplicatedItem;
       }
       

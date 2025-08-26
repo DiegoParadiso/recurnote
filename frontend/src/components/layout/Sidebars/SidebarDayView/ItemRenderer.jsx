@@ -49,11 +49,11 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
     return (
       <div
         key={item.id}
-        className="w-full rounded p-2 item-card border shadow-sm text-[10px] relative min-h-[2.5rem]"
+        className="w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem]"
       >
         {renderDeleteButton()}
         {(item.content || []).map((task, idx) => (
-          <div key={idx} className="flex items-start gap-2 mb-1">
+          <div key={idx} className="flex items-center gap-2 mb-1">
             <label className="checkbox-label relative cursor-pointer select-none flex-shrink-0">
               <input
                 type="checkbox"
@@ -80,7 +80,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
               </span>
             </label>
             <span 
-              className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'text-gray-400 italic'}`}
+              className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'empty-task-text'}`}
               style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
             >
               {item.content?.[idx] || 'Tarea sin descripción'}
@@ -92,13 +92,13 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
   }
 
   return (
-    <div
-      key={item.id}
-      className={`w-full rounded p-2 item-card border shadow-sm text-[10px] relative min-h-[2.5rem] ${
-        !hasRealContent(item.content) ? 'empty-content' : ''
-      }`}
-      title={typeof item.content === 'object' ? JSON.stringify(item.content) : item.content}
-    >
+          <div
+        key={item.id}
+        className={`w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem] ${
+          !hasRealContent(item.content) ? 'empty-content' : ''
+        }`}
+        title={typeof item.content === 'object' ? JSON.stringify(item.content) : item.content}
+      >
       {renderDeleteButton()}
       {typeof item.content === 'object' && item.content.fileData && item.content.base64 ? (
         <a

@@ -1,7 +1,6 @@
 /* DayItemGroup.css */
 .day-item-group {
   border-bottom: 1px solid var(--color-neutral-dark);
-  padding-bottom: 0.75rem;
 }
 
 html.dark .day-item-group {

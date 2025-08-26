@@ -28,10 +28,10 @@
 
 .sidebar-scroll-area {
   flex-grow: 1;
-  padding: 0 1rem 1rem 1rem;
+  padding: 0 0.5rem 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
   overflow-y: auto;
   position: relative;
   z-index: var(--z-mid);

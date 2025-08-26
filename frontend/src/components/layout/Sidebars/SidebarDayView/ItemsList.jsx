@@ -5,7 +5,16 @@ import ItemRenderer from './ItemRenderer';
 
 export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, isLocalMode }) {
   if (itemsForDays.length === 0) {
-    return <p className="text-[10px] italic">No hay ítems para los próximos días.</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+          No hay ítems para los próximos días
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          Crea nuevos ítems desde el sidebar izquierdo
+        </p>
+      </div>
+    );
   }
 
   return (

@@ -130,7 +130,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           height: isSmallScreen ? '100dvh' : circleSize,
           margin: isSmallScreen ? undefined : '0 auto',
           transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
-          borderColor: isSmallScreen ? 'transparent' : '#a3a3a3',
+          borderColor: isSmallScreen ? 'transparent' : 'var(--circle-border-light)',
           borderStyle: isSmallScreen ? 'none' : 'solid',
           position: 'relative',
         }}

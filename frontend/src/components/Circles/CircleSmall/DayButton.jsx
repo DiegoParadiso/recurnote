@@ -23,7 +23,7 @@ export default function DayButton({
       onClick={onClick}
     >
       <div
-        className={`rounded-full border-2 relative flex items-center justify-center cursor-pointer transition duration-200`}
+        className={`rounded-full border relative flex items-center justify-center cursor-pointer transition duration-200`}
         style={{
           width: `${buttonSize}px`,
           height: `${buttonSize}px`,

@@ -152,6 +152,17 @@ html.dark {
   --sidebar-archivo-dark-tab-bg: #3a3a3a;
   --sidebar-archivo-dark-separator-border: #50555D;
 
+  /* Variables para elementos de hover equilibrados */
+  --sidebar-hover-color: #8b8b8b; /* Gris medio equilibrado para modo claro */
+  --sidebar-hover-color-dark: #6b6b6b; /* Gris medio equilibrado para modo oscuro */
+
+  /* Variables para elementos sin contenido en modo oscuro - Mejor legibilidad */
+  --color-empty-content: #a0a0a0; /* Gris más claro para elementos vacíos en modo oscuro */
+  --color-empty-content-bg: #2a2a2a; /* Fondo sutil para elementos vacíos */
+  --color-empty-content-border: #4a4a4a; /* Borde más visible */
+  --color-empty-placeholder: #808080; /* Color para placeholders */
+  --color-empty-text: #b0b0b0; /* Texto para elementos sin contenido */
+
   /* Transitions */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
