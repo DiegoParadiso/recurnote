@@ -3,47 +3,53 @@ import crypto from 'crypto';
 
 class EmailService {
   constructor() {
-    // Verificar si tenemos configuración SMTP
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.warn('⚠️  Configuración SMTP no encontrada. Los emails no se enviarán.');
+    try {
+      // Verificar si tenemos configuración SMTP
+      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.warn('⚠️  Configuración SMTP no encontrada. Los emails no se enviarán.');
+        this.transporter = null;
+        return;
+      }
+
+      // Configuración específica para Railway y entornos cloud
+      const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
+      
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || 587,
+        secure: process.env.SMTP_PORT === '465', // true para 465, false para otros
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+        // Configuración de timeout mejorada para Railway
+        connectionTimeout: isRailway ? 60000 : 30000, // 60s en Railway, 30s local
+        greetingTimeout: isRailway ? 60000 : 30000,
+        socketTimeout: isRailway ? 60000 : 30000,
+        // Configuraciones adicionales para Railway
+        pool: false, // Deshabilitar pool para evitar problemas de conexión
+        maxConnections: 1,
+        maxMessages: 1,
+        // Configuración TLS específica para Railway
+        tls: {
+          rejectUnauthorized: false, // Necesario en Railway
+          ciphers: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
+        },
+        // Configuración adicional para entornos cloud
+        ignoreTLS: false,
+        requireTLS: true,
+        // Debug y logger deshabilitados para evitar errores
+        debug: false,
+        logger: false
+      });
+
+      // Verificar la conexión al inicializar
+      this.verifyConnection();
+    } catch (error) {
+      console.error('❌ Error al inicializar EmailService:', error);
+      console.warn('⚠️  EmailService deshabilitado debido a errores de configuración');
       this.transporter = null;
-      return;
     }
-
-    // Configuración específica para Railway y entornos cloud
-    const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
-    
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_PORT === '465', // true para 465, false para otros
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      // Configuración de timeout mejorada para Railway
-      connectionTimeout: isRailway ? 60000 : 30000, // 60s en Railway, 30s local
-      greetingTimeout: isRailway ? 60000 : 30000,
-      socketTimeout: isRailway ? 60000 : 30000,
-      // Configuraciones adicionales para Railway
-      pool: false, // Deshabilitar pool para evitar problemas de conexión
-      maxConnections: 1,
-      maxMessages: 1,
-      // Configuración TLS específica para Railway
-      tls: {
-        rejectUnauthorized: false, // Necesario en Railway
-        ciphers: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
-      },
-      // Configuración adicional para entornos cloud
-      ignoreTLS: false,
-      requireTLS: true,
-      // Debug en Railway
-      debug: isRailway,
-      logger: isRailway
-    });
-
-    // Verificar la conexión al inicializar
-    this.verifyConnection();
   }
 
   // Verificar la conexión SMTP
