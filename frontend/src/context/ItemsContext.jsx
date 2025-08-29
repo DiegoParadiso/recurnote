@@ -518,29 +518,30 @@ export const ItemsProvider = ({ children }) => {
         createdAt: new Date().toISOString(),
       };
       
-      // Agregar al estado visual inmediatamente
-      setItemsByDate(prev => {
-        const newState = { ...prev };
-        if (!newState[itemDate]) {
-          newState[itemDate] = [];
-        }
-        newState[itemDate] = [...newState[itemDate], duplicatedItem];
-        return newState;
-      });
-      
-      // Si es modo local, guardar en localStorage
+      // Si es modo local, agregar al estado visual inmediatamente y guardar
       if (!user || !token) {
-        // Crear el nuevo estado que incluye el item duplicado
+        setItemsByDate(prev => {
+          const newState = { ...prev };
+          if (!newState[itemDate]) {
+            newState[itemDate] = [];
+          }
+          newState[itemDate] = [...newState[itemDate], duplicatedItem];
+          return newState;
+        });
+        
+        // Guardar en localStorage con el estado actualizado
         const newState = { ...itemsByDate };
         if (!newState[itemDate]) {
           newState[itemDate] = [];
         }
         newState[itemDate] = [...newState[itemDate], duplicatedItem];
-        
-        // Guardar en localStorage con el estado actualizado
         saveLocalItems(newState);
+        
         return duplicatedItem;
       }
+      
+      // Si es modo premium, NO agregar al estado visual hasta completar sincronización
+      // Solo crear el item temporal en memoria para la operación
       
       // Si es modo premium, sincronizar con el servidor
       const payload = {
@@ -571,50 +572,31 @@ export const ItemsProvider = ({ children }) => {
         
         const result = await addItem(payload);
       
-      // Reemplazar el item temporal con el resultado del servidor
-      
-      // VERIFICAR si el ID del servidor ya existe en el estado
-      const allItemsInState = Object.values(itemsByDate).flat();
-      const existingItemWithServerId = allItemsInState.find(i => i.id === result.id);
-      if (existingItemWithServerId) {
-        // Generar un nuevo ID único para evitar conflictos
-        const newUniqueId = `duplicated_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        result.id = newUniqueId;
-      }
-      
+      // Ahora agregar el item al estado visual con el ID real del servidor
       setItemsByDate(prev => {
         const newState = { ...prev };
-        for (const dateKey in newState) {
-          // FILTRAR el item temporal y AGREGAR el nuevo del servidor
-          
-          // ELIMINAR tanto el item temporal como cualquier item con el mismo ID del servidor
-          const itemsLimpios = newState[dateKey].filter(i => 
-            i.id !== duplicatedItem.id && i.id !== result.id
-          );
-          
-          // Crear el item final combinando datos del servidor con los del original
-          const itemFinal = {
-            ...itemToDuplicate, // Preservar todos los datos del original
-            ...result, // Sobrescribir con datos del servidor (ID, fechas, etc.)
-            // FORZAR las coordenadas calculadas para evitar teletransporte
-            x: newX,
-            y: newY,
-            angle: newAngle,
-            distance: newDistance,
-            // ASEGURAR que tenga todas las propiedades necesarias para renderizar
-            label: itemToDuplicate.label || 'Item duplicado',
-            width: itemToDuplicate.width || 150,
-            height: itemToDuplicate.height || 100,
-            _pending: false,
-            _justDuplicated: false
-          };
-          
-          newState[dateKey] = [
-            ...itemsLimpios, // Solo items únicos
-            itemFinal // Agregar item final completo
-          ];
+        if (!newState[itemDate]) {
+          newState[itemDate] = [];
         }
         
+        // Crear el item final combinando datos del servidor con los del original
+        const itemFinal = {
+          ...itemToDuplicate, // Preservar todos los datos del original
+          ...result, // Sobrescribir con datos del servidor (ID, fechas, etc.)
+          // FORZAR las coordenadas calculadas para evitar teletransporte
+          x: newX,
+          y: newY,
+          angle: newAngle,
+          distance: newDistance,
+          // ASEGURAR que tenga todas las propiedades necesarias para renderizar
+          label: itemToDuplicate.label || 'Item duplicado',
+          width: itemToDuplicate.width || 150,
+          height: itemToDuplicate.height || 100,
+          _pending: false,
+          _justDuplicated: false
+        };
+        
+        newState[itemDate] = [...newState[itemDate], itemFinal];
         return newState;
       });
       

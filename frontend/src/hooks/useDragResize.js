@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { limitPositionInsideCircle } from '../utils/helpers/geometry';
+import { limitPositionInsideCircle, limitPositionInsideCirclePrecise, limitPositionInsideCircleSmooth, limitPositionInsideCircleBalanced, limitPositionInsideCircle90Degrees, limitPositionInsideCircleSimple } from '../utils/helpers/geometry';
 
 export const useDragResize = ({
   pos,
@@ -53,7 +53,7 @@ export const useDragResize = ({
         let newX = dragStartPos.current.x + correctedDx;
         let newY = dragStartPos.current.y + correctedDy;
 
-        const limited = limitPositionInsideCircle(
+        const limited = limitPositionInsideCircleSimple(
           newX,
           newY,
           sizeState.width,
@@ -73,7 +73,7 @@ export const useDragResize = ({
         let newWidth = Math.min(Math.max(resizeStartPos.current.width + dx, minWidth), maxWidth);
         let newHeight = Math.min(Math.max(resizeStartPos.current.height + dy, minHeight), maxHeight);
 
-        const limited = limitPositionInsideCircle(
+        const limited = limitPositionInsideCircleSimple(
           pos.x,
           pos.y,
           newWidth,

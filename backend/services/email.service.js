@@ -10,27 +10,36 @@ class EmailService {
       return;
     }
 
+    // Configuración específica para Railway y entornos cloud
+    const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
+    
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: process.env.SMTP_PORT || 587,
-      secure: false, // true para 465, false para otros puertos
+      secure: process.env.SMTP_PORT === '465', // true para 465, false para otros
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      // Configuración de timeout mejorada
-      connectionTimeout: 30000, // 30 segundos (aumentado de 10)
-      greetingTimeout: 30000,   // 30 segundos (aumentado de 10)
-      socketTimeout: 30000,     // 30 segundos (aumentado de 10)
-      // Configuraciones adicionales para mejorar la estabilidad
+      // Configuración de timeout mejorada para Railway
+      connectionTimeout: isRailway ? 60000 : 30000, // 60s en Railway, 30s local
+      greetingTimeout: isRailway ? 60000 : 30000,
+      socketTimeout: isRailway ? 60000 : 30000,
+      // Configuraciones adicionales para Railway
       pool: false, // Deshabilitar pool para evitar problemas de conexión
-      maxConnections: 1, // Máximo una conexión a la vez
-      maxMessages: 1, // Máximo un mensaje por conexión
-      // Configuración TLS
+      maxConnections: 1,
+      maxMessages: 1,
+      // Configuración TLS específica para Railway
       tls: {
-        rejectUnauthorized: false, // Para desarrollo, en producción debería ser true
-        ciphers: 'SSLv3'
-      }
+        rejectUnauthorized: false, // Necesario en Railway
+        ciphers: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
+      },
+      // Configuración adicional para entornos cloud
+      ignoreTLS: false,
+      requireTLS: true,
+      // Debug en Railway
+      debug: isRailway,
+      logger: isRailway
     });
 
     // Verificar la conexión al inicializar
@@ -43,6 +52,9 @@ class EmailService {
 
     try {
       console.log('🔍 Verificando conexión SMTP...');
+      console.log(`🌐 Entorno: ${process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV || 'development'}`);
+      console.log(`📧 Host: ${process.env.SMTP_HOST || 'smtp.gmail.com'}:${process.env.SMTP_PORT || 587}`);
+      
       await this.transporter.verify();
       console.log('✅ Conexión SMTP verificada exitosamente');
     } catch (error) {
@@ -53,6 +65,15 @@ class EmailService {
         response: error.response,
         responseCode: error.responseCode
       });
+      
+      // Sugerencias específicas para Railway
+      if (error.code === 'ETIMEDOUT') {
+        console.log('💡 Sugerencias para Railway:');
+        console.log('   • Usar SendGrid: smtp.sendgrid.net:587');
+        console.log('   • Usar Mailgun: smtp.mailgun.org:587');
+        console.log('   • Verificar firewall de Railway');
+        console.log('   • Usar puerto 465 con SSL si es Gmail');
+      }
     }
   }
 
@@ -108,6 +129,12 @@ class EmailService {
 
   // Enviar email de verificación
   async sendVerificationEmail(email, name, token) {
+    // Verificar si tenemos configuración SMTP
+    if (!this.transporter) {
+      console.warn('⚠️  No se puede enviar email: configuración SMTP no disponible');
+      return false;
+    }
+
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
     
     const mailOptions = {
@@ -169,17 +196,7 @@ class EmailService {
       `
     };
 
-    try {
-      return await this.sendEmailWithRetry(mailOptions);
-    } catch (error) {
-      console.error('❌ Error enviando email de verificación después de reintentos:', {
-        error: error.message,
-        code: error.code,
-        email: email,
-        name: name
-      });
-      return false;
-    }
+    return this.sendEmailWithRetry(mailOptions);
   }
 
   // Enviar email de reset de contraseña
@@ -245,17 +262,7 @@ class EmailService {
       `
     };
 
-    try {
-      return await this.sendEmailWithRetry(mailOptions);
-    } catch (error) {
-      console.error('❌ Error enviando email de reset de contraseña después de reintentos:', {
-        error: error.message,
-        code: error.code,
-        email: email,
-        name: name
-      });
-      return false;
-    }
+    return this.sendEmailWithRetry(mailOptions);
   }
 
   // Enviar email de bienvenida
@@ -307,13 +314,7 @@ class EmailService {
       `
     };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      return true;
-    } catch (error) {
-      console.error('Error enviando email de bienvenida:', error);
-      return false;
-    }
+    return this.sendEmailWithRetry(mailOptions);
   }
 }
 

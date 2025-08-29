@@ -34,6 +34,8 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
   }
 
   // Texto arqueado en pantallas grandes
+  const textRadius = radius - 15; 
+  
   return (
     <div
       style={{
@@ -55,7 +57,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
         <defs>
           <path
             id="dayPath"
-            d={`M ${cx - radius},${cy} A ${radius},${radius} 0 0,1 ${cx + radius},${cy}`}
+            d={`M ${cx - textRadius},${cy} A ${textRadius},${textRadius} 0 0,1 ${cx + textRadius},${cy}`}
             fill="none"
           />
         </defs>

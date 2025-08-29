@@ -54,7 +54,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const displayText = useDisplayText(selectedDay, displayOptions);
 
   const isSmallScreen = width <= 640;
-  const radius = circleSize / 2 - 40;
+  // Ajustar el radio para que sea más preciso y permita mejor movimiento
+  const radius = circleSize / 2 - 20; // Reducir de 40 a 20 para más espacio
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
