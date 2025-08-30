@@ -12,12 +12,61 @@ import BottomToast from '../../common/BottomToast';
 import useHandleDrop from '../../../hooks/useDropHandler';
 import { useItems } from '../../../context/ItemsContext';
 import { useAuth } from '../../../context/AuthContext';
+import { useTheme } from '../../../context/ThemeContext';
+import '../../../styles/components/circles/CircleLarge.css';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate }) {
   const { width } = useWindowDimensions();
   const [circleSize, setCircleSize] = useState(680);
   const { itemsByDate: contextItemsByDate, setItemsByDate: contextSetItemsByDate } = useItems();
   const { user, token } = useAuth();
+  const { isLightTheme } = useTheme();
+  const [selectedPattern, setSelectedPattern] = useState(() => {
+    // Priorizar preferencias del usuario si existe
+    const userPattern = user?.preferences?.circlePattern;
+    if (userPattern && userPattern !== 'pattern9' && userPattern !== 'pattern10') {
+      localStorage.setItem('circlePattern', userPattern);
+      return userPattern;
+    }
+    
+    const saved = localStorage.getItem('circlePattern') || 'pattern1';
+    // Si el pattern guardado es 9 o 10, cambiar a pattern1
+    if (saved === 'pattern9' || saved === 'pattern10') {
+      localStorage.setItem('circlePattern', 'pattern1');
+      return 'pattern1';
+    }
+    return saved;
+  });
+
+  // Función para obtener estilos del pattern de fondo
+  const getPatternStyles = () => {
+    if (selectedPattern === 'none') {
+      return {};
+    }
+    
+    const patternUrl = `/assets/${selectedPattern}.png`;
+    const filterStyle = isLightTheme 
+      ? 'grayscale(100%) brightness(1.4) contrast(0.8)' // Gris claro para modo claro
+      : 'grayscale(100%) brightness(0.5) contrast(1.1)'; // Gris oscuro para modo oscuro
+    
+    const opacity = isLightTheme ? '0.2' : '0.5'; // Más visible en modo oscuro
+    
+    return {
+      '--pattern-url': `url(${patternUrl})`,
+      '--pattern-filter': filterStyle,
+      '--pattern-opacity': opacity,
+    };
+  };
+  
+  // Escuchar cambios de pattern desde ConfigPanel
+  useEffect(() => {
+    const handlePatternChange = (event) => {
+      setSelectedPattern(event.detail);
+    };
+    
+    window.addEventListener('patternChanged', handlePatternChange);
+    return () => window.removeEventListener('patternChanged', handlePatternChange);
+  }, []);
   
   // Usar setItemsByDate del ItemsContext para todo
   const setItemsByDateForDrop = setLocalItemsByDate || contextSetItemsByDate;
@@ -121,11 +170,13 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
         id="circle-large-container"
-        className={
-          isSmallScreen
+        className={`
+          ${isSmallScreen
             ? 'absolute inset-0 flex items-center justify-center z-[1]'
             : 'rounded-full border flex items-center justify-center overflow-hidden'
-        }
+          }
+          ${!isSmallScreen && selectedPattern !== 'none' ? 'circle-with-pattern' : ''}
+        `}
         style={{
           width: isSmallScreen ? '100%' : circleSize,
           height: isSmallScreen ? '100dvh' : circleSize,
@@ -134,6 +185,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           borderColor: isSmallScreen ? 'transparent' : 'var(--circle-border-light)',
           borderStyle: isSmallScreen ? 'none' : 'solid',
           position: 'relative',
+          ...(isSmallScreen ? {} : getPatternStyles()),
         }}
       >
         {!selectedDay && (

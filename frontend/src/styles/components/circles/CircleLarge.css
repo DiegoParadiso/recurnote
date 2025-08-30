@@ -1,0 +1,22 @@
+/* Estilo para el patrón de fondo del CircleLarge */
+.circle-with-pattern {
+  position: relative;
+}
+
+.circle-with-pattern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: var(--pattern-url);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: var(--pattern-filter);
+  opacity: var(--pattern-opacity);
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+}

@@ -47,6 +47,29 @@ function ComingSoonOption({ label }) {
   );
 }
 
+function PatternSelector({ selectedPattern, onPatternChange }) {
+  return (
+    <>
+      <label htmlFor="pattern">Fondo del círculo</label>
+      <select
+        id="pattern"
+        value={selectedPattern}
+        onChange={(e) => onPatternChange(e.target.value)}
+      >
+        <option value="none">Sin fondo</option>
+        <option value="pattern1">Patrón 1</option>
+        <option value="pattern2">Patrón 2</option>
+        <option value="pattern3">Patrón 3</option>
+        <option value="pattern4">Patrón 4</option>
+        <option value="pattern5">Patrón 5</option>
+        <option value="pattern6">Patrón 6</option>
+        <option value="pattern7">Patrón 7</option>
+        <option value="pattern8">Patrón 8</option>
+      </select>
+    </>
+  );
+}
+
 function SessionOptions() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -343,6 +366,19 @@ export default function ConfigPanel({
   const { isLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme } = useTheme();
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  
+  // Estado para el pattern seleccionado
+  const [selectedPattern, setSelectedPattern] = useState(() => {
+    return localStorage.getItem('circlePattern') || 'pattern1';
+  });
+
+  // Función para cambiar el pattern
+  const handlePatternChange = (patternId) => {
+    setSelectedPattern(patternId);
+    localStorage.setItem('circlePattern', patternId);
+    // Disparar evento personalizado para que CircleLarge se actualice
+    window.dispatchEvent(new CustomEvent('patternChanged', { detail: patternId }));
+  };
 
   // Cargar preferencias guardadas al abrir el panel (solo la primera vez)
   useEffect(() => {
@@ -352,6 +388,14 @@ export default function ConfigPanel({
       // Aplicar preferencias de visualización solo si no están ya configuradas
       if (prefs.displayOptions) {
         setDisplayOptions(prev => ({ ...prev, ...prefs.displayOptions }));
+      }
+      
+      // Cargar patrón guardado desde preferencias del usuario
+      if (prefs.circlePattern) {
+        setSelectedPattern(prefs.circlePattern);
+        localStorage.setItem('circlePattern', prefs.circlePattern);
+        // Disparar evento para que CircleLarge se actualice
+        window.dispatchEvent(new CustomEvent('patternChanged', { detail: prefs.circlePattern }));
       }
       
       // NO aplicar preferencias de UI automáticamente - dejar que los toggles funcionen
@@ -372,6 +416,7 @@ export default function ConfigPanel({
         leftSidebarPinned: isLeftSidebarPinned,
         rightSidebarPinned: isRightSidebarPinned,
       },
+      circlePattern: selectedPattern,
       // NO guardar showSmall en preferencias para evitar conflictos
       // El estado de showSmall se maneja desde el componente padre
     };
@@ -402,7 +447,7 @@ export default function ConfigPanel({
     }, 500);
     
     return () => pendingRef.current && clearTimeout(pendingRef.current);
-  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, show, token, user, refreshMe]);
+  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, selectedPattern, show, token, user, refreshMe]);
   if (!show) return null;
 
   const options = [
@@ -447,6 +492,14 @@ export default function ConfigPanel({
                 }}
               />
             </div>
+               {!isMobile && (
+                <div className="visualization-header-options">
+                  <PatternSelector
+                    selectedPattern={selectedPattern}
+                    onPatternChange={handlePatternChange}
+                  />
+                </div>
+              )}
           </section>
 
           <section className="config-section">

@@ -27,7 +27,7 @@ export default function NoteItem({
   const [isEditing, setIsEditing] = useState(false);
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
-  const { content = '', width = 150, height = 80 } = item;
+  const { content = '', width = 240, height = 80 } = item;
   
   // Detectar si es móvil
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
