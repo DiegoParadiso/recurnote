@@ -369,7 +369,7 @@ export default function ConfigPanel({
   
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {
-    return localStorage.getItem('circlePattern') || 'pattern1';
+    return localStorage.getItem('circlePattern') || 'none';
   });
 
   // Función para cambiar el pattern

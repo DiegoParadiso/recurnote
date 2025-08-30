@@ -29,18 +29,18 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
       return userPattern;
     }
     
-    const saved = localStorage.getItem('circlePattern') || 'pattern1';
-    // Si el pattern guardado es 9 o 10, cambiar a pattern1
+    const saved = localStorage.getItem('circlePattern') || 'none';
+    // Si el pattern guardado es 9 o 10, cambiar a none
     if (saved === 'pattern9' || saved === 'pattern10') {
-      localStorage.setItem('circlePattern', 'pattern1');
-      return 'pattern1';
+      localStorage.setItem('circlePattern', 'none');
+      return 'none';
     }
     return saved;
   });
 
   // Función para obtener estilos del pattern de fondo
   const getPatternStyles = () => {
-    if (selectedPattern === 'none') {
+    if (selectedPattern === 'none' || !selectedDay) {
       return {};
     }
     
@@ -175,7 +175,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
             ? 'absolute inset-0 flex items-center justify-center z-[1]'
             : 'rounded-full border flex items-center justify-center overflow-hidden'
           }
-          ${!isSmallScreen && selectedPattern !== 'none' ? 'circle-with-pattern' : ''}
+          ${!isSmallScreen && selectedPattern !== 'none' && selectedDay ? 'circle-with-pattern' : ''}
         `}
         style={{
           width: isSmallScreen ? '100%' : circleSize,
