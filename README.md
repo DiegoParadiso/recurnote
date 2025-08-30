@@ -1,29 +1,29 @@
-# 🌀 Recurnote
+# Recurnote
 
 > **Una aplicación innovadora de gestión de notas y tareas con interfaz circular**
 
 Recurnote revoluciona la forma de organizar tu día a día mediante una interfaz circular intuitiva que permite gestionar tareas, notas y archivos de manera visual y espacial.
 
-## 🚀 Características Principales
+## Características Principales
 
-### ✨ Interfaz Circular Innovadora
+### Interfaz Circular Innovadora
 - **Navegación temporal** con círculo pequeño para cambiar días/meses
 - **Círculo principal** donde se organizan todos los elementos del día
 - **Posicionamiento libre** de elementos mediante drag & drop
 - **Rotación dinámica** del círculo para mejor organización
 
-### 📝 Tipos de Elementos
-- **📋 TaskItem**: Listas de tareas con checkboxes interactivos
-- **📄 NoteItem**: Notas de texto con redimensionamiento
-- **📎 ArchiveItem**: Gestión de archivos con vista previa de imágenes
+### Tipos de Elementos
+- **TaskItem**: Listas de tareas con checkboxes interactivos
+- **NoteItem**: Notas de texto con redimensionamiento
+- **ArchiveItem**: Gestión de archivos con vista previa de imágenes
 
-### 🎨 Personalización Avanzada
+### Personalización Avanzada
 - **Temas claro/oscuro** con cambio automático
 - **8 patrones de fondo** para personalizar el círculo
 - **Configuración granular** de visualización y preferencias
 - **Responsive design** optimizado para desktop y móvil
 
-### 🔄 Sincronización Inteligente
+### Sincronización Inteligente
 - **Modo offline** con almacenamiento local
 - **Sincronización automática** con la nube
 - **Migración de datos** local → cloud sin pérdidas
@@ -86,7 +86,7 @@ Items {
 }
 ```
 
-## 🛠️ Instalación y Desarrollo
+## Instalación y Desarrollo
 
 ### Prerrequisitos
 - Node.js 18+
@@ -134,7 +134,7 @@ PORT=5001
 VITE_API_URL=http://localhost:5001
 ```
 
-## 🎯 Características Técnicas Únicas
+## Características Técnicas Únicas
 
 ### Sistema Drag & Drop Avanzado
 - **Touch events** para dispositivos móviles
@@ -170,7 +170,7 @@ VITE_API_URL=http://localhost:5001
 - **Controles adaptados** para pantallas pequeñas
 - **Modo simplificado** sin patrones de fondo
 
-## 🔐 Seguridad
+## Seguridad
 
 ### Autenticación
 - **JWT tokens** con validación automática
@@ -184,7 +184,7 @@ VITE_API_URL=http://localhost:5001
 - **Validación de inputs** con express-validator
 - **SSL forzado** en producción
 
-## 🚀 Roadmap de Expansión
+## Roadmap de Expansión
 
 ### 📱 Aplicación Móvil Nativa
 **Tecnología**: React Native + Expo
@@ -202,14 +202,14 @@ VITE_API_URL=http://localhost:5001
 - Múltiples ventanas para diferentes días
 - Auto-updater integrado
 
-### 🌐 Funcionalidades Futuras
+### Funcionalidades Futuras
 - **Colaboración en tiempo real** con WebSockets
 - **Integraciones** con Google Calendar, Notion, Slack
 - **Inteligencia artificial** para sugerencias
 - **Análisis de productividad** con métricas
 - **API pública** para desarrolladores
 
-## 🧪 Testing
+## Testing
 
 ### Frontend
 ```bash
@@ -245,7 +245,7 @@ npm run build
 - **Supabase** (alternativa)
 - **AWS RDS** (producción enterprise)
 
-## 🤝 Contribución
+## Contribución
 
 ### Estructura de Commits
 ```
@@ -269,22 +269,11 @@ chore: tareas de mantenimiento
 
 Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
 
-## 👥 Equipo
-
-- **Diego** - Desarrollador Principal & Arquitecto
-- **Contribuidores** - Ver `CONTRIBUTORS.md`
-
-## 📞 Soporte
-
-- **Issues**: [GitHub Issues](https://github.com/usuario/recurnote/issues)
-- **Documentación**: [Wiki del proyecto](https://github.com/usuario/recurnote/wiki)
-- **Email**: support@recurnote.com
-
 ---
 
 <div align="center">
 
-**🌀 Recurnote - Organiza tu vida de forma circular**
+**Recurnote - Organiza tu vida de forma circular**
 
 [![React](https://img.shields.io/badge/React-18.3.1-blue.svg)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
