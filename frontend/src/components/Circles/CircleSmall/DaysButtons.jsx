@@ -10,6 +10,7 @@ export default function DaysButtons({
   center,
   buttonSize,
   labelDistanceFromCenter,
+  isDragging = false,
 }) {
   const daysInMonth = currentDate.daysInMonth;
 
@@ -38,12 +39,14 @@ export default function DaysButtons({
             angle={angle}
             isSelected={isSelected}
             onClick={() => {
-              const newSelected = currentDate.set({ day: dayNumber });
-              setSelectedDay(newSelected.toObject());
-              onDayClick?.(newSelected.toObject());
+              // Solo activar si no se está arrastrando
+              if (!isDragging) {
+                onDayClick?.(dayNumber);
+              }
             }}
             buttonSize={buttonSize}
             labelDistanceFromCenter={labelDistanceFromCenter}
+            isDragging={isDragging}
           />
         );
       })}

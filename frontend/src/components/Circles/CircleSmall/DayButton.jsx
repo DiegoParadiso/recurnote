@@ -6,6 +6,7 @@ export default function DayButton({
   isSelected,
   buttonSize = 32,
   labelDistanceFromCenter = -35,
+  isDragging = false,
 }) {
   const centerOffset = buttonSize / 2;
 
@@ -20,10 +21,14 @@ export default function DayButton({
         width: `${buttonSize}px`,
         height: `${buttonSize}px`,
       }}
-      onClick={onClick}
+      onClick={(e) => {
+        if (!isDragging && onClick) {
+          onClick();
+        }
+      }}
     >
       <div
-        className={`rounded-full border relative flex items-center justify-center cursor-pointer transition duration-200`}
+        className={`rounded-full border relative flex items-center justify-center transition duration-200`}
         style={{
           width: `${buttonSize}px`,
           height: `${buttonSize}px`,
@@ -34,6 +39,9 @@ export default function DayButton({
             ? '#a3a3a3'
             : '#a3a3a3',
           transition: 'background-color 0.3s ease, border-color 0.3s ease',
+          cursor: isDragging ? 'grab' : 'pointer',
+          opacity: isDragging ? 0.7 : 1,
+          pointerEvents: isDragging ? 'none' : 'auto',
         }}
       >
         <span

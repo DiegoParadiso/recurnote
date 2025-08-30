@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
+
 import '../../../../styles/components/circles/items/ArchivoItem.css';
 import { useAuth } from '../../../../context/AuthContext';
 
@@ -25,6 +26,9 @@ export default function ArchivoItem({
   const fileInputRef = useRef();
   const [showOnlyImage, setShowOnlyImage] = useState(!!item.showOnlyImage);
   const [toastMessage, setToastMessage] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const timeoutRef = useRef(null);
+  const wasDraggingRef = useRef(false);
   const { user } = useAuth();
 
   const onFileChange = (e) => {
@@ -36,13 +40,51 @@ export default function ArchivoItem({
     }
   };
 
-  const handleContainerClick = () => {
+  const handleContainerClick = (e) => {
+    // No permitir carga de archivo si se está arrastrando
+    if (isDragging || wasDraggingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
     if (!item.content?.fileData) {
       fileInputRef.current?.click();
     }
   };
 
+  const handleContainerDragStart = () => {
+    // Pequeño delay para permitir clicks rápidos
+    timeoutRef.current = setTimeout(() => {
+      setIsDragging(true);
+      wasDraggingRef.current = true;
+    }, 100);
+  };
+
+  const handleContainerDragEnd = () => {
+    // Limpiar timeout si existe
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    // Reset drag state inmediatamente al terminar
+    setIsDragging(false);
+    
+    // Mantener wasDragging por un breve momento para evitar activaciones
+    setTimeout(() => {
+      wasDraggingRef.current = false;
+    }, 200);
+  };
+
   const handleImageClick = (e) => {
+    // No cambiar vista si se está arrastrando
+    if (isDragging || wasDraggingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
     e.stopPropagation();
     setShowOnlyImage((prev) => {
       const next = !prev;
@@ -50,6 +92,15 @@ export default function ArchivoItem({
       return next;
     });
   };
+
+  // Limpiar timeouts cuando se desmonte el componente
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleDownload = (e) => {
     e.stopPropagation();
@@ -159,17 +210,8 @@ export default function ArchivoItem({
               { x: x, y: y }
             );
           }}
-          onDrop={() => {
-            onItemDrop?.(id);
-          }}
-          onDragStart={(e) => {
-            onItemDrag?.(id, { x, y });
-          }}
-          onDrag={(e) => {
-            if (e.clientX && e.clientY) {
-              onItemDrag?.(id, { x: e.clientX, y: e.clientY });
-            }
-          }}
+          onDrag={handleContainerDragStart}
+          onDrop={handleContainerDragEnd}
           circleCenter={{ cx, cy }}
           maxRadius={circleSize / 2}
           isSmallScreen={isSmallScreen}
@@ -178,7 +220,13 @@ export default function ArchivoItem({
             className={`archivo-item-container ${showOnlyImage ? 'show-only-image' : ''}`}
             onClick={handleContainerClick}
             style={{
-              cursor: !item.content?.fileData ? 'pointer' : 'default',
+              cursor: isDragging ? 'grab' : (!item.content?.fileData ? 'pointer' : 'default'),
+              opacity: isDragging ? 0.7 : 1,
+              pointerEvents: isDragging ? 'none' : 'auto',
+              userSelect: isDragging ? 'none' : 'auto',
+              WebkitUserSelect: isDragging ? 'none' : 'auto',
+              MozUserSelect: isDragging ? 'none' : 'auto',
+              msUserSelect: isDragging ? 'none' : 'auto',
             }}
           >
             {isImage && (

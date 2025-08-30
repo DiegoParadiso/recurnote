@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateTime } from 'luxon';
 
-export default function MonthHeader({ date, position, onClick }) {
+export default function MonthHeader({ date, position, onClick, isDragging = false }) {
   const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
 
   const baseStyle = {
@@ -15,28 +15,28 @@ export default function MonthHeader({ date, position, onClick }) {
     textTransform: 'uppercase',
     color: 'var(--color-text-primary)',
     transition: 'all 0.3s ease',
-    cursor: onClick ? 'pointer' : 'default',
-    pointerEvents: onClick ? 'auto' : 'none',
+    cursor: isDragging ? 'grab' : (onClick ? 'pointer' : 'default'),
+    pointerEvents: isDragging ? 'none' : (onClick ? 'auto' : 'none'),
   };
 
   const positionsStyles = {
     previous: {
       top: '40%',
-      opacity: 0.35,
+      opacity: isDragging ? 0.2 : 0.35,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
       transform: 'translateX(-50%)',
     },
     next: {
       top: '55%',
-      opacity: 0.35,
+      opacity: isDragging ? 0.2 : 0.35,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
       transform: 'translateX(-50%)',
     },
     current: {
       top: '50%',
-      opacity: 1,
+      opacity: isDragging ? 0.7 : 1,
       fontSize: '1.4rem',
       color: 'var(--color-text-primary)',
       pointerEvents: 'none',
@@ -51,7 +51,15 @@ export default function MonthHeader({ date, position, onClick }) {
   };
 
   return (
-    <h2 style={style} onClick={onClick} aria-live={position === 'current' ? 'polite' : undefined}>
+    <h2 
+      style={style} 
+      onClick={(e) => {
+        if (!isDragging && onClick) {
+          onClick();
+        }
+      }}
+      aria-live={position === 'current' ? 'polite' : undefined}
+    >
       {mesNombre}
     </h2>
   );

@@ -1,20 +1,23 @@
 .taskitem-content {
   flex-grow: 1;
   overflow-y: visible;
-  height: auto;
+  height: 100%;
   color: var(--color-text-primary);
   font-size: 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  justify-content: center;
+  padding: 4px;
+  box-sizing: border-box;
 }
 
 .taskitem-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   /* height is set inline from JSX */
 }
 

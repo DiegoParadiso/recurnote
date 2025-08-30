@@ -22,6 +22,8 @@ export default function UnifiedContainer({
   const containerRef = useRef(null);
   const [pos, setPos] = useState({ x, y });
   const [sizeState, setSizeState] = useState({ width, height });
+  const dragStartRef = useRef(null);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     const limited = limitPositionInsideCircle(
@@ -49,6 +51,12 @@ export default function UnifiedContainer({
       onDrop?.();
       isDragging.current = false;
     }
+    
+    // Restaurar selección de texto cuando termine el drag
+    document.body.style.userSelect = '';
+    document.body.style.WebkitUserSelect = '';
+    document.body.style.MozUserSelect = '';
+    document.body.style.msUserSelect = '';
   };
   
   const handleTouchEnd = (e) => {
@@ -56,6 +64,12 @@ export default function UnifiedContainer({
       onDrop?.();
       isDragging.current = false;
     }
+    
+    // Restaurar selección de texto cuando termine el drag
+    document.body.style.userSelect = '';
+    document.body.style.WebkitUserSelect = '';
+    document.body.style.MozUserSelect = '';
+    document.body.style.msUserSelect = '';
   };
   
   const onMouseDownDrag = (e) => {
@@ -65,6 +79,18 @@ export default function UnifiedContainer({
     if (e.target.dataset.resizeHandle) return;
 
     e.stopPropagation();
+    e.preventDefault(); // Prevenir selección de texto
+    
+    // Prevenir selección de texto a nivel global durante drag
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+    
+    // Registrar posición inicial para detectar drag vs click
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = false;
+    
     isDragging.current = true;
     dragStartPos.current = {
       mouseX: e.clientX,
@@ -73,12 +99,19 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
+    
+    // Notificar inmediatamente que el drag comenzó
+    onDrag?.({ x: pos.x, y: pos.y });
   };
 
   const onTouchStartDrag = (e) => {
     if (e.touches.length !== 1) return;
 
     const touch = e.touches[0];
+    
+    // Registrar posición inicial para detectar drag vs click
+    dragStartRef.current = { x: touch.clientX, y: touch.clientY };
+    isDraggingRef.current = false;
     
     // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
     // Solo registrar la posición inicial
@@ -90,6 +123,38 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
+    
+    // Notificar inmediatamente que el drag comenzó
+    onDrag?.({ x: pos.x, y: pos.y });
+  };
+
+  const onMouseMoveDrag = (e) => {
+    if (dragStartRef.current) {
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Si se movió más de 5px, se considera drag
+      if (distance > 5) {
+        isDraggingRef.current = true;
+      }
+    }
+  };
+
+  const onTouchMoveDrag = (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    
+    if (dragStartRef.current) {
+      const dx = touch.clientX - dragStartRef.current.x;
+      const dy = touch.clientY - dragStartRef.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Si se movió más de 5px, se considera drag
+      if (distance > 5) {
+        isDraggingRef.current = true;
+      }
+    }
   };
 
   const onMouseDownResize = (e) => {
@@ -119,11 +184,18 @@ export default function UnifiedContainer({
     };
   };
 
+  // Función para verificar si se está haciendo drag
+  const isCurrentlyDragging = () => {
+    return isDraggingRef.current;
+  };
+
   return (
     <div
       ref={containerRef}
       onMouseDown={onMouseDownDrag}
+      onMouseMove={onMouseMoveDrag}
       onTouchStart={onTouchStartDrag}
+      onTouchMove={onTouchMoveDrag}
       onMouseUp={handleMouseUp}
       onTouchEnd={handleTouchEnd}
       
@@ -140,6 +212,7 @@ export default function UnifiedContainer({
           border: '1px solid var(--color-text-secondary)',
         }
       })}
+      data-is-dragging={isCurrentlyDragging()}
     >
       {children}
       {!disableResize && (
