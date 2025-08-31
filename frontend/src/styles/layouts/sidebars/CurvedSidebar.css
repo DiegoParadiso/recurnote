@@ -93,38 +93,36 @@
 /* Clases para modo móvil vía prop isMobile */
 .curved-sidebar-container.mobile {
     position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
+    left: 1rem !important; /* Mismo left que mobile-controls */
+    right: 1rem !important; /* Mismo right que mobile-controls */
     top: auto !important;
     bottom: var(--mobile-bottom-offset) !important; 
-    width: 100vw !important;
-    height: var(--mobile-carousel-height) !important; /* usa variable CSS */
-    background-color: var(--color-bg);
+    width: calc(100vw - 2rem) !important; /* Ancho ajustado por los margins */
+    height: var(--mobile-carousel-height) !important;
+    background: transparent !important;
+    border: none !important;
     z-index: var(--z-floating);
-    overflow: visible; /* Cambiar de hidden a visible para permitir scroll */
+    overflow: visible !important;
+    display: flex !important;
+    justify-content: center !important; /* Esto ahora alineará con el center del space-between */
+    align-items: center !important;
 }
 
 .curved-sidebar-container.mobile .curved-sidebar-panel {
     display: flex !important;
     flex-direction: row !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     align-items: center !important;
-    overflow-x: auto !important;
-    overflow-y: auto !important; /* Cambiar de hidden a auto para permitir scroll vertical */
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0.75rem 1rem !important;
-    gap: 1rem !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    gap: 1.5rem !important;
+    border: none !important;
     border-radius: 0 !important;
-    -webkit-overflow-scrolling: touch; 
-    white-space: nowrap;
-    scroll-behavior: smooth;
-    /* Mejorar scroll en móviles */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE 10+ */
-    /* Mejorar scroll en dispositivos táctiles */
-    touch-action: pan-x pan-y;
-    overscroll-behavior: contain;
+    position: relative !important;
+    margin: 0 !important;
+    background: transparent !important; /* Sin fondo del panel */
 }
 
 .curved-sidebar-container.mobile .curved-sidebar-panel::-webkit-scrollbar {
@@ -133,8 +131,20 @@
 
 .curved-sidebar-container.mobile .curved-sidebar-panel > div {
     flex: 0 0 auto; /* prevent shrinking */
-    /* Asegurar que los items sean visibles */
-    min-width: fit-content;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Efectos de hover/touch para items en móvil */
+.curved-sidebar-container.mobile .curved-sidebar-panel > div:hover,
+.curved-sidebar-container.mobile .curved-sidebar-panel > div:active {
+    transform: scale(1.05);
 }
 
 .curved-sidebar-container.pinned .curved-sidebar-panel {

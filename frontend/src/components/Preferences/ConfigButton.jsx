@@ -1,6 +1,13 @@
 import { SlidersHorizontal } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ConfigButton({ onToggle }) {
+  const { isLightTheme } = useTheme();
+  
+  // Filtro para adaptar iconos al tema
+  const iconFilter = isLightTheme 
+    ? 'brightness(0) saturate(100%)' // Negro para tema claro
+    : 'brightness(0) saturate(100%) invert(1)'; // Blanco para tema oscuro
   return (
     <button
       onClick={onToggle}

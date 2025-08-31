@@ -1,5 +1,6 @@
 import '../../styles/components/common/MobileBottomControls.css';
 import { Eye, EyeOff } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function MobileBottomControls({ 
   showSmall, 
@@ -9,6 +10,12 @@ export default function MobileBottomControls({
   showRightSidebarMobile, 
   setShowRightSidebarMobile 
 }) {
+  const { isLightTheme } = useTheme();
+  
+  // Filtro para adaptar iconos al tema
+  const iconFilter = isLightTheme 
+    ? 'brightness(0) saturate(100%)' // Negro para tema claro
+    : 'brightness(0) saturate(100%) invert(1)'; // Blanco para tema oscuro
   return (
     <div className="mobile-controls">
       <button 
@@ -16,9 +23,7 @@ export default function MobileBottomControls({
         aria-label="Mostrar sidebar izquierdo" 
         className="p-0"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <img src="/assets/plus.svg" alt="Plus" className="w-5 h-5" style={{ filter: iconFilter }} />
       </button>
 
       <button 
@@ -34,9 +39,7 @@ export default function MobileBottomControls({
         aria-label="Mostrar sidebar derecho" 
         className="p-0"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
+        <img src="/assets/category.svg" alt="Category" className="w-5 h-5" style={{ filter: iconFilter }} />
       </button>
     </div>
   );

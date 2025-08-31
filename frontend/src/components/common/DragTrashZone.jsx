@@ -1,6 +1,14 @@
 import React from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, draggedItem }) {
+  const { isLightTheme } = useTheme();
+  
+  // Filtro para adaptar iconos al tema
+  const iconFilter = isLightTheme 
+    ? 'brightness(0) saturate(100%)' // Negro para tema claro
+    : 'brightness(0) saturate(100%) invert(1)'; // Blanco para tema oscuro
+
   if (!isActive) return null;
 
   const handleDrop = (e) => {
@@ -35,13 +43,21 @@ export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, dragg
       onDragOver={handleDragOver}
     >
       {isOverTrash ? (
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3zm0 5h2v9H9zm4 0h2v9h-2z" />
-        </svg>
+        <img 
+          src="/assets/postdelete.svg" 
+          alt="Delete Active" 
+          width="30" 
+          height="30"
+          style={{ filter: iconFilter }}
+        />
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3zM7 6h10v13H7zm2 2v9h2V8zm4 0v9h2V8z" />
-        </svg>
+        <img 
+          src="/assets/delete.svg" 
+          alt="Delete" 
+          width="30" 
+          height="30"
+          style={{ filter: iconFilter }}
+        />
       )}
     </div>
   );
