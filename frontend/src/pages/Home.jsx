@@ -30,6 +30,7 @@ export default function Home() {
   const { selectedDay, setSelectedDay } = useNotes();
 
   const [isOverTrash, setIsOverTrash] = useState(false);
+  const [circleLargeSize, setCircleLargeSize] = useState(660); // Tamaño actual del CircleLarge
 
 
   const [showLeftSidebarHover, setShowLeftSidebarHover] = useState(false);
@@ -252,7 +253,7 @@ export default function Home() {
 
       {/* Contenido principal */}
       <div
-        className="relative flex items-center justify-center px-4 sm:px-0"
+        className="relative flex items-center justify-center px-4 sm:px-0 circle-large-wrapper"
         style={{
           borderRadius: '12px',
           backgroundColor: 'var(--color-bg)',
@@ -264,6 +265,7 @@ export default function Home() {
           showSmall={showSmall}
           displayOptions={displayOptions}
           selectedDay={selectedDay}
+          onCircleSizeChange={setCircleLargeSize}
           onItemDrag={(itemId, pos) => {
             if (pos && pos.action === 'drop') {
               // Es un drop, verificar si está sobre la papelera
@@ -294,8 +296,9 @@ export default function Home() {
           <button
             onClick={() => setShowSmall(!showSmall)}
             aria-label="Toggle mostrar pequeño"
-            className="absolute right-[-25px] top-1/2 transform -translate-y-1/2 z-10 hidden sm:flex"
+            className="absolute top-1/2 transform -translate-y-1/2 z-10 hidden sm:flex"
             style={{
+              left: `calc(50% + ${(circleLargeSize / 2 - 20)}px + 35px)`, // Centrado + radio del círculo + margen reducido
               color: 'var(--color-text-secondary)',
               backgroundColor: 'transparent',
               border: 'none',

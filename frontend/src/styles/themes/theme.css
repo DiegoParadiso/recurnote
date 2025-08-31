@@ -26,6 +26,12 @@
   --circle-border-light: #a3a3a3; /* Gris más clarito para modo claro */
   --circle-border-dark: #50555D; /* Gris no tan blanco para modo oscuro */
 
+  /* Variables para items del CircleLarge - Mayor nitidez */
+  --item-text-primary: #0f0f0f; /* Texto más negro y nítido */
+  --item-text-secondary: #505050; /* Texto secundario con mejor contraste */
+  --item-text-muted: #626262; /* Texto muted más legible */
+  --item-border: #b8b8b8; /* Bordes más definidos */
+
   --daybutton-bg: var(--color-bg);
   --daybutton-border: var(--circle-border-light); /* Gris más clarito */
   --daybutton-text: var(--color-text-primary);
@@ -42,6 +48,13 @@
 
   --sidebar-item-hover-bg: #f0efed;
   --sidebar-item-dark-hover-bg: #2e2e2e;
+
+  /* Variables específicas para elementos de sidebar en modo claro */
+  --color-empty-content: #b8b8b8; /* Gris medio para elementos vacíos en modo claro */
+  --color-empty-content-bg: #e8e8e8; /* Fondo sutil para elementos vacíos */
+  --color-empty-content-border: #a0a0a0; /* Borde más visible */
+  --color-empty-placeholder: #909090; /* Color para placeholders */
+  --color-empty-text: #707070; /* Texto para elementos sin contenido */
 
   --sidebar-tarea-checkline-color: #525252;
   --sidebar-tarea-bar-bg: #d4d4d4;
@@ -117,6 +130,12 @@ html.dark {
   --circle-border-light: #a3a3a3; /* Gris más clarito para modo claro */
   --circle-border-dark: #50555D; /* Gris no tan blanco para modo oscuro */
 
+  /* Variables para items del CircleLarge - Mayor nitidez en modo oscuro */
+  --item-text-primary: #f8f8f8; /* Texto más claro y nítido */
+  --item-text-secondary: #d0d0d0; /* Texto secundario con mejor contraste */
+  --item-text-muted: #b5b5b5; /* Texto muted más legible */
+  --item-border: #6a6a6a; /* Bordes más definidos */
+
   --daybutton-bg: var(--color-bg);
   --daybutton-border: var(--circle-border-light); /* Gris más clarito */
   --daybutton-text: var(--color-text-primary);
@@ -157,6 +176,7 @@ html.dark {
   --sidebar-hover-color-dark: #6b6b6b; /* Gris medio equilibrado para modo oscuro */
 
   /* Variables para elementos sin contenido en modo oscuro - Mejor legibilidad */
+  /* Variables específicas para elementos de sidebar en modo oscuro */
   --color-empty-content: #a0a0a0; /* Gris más claro para elementos vacíos en modo oscuro */
   --color-empty-content-bg: #2a2a2a; /* Fondo sutil para elementos vacíos */
   --color-empty-content-border: #4a4a4a; /* Borde más visible */

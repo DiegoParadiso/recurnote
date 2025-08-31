@@ -34,17 +34,20 @@ export function useHomeLogic() {
   const dragOffsetRef = useRef({ dx: 0, dy: 0 });
 
   const computeDefaultSmallPos = () => {
-    // Intentar posicionarlo dentro del círculo de CircleLarge (centro derecha)
-    const circleEl = document.getElementById('circle-large-container');
+    // Posicionar CircleSmall pegado al borde derecho del CircleLarge, centrado verticalmente
+    const circleEl = document.querySelector('.circle-large-container');
     if (circleEl) {
       const rect = circleEl.getBoundingClientRect();
-      const x = rect.left + rect.width - smallSize; // bien pegado al borde derecho
+      // Posicionarlo pegado al borde derecho del CircleLarge
+      const x = rect.right - smallSize;
       const y = rect.top + rect.height / 2 - smallSize / 2; // centrado vertical
       return { x: Math.max(0, x), y: Math.max(0, y) };
     }
+    
+    // Fallback si no encuentra el CircleLarge: lado derecho de la pantalla
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const x = Math.max(0, vw - smallSize - 16);
+    const x = Math.max(0, vw - smallSize - 20); // margen desde la derecha
     const y = Math.max(0, (vh - smallSize) / 2);
     return { x, y };
   };
@@ -52,8 +55,19 @@ export function useHomeLogic() {
   // Inicializar desde preferencias o posición por defecto (sólo desktop)
   useEffect(() => {
     if (window.innerWidth <= 640) return;
+    
+    // Si no hay preferencias guardadas, usar posición por defecto (derecha del CircleLarge)
     const pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
-    let initial = pref && typeof pref.x === 'number' && typeof pref.y === 'number' ? { x: pref.x, y: pref.y } : computeDefaultSmallPos();
+    let initial;
+    
+    if (pref && typeof pref.x === 'number' && typeof pref.y === 'number') {
+      // Usar preferencias guardadas
+      initial = { x: pref.x, y: pref.y };
+    } else {
+      // Usar posición por defecto (derecha del CircleLarge)
+      initial = computeDefaultSmallPos();
+    }
+    
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     initial = {
@@ -64,11 +78,87 @@ export function useHomeLogic() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.preferences]);
 
-  // Manejar resize de ventana para mantener CircleSmall dentro de los límites
+  // Estado para rastrear si el usuario ya movió el CircleSmall manualmente
+  const [hasUserMovedCircle, setHasUserMovedCircle] = useState(false);
+
+  // Efecto adicional para reposicionar cuando el CircleLarge esté listo (solo en carga inicial)
+  useEffect(() => {
+    if (window.innerWidth <= 640) return;
+    
+    const repositionWhenReady = () => {
+      // No reposicionar si el usuario ya lo movió manualmente
+      if (hasUserMovedCircle) return;
+      
+      // Verificar si no hay preferencias guardadas
+      const pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
+      if (pref && typeof pref.x === 'number' && typeof pref.y === 'number') {
+        return; // Hay preferencias, no reposicionar
+      }
+      
+      // Intentar obtener la posición correcta del CircleLarge
+      const circleEl = document.querySelector('.circle-large-container');
+      if (!circleEl) return; // No está listo aún
+      
+      const newPos = computeDefaultSmallPos();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const clamped = {
+        x: Math.min(Math.max(0, newPos.x), vw - smallSize),
+        y: Math.min(Math.max(0, newPos.y), vh - smallSize),
+      };
+      
+      // Solo actualizar si la nueva posición es diferente y válida
+      if (clamped.x !== circleSmallPos.x || clamped.y !== circleSmallPos.y) {
+        setCircleSmallPos(clamped);
+      }
+    };
+
+    // Observar cuando aparece el CircleLarge en el DOM (solo una vez)
+    let hasRepositioned = false;
+    const observer = new MutationObserver(() => {
+      if (hasRepositioned) return;
+      const circleEl = document.querySelector('.circle-large-container');
+      if (circleEl) {
+        repositionWhenReady();
+        hasRepositioned = true;
+        observer.disconnect(); // Dejar de observar una vez encontrado
+      }
+    });
+
+    // Comenzar a observar el body por cambios en el DOM
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // También intentar con delays como fallback (solo una vez)
+    const timeoutId1 = setTimeout(() => {
+      if (!hasRepositioned) {
+        repositionWhenReady();
+        hasRepositioned = true;
+      }
+    }, 100);
+    
+    const timeoutId2 = setTimeout(() => {
+      if (!hasRepositioned) {
+        repositionWhenReady();
+        hasRepositioned = true;
+      }
+    }, 500);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+    };
+  }, [smallSize, user?.preferences, hasUserMovedCircle]); // Removido circleSmallPos de dependencies
+
+  // Manejar resize de ventana para mantener CircleSmall dentro de los límites (sin reposicionar automáticamente)
   useEffect(() => {
     if (window.innerWidth <= 640) return;
     
     const handleResize = () => {
+      // Solo ajustar si está fuera de los límites, NO reposicionar automáticamente
       if (circleSmallPos.x != null && circleSmallPos.y != null) {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
@@ -126,10 +216,12 @@ export function useHomeLogic() {
       ev.preventDefault();
       if (!draggingSmallRef.current) return;
       draggingSmallRef.current = false;
+      
+      // Marcar que el usuario movió el círculo manualmente
+      setHasUserMovedCircle(true);
+      
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
-      
-
     };
 
     document.addEventListener('mousemove', onMove);
@@ -140,6 +232,7 @@ export function useHomeLogic() {
     if (window.innerWidth <= 640) return;
     const def = computeDefaultSmallPos();
     setCircleSmallPos(def);
+    setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
   }, []);
 
   // Función para resetear a la posición original (usada por el menú contextual)
@@ -147,6 +240,7 @@ export function useHomeLogic() {
     if (window.innerWidth <= 640) return;
     const def = computeDefaultSmallPos();
     setCircleSmallPos(def);
+    setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
   }, []);
 
 
@@ -163,6 +257,7 @@ export function useHomeLogic() {
       y: Math.min(Math.max(0, pos.y), vh - smallSize),
     };
     setCircleSmallPos(clamped);
+    setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
   }, [smallSize, computeDefaultSmallPos]);
 
   const [displayOptions, setDisplayOptions] = useState({

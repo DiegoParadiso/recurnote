@@ -52,41 +52,43 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
         className="w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem]"
       >
         {renderDeleteButton()}
-        {(item.content || []).map((task, idx) => (
-          <div key={idx} className="flex items-center gap-2 mb-1">
-            <label className="checkbox-label relative cursor-pointer select-none flex-shrink-0">
-              <input
-                type="checkbox"
-                className="checkbox-input"
-                checked={item.checked?.[idx] || false}
-                onChange={() => toggleTaskCheck(dateKey, item.id, idx)}
-              />
-              <span
-                className={`checkbox-box ${item.checked?.[idx] ? 'checked' : ''}`}
-              >
-                <svg
-                  viewBox="0 0 12 10"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+        <div style={{ wordBreak: 'break-word', lineHeight: '1.3', display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
+          {(item.content || []).map((task, idx) => (
+            <div key={idx} className="flex gap-2">
+              <label className="checkbox-label relative cursor-pointer select-none flex-shrink-0">
+                <input
+                  type="checkbox"
+                  className="checkbox-input"
+                  checked={item.checked?.[idx] || false}
+                  onChange={() => toggleTaskCheck(dateKey, item.id, idx)}
+                />
+                <span
+                  className={`checkbox-box ${item.checked?.[idx] ? 'checked' : ''}`}
                 >
-                  <path
-                    d="M1 5L4 8L11 1"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                  <svg
+                    viewBox="0 0 12 10"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 5L4 8L11 1"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </label>
+              <span 
+                className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'empty-task-text'}`}
+                style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
+              >
+                {item.content?.[idx] || 'Tarea sin descripción'}
               </span>
-            </label>
-            <span 
-              className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'empty-task-text'}`}
-              style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
-            >
-              {item.content?.[idx] || 'Tarea sin descripción'}
-            </span>
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

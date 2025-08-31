@@ -41,7 +41,7 @@ export default function NoteItem({
     }
   };
 
-  const computedMinHeight = height;
+  const computedMinHeight = 80; // Altura mínima fija
 
   const handleTextChange = (e) => {
     // No cambiar texto si se está arrastrando
@@ -138,8 +138,8 @@ export default function NoteItem({
         height={height}
         minWidth={120}
         minHeight={computedMinHeight}
-        maxWidth={224}
-        maxHeight={computedMinHeight}
+        maxWidth={280}
+        maxHeight={200}
         onMove={({ x, y }) => {
           // NO recalcular posición automáticamente para items recién duplicados
           if (item._justDuplicated) {
@@ -159,9 +159,10 @@ export default function NoteItem({
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {
-          const newWidth = Math.min(newSize.width, 400);
-          onUpdate?.(id, content, null, { width: newWidth, height: computedMinHeight });
-          onResize?.({ width: newWidth, height: computedMinHeight });
+          const newWidth = Math.min(newSize.width, 280);
+          const newHeight = Math.max(80, Math.min(newSize.height, 200)); // Altura mínima 80, máxima 200
+          onUpdate?.(id, content, null, { width: newWidth, height: newHeight });
+          onResize?.({ width: newWidth, height: newHeight });
         }}
         onDrag={handleContainerDragStart}
         onDrop={handleContainerDragEnd}
@@ -176,6 +177,11 @@ export default function NoteItem({
             WebkitUserSelect: isDragging ? 'none' : 'auto',
             MozUserSelect: isDragging ? 'none' : 'auto',
             msUserSelect: isDragging ? 'none' : 'auto',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
           }}
         >
           <div className="noteitem-draghandle">

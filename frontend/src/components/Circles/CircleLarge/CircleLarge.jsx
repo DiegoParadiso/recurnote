@@ -15,7 +15,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import '../../../styles/components/circles/CircleLarge.css';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange }) {
   const { width } = useWindowDimensions();
   const [circleSize, setCircleSize] = useState(680);
   const { itemsByDate: contextItemsByDate, setItemsByDate: contextSetItemsByDate } = useItems();
@@ -91,12 +91,38 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   } = useCircleLargeLogic(selectedDay, onItemDrag);
 
   useEffect(() => {
-    if (width <= 640) {
-      setCircleSize(Math.min(width - 40, 360));
-    } else {
-      setCircleSize(680);
-    }
-  }, [width]);
+    // Sistema de tamaños responsivos para diferentes dispositivos
+    const calculateCircleSize = (screenWidth) => {
+      if (screenWidth <= 480) {
+        // Móviles pequeños
+        return Math.min(screenWidth - 40, 300);
+      } else if (screenWidth <= 640) {
+        // Móviles grandes / tablets pequeñas
+        return Math.min(screenWidth - 40, 360);
+      } else if (screenWidth <= 768) {
+        // Tablets
+        return 480;
+      } else if (screenWidth <= 1024) {
+        // Laptops pequeñas
+        return 580;
+      } else if (screenWidth <= 1366) {
+        // Laptops medianas (tu notebook)
+        return 660;
+      } else if (screenWidth <= 1920) {
+        // Laptops grandes / monitores estándar
+        return 740;
+      } else {
+        // Monitores 4K / ultra wide
+        return Math.min(screenWidth * 0.4, 900);
+      }
+    };
+
+    const newSize = calculateCircleSize(width);
+    setCircleSize(newSize);
+    
+    // Notificar al componente padre del nuevo tamaño
+    onCircleSizeChange?.(newSize);
+  }, [width, onCircleSizeChange]);
 
   // Rotación y actualización de ítems se maneja dentro del hook useCircleLargeLogic
 
@@ -121,7 +147,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
 
   return (
     <div
-      className="relative select-none uppercase"
+      className="relative select-none uppercase circle-large-container"
       style={{
         width: '100%',
         height: isSmallScreen ? '100dvh' : circleSize,

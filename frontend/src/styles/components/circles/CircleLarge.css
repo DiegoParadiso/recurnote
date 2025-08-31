@@ -20,3 +20,62 @@
   z-index: -1;
   pointer-events: none;
 }
+
+/* Estilos responsivos para CircleLarge */
+.circle-large-container {
+  transition: all 0.3s ease;
+  will-change: width, height;
+}
+
+/* Asegurar que el contenedor principal siempre centre el círculo */
+.circle-large-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+  .circle-large-wrapper {
+    padding: 8px;
+    min-height: 100dvh;
+  }
+}
+
+/* Tablets */
+@media (min-width: 641px) and (max-width: 768px) {
+  .circle-large-wrapper {
+    padding: 20px;
+  }
+}
+
+/* Laptops pequeñas */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .circle-large-wrapper {
+    padding: 25px;
+  }
+}
+
+/* Laptops medianas (tu notebook) */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .circle-large-wrapper {
+    padding: 30px;
+  }
+}
+
+/* Laptops grandes y monitores estándar */
+@media (min-width: 1367px) and (max-width: 1920px) {
+  .circle-large-wrapper {
+    padding: 40px;
+  }
+}
+
+/* Monitores grandes y 4K */
+@media (min-width: 1921px) {
+  .circle-large-wrapper {
+    padding: 60px;
+  }
+}

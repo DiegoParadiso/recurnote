@@ -1,6 +1,6 @@
 .sidebar-container {
   background-color: var(--color-bg);
-  border: 1px solid var(--color-text-secondary);
+  border-left: 1px solid var(--color-text-secondary);
   width: var(--sidebar-width);
   height: 100vh;
   transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -51,7 +51,7 @@
 
 html.dark .sidebar-container {
   background-color: var(--color-bg);
-  border-color: var(--color-text-secondary);
+  border-left-color: var(--color-text-secondary);
 }
 
 html.dark .sidebar-header {

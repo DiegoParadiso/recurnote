@@ -45,13 +45,13 @@ html.dark .sidebar-item:hover {
 .sidebar-item-nota .dot {
   width: 6px;
   height: 6px;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-empty-content);
   border-radius: 9999px;
   transition: all 0.2s ease;
 }
 
 .sidebar-item-nota:hover .dot {
-  background-color: var(--color-muted);
+  background-color: var(--item-text-secondary);
 }
 
 /* TAREA - Vista previa con checkboxes y barras */
@@ -65,14 +65,14 @@ html.dark .sidebar-item:hover {
 
 .sidebar-item-tarea .bar {
   height: 6px;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-empty-content);
   border-radius: 9999px;
   flex: 1;
   transition: all 0.2s ease;
 }
 
 .sidebar-item-tarea:hover .bar {
-  background-color: var(--color-muted);
+  background-color: var(--item-text-secondary);
 }
 
 html.dark .sidebar-item-tarea .check-line {
@@ -103,12 +103,12 @@ html.dark .sidebar-item-tarea:hover .bar {
   top: 9px;
   left: 0;
   width: 100%;
-  border-top: 2px solid var(--color-text-secondary);
+  border-top: 2px solid var(--color-empty-content);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-evento:hover .top-line {
-  border-color: var(--color-muted);
+  border-color: var(--item-text-secondary);
 }
 
 .sidebar-item-evento .row {
@@ -120,22 +120,22 @@ html.dark .sidebar-item-tarea:hover .bar {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-empty-content);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-evento .block.light {
   background-color: var(--color-empty-content);
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
 .sidebar-item-evento:hover .block {
-  background-color: var(--color-muted);
+  background-color: var(--item-text-secondary);
 }
 
 .sidebar-item-evento:hover .block.light {
-  background-color: var(--color-text-secondary);
-  opacity: 0.9;
+  background-color: var(--item-text-secondary);
+  opacity: 0.7;
 }
 
 html.dark .sidebar-item-evento .top-line {
@@ -174,6 +174,7 @@ html.dark .sidebar-item-evento:hover .block.light {
   justify-content: center;
   gap: 6px;
   padding-left: 0;
+  overflow: hidden;
 }
 
 .sidebar-item-archivo .top-bar {
@@ -186,23 +187,21 @@ html.dark .sidebar-item-evento:hover .block.light {
 }
 
 .sidebar-item-archivo:hover .top-bar {
-  border-color: var(--color-text-secondary);
-  border-width: 3px;
+  border-color: var(--item-text-secondary);
 }
 
 .sidebar-item-archivo .tab {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0px;
+  left: 0px;
   width: 30px;
-  height: 12px;
-  border-radius: 2px 2px 0 0;
+  height: 11px;
   background-color: var(--color-empty-content);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-archivo:hover .tab {
-  background-color: var(--color-text-secondary);
+  background-color: var(--item-text-secondary);
 }
 
 .sidebar-item-archivo .separator {
@@ -214,8 +213,7 @@ html.dark .sidebar-item-evento:hover .block.light {
 }
 
 .sidebar-item-archivo:hover .separator {
-  border-color: var(--color-text-secondary);
-  border-width: 2px;
+  border-color: var(--item-text-secondary);
 }
 
 html.dark .sidebar-item-archivo .top-bar {
@@ -228,21 +226,19 @@ html.dark .sidebar-item-archivo .tab {
 
 html.dark .sidebar-item-archivo .separator {
   border-color: var(--color-empty-content);
-  transition: none;
+  transition: all 0.2s ease;
 }
 
 html.dark .sidebar-item-archivo:hover .top-bar {
-  border-color: var(--color-text-secondary);
-  border-width: 3px;
+  border-color: var(--item-text-secondary);
 }
 
 html.dark .sidebar-item-archivo:hover .tab {
-  background-color: var(--color-text-secondary);
+  background-color: var(--item-text-secondary);
 }
 
 html.dark .sidebar-item-archivo:hover .separator {
-  border-color: var(--color-text-secondary);
-  border-width: 2px;
+  border-color: var(--item-text-secondary);
 }
 
 /* Estados activos */
