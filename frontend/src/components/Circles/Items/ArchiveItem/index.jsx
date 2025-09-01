@@ -24,15 +24,30 @@ export default function ArchivoItem({
   onItemDrop,
 }) {
   const fileInputRef = useRef();
-  const [showOnlyImage, setShowOnlyImage] = useState(!!item.showOnlyImage);
+  const [isExpanded, setIsExpanded] = useState(!!item.isExpanded);
   const [toastMessage, setToastMessage] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
   const { user } = useAuth();
 
+  // Cargar las dimensiones naturales de la imagen cuando se sube
+  useEffect(() => {
+    if (item.content?.base64 && isImage) {
+      const img = new Image();
+      img.onload = () => {
+        setImageDimensions({
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        });
+      };
+      img.src = item.content.base64;
+    }
+  }, [item.content?.base64]);
+
   const onFileChange = (e) => {
-    const { error } = handleFile(e, onUpdate, id, item, x, y, setShowOnlyImage, !!user?.is_vip);
+    const { error } = handleFile(e, onUpdate, id, item, x, y, null, !!user?.is_vip);
     if (error) {
       setToastMessage(error);
     } else {
@@ -77,8 +92,8 @@ export default function ArchivoItem({
     }, 200);
   };
 
-  const handleImageClick = (e) => {
-    // No cambiar vista si se está arrastrando
+  const handleImageDoubleClick = (e) => {
+    // No cambiar vista si se está arrastando
     if (isDragging || wasDraggingRef.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -86,11 +101,18 @@ export default function ArchivoItem({
     }
     
     e.stopPropagation();
-    setShowOnlyImage((prev) => {
-      const next = !prev;
-      onUpdate?.(id, item.content || {}, null, null, null, { showOnlyImage: next });
-      return next;
-    });
+    const newExpandedState = !isExpanded;
+    setIsExpanded(newExpandedState);
+    
+    // Guardar el estado en la base de datos
+    onUpdate?.(
+      id,
+      item.content || {},
+      null,
+      null,
+      null,
+      { isExpanded: newExpandedState }
+    );
   };
 
   // Limpiar timeouts cuando se desmonte el componente
@@ -132,10 +154,6 @@ export default function ArchivoItem({
     alert('Función duplicar archivo (debes implementar)');
   };
 
-  const toggleShowOnlyImage = () => {
-    setShowOnlyImage((prev) => !prev);
-  };
-
   const isImage =
     item.content?.fileData?.type === 'image/jpeg' ||
     item.content?.fileData?.type === 'image/png';
@@ -152,8 +170,21 @@ export default function ArchivoItem({
       // Solo mostrar opción de imagen si es realmente una imagen
       if (isImage) {
         options.push({ 
-          label: showOnlyImage ? 'Mostrar todo' : 'Mostrar solo imagen', 
-          onClick: toggleShowOnlyImage 
+          label: isExpanded ? 'Colapsar imagen' : 'Expandir imagen', 
+          onClick: () => {
+            const newExpandedState = !isExpanded;
+            setIsExpanded(newExpandedState);
+            
+            // Guardar el estado en la base de datos
+            onUpdate?.(
+              id,
+              item.content || {},
+              null,
+              null,
+              null,
+              { isExpanded: newExpandedState }
+            );
+          }
         });
       }
       
@@ -163,10 +194,42 @@ export default function ArchivoItem({
     return options;
   };
 
-  const minWidth = showOnlyImage ? 120 : 120;
-  const maxWidth = showOnlyImage ? 800 : 300;
-  const minHeight = showOnlyImage ? 120 : isImage ? 140 : 80;
-  const maxHeight = showOnlyImage ? 800 : isImage ? 220 : 140;
+  // Calcular dimensiones del contenedor
+  const getContainerDimensions = () => {
+    if (!item.content?.fileData) {
+      return { width: 180, height: 80 }; // Reducido de 100 a 80
+    }
+
+    if (isImage && isExpanded && imageDimensions.width > 0) {
+      // En modo expandido, usar las dimensiones reales del archivo
+      // pero limitar el tamaño máximo para evitar que sea demasiado grande
+      const maxSize = 300; // Tamaño máximo razonable
+      const aspectRatio = imageDimensions.width / imageDimensions.height;
+      
+      let finalWidth, finalHeight;
+      
+      if (aspectRatio > 1) {
+        // Imagen horizontal
+        finalWidth = Math.min(imageDimensions.width, maxSize);
+        finalHeight = finalWidth / aspectRatio;
+      } else {
+        // Imagen vertical
+        finalHeight = Math.min(imageDimensions.height, maxSize);
+        finalWidth = finalHeight * aspectRatio;
+      }
+      
+      // Agregar un pequeño padding para evitar que la imagen toque los bordes
+      return { 
+        width: Math.round(finalWidth + 16), 
+        height: Math.round(finalHeight + 16) 
+      };
+    }
+
+    // En modo normal, dimensiones estándar
+    return { width: 180, height: isImage ? 180 : 80 }; // Reducido de 100 a 80
+  };
+
+  const { width, height } = getContainerDimensions();
 
   return (
     <>
@@ -178,12 +241,13 @@ export default function ArchivoItem({
           x={x}
           y={y}
           rotation={rotationEnabled ? rotation : 0}
-          width={item.width || (showOnlyImage ? 220 : 180)}
-          height={item.height || (showOnlyImage ? 220 : isImage ? 180 : 100)}
-          minWidth={minWidth}
-          maxWidth={maxWidth}
-          minHeight={minHeight}
-          maxHeight={maxHeight}
+          width={width}
+          height={height}
+          minWidth={width}
+          maxWidth={width}
+          minHeight={height}
+          maxHeight={height}
+          disableResize={true}
           onMove={({ x: newX, y: newY }) => {
             // Calcular el ángulo y distancia desde el centro del círculo
             const dx = newX - cx;
@@ -195,20 +259,11 @@ export default function ArchivoItem({
               id,
               item.content || {},
               null,
-              { width: item.width || maxWidth, height: item.height || maxHeight },
+              { width, height },
               { x: newX, y: newY },
               { angle, distance }
             );
             onItemDrag?.(id, { x: newX, y: newY });
-          }}
-          onResize={(newSize) => {
-            onUpdate?.(
-              id,
-              item.content || {},
-              null,
-              { width: newSize.width, height: newSize.height },
-              { x: x, y: y }
-            );
           }}
           onDrag={handleContainerDragStart}
           onDrop={handleContainerDragEnd}
@@ -217,7 +272,7 @@ export default function ArchivoItem({
           isSmallScreen={isSmallScreen}
         >
           <div
-            className={`archivo-item-container ${showOnlyImage ? 'show-only-image' : ''}`}
+            className={`archivo-item-container ${isExpanded ? 'expanded' : ''}`}
             onClick={handleContainerClick}
             style={{
               cursor: isDragging ? 'grab' : (!item.content?.fileData ? 'pointer' : 'default'),
@@ -234,12 +289,12 @@ export default function ArchivoItem({
                 src={item.content.base64}
                 alt={item.content.fileData.name}
                 className="archivo-image"
-                onDoubleClick={handleImageClick}
+                onDoubleClick={handleImageDoubleClick}
                 title="Doble click para expandir/colapsar imagen"
               />
             )}
 
-            {!showOnlyImage && item.content?.fileData && (
+            {!isExpanded && item.content?.fileData && (
               <>
                 <p
                   className="truncate"

@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateTime } from 'luxon';
+import '../../../styles/components/circles/MonthHeader.css';
 
 export default function MonthHeader({ date, position, onClick, isDragging = false }) {
   const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
@@ -52,6 +53,7 @@ export default function MonthHeader({ date, position, onClick, isDragging = fals
 
   return (
     <h2 
+      className={`month-header ${position}`}
       style={style} 
       onClick={(e) => {
         if (!isDragging && onClick) {

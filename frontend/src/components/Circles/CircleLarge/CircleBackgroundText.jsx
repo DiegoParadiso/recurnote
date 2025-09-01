@@ -14,14 +14,14 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
       <div
         style={{
           position: 'absolute',
-          top: '8%',
+          top: '7%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
           pointerEvents: 'none',
           zIndex: 'var(--z-mid-low)',
           color: 'var(--color-text-primary)',
           fontFamily: 'IBM Plex Mono, monospace',
-          fontSize: circleSize * 0.025,
+          fontSize: circleSize * 0.03, // Un poquito más grande (antes era 0.025)
           letterSpacing: 1.5,
           fontWeight: 600,
           textAlign: 'center',

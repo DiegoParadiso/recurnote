@@ -1,3 +1,6 @@
+import React from 'react';
+import '../../../styles/components/circles/DayButton.css';
+
 export default function DayButton({
   day,
   style,
@@ -14,13 +17,14 @@ export default function DayButton({
   const labelY = centerOffset + labelDistanceFromCenter * Math.sin(angle);
 
   return (
-    <div
-      style={{
-        ...style,
-        position: 'absolute',
-        width: `${buttonSize}px`,
-        height: `${buttonSize}px`,
-      }}
+          <div
+        className="day-button"
+        style={{
+          ...style,
+          position: 'absolute',
+          width: `${buttonSize}px`,
+          height: `${buttonSize}px`,
+        }}
       onClick={(e) => {
         if (!isDragging && onClick) {
           onClick();

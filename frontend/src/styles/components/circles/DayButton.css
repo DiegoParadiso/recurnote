@@ -1,0 +1,58 @@
+/* Estilos responsivos para DayButton */
+.day-button {
+  position: absolute;
+  transition: all 0.5s ease;
+  z-index: var(--z-mid);
+  box-sizing: border-box;
+}
+
+/* Estilos para móviles - mantener tamaño original */
+@media (max-width: 640px) {
+  .day-button {
+    /* Mantener tamaño original para mejor proporción */
+    min-width: 22px !important;
+    min-height: 22px !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+  }
+  
+  .day-button span {
+    /* Texto original para mantener proporción */
+    font-size: 11px !important;
+    font-weight: 600;
+    text-shadow: 0 0 2px var(--color-bg);
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+/* Pantallas muy estrechas */
+@media (max-width: 480px) {
+  .day-button {
+    /* Un pelín más chicos para pantallas chicas */
+    min-width: 19px !important;
+    min-height: 19px !important;
+    max-width: 22px !important;
+    max-height: 22px !important;
+  }
+  
+  .day-button span {
+    font-size: 9px !important;
+  }
+}
+
+/* Pantallas extremadamente estrechas */
+@media (max-width: 360px) {
+  .day-button {
+    /* Un pelín más chicos para pantallas muy estrechas */
+    min-width: 17px !important;
+    min-height: 17px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+  }
+  
+  .day-button span {
+    font-size: 8px !important;
+  }
+}

@@ -1,5 +1,5 @@
 .archivo-item-container {
-  color: var(--item-text-primary);
+  color: var(--color-text-primary);
   cursor: default;
   display: flex;
   flex-direction: column;
@@ -12,10 +12,12 @@
   overflow: hidden;
 }
 
-.archivo-item-container.show-only-image {
+.archivo-item-container.expanded {
   justify-content: center;
   padding: 0;
   cursor: default;
+  height: auto;
+  min-height: 100%;
 }
 
 .archivo-image {
@@ -26,18 +28,21 @@
   cursor: pointer;
   margin-bottom: 6px;
   max-height: 100px;
-  transition: max-height 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.archivo-item-container.show-only-image .archivo-image {
+.archivo-item-container.expanded .archivo-image {
   max-height: 100%;
+  max-width: 100%;
   margin-bottom: 0;
+  object-fit: contain;
+  display: block;
 }
 
 .btn-download {
   background-color: var(--color-neutral);
-  color: var(--item-text-primary);
-  border: 1px solid var(--item-border);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-text-secondary);
   padding: 4px 10px;
   font-size: 11px;
   border-radius: 6px;
@@ -50,14 +55,14 @@
 
 .btn-download:hover {
   background-color: var(--color-bg-3);
-  border-color: var(--item-text-primary);
-  color: var(--item-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 .btn-download:active {
   background-color: var(--color-bg-4);
-  border-color: var(--item-text-primary);
-  color: var(--item-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 /* Texto y tamaño para los párrafos */
@@ -78,7 +83,7 @@
 
 .archivo-item-container p.text-gray-500 {
   font-size: 8px;
-  color: var(--item-text-secondary);
+  color: var(--color-text-secondary);
   margin-top: 2px;
   margin-bottom: 4px;
   text-align: center;
@@ -87,5 +92,5 @@
 /* Icono para cuando no hay archivo */
 .archivo-item-container > div svg {
   opacity: 0.6;
-  margin-top: 20px;
+  margin-top: 10px; /* Reducido de 20px a 10px */
 }

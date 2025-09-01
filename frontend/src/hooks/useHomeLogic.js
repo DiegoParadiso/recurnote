@@ -28,10 +28,42 @@ export function useHomeLogic() {
   }, [user, token, itemsByDate]);
 
   // CircleSmall en Desktop - posición y drag global (sobre Home)
-  const smallSize = 350;
+  const [smallSize, setSmallSize] = useState(350);
   const [circleSmallPos, setCircleSmallPos] = useState({ x: null, y: null });
   const draggingSmallRef = useRef(false);
   const dragOffsetRef = useRef({ dx: 0, dy: 0 });
+
+  // Calcular tamaño responsivo SOLO para móviles - mantener estabilidad en rango problemático
+  useEffect(() => {
+    const calculateSmallSize = () => {
+      // Solo aplicar lógica responsiva en móviles
+      if (window.innerWidth <= 640) {
+        if (window.innerWidth <= 480) {
+          // Rango problemático (450px-480px): MANTENER TAMAÑO ESTABLE
+          // En lugar de reducir, mantener un tamaño que funcione bien
+          return 420; // Tamaño fijo para evitar que se toquen los elementos
+        } else {
+          // Móviles normales: mantener tamaño estándar
+          return 350;
+        }
+      } else {
+        // Desktop: mantener tamaño original sin cambios
+        return 350;
+      }
+    };
+
+    const newSize = calculateSmallSize();
+    setSmallSize(newSize);
+
+    // Listener para resize de ventana
+    const handleResize = () => {
+      const newSize = calculateSmallSize();
+      setSmallSize(newSize);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const computeDefaultSmallPos = () => {
     // Posicionar CircleSmall pegado al borde derecho del CircleLarge, centrado verticalmente

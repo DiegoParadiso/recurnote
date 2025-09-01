@@ -1,0 +1,57 @@
+/* Estilos responsivos para MonthHeader */
+.month-header {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+  user-select: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+/* Estilos para móviles - hacer un toque más chicos */
+@media (max-width: 640px) {
+  .month-header {
+    /* Un toque más chicos en móvil */
+    font-size: 0.7rem !important;
+  }
+  
+  .month-header.current {
+    /* Mes actual un toque más chico */
+    font-size: 1.2rem !important;
+  }
+  
+  .month-header.previous {
+    /* Mes anterior un toque más chico */
+    font-size: 0.65rem !important;
+  }
+  
+  .month-header.next {
+    /* Mes siguiente un toque más chico */
+    font-size: 0.65rem !important;
+  }
+}
+
+/* Pantallas muy estrechas */
+@media (max-width: 480px) {
+  .month-header {
+    /* Aún más chicos en pantallas estrechas */
+    font-size: 0.65rem !important;
+  }
+  
+  .month-header.current {
+    font-size: 1.1rem !important;
+  }
+  
+  .month-header.previous {
+    font-size: 0.6rem !important;
+  }
+  
+  .month-header.next {
+    font-size: 0.6rem !important;
+  }
+}

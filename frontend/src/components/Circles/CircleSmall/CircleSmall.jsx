@@ -21,7 +21,10 @@ export default function CircleSmall({
 
   const radius = circleSize / 2 - 25;
   const center = circleSize / 2;
-  const buttonSize = 27;
+  
+  // Hacer buttonSize responsivo para mantener proporción de los círculos
+  const buttonSize = Math.max(24, Math.min(circleSize * 0.075, 32)); // Entre 24px y 32px
+  
   const labelDistanceFromCenter = -22;
 
   const prevDate = currentDate.minus({ months: 1 });
