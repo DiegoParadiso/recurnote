@@ -89,7 +89,17 @@ export function useHomeLogic() {
     if (window.innerWidth <= 640) return;
     
     // Si no hay preferencias guardadas, usar posición por defecto (derecha del CircleLarge)
-    const pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
+    let pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
+    
+    // Si no hay usuario, buscar en localStorage
+    if (!user && !pref) {
+      const localPrefs = localStorage.getItem('localUIPreferences');
+      if (localPrefs) {
+        const localUI = JSON.parse(localPrefs);
+        pref = localUI.circleSmallPos;
+      }
+    }
+    
     let initial;
     
     if (pref && typeof pref.x === 'number' && typeof pref.y === 'number') {
@@ -122,7 +132,17 @@ export function useHomeLogic() {
       if (hasUserMovedCircle) return;
       
       // Verificar si no hay preferencias guardadas
-      const pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
+      let pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
+      
+      // Si no hay usuario, buscar en localStorage
+      if (!user && !pref) {
+        const localPrefs = localStorage.getItem('localUIPreferences');
+        if (localPrefs) {
+          const localUI = JSON.parse(localPrefs);
+          pref = localUI.circleSmallPos;
+        }
+      }
+      
       if (pref && typeof pref.x === 'number' && typeof pref.y === 'number') {
         return; // Hay preferencias, no reposicionar
       }
@@ -252,6 +272,16 @@ export function useHomeLogic() {
       // Marcar que el usuario movió el círculo manualmente
       setHasUserMovedCircle(true);
       
+      // Guardar la posición final en localStorage si no hay usuario
+      if (!token) {
+        const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
+        const updatedPrefs = { 
+          ...currentLocalPrefs, 
+          circleSmallPos: { x: circleSmallPos.x, y: circleSmallPos.y } 
+        };
+        localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
+      }
+      
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
@@ -265,7 +295,14 @@ export function useHomeLogic() {
     const def = computeDefaultSmallPos();
     setCircleSmallPos(def);
     setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
-  }, []);
+    
+    // Eliminar la posición guardada del localStorage si no hay usuario (para usar posición por defecto)
+    if (!token) {
+      const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
+      const { circleSmallPos, ...updatedPrefs } = currentLocalPrefs; // Remover circleSmallPos
+      localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
+    }
+  }, [token]);
 
   // Función para resetear a la posición original (usada por el menú contextual)
   const resetCircleSmallToDefault = useCallback(() => {
@@ -273,7 +310,14 @@ export function useHomeLogic() {
     const def = computeDefaultSmallPos();
     setCircleSmallPos(def);
     setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
-  }, []);
+    
+    // SOLO AQUÍ se elimina la posición guardada del localStorage para usar posición por defecto
+    if (!token) {
+      const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
+      const { circleSmallPos, ...updatedPrefs } = currentLocalPrefs; // Remover circleSmallPos
+      localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
+    }
+  }, [token]);
 
 
 
@@ -290,7 +334,14 @@ export function useHomeLogic() {
     };
     setCircleSmallPos(clamped);
     setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
-  }, [smallSize, computeDefaultSmallPos]);
+    
+    // Eliminar la posición guardada del localStorage si no hay usuario (para usar posición por defecto)
+    if (!token) {
+      const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
+      const { circleSmallPos, ...updatedPrefs } = currentLocalPrefs; // Remover circleSmallPos
+      localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
+    }
+  }, [smallSize, computeDefaultSmallPos, token]);
 
   const [displayOptions, setDisplayOptions] = useState({
     year: true,
@@ -311,10 +362,22 @@ export function useHomeLogic() {
     }
   }, [user?.preferences?.displayOptions]);
 
-  // Sincronizar estados de UI con las preferencias del usuario (solo al cargar)
+  // Sincronizar estados de UI con las preferencias del usuario o locales (solo al cargar)
   useEffect(() => {
-    if (user?.preferences?.ui && !preferencesLoaded) {
-      const ui = user.preferences.ui;
+    if (!preferencesLoaded) {
+      let ui = {};
+      
+      if (user?.preferences?.ui) {
+        // Usuario autenticado: usar preferencias del backend
+        ui = user.preferences.ui;
+      } else {
+        // Modo local: usar preferencias del localStorage
+        const localPrefs = localStorage.getItem('localUIPreferences');
+        if (localPrefs) {
+          ui = JSON.parse(localPrefs);
+        }
+      }
+      
       if (ui.leftSidebarPinned !== undefined) {
         setIsLeftSidebarPinned(ui.leftSidebarPinned);
       }
@@ -327,22 +390,33 @@ export function useHomeLogic() {
 
   // Función para guardar preferencias de UI
   const saveUIPreferences = async (uiChanges) => {
-    if (!token) return;
     try {
-      await fetch(`${API_URL}/api/auth/preferences`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-          preferences: { 
-            ui: { 
-              ...(user?.preferences?.ui || {}), 
-              ...uiChanges 
+      if (token) {
+        // Usuario autenticado: guardar en backend
+        await fetch(`${API_URL}/api/auth/preferences`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ 
+            preferences: { 
+              ui: { 
+                ...(user?.preferences?.ui || {}), 
+                ...uiChanges 
+              } 
             } 
-          } 
-        }),
-      });
+          }),
+        });
+      } else {
+        // Modo local: guardar en localStorage
+        const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
+        const updatedPrefs = { ...currentLocalPrefs, ...uiChanges };
+        localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
+      }
     } catch (error) {
-      setErrorToast('Error al guardar las preferencias de UI');
+      if (token) {
+        setErrorToast('Error al guardar las preferencias de UI');
+      } else {
+        console.error('Error al guardar preferencias locales:', error);
+      }
     }
   };
 

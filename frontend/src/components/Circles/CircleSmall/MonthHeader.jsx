@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateTime } from 'luxon';
 import '../../../styles/components/circles/MonthHeader.css';
+import { PRIMARY_FONT } from '../../../config/fonts';
 
 export default function MonthHeader({ date, position, onClick, isDragging = false }) {
   const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
@@ -15,6 +16,7 @@ export default function MonthHeader({ date, position, onClick, isDragging = fals
     fontWeight: 600,
     textTransform: 'uppercase',
     color: 'var(--color-text-primary)',
+    fontFamily: PRIMARY_FONT,
     transition: 'all 0.3s ease',
     cursor: isDragging ? 'grab' : (onClick ? 'pointer' : 'default'),
     pointerEvents: isDragging ? 'none' : (onClick ? 'auto' : 'none'),

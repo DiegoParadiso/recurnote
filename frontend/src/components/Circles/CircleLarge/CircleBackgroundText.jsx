@@ -1,5 +1,6 @@
 import React from 'react';
-import useWindowDimensions from '../../../hooks/useWindowDimensions'; 
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import { PRIMARY_FONT } from '../../../config/fonts'; 
 
 export default function CircleBackgroundText({ circleSize, radius, displayText }) {
   const { width } = useWindowDimensions();
@@ -20,7 +21,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
           pointerEvents: 'none',
           zIndex: 'var(--z-mid-low)',
           color: 'var(--color-text-primary)',
-          fontFamily: 'IBM Plex Mono, monospace',
+          fontFamily: PRIMARY_FONT,
           fontSize: circleSize * 0.03, // Un poquito más grande (antes era 0.025)
           letterSpacing: 1.5,
           fontWeight: 600,
@@ -63,7 +64,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
         </defs>
         <text
           fill="currentColor"
-          fontFamily="IBM Plex Mono, monospace"
+          fontFamily={PRIMARY_FONT}
           fontSize={circleSize * 0.03}
           letterSpacing="2"
           fontWeight="600"

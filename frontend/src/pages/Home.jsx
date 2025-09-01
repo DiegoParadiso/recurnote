@@ -476,7 +476,7 @@ export default function Home() {
       {/* Handler de migración local */}
       <LocalMigrationHandler />
 
-              {/* BottomToast global */}
+      {/* BottomToast global */}
         <BottomToast message={toast} onClose={() => setToast('')} />
         
         {/* BottomToast para errores */}

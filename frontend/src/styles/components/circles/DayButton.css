@@ -6,6 +6,17 @@
   box-sizing: border-box;
 }
 
+/* Estilos para desktop - botones un poco más grandes */
+@media (min-width: 769px) {
+  .day-button {
+    /* Botones un poco más grandes en desktop para mejor usabilidad */
+    min-width: 28px !important;
+    min-height: 28px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+  }
+}
+
 /* Estilos para móviles - mantener tamaño original */
 @media (max-width: 640px) {
   .day-button {

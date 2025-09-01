@@ -9,6 +9,7 @@
   font-weight: 600;
   text-transform: uppercase;
   color: var(--color-text-primary);
+  font-family: 'Fira Code', monospace;
   transition: all 0.3s ease;
   pointer-events: none;
 }

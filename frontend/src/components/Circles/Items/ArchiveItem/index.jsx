@@ -275,13 +275,7 @@ export default function ArchivoItem({
             className={`archivo-item-container ${isExpanded ? 'expanded' : ''}`}
             onClick={handleContainerClick}
             style={{
-              cursor: isDragging ? 'grab' : (!item.content?.fileData ? 'pointer' : 'default'),
-              opacity: isDragging ? 0.7 : 1,
-              pointerEvents: isDragging ? 'none' : 'auto',
-              userSelect: isDragging ? 'none' : 'auto',
-              WebkitUserSelect: isDragging ? 'none' : 'auto',
-              MozUserSelect: isDragging ? 'none' : 'auto',
-              msUserSelect: isDragging ? 'none' : 'auto',
+              cursor: !item.content?.fileData ? 'pointer' : 'default',
             }}
           >
             {isImage && (
