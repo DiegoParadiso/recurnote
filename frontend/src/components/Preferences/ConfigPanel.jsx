@@ -363,7 +363,7 @@ export default function ConfigPanel({
 }) {
   const isMobile = useIsMobile();
   const { token, user, refreshMe } = useAuth();
-  const { isLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme } = useTheme();
+  const { isLightTheme, setIsLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme, isHighContrast, setIsHighContrast, textScale, setTextScale, reducedMotion, setReducedMotion } = useTheme();
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   
@@ -491,6 +491,22 @@ export default function ConfigPanel({
                   }
                 }}
               />
+              {!isAutoTheme && (
+                <>
+                  <ToggleOption
+                    id="toggle-dark-mode"
+                    label="Modo oscuro"
+                    value={!isLightTheme}
+                    onChange={(val) => setIsLightTheme(!val)}
+                  />
+                  <ToggleOption
+                    id="toggle-light-mode"
+                    label="Modo claro"
+                    value={isLightTheme}
+                    onChange={(val) => setIsLightTheme(val)}
+                  />
+                </>
+              )}
             </div>
                {!isMobile && (
                 <div className="visualization-header-options">
@@ -615,6 +631,30 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
+            <h3>Accesibilidad</h3>
+            <div className="visualization-header-options">
+              <ToggleOption
+                id="toggle-high-contrast"
+                label="Modo alto contraste"
+                value={isHighContrast}
+                onChange={setIsHighContrast}
+              />
+              <ToggleOption
+                id="toggle-large-text"
+                label="Texto grande"
+                value={textScale === 'large'}
+                onChange={(val) => setTextScale(val ? 'large' : 'normal')}
+              />
+              <ToggleOption
+                id="toggle-reduced-motion"
+                label="Animaciones reducidas"
+                value={reducedMotion}
+                onChange={setReducedMotion}
+              />
+            </div>
+          </section>
+          
+          <section className="config-section">
             <h3>Notificaciones</h3>
             <ComingSoonOption label="Activar recordatorios" />
             <ComingSoonOption label="Sonido / vibración" />
@@ -635,14 +675,6 @@ export default function ConfigPanel({
             <ComingSoonOption label="Importar/Exportar calendario (ICS, CSV)" />
             <ComingSoonOption label="API para programadores" />
             <ComingSoonOption label="Integración con Notion / Trello" />
-          </section>
-
-          <section className="config-section">
-            <h3>Accesibilidad</h3>
-            <ComingSoonOption label="Modo alto contraste" />
-            <ComingSoonOption label="Texto grande" />
-            <ComingSoonOption label="Navegación con teclado" />
-            <ComingSoonOption label="Animaciones reducidas" />
           </section>
 
           <section className="config-section">

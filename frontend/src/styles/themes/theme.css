@@ -170,3 +170,100 @@ html.dark {
   --transition-all: all 0.3s ease;
   --transition-colors: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* ===== Accesibilidad ===== */
+
+/* Texto grande: escala la raíz, afectando todos los rem */
+html[data-text='large'] {
+  font-size: 18px;
+}
+
+/* Incrementos específicos en Texto grande */
+html[data-text='large'] .noteitem-textarea,
+html[data-text='large'] .taskitem-input,
+html[data-text='large'] .taskitem-content,
+html[data-text='large'] .item-card,
+html[data-text='large'] .item-card pre,
+html[data-text='large'] .file-download-link,
+html[data-text='large'] .day-header,
+html[data-text='large'] .sidebar-footer {
+  font-size: 12px !important;
+}
+
+/* Alto contraste (base sobre tema claro) */
+html[data-contrast='high'] {
+  --color-bg: #ffffff;
+  --color-bg-2: #f5f5f5;
+  --color-neutral: #ffffff;
+  --color-neutral-dark: #1a1a1a;
+  --color-neutral-darker: #0d0d0d;
+
+  --color-text-primary: #000000;
+  --color-text-secondary: #000000;
+  --color-highlight: #000000;
+  --bg-highlight: #ffffff;
+  --color-border: #000000;
+
+  --daybutton-selected-bg: #000000;
+  --daybutton-selected-border: #000000;
+  --daybutton-selected-text: #ffffff;
+
+  --checkbox-check-stroke: #000000;
+
+  --logo-opacity: 0.08;
+}
+
+/* Alto contraste en modo oscuro */
+html.dark[data-contrast='high'] {
+  --color-bg: #000000;
+  --color-bg-2: #111111;
+  --color-neutral: #000000;
+  --color-neutral-dark: #e6e6e6;
+  --color-neutral-darker: #ffffff;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #ffffff;
+  --color-highlight: #ffffff;
+  --bg-highlight: #000000;
+  --color-border: #ffffff;
+
+  --daybutton-selected-bg: #ffffff;
+  --daybutton-selected-border: #ffffff;
+  --daybutton-selected-text: #000000;
+
+  --checkbox-check-stroke: #ffffff;
+
+  --logo-opacity: 0.15;
+}
+
+/* Forzar visibilidad del check en alto contraste en sidebar */
+html[data-contrast='high'] .checkbox-box,
+html.dark[data-contrast='high'] .checkbox-box {
+  color: var(--checkbox-check-stroke);
+}
+
+/* Respeto a preferencia del SO si el usuario no ha activado manualmente */
+@media (prefers-contrast: more) {
+  html:not([data-contrast]) {
+    --color-border: #000;
+  }
+}
+
+/* ===== Animaciones reducidas ===== */
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion]) *,
+  html:not([data-motion]) *::before,
+  html:not([data-motion]) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

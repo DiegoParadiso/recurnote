@@ -62,16 +62,15 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
 
   // Estilos inline para el parpadeo
   const dotStyle = {
-    backgroundColor: '#9ca3af', // Mismo color para todos los modos
-    opacity: isBlinking ? 0.6 : 1, // Ahora titila en todos los modos
+    backgroundColor: '#9ca3af',
+    opacity: isBlinking ? 0.6 : 1,
     transform: isBlinking ? 'scale(0.95)' : 'scale(1)',
-    transition: 'all 0.4s ease-in-out',
-    boxShadow: '0 0 1px rgba(156, 163, 175, 0.2)' // Sombra sutil para todos los modos
+    transition: 'all 0.4s ease-in-out'
   };
 
   return (
     <div
-      className="fixed bottom-4 left-4 z-low px-3 py-2 rounded-lg text-sm font-medium shadow-lg backdrop-blur-sm local-user-indicator"
+      className="fixed bottom-4 left-4 z-low px-3 py-2 rounded-lg text-sm font-medium backdrop-blur-sm local-user-indicator"
       style={{
         color: 'var(--color-text-primary)',
         border: '1px solid var(--color-border)', // Borde sutil transparente

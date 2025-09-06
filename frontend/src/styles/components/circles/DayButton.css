@@ -29,8 +29,8 @@
   
   .day-button span {
     /* Texto original para mantener proporción */
-    font-size: 11px !important;
-    font-weight: 600;
+    font-size: 9px !important;
+    font-weight: 400;
     text-shadow: 0 0 2px var(--color-bg);
     line-height: 1;
     white-space: nowrap;
@@ -49,7 +49,7 @@
   }
   
   .day-button span {
-    font-size: 9px !important;
+    font-size: 8px !important;
   }
 }
 
@@ -64,6 +64,25 @@
   }
   
   .day-button span {
+    font-size: 7px !important;
+  }
+}
+
+/* Mantener tamaño anterior al activar Texto grande */
+@media (max-width: 640px) {
+  html[data-text='large'] .day-button span {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  html[data-text='large'] .day-button span {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html[data-text='large'] .day-button span {
     font-size: 8px !important;
   }
 }

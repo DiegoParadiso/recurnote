@@ -93,13 +93,70 @@ export function ThemeProvider({ children }) {
     // Mantener el tema actual
   };
 
+  // ===== Accesibilidad: Alto contraste y Texto grande =====
+  const [isHighContrast, setIsHighContrast] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('contrast') === 'high';
+    }
+    return false;
+  });
+
+  const [textScale, setTextScale] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('textScale') || 'normal';
+    }
+    return 'normal';
+  });
+
+  const [reducedMotion, setReducedMotion] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('reducedMotion') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isHighContrast) {
+      document.documentElement.setAttribute('data-contrast', 'high');
+      localStorage.setItem('contrast', 'high');
+    } else {
+      document.documentElement.removeAttribute('data-contrast');
+      localStorage.setItem('contrast', 'normal');
+    }
+  }, [isHighContrast]);
+
+  useEffect(() => {
+    if (textScale === 'large') {
+      document.documentElement.setAttribute('data-text', 'large');
+    } else {
+      document.documentElement.removeAttribute('data-text');
+    }
+    localStorage.setItem('textScale', textScale);
+  }, [textScale]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      document.documentElement.setAttribute('data-motion', 'reduced');
+    } else {
+      document.documentElement.removeAttribute('data-motion');
+    }
+    localStorage.setItem('reducedMotion', String(reducedMotion));
+  }, [reducedMotion]);
+
   return (
     <ThemeContext.Provider value={{ 
       isLightTheme, 
       setIsLightTheme: setThemeManually, 
       isAutoTheme, 
       enableAutoTheme,
-      disableAutoTheme
+      disableAutoTheme,
+      // Accesibilidad
+      isHighContrast,
+      setIsHighContrast,
+      textScale,
+      setTextScale,
+      reducedMotion,
+      setReducedMotion
     }}>
       {children}
     </ThemeContext.Provider>

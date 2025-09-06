@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../../context/ThemeContext';
 import '../../../styles/components/circles/DayButton.css';
 
 export default function DayButton({
@@ -11,6 +12,7 @@ export default function DayButton({
   labelDistanceFromCenter = -35,
   isDragging = false,
 }) {
+  const { textScale } = useTheme();
   const centerOffset = buttonSize / 2;
 
   const labelX = centerOffset + labelDistanceFromCenter * Math.cos(angle);
@@ -49,9 +51,9 @@ export default function DayButton({
         }}
       >
         <span
-          className="absolute font-medium select-none"
+          className="absolute select-none"
           style={{
-            fontSize: buttonSize / 3.2,
+            fontSize: (buttonSize / 3.2) * (textScale === 'large' ? 1.2 : 1),
             left: `${labelX}px`,
             top: `${labelY}px`,
             transform: 'translate(-50%, -50%)',

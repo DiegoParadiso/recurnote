@@ -15,11 +15,9 @@
 
 .local-user-indicator .blinking-dot {
   animation: localIndicatorBlink 1.5s ease-in-out infinite !important;
-  box-shadow: 0 0 4px currentColor !important;
 }
 
 /* Respaldo para casos donde la clase específica no funcione */
 .blinking-dot {
   animation: localIndicatorBlink 1.5s ease-in-out infinite !important;
-  box-shadow: 0 0 4px currentColor !important;
 }

@@ -15,6 +15,7 @@
   touch-action: pan-x;
   -webkit-user-drag: none;
   -webkit-tap-highlight-color: transparent;
+  overflow: hidden;  
 }
 
 .sidebar-item:hover {
@@ -45,13 +46,13 @@ html.dark .sidebar-item:hover {
 .sidebar-item-nota .dot {
   width: 6px;
   height: 6px;
-  background-color: var(--color-empty-content);
+  background-color: var(--color-text-secondary);
   border-radius: 9999px;
   transition: all 0.2s ease;
 }
 
 .sidebar-item-nota:hover .dot {
-  background-color: var(--item-text-secondary);
+  background-color: var(--color-muted);
 }
 
 /* TAREA - Vista previa con checkboxes y barras */
@@ -65,14 +66,14 @@ html.dark .sidebar-item:hover {
 
 .sidebar-item-tarea .bar {
   height: 6px;
-  background-color: var(--color-empty-content);
+  background-color: var(--color-text-secondary);
   border-radius: 9999px;
   flex: 1;
   transition: all 0.2s ease;
 }
 
 .sidebar-item-tarea:hover .bar {
-  background-color: var(--item-text-secondary);
+  background-color: var(--color-muted);
 }
 
 html.dark .sidebar-item-tarea .check-line {
@@ -103,12 +104,12 @@ html.dark .sidebar-item-tarea:hover .bar {
   top: 9px;
   left: 0;
   width: 100%;
-  border-top: 2px solid var(--color-empty-content);
+  border-top: 2px solid var(--color-text-secondary);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-evento:hover .top-line {
-  border-color: var(--item-text-secondary);
+  border-color: var(--color-muted);
 }
 
 .sidebar-item-evento .row {
@@ -120,22 +121,22 @@ html.dark .sidebar-item-tarea:hover .bar {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  background-color: var(--color-empty-content);
+  background-color: var(--color-text-secondary);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-evento .block.light {
   background-color: var(--color-empty-content);
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .sidebar-item-evento:hover .block {
-  background-color: var(--item-text-secondary);
+  background-color: var(--color-muted);
 }
 
 .sidebar-item-evento:hover .block.light {
-  background-color: var(--item-text-secondary);
-  opacity: 0.7;
+  background-color: var(--color-text-secondary);
+  opacity: 0.9;
 }
 
 html.dark .sidebar-item-evento .top-line {
@@ -153,7 +154,6 @@ html.dark .sidebar-item-evento .block.light {
 
 html.dark .sidebar-item-evento:hover .top-line {
   border-color: var(--color-muted);
-  border-width: 3px;
 }
 
 html.dark .sidebar-item-evento:hover .block {
@@ -174,46 +174,46 @@ html.dark .sidebar-item-evento:hover .block.light {
   justify-content: center;
   gap: 6px;
   padding-left: 0;
-  overflow: hidden;
 }
 
 .sidebar-item-archivo .top-bar {
   position: absolute;
-  top: 9px;
+  top: 10px;
   left: 0;
   width: 100%;
-  border-top: 2px solid var(--color-empty-content);
+  border-top: 2px solid var(--color-text-secondary);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-archivo:hover .top-bar {
-  border-color: var(--item-text-secondary);
+  border-color: var(--color-muted);
 }
 
 .sidebar-item-archivo .tab {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 30px;
-  height: 11px;
-  background-color: var(--color-empty-content);
+  height: 12px;
+  border-radius: 2px 0 0 0;
+  background-color: var(--color-text-secondary);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-archivo:hover .tab {
-  background-color: var(--item-text-secondary);
+  background-color: var(--color-muted);
 }
 
 .sidebar-item-archivo .separator {
   width: 80%;
-  border-top: 1px solid var(--color-empty-content);
+  border-top: 1px solid var(--color-text-secondary);
   margin: 0;
   padding: 0;
   left: 0;
 }
 
 .sidebar-item-archivo:hover .separator {
-  border-color: var(--item-text-secondary);
+  border-color: var(--color-muted);
 }
 
 html.dark .sidebar-item-archivo .top-bar {
@@ -226,19 +226,19 @@ html.dark .sidebar-item-archivo .tab {
 
 html.dark .sidebar-item-archivo .separator {
   border-color: var(--color-empty-content);
-  transition: all 0.2s ease;
+  transition: none;
 }
 
 html.dark .sidebar-item-archivo:hover .top-bar {
-  border-color: var(--item-text-secondary);
+  border-color: var(--color-muted);
 }
 
 html.dark .sidebar-item-archivo:hover .tab {
-  background-color: var(--item-text-secondary);
+  background-color: var(--color-muted);
 }
 
 html.dark .sidebar-item-archivo:hover .separator {
-  border-color: var(--item-text-secondary);
+  border-color: var(--color-muted);
 }
 
 /* Estados activos */

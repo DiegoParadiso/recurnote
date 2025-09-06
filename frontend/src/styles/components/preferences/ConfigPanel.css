@@ -75,6 +75,14 @@
   scroll-behavior: smooth;
 }
 
+/* Alto contraste: anillo de foco visible en controles del panel */
+html[data-contrast='high'] .config-panel button:focus-visible,
+html[data-contrast='high'] .config-panel [role="checkbox"]:focus-visible,
+html[data-contrast='high'] .config-panel select:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
 /* Ocultar scrollbar en Webkit */
 .config-panel-main::-webkit-scrollbar {
   display: none;
