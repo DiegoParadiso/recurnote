@@ -22,6 +22,8 @@ export default function ArchivoItem({
   isSmallScreen,
   onItemDrag,
   onItemDrop,
+  isActive,
+  onActivate,
 }) {
   const fileInputRef = useRef();
   const [isExpanded, setIsExpanded] = useState(!!item.isExpanded);
@@ -69,6 +71,7 @@ export default function ArchivoItem({
   };
 
   const handleContainerDragStart = () => {
+    onActivate?.();
     // Pequeño delay para permitir clicks rápidos
     timeoutRef.current = setTimeout(() => {
       setIsDragging(true);
@@ -270,6 +273,9 @@ export default function ArchivoItem({
           circleCenter={{ cx, cy }}
           maxRadius={circleSize / 2}
           isSmallScreen={isSmallScreen}
+          isActive={isActive}
+          onActivate={() => onActivate?.()}
+          zIndexOverride={item.zIndexOverride}
         >
           <div
             className={`archivo-item-container ${isExpanded ? 'expanded' : ''}`}

@@ -21,6 +21,8 @@ export default function NoteItem({
   isSmallScreen,
   onItemDrag,
   onItemDrop,
+  isActive,
+  onActivate,
 }) {
   const textareaRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -52,6 +54,7 @@ export default function NoteItem({
   };
 
   const handleContainerDragStart = () => {
+    onActivate?.();
     // Limpiar timeout anterior si existe
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -168,6 +171,9 @@ export default function NoteItem({
         circleCenter={{ cx, cy }}
         maxRadius={circleSize / 2}
         isSmallScreen={isSmallScreen}
+        isActive={isActive}
+        onActivate={() => onActivate?.()}
+        zIndexOverride={item.zIndexOverride}
       >
         <div 
           data-drag-container="true"

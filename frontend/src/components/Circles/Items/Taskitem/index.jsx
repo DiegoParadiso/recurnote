@@ -22,6 +22,8 @@ export default function TaskItem({
   isSmallScreen,
   onItemDrag,
   onItemDrop,
+  isActive,
+  onActivate,
 }) {
   const baseHeight = 10; // padding mínimo del contenedor (4px arriba + 4px abajo)
   const maxTasks = 4;
@@ -84,6 +86,7 @@ export default function TaskItem({
   };
 
   const handleContainerDragStart = () => {
+    onActivate?.();
     // Limpiar timeout anterior si existe
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -216,6 +219,9 @@ export default function TaskItem({
         circleCenter={{ cx, cy }}
         maxRadius={circleSize / 2}
         isSmallScreen={isSmallScreen}
+        isActive={isActive}
+        onActivate={() => onActivate?.()}
+        zIndexOverride={item.zIndexOverride}
       >
         <div 
           className="taskitem-content"

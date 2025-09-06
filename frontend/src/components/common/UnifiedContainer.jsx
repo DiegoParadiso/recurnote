@@ -16,6 +16,9 @@ export default function UnifiedContainer({
   children, style = {},
   disableResize = false,
   isSmallScreen = false,
+  isActive = false,
+  onActivate,
+  zIndexOverride,
   ...rest
 }) {
 
@@ -77,6 +80,8 @@ export default function UnifiedContainer({
 
     if (['input', 'textarea', 'select'].includes(tag)) return;
     if (e.target.dataset.resizeHandle) return;
+
+    onActivate?.();
 
     e.stopPropagation();
     e.preventDefault(); // Prevenir selección de texto
@@ -205,6 +210,8 @@ export default function UnifiedContainer({
         rotation,
         sizeState,
         isDragging: isDragging.current,
+        isActive,
+        zIndexOverride,
         style: {
           ...style,
           backgroundColor: 'var(--color-neutral)',

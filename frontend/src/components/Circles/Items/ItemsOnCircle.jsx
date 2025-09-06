@@ -14,7 +14,10 @@ export default function ItemsOnCircle({
   rotationEnabled = true,
   isSmallScreen,
   onItemDrag,
-  onItemDrop
+  onItemDrop,
+  activeItemId,
+  onItemActivate,
+  zOrderMap
 }) {
   return (
     <>
@@ -29,6 +32,7 @@ export default function ItemsOnCircle({
         const y = cy + item.distance * Math.sin(angleInRadians);
 
         const rotation = rotationEnabled && !isSmallScreen ? -rotationAngle : 0;
+        const zIndexOverride = zOrderMap && typeof zOrderMap[item.id] === 'number' ? zOrderMap[item.id] : undefined;
 
         if (label === 'Tarea') {
           return (
@@ -52,6 +56,9 @@ export default function ItemsOnCircle({
               cx={cx}
               cy={cy}
               isSmallScreen={isSmallScreen}
+              isActive={activeItemId === item.id}
+              onActivate={() => onItemActivate?.(item.id)}
+              zIndexOverride={zIndexOverride}
             />
           );
         }
@@ -78,6 +85,9 @@ export default function ItemsOnCircle({
               cx={cx}
               cy={cy}
               isSmallScreen={isSmallScreen}
+              isActive={activeItemId === item.id}
+              onActivate={() => onItemActivate?.(item.id)}
+              zIndexOverride={zIndexOverride}
             />
           );
         }
@@ -103,6 +113,9 @@ export default function ItemsOnCircle({
               cy={cy}
               circleSize={circleSize}
               isSmallScreen={isSmallScreen}
+              isActive={activeItemId === item.id}
+              onActivate={() => onItemActivate?.(item.id)}
+              zIndexOverride={zIndexOverride}
             />
           );
         }
@@ -117,6 +130,7 @@ export default function ItemsOnCircle({
               position: 'absolute',
               left: x,
               top: y,
+              zIndex: typeof zOrderMap?.[item.id] === 'number' ? zOrderMap[item.id] : (activeItemId === item.id ? 'var(--z-floating)' : 'var(--z-mid)'),
               cursor: 'grab',
               transform: `rotate(${rotation}deg)`,
               transformOrigin: 'center',
@@ -131,6 +145,7 @@ export default function ItemsOnCircle({
               userSelect: 'none',
             }}
             title={label}
+            onMouseDown={() => onItemActivate?.(item.id)}
           >
             {label}
           </div>

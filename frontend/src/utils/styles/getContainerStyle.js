@@ -1,4 +1,4 @@
-export const getContainerStyle = ({ pos, rotation, sizeState, isDragging, style }) => ({
+export const getContainerStyle = ({ pos, rotation, sizeState, isDragging, isActive, zIndexOverride, style }) => ({
   position: 'absolute',
   left: `${pos.x}px`,
   top: `${pos.y}px`,
@@ -7,6 +7,7 @@ export const getContainerStyle = ({ pos, rotation, sizeState, isDragging, style 
   height: `${sizeState.height}px`,
   overflow: 'auto',
   cursor: isDragging ? 'grabbing' : 'grab',
+  zIndex: typeof zIndexOverride === 'number' ? zIndexOverride : (isDragging || isActive ? 'var(--z-floating)' : 'var(--z-mid)'),
   backgroundColor: '#f5f5f5',
   borderRadius: '0.5rem',
   border: '1px solid rgba(0,0,0,0.05)',

@@ -18,6 +18,9 @@ import '../../../styles/components/circles/CircleLarge.css';
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange }) {
   const { width } = useWindowDimensions();
   const [circleSize, setCircleSize] = useState(680);
+  const [activeItemId, setActiveItemId] = useState(null);
+  const [zOrderMap, setZOrderMap] = useState({}); // { [itemId]: number }
+  const [zCounter, setZCounter] = useState(1000);
   const { itemsByDate: contextItemsByDate, setItemsByDate: contextSetItemsByDate } = useItems();
   const { user, token } = useAuth();
   const { isLightTheme } = useTheme();
@@ -37,6 +40,12 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     }
     return saved;
   });
+
+  const bringToFront = (itemId) => {
+    setActiveItemId(itemId);
+    setZOrderMap((prev) => ({ ...prev, [itemId]: zCounter + 1 }));
+    setZCounter((c) => c + 1);
+  };
 
   // Función para obtener estilos del pattern de fondo
   const getPatternStyles = () => {
@@ -239,6 +248,9 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           onDeleteItem={handleDeleteItem}
           circleSize={circleSize}
           isSmallScreen={isSmallScreen}
+          activeItemId={activeItemId}
+          onItemActivate={(id) => bringToFront(id)}
+          zOrderMap={zOrderMap}
         />
       </div>
 
