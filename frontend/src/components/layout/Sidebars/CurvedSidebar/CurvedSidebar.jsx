@@ -2,7 +2,7 @@ import '../../../../styles/layouts/sidebars/CurvedSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
 
-export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false, onHover }) {
+export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false, onHover, onStartDrag }) {
   const [items] = useState([
     { id: 1, label: 'nota' },
     { id: 2, label: 'Tarea' },
@@ -33,8 +33,17 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {!isMobile && <div className="curved-sidebar-hover-zone" />}
-      <div className="scroll-hidden curved-sidebar-panel">
+      {!isMobile && !isLeftSidebarPinned && (
+        <div className="curved-sidebar-hover-zone" />
+      )}
+      <div
+        className="scroll-hidden curved-sidebar-panel"
+        onMouseDown={(e) => {
+          if (!isMobile && !isLeftSidebarPinned) {
+            onStartDrag?.(e);
+          }
+        }}
+      >
         {items
           .filter((item) => item.label !== 'Evento') // si querés mostrar Evento acá sacá este filtro
           .map((item) => (

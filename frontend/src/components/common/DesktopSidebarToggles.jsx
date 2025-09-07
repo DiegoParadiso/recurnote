@@ -5,7 +5,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
       <button
         onClick={onToggleRight}
         aria-label="Toggle right sidebar"
-        className="fixed right-0 z-20 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideLeftRight_2s_ease-in-out_infinite] hidden sm:flex"
+        className="fixed right-0 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideLeftRight_2s_ease-in-out_infinite] hidden sm:flex"
         style={{
           top: '50vh',
           transform: 'translateY(-50%)',
@@ -13,6 +13,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
           border: 'none',
           opacity: isRightSidebarPinned ? 0.3 : 1,
           transition: 'opacity 0.3s ease',
+          zIndex: 'var(--z-high)'
         }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">
@@ -24,7 +25,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
       <button
         onClick={onToggleLeft}
         aria-label="Toggle left sidebar"
-        className="fixed left-0 z-20 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideRightLeft_2s_ease-in-out_infinite] hidden sm:flex"
+        className="fixed left-0 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideRightLeft_2s_ease-in-out_infinite] hidden sm:flex"
         style={{
           top: '50vh',
           transform: 'translateY(-50%)',
@@ -32,6 +33,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
           border: 'none',
           opacity: isLeftSidebarPinned ? 0.3 : 1,
           transition: 'opacity 0.3s ease',
+          zIndex: 'var(--z-high)'
         }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="w-6 h-6">

@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { DateTime } from 'luxon';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import { useItems } from '../../../../context/ItemsContext';
@@ -34,12 +35,73 @@ export default function NoteItem({
   // Detectar si es móvil
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const { duplicateItem } = useItems();
+  const { updateItem } = useItems();
 
   const handleDuplicate = async () => {
     try {
       await duplicateItem(id);
     } catch (error) {
       console.error('Error al duplicar item:', error);
+    }
+  };
+
+  // Horario asignado (opcional) en item.time (HH:MM)
+  const assignedTime = item?.time || null;
+  const [timeInput, setTimeInput] = useState(assignedTime || (() => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  })());
+
+  // Reloj para countdown dinámico
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000); // actualizar cada 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const getCountdownLabel = () => {
+    if (!assignedTime) return '';
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const [hh, mm] = (assignedTime || '00:00').split(':').map(v => parseInt(v, 10));
+    // Contar respecto de HOY en la zona local (evita desfasajes por item.date)
+    const nowTz = DateTime.fromJSDate(now).setZone(tz);
+    const baseToday = nowTz.startOf('day');
+    const target = baseToday.set({ hour: hh || 0, minute: mm || 0, second: 0, millisecond: 0 });
+    const diff = target.diff(nowTz, ['hours', 'minutes']).toObject();
+    // Determinar signo manualmente para redondeo correcto
+    const totalMin = Math.round(target.diff(nowTz, 'minutes').as('minutes'));
+    const sign = totalMin >= 0 ? 1 : -1;
+    const absMin = Math.abs(totalMin);
+    const hours = Math.floor(absMin / 60);
+    const minutes = absMin % 60;
+    if (sign > 0) {
+      if (hours > 0) {
+        return minutes > 0 ? `Faltan ${hours}h ${minutes}m` : `Faltan ${hours}h`;
+      }
+      return `Faltan ${minutes} minutos`;
+    } else {
+      if (hours > 0) {
+        return minutes > 0 ? `Hace ${hours}h ${minutes}m` : `Hace ${hours}h`;
+      }
+      return `Hace ${minutes} minutos`;
+    }
+  };
+
+  const handleAssignTime = async (value) => {
+    try {
+      await updateItem(id, { time: value });
+    } catch (error) {
+      console.error('Error asignando horario:', error);
+    }
+  };
+
+  const handleClearTime = async () => {
+    try {
+      await updateItem(id, { time: null });
+    } catch (error) {
+      console.error('Error quitando horario:', error);
     }
   };
 
@@ -129,7 +191,32 @@ export default function NoteItem({
   return (
     <WithContextMenu
       onDelete={() => onDelete?.(id)}
+      headerContent={(
+        <>
+          <span className="clock" aria-live={assignedTime ? 'polite' : undefined}>
+            {assignedTime
+              ? getCountdownLabel()
+              : now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          {!assignedTime && (
+            <input
+              type="time"
+              value={timeInput}
+              onChange={(e) => setTimeInput(e.target.value)}
+              aria-label="Hora a asignar"
+            />
+          )}
+        </>
+      )}
       extraOptions={[
+        { label: assignedTime ? 'Cambiar horario' : 'Asignar horario', onClick: async () => {
+          if (assignedTime) {
+            await handleClearTime();
+          } else {
+            await handleAssignTime(timeInput);
+          }
+        }, preventClose: true },
+        ...(assignedTime ? [{ label: 'Quitar horario', onClick: handleClearTime }] : []),
         { label: 'Duplicar', onClick: handleDuplicate },
       ]}
     >
@@ -144,14 +231,7 @@ export default function NoteItem({
         maxWidth={224}
         maxHeight={computedMinHeight}
         onMove={({ x, y }) => {
-          // NO recalcular posición automáticamente para items recién duplicados
-          if (item._justDuplicated) {
-            // Solo actualizar la posición visual, no recalcular ángulo/distance
-            onItemDrag?.(id, { x, y });
-            return;
-          }
-          
-          // Calcular el ángulo y distancia desde el centro del círculo
+          // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const dx = x - cx;
           const dy = y - cy;
           const angle = (Math.atan2(dy, dx) * 180) / Math.PI;

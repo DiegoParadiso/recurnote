@@ -193,14 +193,7 @@ export default function TaskItem({
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
         onMove={({ x, y }) => {
-          // NO recalcular posición automáticamente para items recién duplicados
-          if (item._justDuplicated) {
-            // Solo actualizar la posición visual, no recalcular ángulo/distance
-            onItemDrag?.(id, { x, y });
-            return;
-          }
-          
-          // Calcular el ángulo y distancia desde el centro del círculo
+          // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const dx = x - cx;
           const dy = y - cy;
           const angle = (Math.atan2(dy, dx) * 180) / Math.PI;

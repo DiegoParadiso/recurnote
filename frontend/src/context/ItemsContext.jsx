@@ -476,6 +476,16 @@ export const ItemsProvider = ({ children }) => {
 
   async function duplicateItem(id) {
     try {
+      // En modo local, respetar el mismo límite que addItem
+      if (!user || !token) {
+        const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+        const maxLocalItems = 5;
+        if (totalLocalItems >= maxLocalItems) {
+          setErrorToast(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+          throw new Error(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+        }
+      }
+
       // Encontrar el item a duplicar
       let itemToDuplicate = null;
       let itemDate = null;
@@ -520,6 +530,14 @@ export const ItemsProvider = ({ children }) => {
       
       // Si es modo local, agregar al estado visual inmediatamente y guardar
       if (!user || !token) {
+        // Re-chequear límite con estado más reciente por seguridad
+        const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+        const maxLocalItems = 5;
+        if (totalLocalItems >= maxLocalItems) {
+          setErrorToast(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+          throw new Error(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+        }
+
         setItemsByDate(prev => {
           const newState = { ...prev };
           if (!newState[itemDate]) {

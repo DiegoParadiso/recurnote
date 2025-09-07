@@ -33,6 +33,12 @@ export function useHomeLogic() {
   const draggingSmallRef = useRef(false);
   const dragOffsetRef = useRef({ dx: 0, dy: 0 });
 
+  // Posición y drag del sidebar izquierdo (desktop)
+  const [leftSidebarPos, setLeftSidebarPos] = useState({ x: 12, y: Math.max(0, (window.innerHeight - 450) / 2) });
+  const draggingLeftSidebarRef = useRef(false);
+  const leftSidebarDragOffsetRef = useRef({ dx: 0, dy: 0 });
+  const [hasUserMovedLeftSidebar, setHasUserMovedLeftSidebar] = useState(false);
+
   // Calcular tamaño responsivo SOLO para móviles - mantener estabilidad en rango problemático
   useEffect(() => {
     const calculateSmallSize = () => {
@@ -290,6 +296,81 @@ export function useHomeLogic() {
     document.addEventListener('mouseup', onUp);
   }, [circleSmallPos]);
 
+  // Handlers para arrastrar el sidebar izquierdo en desktop
+  const startLeftSidebarDrag = useCallback((e, initialPos) => {
+    if (window.innerWidth <= 640) return;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    const startX = e ? e.clientX : 0;
+    const startY = e ? e.clientY : 0;
+
+    // Obtener posición visual actual del panel para evitar "salto"
+    // Medir el panel visible exactamente donde está
+    const panelEl = document.querySelector('.curved-sidebar-panel');
+    let currentLeft = leftSidebarPos.x ?? 12;
+    let currentTop = leftSidebarPos.y ?? Math.max(0, (window.innerHeight - 450) / 2);
+    if (panelEl) {
+      const rect = panelEl.getBoundingClientRect();
+      // Para fixed, rect ya está en coordenadas del viewport. No sumar scroll.
+      currentLeft = rect.left;
+      currentTop = rect.top;
+    }
+
+    const basePos = initialPos || { x: currentLeft, y: currentTop };
+    // Primero posicionar el wrapper en la posición actual real
+    setLeftSidebarPos({ x: basePos.x, y: basePos.y });
+    // Luego fijar el sidebar (después de medir) para evitar saltos
+    setIsLeftSidebarPinned(true);
+
+    // Ajuste fino: usar el rect del elemento como base y el mouse como referencia para que no salte
+    leftSidebarDragOffsetRef.current = {
+      dx: startX - basePos.x,
+      dy: startY - basePos.y,
+    };
+    draggingLeftSidebarRef.current = true;
+
+    const onMove = (ev) => {
+      ev.preventDefault();
+      if (!draggingLeftSidebarRef.current) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const rawX = ev.clientX - leftSidebarDragOffsetRef.current.dx;
+      const rawY = ev.clientY - leftSidebarDragOffsetRef.current.dy;
+      const panelWidth = 220;
+      const panelHeight = 450;
+      const x = Math.min(Math.max(0, rawX), vw - panelWidth);
+      // Permitir llegar más arriba: margen superior 0
+      const y = Math.min(Math.max(0, rawY), vh - panelHeight);
+      setLeftSidebarPos({ x, y });
+    };
+
+    const onUp = (ev) => {
+      ev.preventDefault();
+      if (!draggingLeftSidebarRef.current) return;
+      draggingLeftSidebarRef.current = false;
+      setHasUserMovedLeftSidebar(true);
+      if (!token) {
+        const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
+        const updatedPrefs = {
+          ...currentLocalPrefs,
+          leftSidebarPos: { x: leftSidebarPos.x, y: leftSidebarPos.y },
+        };
+        localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
+      }
+
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [leftSidebarPos, setIsLeftSidebarPinned, token]);
+
+  const onLeftSidebarMouseDown = useCallback((e) => startLeftSidebarDrag(e, leftSidebarPos), [startLeftSidebarDrag, leftSidebarPos]);
+
   const onCircleSmallDoubleClick = useCallback(() => {
     if (window.innerWidth <= 640) return;
     const def = computeDefaultSmallPos();
@@ -352,7 +433,7 @@ export function useHomeLogic() {
     time: false,
     timeZone: 'America/Argentina/Buenos_Aires',
     timeFormat: '24h',
-    showAccountIndicator: true,
+    showAccountIndicator: false,
   });
 
   // Sincronizar displayOptions con las preferencias del usuario
@@ -557,6 +638,10 @@ export function useHomeLogic() {
     onCircleSmallDoubleClick,
     resetCircleSmallToDefault,
     recenterCircleSmall,
+    leftSidebarPos,
+    setLeftSidebarPos,
+    onLeftSidebarMouseDown,
+    startLeftSidebarDrag,
     errorToast,
     setErrorToast,
   };

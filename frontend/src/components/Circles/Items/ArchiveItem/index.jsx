@@ -6,6 +6,7 @@ import { handleFile } from '../../../../utils/fileHandler';
 
 import '../../../../styles/components/circles/items/ArchivoItem.css';
 import { useAuth } from '../../../../context/AuthContext';
+import { useItems } from '../../../../context/ItemsContext';
 
 export default function ArchivoItem({
   id,
@@ -33,6 +34,7 @@ export default function ArchivoItem({
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
   const { user } = useAuth();
+  const { duplicateItem } = useItems();
 
   // Cargar las dimensiones naturales de la imagen cuando se sube
   useEffect(() => {
@@ -153,8 +155,12 @@ export default function ArchivoItem({
     }
   };
 
-  const duplicateFile = () => {
-    alert('Función duplicar archivo (debes implementar)');
+  const handleDuplicate = async () => {
+    try {
+      await duplicateItem(id);
+    } catch (error) {
+      setToastMessage('No se pudo duplicar el archivo');
+    }
   };
 
   const isImage =
@@ -168,7 +174,7 @@ export default function ArchivoItem({
     // Solo mostrar opciones si hay un archivo subido
     if (item.content?.fileData && item.content?.base64) {
       options.push({ label: 'Renombrar archivo', onClick: renameFile });
-      options.push({ label: 'Duplicar archivo', onClick: duplicateFile });
+      options.push({ label: 'Duplicar', onClick: handleDuplicate });
       
       // Solo mostrar opción de imagen si es realmente una imagen
       if (isImage) {

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import useIsMobile from '../../hooks/useIsMobile';
 import '../../styles/components/common/contextmenu.css';
 
-export default function WithContextMenu({ onDelete, children, extraOptions = [] }) {
+export default function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null }) {
   const [menuPos, setMenuPos] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
   const menuRef = useRef(null);
@@ -134,6 +134,8 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
         closeMenu();
       }
     };
+    const handleScroll = () => closeMenu();
+    const handleResize = () => closeMenu();
     const handleContextMenuOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         closeMenu();
@@ -141,10 +143,14 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
     };
 
     window.addEventListener('click', handleClick);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
     window.addEventListener('contextmenu', handleContextMenuOutside);
 
     return () => {
       window.removeEventListener('click', handleClick);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('contextmenu', handleContextMenuOutside);
     };
   }, [closeMenu]);
@@ -160,6 +166,13 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
 
   // Clonar children con los eventos apropiados
   const childrenWithEvents = React.cloneElement(children, {
+    onMouseDown: (e) => {
+      // Si se inicia un drag/click en el hijo, cerrar el menú para no bloquear el arrastre
+      setMenuPos(null);
+      if (typeof children.props.onMouseDown === 'function') {
+        children.props.onMouseDown(e);
+      }
+    },
     onContextMenu: !isMobile ? handleContextMenu : undefined,
     onTouchStart: isMobile ? handleTouchStart : undefined,
     onTouchMove: isMobile ? handleTouchMove : undefined,
@@ -175,17 +188,27 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [] 
           <div
             ref={menuRef}
             className="context-menu"
-            style={{ top: menuPos.y + 2, left: menuPos.x + 2 }}
+            style={{ 
+              top: Math.min(menuPos.y + 2, window.innerHeight - 10), 
+              left: Math.min(menuPos.x + 2, window.innerWidth - 10) 
+            }}
             onContextMenu={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
+            {headerContent && (
+              <div className="context-menu-header">
+                {headerContent}
+              </div>
+            )}
             {extraOptions.map((opt, idx) => (
               <div
                 key={idx}
                 className="context-menu-item"
                 onClick={() => {
-                  opt.onClick?.();
-                  closeMenu();
+                  const result = opt.onClick?.();
+                  if (!opt.preventClose) {
+                    closeMenu();
+                  }
                 }}
               >
                 {opt.label}

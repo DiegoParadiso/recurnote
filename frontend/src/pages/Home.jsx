@@ -55,6 +55,9 @@ export default function Home() {
     onCircleSmallDoubleClick,
     resetCircleSmallToDefault,
     recenterCircleSmall,
+    leftSidebarPos,
+    onLeftSidebarMouseDown,
+    startLeftSidebarDrag,
     displayOptions,
     setDisplayOptions,
     showRightSidebar,
@@ -169,7 +172,8 @@ export default function Home() {
 
       {/* Botones Config y Tema desktop */}
       <div
-        className="fixed top-3 left-3 z-[20] hidden sm:flex gap-2 items-center"
+        className="fixed top-3 left-3 hidden sm:flex gap-2 items-center"
+        style={{ zIndex: 'var(--z-high)' }}
       >
         <div className="w-10 h-10 flex items-center justify-center">
           <ConfigButton onToggle={() => setShowConfig(v => !v)} />
@@ -189,38 +193,36 @@ export default function Home() {
       {!isMobile && (
         <>
           {isLeftSidebarPinned ? (
-            // Fijado permanentemente lado izquierdo
             <div
               className="hidden sm:block"
-              style={{
-                zIndex: 'var(--z-modal)',
-                position: 'fixed',
-                border: '1px solid var(--color-border)',
-                borderRadius: '8px',
-                backgroundColor: 'var(--color-bg)',
-                transition: 'var(--transition-all)',
-              }}
-            >
-              <CurvedSidebar showConfig={showConfig} onSelectItem={handleSelectItemLocal} isLeftSidebarPinned={true} />
-            </div>
-          ) : (
-            // Sidebar izquierdo con hover nativo
-            <div
-              className="hidden sm:block"
+              onMouseDownCapture={onLeftSidebarMouseDown}
               style={{
                 position: 'fixed',
-                top: 'var(--navbar-top-offset)', 
-                left: 0,
-                height: `calc(100vh - var(--navbar-top-offset))`, 
+                left: leftSidebarPos.x ?? 12,
+                top: (leftSidebarPos.y ?? (window.innerHeight - 450) / 2),
+                width: 220,
+                height: 450,
                 zIndex: 'var(--z-modal)',
+                cursor: 'grab',
               }}
             >
               <CurvedSidebar 
                 showConfig={showConfig} 
                 onSelectItem={handleSelectItemLocal}
-                onHover={handleLeftSidebarHover}
+                isLeftSidebarPinned={true}
               />
             </div>
+          ) : (
+            <CurvedSidebar 
+              showConfig={showConfig} 
+              onSelectItem={handleSelectItemLocal}
+              onHover={handleLeftSidebarHover}
+              isLeftSidebarPinned={false}
+              onStartDrag={(e) => {
+                // Iniciar drag usando la posición real del panel (startLeftSidebarDrag se encarga de fijar y leer el rect)
+                startLeftSidebarDrag(e);
+              }}
+            />
           )}
         </>
       )}
@@ -366,16 +368,7 @@ export default function Home() {
             </div>
           ) : (
             // Sidebar derecho con hover nativo
-            <div
-              className="hidden sm:block"
-              style={{
-                position: 'fixed',
-                top: 'var(--navbar-top-offset)',
-                right: 0,
-                height: `calc(100vh - var(--navbar-top-offset))`, 
-                zIndex: 'var(--z-modal)',
-              }}
-            >
+            <div className="hidden sm:block" style={{ position: 'fixed', top: 'var(--navbar-top-offset)', right: 0, height: `calc(100vh - var(--navbar-top-offset))`, zIndex: 'var(--z-modal)' }}>
               <SidebarDayView
                 selectedDay={selectedDay}
                 setSelectedDay={setSelectedDay}

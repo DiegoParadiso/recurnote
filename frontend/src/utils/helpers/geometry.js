@@ -41,28 +41,14 @@ export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRad
   const itemCornerDistance = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
   const maxDistance = maxRadius - itemCornerDistance;
   
-  // Debug: mostrar información sobre la limitación
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔒 Limitando posición:', {
-      newPos: { x: newX, y: newY },
-      itemSize: { w, h },
-      circleCenter: { cx, cy },
-      maxRadius,
-      itemCornerDistance,
-      maxDistance,
-      distanceCenter,
-      willLimit: distanceCenter > maxDistance
-    });
-  }
+  // Debug desactivado
   
   if (distanceCenter > maxDistance) {
     const angle = Math.atan2(dy, dx);
     const limitedX = cx + maxDistance * Math.cos(angle);
     const limitedY = cy + maxDistance * Math.sin(angle);
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📍 Posición limitada:', { from: { x: newX, y: newY }, to: { x: limitedX, y: limitedY } });
-    }
+    // Debug desactivado
     
     return { x: limitedX, y: limitedY };
   }

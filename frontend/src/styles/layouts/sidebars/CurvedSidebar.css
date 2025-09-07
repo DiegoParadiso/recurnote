@@ -11,7 +11,7 @@
 }
 
 .curved-sidebar-container:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: transparent;
 }
 
 .curved-sidebar-container.config-open {
@@ -28,7 +28,7 @@
 }
 
 .curved-sidebar-hover-zone:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: transparent;
 }
 
 .curved-sidebar-panel {
@@ -148,6 +148,18 @@
 }
 
 .curved-sidebar-container.pinned .curved-sidebar-panel {
-  top: 10 !important;
-  left: 12px !important;
+  position: static !important; /* para que el wrapper fije la posición exacta */
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+/* Cuando está fijado, el contenedor no debe ser fixed para permitir arrastre del wrapper */
+.curved-sidebar-container.pinned {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 220px !important; /* igual al panel */
+  height: 450px !important; /* igual al panel */
+  background: transparent !important;
 }
