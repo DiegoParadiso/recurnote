@@ -52,9 +52,9 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
         className="w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem]"
       >
         {renderDeleteButton()}
-        <div style={{ wordBreak: 'break-word', lineHeight: '1.3', display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
+        <div className="task-container" style={{ wordBreak: 'break-word', lineHeight: '1.3' }}>
           {(item.content || []).map((task, idx) => (
-            <div key={idx} className="flex gap-2">
+            <div key={idx} className="flex gap-2 items-center">
               <label className="checkbox-label relative cursor-pointer select-none flex-shrink-0">
                 <input
                   type="checkbox"
@@ -108,6 +108,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
           download={item.content.fileData.name}
           className="file-download-link"
           title="Descargar archivo"
+          style={{ display: 'flex', alignItems: 'center', width: '100%' }}
         >
           {item.content.fileData.name}
         </a>
@@ -116,11 +117,11 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
           <span className="text-gray-400 italic">Sin contenido</span>
         </div>
       ) : typeof item.content === 'object' ? (
-        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '9px', lineHeight: '1.2', margin: 0 }}>
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '9px', lineHeight: '1.2', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
           {JSON.stringify(item.content, null, 2)}
         </pre>
       ) : (
-        <div style={{ wordBreak: 'break-word', lineHeight: '1.3' }}>
+        <div style={{ wordBreak: 'break-word', lineHeight: '1.3', display: 'flex', alignItems: 'center', width: '100%' }}>
           {item.content}
         </div>
       )}

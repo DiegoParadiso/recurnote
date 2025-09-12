@@ -113,6 +113,22 @@ export default function NoteItem({
       return;
     }
     onUpdate(id, e.target.value);
+    
+    // Solo ajustar altura del textarea si está en modo edición
+    if (textareaRef.current && isEditing) {
+      const textarea = textareaRef.current;
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      const availableHeight = height - 8; // Altura disponible menos padding
+      
+      if (scrollHeight > availableHeight) {
+        textarea.style.height = scrollHeight + 'px';
+      } else {
+        textarea.style.height = availableHeight + 'px';
+      }
+      
+      textarea.style.overflowY = 'hidden';
+    }
   };
 
   const handleContainerDragStart = () => {
@@ -148,10 +164,31 @@ export default function NoteItem({
   // Funciones para manejar edición
   const startEditing = () => {
     setIsEditing(true);
+    // Ajustar altura del textarea al iniciar edición
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const textarea = textareaRef.current;
+        textarea.style.height = 'auto';
+        const scrollHeight = textarea.scrollHeight;
+        textarea.style.height = scrollHeight + 'px';
+        textarea.style.overflowY = 'hidden';
+      }
+    }, 0);
   };
 
   const stopEditing = () => {
     setIsEditing(false);
+    
+    // Usar toda la altura disponible del contenedor
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      // Usar requestAnimationFrame para asegurar que el DOM se actualice
+      requestAnimationFrame(() => {
+        const availableHeight = height - 8; // Altura disponible menos padding
+        textarea.style.height = availableHeight + 'px';
+        textarea.style.overflowY = 'hidden';
+      });
+    }
   };
 
   const handleTextareaKeyDown = (e) => {
@@ -176,6 +213,91 @@ export default function NoteItem({
       setIsEditing(false);
     }
   }, [isDragging]);
+
+  // Ajustar altura del textarea cuando el contenido cambia
+  useEffect(() => {
+    if (textareaRef.current && isEditing) {
+      const textarea = textareaRef.current;
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      
+      // Actualizar el contenedor para que coincida con el contenido
+      const newContainerHeight = Math.max(scrollHeight + 8, height);
+      if (newContainerHeight !== height) {
+        // Usar setTimeout para asegurar que el DOM se actualice
+        setTimeout(() => {
+          onUpdate?.(id, content, null, { width, height: newContainerHeight });
+        }, 0);
+      }
+      
+      textarea.style.height = scrollHeight + 'px';
+      textarea.style.overflowY = 'hidden';
+    }
+  }, [content, isEditing, height, id, onUpdate, width]);
+
+  // Efecto adicional para sincronizar el textarea con el contenedor actualizado
+  useEffect(() => {
+    if (textareaRef.current && isEditing) {
+      const textarea = textareaRef.current;
+      // Asegurar que el textarea ocupe toda la altura disponible del contenedor
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      const availableHeight = height - 8; // Altura del contenedor menos padding
+      const finalHeight = Math.max(scrollHeight, availableHeight);
+      textarea.style.height = finalHeight + 'px';
+    }
+  }, [height, isEditing]);
+
+  // Efecto para asegurar que el textarea use toda la altura disponible cuando no está en edición
+  useEffect(() => {
+    if (textareaRef.current && !isEditing) {
+      const textarea = textareaRef.current;
+      const availableHeight = height - 8; // Altura disponible menos padding
+      textarea.style.height = availableHeight + 'px';
+      textarea.style.overflowY = 'hidden';
+    }
+  }, [height, isEditing]);
+
+  // Efecto específico para manejar cambios de dimensiones del contenedor
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      // Usar requestAnimationFrame para asegurar que el DOM se actualice
+      requestAnimationFrame(() => {
+        const availableHeight = height - 8; // Altura disponible menos padding
+        textarea.style.height = availableHeight + 'px';
+        textarea.style.overflowY = 'hidden';
+      });
+    }
+  }, [width, height]);
+
+  // Efecto para sincronización inicial del textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      // Usar requestAnimationFrame para asegurar que el DOM esté listo
+      requestAnimationFrame(() => {
+        const availableHeight = height - 8; // Altura disponible menos padding
+        textarea.style.height = availableHeight + 'px';
+        textarea.style.overflowY = 'hidden';
+      });
+    }
+  }, [height]);
+
+  // Efecto para sincronización al montar el componente
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      // Doble requestAnimationFrame para asegurar sincronización completa
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const availableHeight = height - 8; // Altura disponible menos padding
+          textarea.style.height = availableHeight + 'px';
+          textarea.style.overflowY = 'hidden';
+        });
+      });
+    }
+  }, []);
 
 
 

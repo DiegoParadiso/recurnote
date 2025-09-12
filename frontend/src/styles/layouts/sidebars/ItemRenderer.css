@@ -35,6 +35,16 @@
   max-width: calc(100% - 20px); /* Dejar espacio para el checkbox */
 }
 
+/* Contenedor de tareas - centrado vertical cuando hay poco contenido */
+.item-card .task-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  justify-content: center;
+  min-height: 1.5rem;
+}
+
 .item-card .checkbox-label span:last-child {
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -48,7 +58,8 @@
   overflow-wrap: break-word;
   word-break: break-word;
   max-width: 100%;
-  display: block;
+  display: flex;
+  width: 100%;
 }
 
 /* Estilos para contenido JSON */
@@ -61,6 +72,8 @@
   font-size: 9px;
   line-height: 1.2;
   margin: 0;
+  display: flex;
+  width: 100%;
 }
 
 html.dark .item-card {
