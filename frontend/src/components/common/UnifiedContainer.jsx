@@ -165,6 +165,7 @@ export default function UnifiedContainer({
   const onMouseDownResize = (e) => {
     if (disableResize) return;
     e.stopPropagation();
+    e.preventDefault();
     isResizing.current = true;
     resizeStartPos.current = {
       mouseX: e.clientX,
@@ -172,6 +173,26 @@ export default function UnifiedContainer({
       width: sizeState.width,
       height: sizeState.height,
     };
+
+    // Bloquear selección de texto durante el resize
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+
+    const restoreSelection = () => {
+      document.body.style.userSelect = '';
+      document.body.style.WebkitUserSelect = '';
+      document.body.style.MozUserSelect = '';
+      document.body.style.msUserSelect = '';
+      window.removeEventListener('mouseup', restoreSelection);
+      window.removeEventListener('touchend', restoreSelection);
+      window.removeEventListener('touchcancel', restoreSelection);
+    };
+
+    window.addEventListener('mouseup', restoreSelection);
+    window.addEventListener('touchend', restoreSelection);
+    window.addEventListener('touchcancel', restoreSelection);
   };
 
   const onTouchStartResize = (e) => {
@@ -187,6 +208,26 @@ export default function UnifiedContainer({
       width: sizeState.width,
       height: sizeState.height,
     };
+
+    // Bloquear selección de texto durante el resize (por si hay mouse+touch híbrido)
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+
+    const restoreSelection = () => {
+      document.body.style.userSelect = '';
+      document.body.style.WebkitUserSelect = '';
+      document.body.style.MozUserSelect = '';
+      document.body.style.msUserSelect = '';
+      window.removeEventListener('mouseup', restoreSelection);
+      window.removeEventListener('touchend', restoreSelection);
+      window.removeEventListener('touchcancel', restoreSelection);
+    };
+
+    window.addEventListener('mouseup', restoreSelection);
+    window.addEventListener('touchend', restoreSelection);
+    window.addEventListener('touchcancel', restoreSelection);
   };
 
   // Función para verificar si se está haciendo drag

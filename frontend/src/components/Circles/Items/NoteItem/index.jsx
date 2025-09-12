@@ -119,7 +119,7 @@ export default function NoteItem({
       const textarea = textareaRef.current;
       textarea.style.height = 'auto';
       const scrollHeight = textarea.scrollHeight;
-      const availableHeight = height - 8; // Altura disponible menos padding
+      const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
       
       if (scrollHeight > availableHeight) {
         textarea.style.height = scrollHeight + 'px';
@@ -184,7 +184,7 @@ export default function NoteItem({
       const textarea = textareaRef.current;
       // Usar requestAnimationFrame para asegurar que el DOM se actualice
       requestAnimationFrame(() => {
-        const availableHeight = height - 8; // Altura disponible menos padding
+        const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
         textarea.style.height = availableHeight + 'px';
         textarea.style.overflowY = 'hidden';
       });
@@ -242,7 +242,7 @@ export default function NoteItem({
       // Asegurar que el textarea ocupe toda la altura disponible del contenedor
       textarea.style.height = 'auto';
       const scrollHeight = textarea.scrollHeight;
-      const availableHeight = height - 8; // Altura del contenedor menos padding
+      const availableHeight = height - 16; // Altura del contenedor menos padding del contenedor (8+8)
       const finalHeight = Math.max(scrollHeight, availableHeight);
       textarea.style.height = finalHeight + 'px';
     }
@@ -252,7 +252,7 @@ export default function NoteItem({
   useEffect(() => {
     if (textareaRef.current && !isEditing) {
       const textarea = textareaRef.current;
-      const availableHeight = height - 8; // Altura disponible menos padding
+      const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
       textarea.style.height = availableHeight + 'px';
       textarea.style.overflowY = 'hidden';
     }
@@ -264,7 +264,7 @@ export default function NoteItem({
       const textarea = textareaRef.current;
       // Usar requestAnimationFrame para asegurar que el DOM se actualice
       requestAnimationFrame(() => {
-        const availableHeight = height - 8; // Altura disponible menos padding
+        const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
         textarea.style.height = availableHeight + 'px';
         textarea.style.overflowY = 'hidden';
       });
@@ -277,7 +277,7 @@ export default function NoteItem({
       const textarea = textareaRef.current;
       // Usar requestAnimationFrame para asegurar que el DOM esté listo
       requestAnimationFrame(() => {
-        const availableHeight = height - 8; // Altura disponible menos padding
+        const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
         textarea.style.height = availableHeight + 'px';
         textarea.style.overflowY = 'hidden';
       });
@@ -291,13 +291,31 @@ export default function NoteItem({
       // Doble requestAnimationFrame para asegurar sincronización completa
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const availableHeight = height - 8; // Altura disponible menos padding
+          const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
           textarea.style.height = availableHeight + 'px';
           textarea.style.overflowY = 'hidden';
         });
       });
     }
   }, []);
+
+  // Sincronizar altura del contenedor con el contenido cuando cambia el ancho (reflujo del texto)
+  useEffect(() => {
+    if (!textareaRef.current) return;
+    const textarea = textareaRef.current;
+    // Medir contenido real
+    textarea.style.height = 'auto';
+    const scrollHeight = textarea.scrollHeight;
+    const desiredContainerHeight = Math.max(scrollHeight + 16, height); // sumar padding vertical del contenedor
+    if (desiredContainerHeight !== height) {
+      // Ajustar la altura del item para evitar scroll interno
+      onUpdate?.(id, content, null, { width, height: desiredContainerHeight });
+    }
+    // Volver a fijar altura del textarea para ocupar el espacio disponible
+    const availableHeight = desiredContainerHeight - 16;
+    textarea.style.height = Math.max(scrollHeight, availableHeight) + 'px';
+    textarea.style.overflowY = 'hidden';
+  }, [width]);
 
 
 
@@ -349,9 +367,10 @@ export default function NoteItem({
         width={width}
         height={height}
         minWidth={120}
-        minHeight={computedMinHeight}
+        minHeight={40}
         maxWidth={224}
-        maxHeight={computedMinHeight}
+        maxHeight={800}
+        style={{ overflow: 'hidden' }}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const dx = x - cx;
@@ -365,8 +384,9 @@ export default function NoteItem({
         }}
         onResize={(newSize) => {
           const newWidth = Math.min(newSize.width, 400);
-          onUpdate?.(id, content, null, { width: newWidth, height: computedMinHeight });
-          onResize?.({ width: newWidth, height: computedMinHeight });
+          const newHeight = Math.min(Math.max(newSize.height, 40), 800);
+          onUpdate?.(id, content, null, { width: newWidth, height: newHeight });
+          onResize?.({ width: newWidth, height: newHeight });
         }}
         onDrag={handleContainerDragStart}
         onDrop={handleContainerDragEnd}
