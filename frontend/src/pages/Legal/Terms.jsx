@@ -2,9 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../../styles/legal.css';
 import EmptyLogo from '../../components/common/EmptyLogo.jsx';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/index.js';
 
 export default function Terms() {
+  const { t } = useTranslation();
   const isSmallScreen = window.innerWidth < 768;
+  const dateStr = new Date().toLocaleDateString(i18n.language || 'en');
 
   return (
     <div className="legal-container" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -12,116 +16,80 @@ export default function Terms() {
       
       <div className="legal-content" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
         <div className="legal-header">
-          <h1>Términos y Condiciones</h1>
-          <p className="legal-date">Última actualización: {new Date().toLocaleDateString('es-ES')}</p>
+          <h1>{t('legal.terms.title')}</h1>
+          <p className="legal-date">{t('legal.terms.lastUpdated')}: {dateStr}</p>
         </div>
 
         <div className="legal-body">
           <section>
-            <h2>1. Aceptación de los Términos</h2>
-            <p>
-              Al acceder y utilizar RecurNote, aceptas estar sujeto a estos términos y condiciones. 
-              Si no estás de acuerdo con alguna parte de estos términos, no debes usar nuestro servicio.
-            </p>
+            <h2>1. {t('legal.terms.acceptance.title')}</h2>
+            <p>{t('legal.terms.acceptance.body')}</p>
           </section>
 
           <section>
-            <h2>2. Descripción del Servicio</h2>
-            <p>
-              RecurNote es una aplicación web que permite a los usuarios crear, organizar y gestionar 
-              notas y tareas de manera eficiente. El servicio incluye funcionalidades de sincronización, 
-              organización por categorías y acceso multiplataforma.
-            </p>
+            <h2>2. {t('legal.terms.service.title')}</h2>
+            <p>{t('legal.terms.service.body')}</p>
           </section>
 
           <section>
-            <h2>3. Cuenta de Usuario</h2>
-            <p>
-              Para utilizar RecurNote, debes crear una cuenta proporcionando información precisa y actualizada. 
-              Eres responsable de mantener la confidencialidad de tu contraseña y de todas las actividades 
-              que ocurran bajo tu cuenta.
-            </p>
+            <h2>3. {t('legal.terms.account.title')}</h2>
+            <p>{t('legal.terms.account.body')}</p>
           </section>
 
           <section>
-            <h2>4. Uso Aceptable</h2>
-            <p>
-              Te comprometes a usar RecurNote solo para fines legales y de acuerdo con estos términos. 
-              No debes:
-            </p>
+            <h2>4. {t('legal.terms.acceptableUse.title')}</h2>
+            <p>{t('legal.terms.acceptableUse.body')}</p>
             <ul>
-              <li>Usar el servicio para actividades ilegales o fraudulentas</li>
-              <li>Intentar acceder a cuentas de otros usuarios</li>
-              <li>Interferir con el funcionamiento del servicio</li>
-              <li>Compartir contenido inapropiado o ofensivo</li>
+              <li>{t('legal.terms.acceptableUse.items.0')}</li>
+              <li>{t('legal.terms.acceptableUse.items.1')}</li>
+              <li>{t('legal.terms.acceptableUse.items.2')}</li>
+              <li>{t('legal.terms.acceptableUse.items.3')}</li>
             </ul>
           </section>
 
           <section>
-            <h2>5. Privacidad y Datos</h2>
-            <p>
-              Tu privacidad es importante para nosotros. El uso de tu información personal se rige por 
-              nuestra Política de Privacidad, que forma parte de estos términos.
-            </p>
+            <h2>5. {t('legal.terms.privacy.title')}</h2>
+            <p>{t('legal.terms.privacy.body')}</p>
           </section>
 
           <section>
-            <h2>6. Propiedad Intelectual</h2>
-            <p>
-              RecurNote y todo su contenido, incluyendo pero no limitado a texto, gráficos, logos, 
-              iconos y software, son propiedad de RecurNote o sus licenciantes y están protegidos por 
-              las leyes de propiedad intelectual.
-            </p>
+            <h2>6. {t('legal.terms.ip.title')}</h2>
+            <p>{t('legal.terms.ip.body')}</p>
           </section>
 
           <section>
-            <h2>7. Limitación de Responsabilidad</h2>
-            <p>
-              En ningún caso RecurNote será responsable por daños indirectos, incidentales, especiales 
-              o consecuentes que resulten del uso o la imposibilidad de usar el servicio.
-            </p>
+            <h2>7. {t('legal.terms.liability.title')}</h2>
+            <p>{t('legal.terms.liability.body')}</p>
           </section>
 
           <section>
-            <h2>8. Modificaciones</h2>
-            <p>
-              Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios 
-              entrarán en vigor inmediatamente después de su publicación. Te notificaremos sobre cambios 
-              significativos por email.
-            </p>
+            <h2>8. {t('legal.terms.changes.title')}</h2>
+            <p>{t('legal.terms.changes.body')}</p>
           </section>
 
           <section>
-            <h2>9. Terminación</h2>
-            <p>
-              Podemos terminar o suspender tu cuenta en cualquier momento, con o sin causa, con o sin 
-              previo aviso. También puedes cancelar tu cuenta en cualquier momento.
-            </p>
+            <h2>9. {t('legal.terms.termination.title')}</h2>
+            <p>{t('legal.terms.termination.body')}</p>
           </section>
 
           <section>
-            <h2>10. Ley Aplicable</h2>
-            <p>
-              Estos términos se rigen por las leyes de Argentina. Cualquier disputa será resuelta en 
-              los tribunales competentes de Argentina.
-            </p>
+            <h2>10. {t('legal.terms.governingLaw.title')}</h2>
+            <p>{t('legal.terms.governingLaw.body')}</p>
           </section>
 
           <section>
-            <h2>11. Contacto</h2>
-            <p>
-              Si tienes preguntas sobre estos términos, puedes contactarnos a través de:
-            </p>
+            <h2>11. {t('legal.terms.contact.title')}</h2>
+            <p>{t('legal.terms.contact.body')}</p>
             <ul>
-              <li>Email: legal@recurnote.com</li>
-              <li>Formulario de contacto en la aplicación</li>
+              <li>{t('legal.terms.contact.email')}</li>
+              <li>{t('legal.terms.contact.form')}</li>
             </ul>
           </section>
         </div>
 
         <div className="legal-footer">
           <Link to="/register" className="back-button">
-            ← Volver al registro
+            ← {t('legal.terms.backToRegister')}
           </Link>
         </div>
       </div>

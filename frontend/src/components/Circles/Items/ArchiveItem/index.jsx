@@ -3,6 +3,7 @@ import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
 import { handleFile } from '../../../../utils/fileHandler';
+import { useTranslation } from 'react-i18next';
 
 import '../../../../styles/components/circles/items/ArchivoItem.css';
 import { useAuth } from '../../../../context/AuthContext';
@@ -26,6 +27,7 @@ export default function ArchivoItem({
   isActive,
   onActivate,
 }) {
+  const { t } = useTranslation();
   const fileInputRef = useRef();
   const [isExpanded, setIsExpanded] = useState(!!item.isExpanded);
   const [toastMessage, setToastMessage] = useState('');
@@ -142,7 +144,7 @@ export default function ArchivoItem({
   };
 
   const renameFile = () => {
-    const newName = prompt('Ingrese el nuevo nombre del archivo:', item.content?.fileData?.name || '');
+    const newName = prompt(t('file.renamePrompt'), item.content?.fileData?.name || '');
     if (newName && newName.trim() !== '') {
       const updatedFileData = { ...item.content.fileData, name: newName.trim() };
       onUpdate?.(
@@ -159,7 +161,7 @@ export default function ArchivoItem({
     try {
       await duplicateItem(id);
     } catch (error) {
-      setToastMessage('No se pudo duplicar el archivo');
+      setToastMessage(t('file.duplicateError'));
     }
   };
 
@@ -173,13 +175,13 @@ export default function ArchivoItem({
     
     // Solo mostrar opciones si hay un archivo subido
     if (item.content?.fileData && item.content?.base64) {
-      options.push({ label: 'Renombrar archivo', onClick: renameFile });
-      options.push({ label: 'Duplicar', onClick: handleDuplicate });
+      options.push({ label: 'file.rename', onClick: renameFile });
+      options.push({ label: 'common.duplicate', onClick: handleDuplicate });
       
       // Solo mostrar opción de imagen si es realmente una imagen
       if (isImage) {
         options.push({ 
-          label: isExpanded ? 'Colapsar imagen' : 'Expandir imagen', 
+          label: isExpanded ? 'file.collapseImage' : 'file.expandImage', 
           onClick: () => {
             const newExpandedState = !isExpanded;
             setIsExpanded(newExpandedState);
@@ -197,7 +199,7 @@ export default function ArchivoItem({
         });
       }
       
-      options.push({ label: 'Descargar archivo', onClick: handleDownload });
+      options.push({ label: 'file.download', onClick: handleDownload });
     }
     
     return options;

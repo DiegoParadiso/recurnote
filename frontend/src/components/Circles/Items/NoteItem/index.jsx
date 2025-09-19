@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import { useItems } from '../../../../context/ItemsContext';
+import { useTranslation } from 'react-i18next';
 
 import '../../../../styles/components/circles/items/NoteItem.css';
 
@@ -25,6 +26,7 @@ export default function NoteItem({
   isActive,
   onActivate,
 }) {
+  const { t } = useTranslation();
   const textareaRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -78,14 +80,14 @@ export default function NoteItem({
     const minutes = absMin % 60;
     if (sign > 0) {
       if (hours > 0) {
-        return minutes > 0 ? `Faltan ${hours}h ${minutes}m` : `Faltan ${hours}h`;
+        return minutes > 0 ? t('note.countdown.in_h_m', { h: hours, m: minutes }) : t('note.countdown.in_h', { h: hours });
       }
-      return `Faltan ${minutes} minutos`;
+      return t('note.countdown.in_m', { m: minutes });
     } else {
       if (hours > 0) {
-        return minutes > 0 ? `Hace ${hours}h ${minutes}m` : `Hace ${hours}h`;
+        return minutes > 0 ? t('note.countdown.ago_h_m', { h: hours, m: minutes }) : t('note.countdown.ago_h', { h: hours });
       }
-      return `Hace ${minutes} minutos`;
+      return t('note.countdown.ago_m', { m: minutes });
     }
   };
 
@@ -343,21 +345,21 @@ export default function NoteItem({
               type="time"
               value={timeInput}
               onChange={(e) => setTimeInput(e.target.value)}
-              aria-label="Hora a asignar"
+              aria-label={t('note.assignTimeAria')}
             />
           )}
         </>
       )}
       extraOptions={[
-        { label: assignedTime ? 'Cambiar horario' : 'Asignar horario', onClick: async () => {
+        { label: assignedTime ? 'note.changeTime' : 'note.assignTime', onClick: async () => {
           if (assignedTime) {
             await handleClearTime();
           } else {
             await handleAssignTime(timeInput);
           }
         }, preventClose: true },
-        ...(assignedTime ? [{ label: 'Quitar horario', onClick: handleClearTime }] : []),
-        { label: 'Duplicar', onClick: handleDuplicate },
+        ...(assignedTime ? [{ label: 'note.clearTime', onClick: handleClearTime }] : []),
+        { label: 'common.duplicate', onClick: handleDuplicate },
       ]}
     >
       <UnifiedContainer
@@ -466,7 +468,7 @@ export default function NoteItem({
             stopEditing();
           }}
           onKeyDown={handleTextareaKeyDown}
-          placeholder={isMobile ? "Escribe tu nota aquí..." : "Doble click para editar..."}
+          placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
           readOnly={!isEditing}
           style={{
             cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),

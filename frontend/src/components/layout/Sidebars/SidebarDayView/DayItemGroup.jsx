@@ -1,5 +1,6 @@
 // DayItemGroup.jsx
 import React from 'react';
+import i18n from '../../../../i18n/index.js';
 import { formatDateKey } from '../../../../utils/formatDateKey';
 import '../../../../styles/layouts/sidebars/DayItemGroup.css';
 
@@ -12,7 +13,7 @@ export default function DayItemGroup({ date, items, onDaySelect, renderItem }) {
         onClick={() => onDaySelect(date.toObject())}
         className="text-[10px] font-semibold  mono tracking-wide uppercase cursor-pointer day-header transition"
       >
-        {date.setLocale('es').toFormat('cccc d LLLL')}
+        {date.setLocale(i18n.language || 'en').toFormat('cccc d LLLL')}
       </h3>
 
       {items.map((item) => renderItem(item, key))}

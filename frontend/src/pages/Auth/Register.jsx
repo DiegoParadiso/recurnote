@@ -6,8 +6,10 @@ import '../../styles/auth.css';
 import EmptyLogo from '../../components/common/EmptyLogo.jsx';
 import PasswordStrength from '../../components/common/PasswordStrength.jsx';
 import BottomToast from '../../components/common/BottomToast.jsx';
+import { useTranslation } from 'react-i18next';
 
 export default function Register() {
+  const { t } = useTranslation();
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
   const isSmallScreen = window.innerWidth < 768;
@@ -32,38 +34,38 @@ export default function Register() {
   const validateField = (name, value) => {
     switch (name) {
       case 'name':
-        if (!value.trim()) return 'El nombre es requerido';
-        if (value.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres';
-        if (value.trim().length > 50) return 'El nombre no puede tener más de 50 caracteres';
+        if (!value.trim()) return t('auth.nameRequired');
+        if (value.trim().length < 2) return t('auth.nameMin');
+        if (value.trim().length > 50) return t('auth.nameMax');
         if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value.trim())) {
-          return 'El nombre solo puede contener letras y espacios';
+          return t('auth.nameLetters');
         }
         return '';
 
       case 'email':
-        if (!value.trim()) return 'El email es requerido';
+        if (!value.trim()) return t('auth.emailRequired');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          return 'El email debe tener un formato válido';
+          return t('auth.emailInvalid');
         }
-        if (value.length > 100) return 'El email no puede tener más de 100 caracteres';
+        if (value.length > 100) return t('auth.emailMax');
         return '';
 
       case 'password':
-        if (!value) return 'La contraseña es requerida';
-        if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
-        if (value.length > 128) return 'La contraseña no puede tener más de 128 caracteres';
+        if (!value) return t('auth.passwordRequired');
+        if (value.length < 8) return t('auth.passwordMin');
+        if (value.length > 128) return t('auth.passwordMax');
         if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(value)) {
-          return 'La contraseña debe contener al menos una minúscula, una mayúscula, un número y un carácter especial';
+          return t('auth.passwordStrength');
         }
         return '';
 
       case 'confirmPassword':
-        if (!value) return 'Confirma tu contraseña';
-        if (value !== formData.password) return 'Las contraseñas no coinciden';
+        if (!value) return t('auth.confirmPasswordRequired');
+        if (value !== formData.password) return t('auth.passwordMismatch');
         return '';
 
       case 'acceptTerms':
-        if (!value) return 'Debes aceptar los términos y condiciones';
+        if (!value) return t('auth.termsRequired');
         return '';
 
       default:
@@ -162,7 +164,7 @@ export default function Register() {
         });
         setErrors(serverErrors);
       } else {
-        setErrors({ general: err.message || 'Error en el registro' });
+        setErrors({ general: err.message || t('auth.registerError') });
       }
     } finally {
       setLoading(false);
@@ -187,7 +189,7 @@ export default function Register() {
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-        <h2>Crear cuenta</h2>
+        <h2>{t('auth.registerTitle')}</h2>
         
         <form onSubmit={handleSubmit}>
           {/* Nombre */}
@@ -195,7 +197,7 @@ export default function Register() {
             <input
               type="text"
               name="name"
-              placeholder="Nombre completo"
+              placeholder={t('auth.namePlaceholder')}
               value={formData.name}
               onChange={handleChange}
               onBlur={() => handleBlur('name')}
@@ -210,7 +212,7 @@ export default function Register() {
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              placeholder={t('auth.emailPlaceholder')}
               value={formData.email}
               onChange={handleChange}
               onBlur={() => handleBlur('email')}
@@ -226,7 +228,7 @@ export default function Register() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                placeholder="Contraseña"
+                placeholder={t('auth.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={() => handleBlur('password')}
@@ -253,7 +255,7 @@ export default function Register() {
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
-                placeholder="Confirmar contraseña"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 onBlur={() => handleBlur('confirmPassword')}
@@ -283,13 +285,13 @@ export default function Register() {
                 className={errors.acceptTerms ? 'error' : ''}
               />
               <span className="checkbox-text">
-                Acepto los{' '}
+                {t('auth.accept')}{' '}
                 <Link to="/terms" className="link-terms">
-                  términos y condiciones
+                  {t('auth.terms')}
                 </Link>
-                {' '}y la{' '}
+                {' '}{t('auth.and')}{' '}
                 <Link to="/privacy" className="link-terms">
-                  política de privacidad
+                  {t('auth.privacy')}
                 </Link>
               </span>
             </label>
@@ -307,12 +309,15 @@ export default function Register() {
             disabled={loading || !isFormValid()}
             className="submit-button"
           >
-            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+            {loading ? t('auth.creating') : t('auth.registerCta')}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>¿Ya tenés cuenta? <Link to="/login">Iniciá sesión</Link></p>
+          <p>
+            {t('auth.haveAccount')}{' '}
+            <Link to="/login">{t('auth.loginLink')}</Link>
+          </p>
         </div>
       </div>
 

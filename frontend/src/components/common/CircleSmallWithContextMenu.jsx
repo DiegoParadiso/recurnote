@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import '../../styles/components/common/contextmenu.css';
+import { useTranslation } from 'react-i18next';
 
 export default function CircleSmallWithContextMenu({ 
   children, 
@@ -8,6 +9,7 @@ export default function CircleSmallWithContextMenu({
   onHide,
   onContextMenu: externalOnContextMenu 
 }) {
+  const { t } = useTranslation();
   const [menuPos, setMenuPos] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
   const menuRef = useRef(null);
@@ -76,7 +78,7 @@ export default function CircleSmallWithContextMenu({
                 closeMenu();
               }}
             >
-              Volver a posición original
+              {t('context.resetPosition')}
             </div>
             <div
               className="context-menu-item"
@@ -85,7 +87,7 @@ export default function CircleSmallWithContextMenu({
                 closeMenu();
               }}
             >
-              Ocultar
+              {t('context.hide')}
             </div>
           </div>,
           portalTarget

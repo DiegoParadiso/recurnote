@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Clock, User, LogOut, Trash2, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Clock, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useItems } from '../../context/ItemsContext';
+import { useTranslation } from 'react-i18next';
 import useIsMobile from '../../hooks/useIsMobile';
-import BottomToast from '../common/BottomToast';
 import '../../styles/components/preferences/ConfigPanel.css';
+import SessionOptions from './parts/SessionOptions';
+import DataManagementOptions from './parts/DataManagementOptions';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -48,306 +48,30 @@ function ComingSoonOption({ label }) {
 }
 
 function PatternSelector({ selectedPattern, onPatternChange }) {
+  const { t } = useTranslation();
   return (
     <>
-      <label htmlFor="pattern">Fondo del círculo</label>
+      <label htmlFor="pattern">{t('pattern.background')}</label>
       <select
         id="pattern"
         value={selectedPattern}
         onChange={(e) => onPatternChange(e.target.value)}
       >
-        <option value="none">Sin fondo</option>
-        <option value="pattern1">Patrón 1</option>
-        <option value="pattern2">Patrón 2</option>
-        <option value="pattern3">Patrón 3</option>
-        <option value="pattern4">Patrón 4</option>
-        <option value="pattern5">Patrón 5</option>
-        <option value="pattern6">Patrón 6</option>
-        <option value="pattern7">Patrón 7</option>
-        <option value="pattern8">Patrón 8</option>
+        <option value="none">{t('pattern.none')}</option>
+        <option value="pattern1">{t('pattern.pattern1')}</option>
+        <option value="pattern2">{t('pattern.pattern2')}</option>
+        <option value="pattern3">{t('pattern.pattern3')}</option>
+        <option value="pattern4">{t('pattern.pattern4')}</option>
+        <option value="pattern5">{t('pattern.pattern5')}</option>
+        <option value="pattern6">{t('pattern.pattern6')}</option>
+        <option value="pattern7">{t('pattern.pattern7')}</option>
+        <option value="pattern8">{t('pattern.pattern8')}</option>
       </select>
     </>
   );
 }
 
-function SessionOptions() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  return (
-    <div className="session-container">
-      {user ? (
-        <>
-          <div className="session-info">
-            <User size={16} style={{ marginRight: 8 }} />
-            <span>Hola, {user.name || user.email || 'Usuario'}</span>
-          </div>
-          <button className="session-button logout" onClick={() => logout()}>
-            <LogOut size={16} style={{ marginRight: 6 }} />Cerrar sesión
-          </button>
-        </>
-      ) : (
-        <>
-          <button className="session-button" onClick={() => navigate('/login')}>
-            Iniciar sesión
-          </button>
-          <button className="session-button register" onClick={() => navigate('/register')}>
-            Registrarse
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
-
-function DataManagementOptions() {
-  const { user, token } = useAuth();
-  const { itemsByDate, deleteItem, setItemsByDate } = useItems();
-  const [isDeletingAll, setIsDeletingAll] = useState(false);
-  const [isDeletingPast, setIsDeletingPast] = useState(false);
-  const [showConfirmAll, setShowConfirmAll] = useState(false);
-  const [showConfirmPast, setShowConfirmPast] = useState(false);
-  const [errorToast, setErrorToast] = useState('');
-
-  // Calcular estadísticas
-  const totalItems = Object.values(itemsByDate).reduce((acc, items) => acc + items.length, 0);
-  
-  const pastItems = Object.entries(itemsByDate).reduce((acc, [dateKey, items]) => {
-    try {
-      // Intentar parsear la fecha en diferentes formatos
-      let date;
-      if (dateKey.includes('-')) {
-        // Formato ISO (YYYY-MM-DD)
-        date = new Date(dateKey);
-      } else {
-        // Formato personalizado, intentar parsear
-        const parts = dateKey.split('/');
-        if (parts.length === 3) {
-          // Formato DD/MM/YYYY o MM/DD/YYYY
-          date = new Date(parts[2], parts[1] - 1, parts[0]);
-        } else {
-          date = new Date(dateKey);
-        }
-      }
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (date < today && !isNaN(date.getTime())) {
-        acc.count += items.length;
-        acc.dates.push({ dateKey, items });
-      }
-    } catch (error) {
-      console.error('Error parseando fecha:', dateKey, error);
-    }
-    return acc;
-  }, { count: 0, dates: [] });
-
-  const handleDeleteAllItems = async () => {
-    setIsDeletingAll(true);
-    setShowConfirmAll(false);
-
-    try {
-      if (user && token) {
-        // Usuario autenticado - eliminar del servidor
-        const deletePromises = Object.values(itemsByDate).flat().map(item => 
-          deleteItem(item.id).catch(error => {
-            console.error('Error eliminando item:', error);
-            return null; // Continuar con otros items
-          })
-        );
-
-        await Promise.all(deletePromises);
-        setErrorToast('Todos los items han sido eliminados del servidor');
-      } else {
-        // Usuario no autenticado - limpiar contexto y localStorage
-        setItemsByDate({});
-        localStorage.removeItem('localItems');
-        setErrorToast('Todos los items locales han sido eliminados');
-      }
-    } catch (error) {
-      setErrorToast('Error al eliminar todos los items');
-    } finally {
-      setIsDeletingAll(false);
-    }
-  };
-
-  const handleDeletePastItems = async () => {
-    setIsDeletingPast(true);
-    setShowConfirmPast(false);
-
-    try {
-      if (user && token) {
-        // Usuario autenticado - eliminar del servidor
-        const deletePromises = pastItems.dates.flatMap(({ items }) => 
-          items.map(item => 
-            deleteItem(item.id).catch(error => {
-              console.error('Error eliminando item del pasado:', error);
-              return null; // Continuar con otros items
-            })
-          )
-        );
-
-        await Promise.all(deletePromises);
-        setErrorToast(`${pastItems.count} items de días pasados han sido eliminados del servidor`);
-      } else {
-        // Usuario no autenticado - actualizar el contexto local
-        const updatedItemsByDate = { ...itemsByDate };
-        
-        // Eliminar las fechas que contienen items del pasado
-        pastItems.dates.forEach(({ dateKey }) => {
-          delete updatedItemsByDate[dateKey];
-        });
-        
-        // Actualizar el contexto
-        setItemsByDate(updatedItemsByDate);
-        
-        // También limpiar localStorage si existe
-        try {
-          const localItems = JSON.parse(localStorage.getItem('localItems') || '{}');
-          const updatedLocalItems = {};
-          
-          Object.entries(localItems).forEach(([dateKey, items]) => {
-            const date = new Date(dateKey);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            if (date >= today) {
-              updatedLocalItems[dateKey] = items;
-            }
-          });
-          
-          localStorage.setItem('localItems', JSON.stringify(updatedLocalItems));
-        } catch (error) {
-          console.error('Error actualizando localStorage:', error);
-        }
-        
-        setErrorToast(`${pastItems.count} items de días pasados han sido eliminados`);
-      }
-    } catch (error) {
-      setErrorToast('Error al eliminar items de días pasados');
-    } finally {
-      setIsDeletingPast(false);
-    }
-  };
-
-  // No mostrar mensaje de autenticación requerida, permitir que funcione para ambos casos
-
-  return (
-    <div className="data-management-options">
-      <div className="data-stats">
-        <div className="stat-item">
-          <span className="stat-label">Total de items:</span>
-          <span className="stat-value">{totalItems}</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-label">Items pasados:</span>
-          <span className="stat-value">{pastItems.count}</span>
-        </div>
-        {!user && (
-          <div className="stat-item full-width">
-            <span className="stat-label">Modo:</span>
-            <span className="stat-value">Local</span>
-          </div>
-        )}
-      </div>
-
-      <div className="danger-zone">
-        <h4>Eliminación</h4>
-
-        <div className="danger-actions">
-          <button
-            className="danger-button"
-            onClick={() => setShowConfirmPast(true)}
-            disabled={isDeletingPast || pastItems.count === 0}
-          >
-            <Trash2 size={16} />
-            {isDeletingPast ? 'Eliminando...' : 'Eliminar items pasados'}
-          </button>
-
-          <button
-            className="danger-button"
-            onClick={() => setShowConfirmAll(true)}
-            disabled={isDeletingAll || totalItems === 0}
-          >
-            <Trash2 size={16} />
-            {isDeletingAll ? 'Eliminando...' : 'Eliminar todos los items'}
-          </button>
-        </div>
-      </div>
-
-      {/* Confirmación para eliminar items de días pasados */}
-      {showConfirmPast && (
-        <div className="confirmation-overlay">
-          <div className="confirmation-modal">
-            <h4>Confirmar eliminación</h4>
-            <p>¿Estás seguro de que quieres eliminar {pastItems.count} items de días pasados?</p>
-            <div className="info-container">
-              <div className="info-item">Esta acción no se puede deshacer</div>
-              {!user && (
-                <div className="info-item">Los items se eliminarán del almacenamiento</div>
-              )}
-            </div>
-            <div className="confirmation-buttons">
-              <button
-                className="confirm-button"
-                onClick={handleDeletePastItems}
-                disabled={isDeletingPast}
-              >
-                {isDeletingPast ? 'Eliminando...' : 'Sí, eliminar'}
-              </button>
-              <button
-                className="cancel-button"
-                onClick={() => setShowConfirmPast(false)}
-                disabled={isDeletingPast}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmación para eliminar todos los items */}
-      {showConfirmAll && (
-        <div className="confirmation-overlay">
-          <div className="confirmation-modal">
-            <h4>Confirmar eliminación total</h4>
-            <p>¿Estás completamente seguro de que quieres eliminar TODOS los {totalItems} items?</p>
-            <div className="info-container">
-              <div className="info-item">Esta acción no se puede deshacer</div>
-              {!user && (
-                <div className="info-item">Los items se eliminarán del almacenamiento</div>
-              )}
-            </div>
-            <div className="confirmation-buttons">
-              <button
-                className="confirm-button"
-                onClick={handleDeleteAllItems}
-                disabled={isDeletingAll}
-              >
-                {isDeletingAll ? 'Eliminando...' : 'Sí, eliminar todo'}
-              </button>
-              <button
-                className="cancel-button"
-                onClick={() => setShowConfirmAll(false)}
-                disabled={isDeletingAll}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <BottomToast 
-        message={errorToast} 
-        onClose={() => setErrorToast('')} 
-        duration={5000}
-      />
-    </div>
-  );
-}
+// Eliminado: SessionOptions y DataManagementOptions ahora están separados en ./parts
 
 export default function ConfigPanel({
   show,
@@ -361,6 +85,7 @@ export default function ConfigPanel({
   displayOptions,
   setDisplayOptions,
 }) {
+  const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
   const { token, user, refreshMe } = useAuth();
   const { isLightTheme, setIsLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme, isHighContrast, setIsHighContrast, textScale, setTextScale, reducedMotion, setReducedMotion } = useTheme();
@@ -451,12 +176,12 @@ export default function ConfigPanel({
   if (!show) return null;
 
   const options = [
-    { key: 'year', label: 'Año' },
-    { key: 'month', label: 'Mes' },
-    { key: 'week', label: 'Semana' },
-    { key: 'weekday', label: 'Día de la semana' }, 
-    { key: 'day', label: 'Día' }, 
-    { key: 'time', label: 'Horario' },
+    { key: 'year', label: t('display.year') },
+    { key: 'month', label: t('display.month') },
+    { key: 'week', label: t('display.week') },
+    { key: 'weekday', label: t('display.weekday') }, 
+    { key: 'day', label: t('display.day') }, 
+    { key: 'time', label: t('display.time') },
   ];
 
   return (
@@ -465,23 +190,23 @@ export default function ConfigPanel({
 
       <aside role="dialog" aria-modal="true" aria-label="Panel de configuración" className="config-panel">
         <header className="config-panel-header">
-          <h2>Configuración</h2>
-          <button onClick={onClose} aria-label="Cerrar panel" className="config-panel-close-btn">
+          <h2>{t('common.config')}</h2>
+          <button onClick={onClose} aria-label={t('common.close')} className="config-panel-close-btn">
             ×
           </button>
         </header>
         <main className="config-panel-main">
           <section className="config-section">
-            <h3>Sesión</h3>
+            <h3>{t('common.session')}</h3>
             <SessionOptions />
           </section>
 
           <section className="config-section">
-            <h3>Apariencia</h3>
+            <h3>{t('common.appearance')}</h3>
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-auto-theme"
-                label="Modo día/noche automático"
+                label={t('common.auto_theme')}
                 value={isAutoTheme}
                 onChange={(value) => {
                   if (value) {
@@ -495,13 +220,13 @@ export default function ConfigPanel({
                 <>
                   <ToggleOption
                     id="toggle-dark-mode"
-                    label="Modo oscuro"
+                    label={t('common.dark_mode')}
                     value={!isLightTheme}
                     onChange={(val) => setIsLightTheme(!val)}
                   />
                   <ToggleOption
                     id="toggle-light-mode"
-                    label="Modo claro"
+                    label={t('common.light_mode')}
                     value={isLightTheme}
                     onChange={(val) => setIsLightTheme(val)}
                   />
@@ -519,7 +244,7 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-            <h3>Visualización</h3>
+            <h3>{t('common.visualization')}</h3>
             <div className="visualization-header-options">
               {options.map(({ key, label }) => (
                 <ToggleOption
@@ -536,13 +261,13 @@ export default function ConfigPanel({
               <div className="visualization-header-options">
                 <ToggleOption
                   id="toggle-sidebar-left-pinned"
-                  label="Fijar sidebar izquierdo"
+                  label={t('visual.pinLeftSidebar')}
                   value={isLeftSidebarPinned}
                   onChange={setIsLeftSidebarPinned}
                 />
                 <ToggleOption
                   id="toggle-sidebar-right-pinned"
-                  label="Fijar sidebar derecho"
+                  label={t('visual.pinRightSidebar')}
                   value={isRightSidebarPinned}
                   onChange={setIsRightSidebarPinned}
                 />
@@ -552,7 +277,7 @@ export default function ConfigPanel({
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-account-indicator"
-                label="Indicador de cuenta"
+                label={t('visual.accountIndicator')}
                 value={displayOptions.showAccountIndicator}
                 onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
               />
@@ -560,9 +285,53 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-            <h3>Idioma y región</h3>
+            <h3>{t('common.language_region')}</h3>
             <div className="visualization-header-options">
-              <label htmlFor="timezone">Zona horaria</label>
+              <label htmlFor="language-select">{t('language.label')}</label>
+              <select
+                id="language-select"
+                value={displayOptions.language || 'auto'}
+                onChange={(e) => {
+                  const lang = e.target.value;
+                  setDisplayOptions(prev => ({ ...prev, language: lang }));
+                  // Cambiar idioma inmediatamente
+                  const resolved = lang === 'auto' ? undefined : lang;
+                  i18n.changeLanguage(resolved);
+                  // Persistencia local para modo sin usuario
+                  try {
+                    const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
+                    localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: lang }));
+                  } catch {}
+                  // Guardar en backend si hay token
+                  try {
+                    if (token) {
+                      const prefs = {
+                        ...(user?.preferences || {}),
+                        displayOptions: {
+                          ...(user?.preferences?.displayOptions || {}),
+                          language: lang,
+                        },
+                      };
+                      fetch(`${API_URL}/api/auth/preferences`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ preferences: prefs }),
+                      }).catch(() => {});
+                      // Actualizar user local
+                      const updatedUser = { ...user, preferences: prefs };
+                      localStorage.setItem('user', JSON.stringify(updatedUser));
+                    }
+                  } catch {}
+                  // Ajustar atributo lang del HTML
+                  document.documentElement.setAttribute('lang', i18n.language || 'en');
+                }}
+              >
+                <option value="auto">{t('language.auto')}</option>
+                <option value="es">{t('language.es')}</option>
+                <option value="en">{t('language.en')}</option>
+              </select>
+
+              <label htmlFor="timezone">{t('timezone.label')}</label>
               <select
                 id="timezone"
                 value={displayOptions.timeZone}
@@ -618,67 +387,46 @@ export default function ConfigPanel({
                 <option value="UTC">UTC</option>
               </select>
 
-              <label htmlFor="timeFormat">Formato de hora</label>
+              <label htmlFor="timeFormat">{t('timeformat.label')}</label>
               <select
                 id="timeFormat"
                 value={displayOptions.timeFormat}
                 onChange={(e) => setDisplayOptions(prev => ({ ...prev, timeFormat: e.target.value }))}
               >
-                <option value="24h">24 horas</option>
-                <option value="12h">12 horas (AM/PM)</option>
+                <option value="24h">{t('timeformat.h24')}</option>
+                <option value="12h">{t('timeformat.h12')}</option>
               </select>
             </div>
           </section>
 
           <section className="config-section">
-            <h3>Accesibilidad</h3>
+            <h3>{t('common.accessibility')}</h3>
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-high-contrast"
-                label="Modo alto contraste"
+                label={t('common.high_contrast')}
                 value={isHighContrast}
                 onChange={setIsHighContrast}
               />
               <ToggleOption
                 id="toggle-large-text"
-                label="Texto grande"
+                label={t('common.large_text')}
                 value={textScale === 'large'}
                 onChange={(val) => setTextScale(val ? 'large' : 'normal')}
               />
               <ToggleOption
                 id="toggle-reduced-motion"
-                label="Animaciones reducidas"
+                label={t('common.reduced_motion')}
                 value={reducedMotion}
                 onChange={setReducedMotion}
               />
             </div>
           </section>
           
-          <section className="config-section">
-            <h3>Notificaciones</h3>
-            <ComingSoonOption label="Activar recordatorios" />
-            <ComingSoonOption label="Sonido / vibración" />
-            <ComingSoonOption label="Recordar X minutos antes" />
-            <ComingSoonOption label="Alertas silenciosas vs activas" />
-          </section>
+          {/* Secciones ‘coming soon’ eliminadas */}
 
           <section className="config-section">
-            <h3>Privacidad</h3>
-            <ComingSoonOption label="Mostrar eventos privados como ocultos" />
-            <ComingSoonOption label="Bloquear modificación de ciertos días" />
-            <ComingSoonOption label="Exportar respaldo encriptado" />
-          </section>
-
-          <section className="config-section">
-            <h3>Integraciones</h3>
-            <ComingSoonOption label="Google Calendar / Outlook" />
-            <ComingSoonOption label="Importar/Exportar calendario (ICS, CSV)" />
-            <ComingSoonOption label="API para programadores" />
-            <ComingSoonOption label="Integración con Notion / Trello" />
-          </section>
-
-          <section className="config-section">
-            <h3>Gestión de Datos</h3>
+            <h3>{t('common.data_management')}</h3>
             <DataManagementOptions />
           </section>
         </main>

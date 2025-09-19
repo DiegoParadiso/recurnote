@@ -2,8 +2,10 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import useIsMobile from '../../hooks/useIsMobile';
 import '../../styles/components/common/contextmenu.css';
+import { useTranslation } from 'react-i18next';
 
 export default function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null }) {
+  const { t } = useTranslation();
   const [menuPos, setMenuPos] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
   const menuRef = useRef(null);
@@ -211,7 +213,7 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [],
                   }
                 }}
               >
-                {opt.label}
+                {typeof opt.label === 'string' ? t(opt.label) : opt.label}
               </div>
             ))}
             {onDelete && (
@@ -222,7 +224,7 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [],
                   closeMenu();
                 }}
               >
-                Eliminar
+                {t('context.delete')}
               </div>
             )}
           </div>,

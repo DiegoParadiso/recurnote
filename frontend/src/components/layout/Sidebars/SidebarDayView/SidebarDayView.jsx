@@ -6,8 +6,10 @@ import ItemRenderer from './ItemRenderer';
 import '../../../../styles/layouts/sidebars/SidebarDayView.css';
 import useItemsForDays from './hooks/useItemsForDays';
 import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
+import { useTranslation } from 'react-i18next';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
+  const { t, i18n } = useTranslation();
   const { itemsByDate, setItemsByDate, updateItem } = useItems();
   const { user, token } = useAuth();
   
@@ -73,7 +75,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         <button
           className="self-end p-4 text-xl text-[var(--color-text-primary)] z-50"
           onClick={onClose}
-          aria-label="Cerrar sidebar"
+          aria-label={t('sidebar.close')}
         >
           ✕
         </button>
@@ -92,7 +94,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         } sidebar-container`}
       >
         <div className="px-4 md:pt-7 pb-7 flex-shrink-0">
-          <h2 className="sidebar-header">próximos días</h2>
+          <h2 className="sidebar-header">{t('sidebar.upcomingDays')}</h2>
         </div>
 
         <div
@@ -106,6 +108,11 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             toggleTaskCheck={toggleTaskCheck}
             isLocalMode={!user || !token}
           />
+        </div>
+        <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+          <div className="text-center" style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+            {t('sidebar.shownFrom')} <strong>{new Date().toLocaleDateString(i18n.language || 'en')}</strong>
+          </div>
         </div>
       </div>
     </div>

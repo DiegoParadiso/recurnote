@@ -1,10 +1,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateTime } from 'luxon';
+import i18n from '../../../i18n/index.js';
 import '../../../styles/components/circles/MonthHeader.css';
 import { PRIMARY_FONT } from '../../../config/fonts';
 
 export default function MonthHeader({ date, position, onClick, isDragging = false }) {
-  const mesNombre = date.setLocale('es').toFormat('LLLL yyyy');
+  const activeLang = i18n.language || 'en';
+  const mesNombre = date.setLocale(activeLang).toFormat('LLLL yyyy');
 
   const baseStyle = {
     position: 'absolute',

@@ -5,8 +5,10 @@ import { Eye, EyeOff } from 'lucide-react';
 import '../../styles/auth.css';
 import EmptyLogo from '../../components/common/EmptyLogo.jsx';
 import BottomToast from '../../components/common/BottomToast.jsx';
+import { useTranslation } from 'react-i18next';
 
 export default function Login() {
+  const { t } = useTranslation();
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,14 +31,14 @@ export default function Login() {
   const validateField = (name, value) => {
     switch (name) {
       case 'email':
-        if (!value.trim()) return 'El email es requerido';
+        if (!value.trim()) return t('auth.emailRequired');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          return 'El email debe tener un formato válido';
+          return t('auth.emailInvalid');
         }
         return '';
 
       case 'password':
-        if (!value) return 'La contraseña es requerida';
+        if (!value) return t('auth.passwordRequired');
         return '';
 
       default:
@@ -124,7 +126,7 @@ export default function Login() {
         });
         setErrors(serverErrors);
       } else {
-        setErrors({ general: err.message || 'Error en el login' });
+        setErrors({ general: err.message || t('auth.loginError') });
       }
     } finally {
       setLoading(false);
@@ -147,7 +149,7 @@ export default function Login() {
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-        <h2>Iniciar sesión</h2>
+        <h2>{t('auth.loginTitle')}</h2>
         
         {/* Mensaje de éxito del registro */}
         {successMessage && (
@@ -162,7 +164,7 @@ export default function Login() {
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              placeholder={t('auth.emailPlaceholder')}
               value={formData.email}
               onChange={handleChange}
               onBlur={() => handleBlur('email')}
@@ -178,7 +180,7 @@ export default function Login() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                placeholder="Contraseña"
+                placeholder={t('auth.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={() => handleBlur('password')}
@@ -207,13 +209,18 @@ export default function Login() {
             disabled={loading || !isFormValid()}
             className="submit-button"
           >
-            {loading ? 'Iniciando sesión...' : 'Entrar'}
+            {loading ? t('auth.loggingIn') : t('auth.loginCta')}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>¿No tenés cuenta? <Link to="/register">Registrate</Link></p>
-          <p><Link to="/forgot-password">¿Olvidaste tu contraseña?</Link></p>
+          <p>
+            {t('auth.noAccount')}{' '}
+            <Link to="/register">{t('auth.registerLink')}</Link>
+          </p>
+          <p>
+            <Link to="/forgot-password">{t('auth.forgotPassword')}</Link>
+          </p>
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import { useItems } from '../../../../context/ItemsContext';
+import { useTranslation } from 'react-i18next';
 
 import '../../../../styles/components/circles/items/TaskItem.css';
 
@@ -25,6 +26,7 @@ export default function TaskItem({
   isActive,
   onActivate,
 }) {
+  const { t } = useTranslation();
   const baseHeight = 10; // padding mínimo del contenedor (4px arriba + 4px abajo)
   const maxTasks = 4;
   const taskHeight = 36; // altura con padding de filas (6px arriba + 6px abajo + contenido)
@@ -65,6 +67,15 @@ export default function TaskItem({
     const updatedTasks = [...(item.content || [])];
     updatedTasks[index] = value;
     onUpdate?.(id, updatedTasks, item.checked || []);
+  };
+
+  const deleteLastTask = () => {
+    const currentTasks = [...(item.content || [])];
+    const currentChecks = [...(item.checked || [])];
+    if (currentTasks.length === 0) return;
+    currentTasks.pop();
+    if (currentChecks.length > 0) currentChecks.pop();
+    onUpdate?.(id, currentTasks, currentChecks);
   };
 
   const handleCheckChange = (index, checked) => {
@@ -172,14 +183,15 @@ export default function TaskItem({
     <WithContextMenu
       onDelete={() => onDelete?.(id)}
       extraOptions={[
-        { label: 'Duplicar', onClick: handleDuplicate },
+        { label: 'common.duplicate', onClick: handleDuplicate },
         {
-          label: "Marcar todas como completadas",
+          label: 'task.markAllCompleted',
           onClick: () => {
             const allChecked = (item.content || []).map(() => true);
             onUpdate?.(id, item.content || [], allChecked);
           },
         },
+        ...((item.content?.length || 0) > 1 ? [{ label: 'task.deleteLast', onClick: deleteLastTask }] : []),
       ]}
     >
       <UnifiedContainer
@@ -314,7 +326,7 @@ export default function TaskItem({
                   stopEditing(index);
                 }}
                 onKeyDown={(e) => handleInputKeyDown(e, index)}
-                placeholder={isMobile ? "Tarea..." : "Doble click para editar..."}  
+                placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}  
                 className="taskitem-input"
                 readOnly={!editingInputs.has(index)}
                 style={{

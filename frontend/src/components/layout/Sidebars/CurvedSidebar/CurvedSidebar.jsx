@@ -1,8 +1,10 @@
 import '../../../../styles/layouts/sidebars/CurvedSidebar.css';
 import { useState } from 'react';
 import SidebarItem from './SidebarItem';
+import { useTranslation } from 'react-i18next';
 
 export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false, onHover, onStartDrag }) {
+  const { t } = useTranslation();
   const [items] = useState([
     { id: 1, label: 'nota' },
     { id: 2, label: 'Tarea' },
@@ -40,6 +42,9 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
         className="scroll-hidden curved-sidebar-panel"
         onMouseDown={(e) => {
           if (!isMobile && !isLeftSidebarPinned) {
+            // Evitar arrastrar el contenedor si el click/drag empezó sobre un item
+            const isOverItem = e.target && e.target.closest && e.target.closest('.sidebar-item');
+            if (isOverItem) return;
             onStartDrag?.(e);
           }
         }}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import i18n from '../i18n/index.js';
 import { DateTime } from 'luxon';
 import { useItems } from '../context/ItemsContext';
 import { useAuth } from '../context/AuthContext';
@@ -434,14 +435,43 @@ export function useHomeLogic() {
     timeZone: 'America/Argentina/Buenos_Aires',
     timeFormat: '24h',
     showAccountIndicator: false,
+    language: 'auto',
   });
 
   // Sincronizar displayOptions con las preferencias del usuario
   useEffect(() => {
     if (user?.preferences?.displayOptions) {
       setDisplayOptions(prev => ({ ...prev, ...user.preferences.displayOptions }));
+    } else {
+      // Cargar preferencias locales si no hay usuario
+      try {
+        const localDO = localStorage.getItem('localDisplayOptions');
+        if (localDO) {
+          const parsed = JSON.parse(localDO);
+          setDisplayOptions(prev => ({ ...prev, ...parsed }));
+        }
+      } catch (e) {
+        // noop
+      }
     }
   }, [user?.preferences?.displayOptions]);
+
+  // Aplicar idioma global cuando cambia la preferencia
+  useEffect(() => {
+    const langPref = displayOptions?.language;
+    if (!langPref || langPref === 'auto') {
+      // Respetar autodetección actual; solo sincronizar atributo lang
+      document.documentElement.setAttribute('lang', i18n.language || 'en');
+      return;
+    }
+    if (i18n.language !== langPref) {
+      i18n.changeLanguage(langPref).then(() => {
+        document.documentElement.setAttribute('lang', i18n.language || 'en');
+      }).catch(() => {
+        // noop
+      });
+    }
+  }, [displayOptions?.language]);
 
   // Sincronizar estados de UI con las preferencias del usuario o locales (solo al cargar)
   useEffect(() => {
@@ -515,10 +545,10 @@ export function useHomeLogic() {
   function isOverTrashZone(pos) {
     if (!pos) return false;
     // Coordenadas que coinciden con DragTrashZone (left: 25, top: 5)
-    const trashX = 0; // DragTrashZone está en left: 25, pero transform: translateX(-50%) lo centra
+    const trashX = 0; 
     const trashY = 5;
-    const trashWidth = 50; // DragTrashZone width: 50
-    const trashHeight = 50; // DragTrashZone height: 50
+    const trashWidth = 50; 
+    const trashHeight = 50; 
 
     const isOver = (
       pos.x >= trashX &&
@@ -538,7 +568,6 @@ export function useHomeLogic() {
   useEffect(() => {
     if (draggedItem) {
       // Si draggedItem existe, verificar si realmente hay un drag activo
-      // Esto se puede hacer escuchando eventos globales de mouse/touch
       const handleGlobalMouseUp = () => {
         // Pequeño delay para asegurar que el onDrop se procese primero
         setTimeout(() => {

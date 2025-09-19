@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import BottomToast from '../components/common/BottomToast';
+import i18n from '../i18n/index.js';
 
 export const AuthContext = createContext();
 
@@ -68,6 +69,16 @@ export function AuthProvider({ children }) {
       const updatedUser = { ...(user || {}), ...me };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      // Aplicar idioma preferido del usuario si existe
+      const preferredLang = updatedUser?.preferences?.displayOptions?.language;
+      if (preferredLang && preferredLang !== 'auto') {
+        try {
+          await i18n.changeLanguage(preferredLang);
+          // Guardar también en local para carga rápida
+          const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
+          localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: preferredLang }));
+        } catch {}
+      }
       return updatedUser;
     } catch (error) {
       return null;
@@ -91,6 +102,16 @@ export function AuthProvider({ children }) {
     setToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('token', data.token);
+
+    // Aplicar idioma preferido si existe tras login
+    const preferredLang = data?.user?.preferences?.displayOptions?.language;
+    if (preferredLang && preferredLang !== 'auto') {
+      try {
+        await i18n.changeLanguage(preferredLang);
+        const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
+        localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: preferredLang }));
+      } catch {}
+    }
 
     // Marcar que se debe hacer migración después del login
     setMigrationStatus('pending');
@@ -128,6 +149,7 @@ export function AuthProvider({ children }) {
     setMigrationStatus(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    // No forzamos idioma al cerrar sesión; el detector usará localStorage (i18nextLng) o navegador
   }
 
   // Función para marcar migración como completada

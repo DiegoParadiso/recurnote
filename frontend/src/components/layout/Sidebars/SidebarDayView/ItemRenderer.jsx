@@ -2,8 +2,10 @@ import React from 'react';
 import '../../../../styles/layouts/sidebars/ItemRenderer.css';
 import { useItems } from '../../../../context/ItemsContext';
 import { useAuth } from '../../../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMode }) {
+  const { t } = useTranslation();
   const { deleteItem } = useItems();
   const { user, token } = useAuth();
 
@@ -23,7 +25,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
 
   const handleDelete = async (e) => {
     e.preventDefault();
-    if (!window.confirm('¿Eliminar este ítem?')) return;
+    if (!window.confirm(t('sidebar.confirmDeleteItem'))) return;
 
     // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
     try {
@@ -39,7 +41,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
       className={`delete-btn text-xs text-gray-400 hover:text-gray-600 transition-colors ${
         !hasRealContent(item.content) ? 'centered' : ''
       }`}
-      title="Eliminar item"
+      title={t('sidebar.deleteItem')}
     >
       ×
     </button>
@@ -84,7 +86,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
                 className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'empty-task-text'}`}
                 style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
               >
-                {item.content?.[idx] || 'Tarea sin descripción'}
+                {item.content?.[idx] || t('task.empty')}
               </span>
             </div>
           ))}
@@ -107,14 +109,14 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
           href={item.content.base64}
           download={item.content.fileData.name}
           className="file-download-link"
-          title="Descargar archivo"
+          title={t('file.download')}
           style={{ display: 'flex', alignItems: 'center', width: '100%' }}
         >
           {item.content.fileData.name}
         </a>
       ) : !hasRealContent(item.content) ? (
         <div className="empty-content-placeholder">
-          <span className="text-gray-400 italic">Sin contenido</span>
+          <span className="text-gray-400 italic">{t('sidebar.noContent')}</span>
         </div>
       ) : typeof item.content === 'object' ? (
         <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '9px', lineHeight: '1.2', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>

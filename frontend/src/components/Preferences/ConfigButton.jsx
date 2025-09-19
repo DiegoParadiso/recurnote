@@ -1,8 +1,10 @@
 import { SlidersHorizontal } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function ConfigButton({ onToggle }) {
   const { isLightTheme } = useTheme();
+  const { t } = useTranslation();
   
   // Filtro para adaptar iconos al tema
   const iconFilter = isLightTheme 
@@ -11,9 +13,9 @@ export default function ConfigButton({ onToggle }) {
   return (
     <button
       onClick={onToggle}
-      aria-label="Abrir configuración"
+      aria-label={t('common.open_config')}
       className="p-2 transition-colors cursor-pointer"
-      title="Configuración"
+      title={t('common.config')}
       style={{ 
         background: 'transparent', 
         border: 'none', 
