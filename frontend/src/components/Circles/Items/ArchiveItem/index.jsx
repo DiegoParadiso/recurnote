@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import BottomToast from '../../../common/BottomToast';
@@ -37,6 +37,7 @@ export default function ArchivoItem({
   const wasDraggingRef = useRef(false);
   const { user } = useAuth();
   const { duplicateItem } = useItems();
+  const [minWidthPx, setMinWidthPx] = useState(180);
 
   // Cargar las dimensiones naturales de la imagen cuando se sube
   useEffect(() => {
@@ -208,7 +209,7 @@ export default function ArchivoItem({
   // Calcular dimensiones del contenedor
   const getContainerDimensions = () => {
     if (!item.content?.fileData) {
-      return { width: 180, height: 80 }; // Reducido de 100 a 80
+      return { width: Math.max(minWidthPx, 180), height: 80 };
     }
 
     if (isImage && isExpanded && imageDimensions.width > 0) {
@@ -237,10 +238,37 @@ export default function ArchivoItem({
     }
 
     // En modo normal, dimensiones estándar
-    return { width: 180, height: isImage ? 180 : 80 }; // Reducido de 100 a 80
+    return { width: Math.max(minWidthPx, 180), height: isImage ? 180 : 80 };
   };
 
   const { width, height } = getContainerDimensions();
+
+  // Medir ancho mínimo basado en el nombre del archivo (o placeholder)
+  useLayoutEffect(() => {
+    try {
+      const name = item.content?.fileData?.name || 'Subir archivo...';
+      // Crear elemento temporal para medir con fuente del contenedor
+      const temp = document.createElement('span');
+      temp.style.visibility = 'hidden';
+      temp.style.position = 'fixed';
+      temp.style.whiteSpace = 'pre';
+      temp.style.font = '10px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+      // Nota: si hay una clase/estilo de fuente específico, podemos copiarlo del contenedor real
+      temp.textContent = name;
+      document.body.appendChild(temp);
+      const textWidth = temp.getBoundingClientRect().width;
+      document.body.removeChild(temp);
+
+      // Aproximar paddings (container + interno)
+      const padding = 8 + 8 + 16; // container L/R + extra seguridad
+      const borders = 2;
+      const desired = Math.ceil(textWidth + padding + borders);
+      const baseMin = 180;
+      const maxAllowed = 300;
+      const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
+      setMinWidthPx(minW);
+    } catch (_) {}
+  }, [item.content?.fileData?.name]);
 
   return (
     <>
@@ -252,10 +280,10 @@ export default function ArchivoItem({
           x={x}
           y={y}
           rotation={rotationEnabled ? rotation : 0}
-          width={width}
+        width={width}
           height={height}
-          minWidth={width}
-          maxWidth={width}
+        minWidth={minWidthPx}
+        maxWidth={Math.max(minWidthPx, width)}
           minHeight={height}
           maxHeight={height}
           disableResize={true}

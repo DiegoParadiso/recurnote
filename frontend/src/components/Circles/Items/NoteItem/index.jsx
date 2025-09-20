@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { DateTime } from 'luxon';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
@@ -38,6 +38,8 @@ export default function NoteItem({
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const { duplicateItem } = useItems();
   const { updateItem } = useItems();
+  const [minWidthPx, setMinWidthPx] = useState(120);
+  const [minHeightPx, setMinHeightPx] = useState(40);
 
   const handleDuplicate = async () => {
     try {
@@ -154,7 +156,6 @@ export default function NoteItem({
       timeoutRef.current = null;
     }
     
-    // Reset drag state inmediatamente al terminar
     setIsDragging(false);
     
     // Mantener wasDragging por un breve momento para evitar activaciones
@@ -184,9 +185,8 @@ export default function NoteItem({
     // Usar toda la altura disponible del contenedor
     if (textareaRef.current) {
       const textarea = textareaRef.current;
-      // Usar requestAnimationFrame para asegurar que el DOM se actualice
       requestAnimationFrame(() => {
-        const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
+        const availableHeight = height - 16;
         textarea.style.height = availableHeight + 'px';
         textarea.style.overflowY = 'hidden';
       });
@@ -194,6 +194,22 @@ export default function NoteItem({
   };
 
   const handleTextareaKeyDown = (e) => {
+    // Permitir salto de línea con Ctrl/Cmd+Enter sin salir de edición
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      const el = e.target;
+      const start = el.selectionStart ?? content.length;
+      const end = el.selectionEnd ?? content.length;
+      const newValue = (content || '').slice(0, start) + '\n' + (content || '').slice(end);
+      onUpdate(id, newValue);
+      // Restaurar caret después de actualizar el estado controlado
+      setTimeout(() => {
+        try {
+          el.selectionStart = el.selectionEnd = start + 1;
+        } catch (_) {}
+      }, 0);
+      return;
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       // Cambiar estado inmediatamente para bloquear visualmente
@@ -207,6 +223,96 @@ export default function NoteItem({
       e.target.blur();
     }
   };
+
+  // Calcular ancho mínimo basado en el placeholder actual y estilos reales
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    // Detectar paddings del contenedor padre (UnifiedContainer)
+    let containerPaddingLeft = 8;
+    let containerPaddingRight = 8;
+    try {
+      const dragWrapper = el.closest('[data-drag-container]');
+      const containerEl = dragWrapper ? dragWrapper.parentElement : null;
+      if (containerEl) {
+        const ccs = window.getComputedStyle(containerEl);
+        containerPaddingLeft = parseFloat(ccs.paddingLeft || '8') || 8;
+        containerPaddingRight = parseFloat(ccs.paddingRight || '8') || 8;
+      }
+    } catch (_) {}
+    const placeholderText = isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit');
+    try {
+      const cs = window.getComputedStyle(el);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const font = cs.font || `${cs.fontStyle} ${cs.fontVariant} ${cs.fontWeight} ${cs.fontSize} / ${cs.lineHeight} ${cs.fontFamily}`;
+      if (ctx) ctx.font = font;
+      const measure = (text) => ctx ? ctx.measureText(text).width : Math.max(100, (text || '').length * 6);
+      const paddingLeft = parseFloat(cs.paddingLeft || '0');
+      const paddingRight = parseFloat(cs.paddingRight || '0');
+      const borders = 2;
+      const extraSafety = 16; // separa visualmente del handle de 3 puntos y margen interior
+      // Medir placeholder
+      const placeholderWidth = measure(placeholderText);
+      const desiredFromPlaceholder = Math.ceil(
+        placeholderWidth + paddingLeft + paddingRight + borders + extraSafety + containerPaddingLeft + containerPaddingRight
+      );
+      // Medir línea más larga del contenido actual
+      const lines = (content || '').split('\n');
+      let longest = 0;
+      for (const line of lines) {
+        longest = Math.max(longest, measure(line));
+      }
+      const desiredFromContent = Math.ceil(
+        longest + paddingLeft + paddingRight + borders + extraSafety + containerPaddingLeft + containerPaddingRight
+      );
+      // Tomar el mayor de ambos
+      const desired = Math.max(desiredFromPlaceholder, desiredFromContent);
+      const baseMin = 148; // base mínima ajustada considerando paddings y handle
+      const maxAllowed = 224; // consistente con maxWidth del contenedor
+      const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
+      setMinWidthPx(minW);
+      // Asegurar que el ancho actual no sea menor al mínimo
+      if (width < minW) {
+        onUpdate?.(id, content, null, { width: minW, height });
+      }
+    } catch (_) {}
+    // Recalcular si cambia el idioma, el modo móvil o el tamaño de fuente del textarea
+  }, [t, isMobile, width, height, id, content, onUpdate]);
+
+  // Calcular altura mínima en función del contenido y el ancho disponible
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    try {
+      // Asegurar medición real del contenido
+      const prevHeight = el.style.height;
+      el.style.height = 'auto';
+
+      // Paddings del contenedor padre (UnifiedContainer)
+      let containerPaddingTop = 8;
+      let containerPaddingBottom = 8;
+      const dragWrapper = el.closest('[data-drag-container]');
+      const containerEl = dragWrapper ? dragWrapper.parentElement : null;
+      if (containerEl) {
+        const ccs = window.getComputedStyle(containerEl);
+        containerPaddingTop = parseFloat(ccs.paddingTop || '8') || 8;
+        containerPaddingBottom = parseFloat(ccs.paddingBottom || '8') || 8;
+      }
+
+      const scrollHeight = el.scrollHeight; // incluye padding del textarea
+      const desiredMinHeight = Math.max(40, Math.ceil(scrollHeight + containerPaddingTop + containerPaddingBottom));
+      setMinHeightPx(desiredMinHeight);
+
+      // Si el alto actual es menor, ajustarlo inmediatamente
+      if (height < desiredMinHeight) {
+        onUpdate?.(id, content, null, { width, height: desiredMinHeight });
+      }
+
+      // Restaurar altura controlada (se recalculará por otros efectos)
+      el.style.height = prevHeight;
+    } catch (_) {}
+  }, [content, width, height, id, onUpdate]);
 
   // Desenfocar textarea cuando se detecta drag
   useEffect(() => {
@@ -368,8 +474,8 @@ export default function NoteItem({
         rotation={rotationEnabled ? rotation : 0}
         width={width}
         height={height}
-        minWidth={120}
-        minHeight={40}
+        minWidth={minWidthPx}
+        minHeight={minHeightPx}
         maxWidth={224}
         maxHeight={800}
         style={{ overflow: 'hidden' }}
@@ -385,8 +491,8 @@ export default function NoteItem({
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {
-          const newWidth = Math.min(newSize.width, 400);
-          const newHeight = Math.min(Math.max(newSize.height, 40), 800);
+          const newWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
+          const newHeight = Math.max(minHeightPx, Math.min(Math.max(newSize.height, 40), 800));
           onUpdate?.(id, content, null, { width: newWidth, height: newHeight });
           onResize?.({ width: newWidth, height: newHeight });
         }}

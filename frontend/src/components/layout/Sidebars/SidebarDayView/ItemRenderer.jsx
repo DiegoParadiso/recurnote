@@ -123,9 +123,9 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
           {JSON.stringify(item.content, null, 2)}
         </pre>
       ) : (
-        <div style={{ wordBreak: 'break-word', lineHeight: '1.3', display: 'flex', alignItems: 'center', width: '100%' }}>
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '10px', lineHeight: '1.3', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
           {item.content}
-        </div>
+        </pre>
       )}
     </div>
   );

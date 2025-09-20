@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import UnifiedContainer from '../../../common/UnifiedContainer';
 import WithContextMenu from '../../../common/WithContextMenu';
 import { useItems } from '../../../../context/ItemsContext';
@@ -37,6 +37,7 @@ export default function TaskItem({
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
   const inputRefsRef = useRef({});
+  const [minWidthPx, setMinWidthPx] = useState(140);
   
   // Detectar si es móvil
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
@@ -154,6 +155,73 @@ export default function TaskItem({
     }
   };
 
+  // Calcular ancho mínimo en función del placeholder y del contenido más largo
+  useLayoutEffect(() => {
+    try {
+      // Obtener un input de referencia (el primero visible o crear uno virtual)
+      let refInput = null;
+      for (const ref of Object.values(inputRefsRef.current)) {
+        if (ref) { refInput = ref; break; }
+      }
+
+      // Si no hay ningún input aún montado, crear uno temporal para medir estilos
+      let tempInput = null;
+      if (!refInput) {
+        tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        refInput = tempInput;
+      }
+
+      const cs = window.getComputedStyle(refInput);
+      // Paddings del UnifiedContainer
+      let containerPaddingLeft = 8;
+      let containerPaddingRight = 8;
+      const dragContainer = document.querySelector('[data-drag-container]');
+      const containerEl = dragContainer ? dragContainer.parentElement : null;
+      if (containerEl) {
+        const ccs = window.getComputedStyle(containerEl);
+        containerPaddingLeft = parseFloat(ccs.paddingLeft || '8') || 8;
+        containerPaddingRight = parseFloat(ccs.paddingRight || '8') || 8;
+      }
+
+      // Preparar canvas con la tipografía efectiva del input
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const font = cs.font || `${cs.fontStyle} ${cs.fontVariant} ${cs.fontWeight} ${cs.fontSize} / ${cs.lineHeight} ${cs.fontFamily}`;
+      if (ctx) ctx.font = font;
+      const measure = (text) => ctx ? ctx.measureText(text || '').width : Math.max(100, (text || '').length * 6);
+
+      const placeholderText = isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit');
+      const tasks = (item.content || []).length > 0 ? (item.content || []) : [placeholderText];
+      let longest = 0;
+      for (const tsk of tasks) {
+        longest = Math.max(longest, measure(tsk || placeholderText));
+      }
+
+      const paddingLeft = parseFloat(cs.paddingLeft || '0');
+      const paddingRight = parseFloat(cs.paddingRight || '0');
+      const checkboxAndGaps = 14 /* checkbox */ + 8 /* gap */ + 2 /* minor adj */;
+      const borders = 2;
+      const extraSafety = 16;
+      const desired = Math.ceil(
+        longest + paddingLeft + paddingRight + checkboxAndGaps + borders + extraSafety + containerPaddingLeft + containerPaddingRight
+      );
+      const baseMin = 148;
+      const maxAllowed = 400; // permite algo más ancho en tareas
+      const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
+      setMinWidthPx(minW);
+
+      // Ajustar inmediatamente si el width guardado es menor
+      if ((item.width || 200) < minW) {
+        onUpdate?.(id, item.content || [], item.checked || [], { width: minW, height: computedMinHeight });
+      }
+
+      if (tempInput) {
+        document.body.removeChild(tempInput);
+      }
+    } catch (_) {}
+  }, [item.content, item.width, computedMinHeight, id, isMobile, onUpdate, t]);
+
   // Limpiar inputs cuando se detecta drag desde UnifiedContainer
   useEffect(() => {
     if (isDragging) {
@@ -198,9 +266,9 @@ export default function TaskItem({
         x={x}
         y={y}
         rotation={rotationEnabled ? rotation : 0}
-        width={item.width || 200}
+        width={Math.max(item.width || 200, minWidthPx)}
         height={computedMinHeight}
-        minWidth={120}
+        minWidth={minWidthPx}
         maxWidth={400}
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
@@ -216,8 +284,10 @@ export default function TaskItem({
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {
-          onUpdate?.(id, item.content || [], item.checked || [], { width: newSize.width, height: newSize.height });
-          onResize?.({ width: newSize.width, height: newSize.height });
+          const clampedWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
+          const clampedHeight = computedMinHeight; // altura fija por filas visibles
+          onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
+          onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
         onDrag={handleContainerDragStart}
         onDrop={handleContainerDragEnd}
