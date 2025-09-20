@@ -40,6 +40,14 @@ const en = {
     day: 'Day',
     time: 'Time',
   },
+  timezone: {
+    label: 'Time zone',
+  },
+  timeformat: {
+    label: 'Time format',
+    h24: '24-hour',
+    h12: '12-hour',
+  },
   pattern: {
     background: 'Circle background',
     none: 'No background',

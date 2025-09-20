@@ -4,7 +4,7 @@ import useIsMobile from '../../hooks/useIsMobile';
 import '../../styles/components/common/contextmenu.css';
 import { useTranslation } from 'react-i18next';
 
-export default function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null }) {
+export default function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null, onContextMenuOverride = null }) {
   const { t } = useTranslation();
   const [menuPos, setMenuPos] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
@@ -175,7 +175,7 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [],
         children.props.onMouseDown(e);
       }
     },
-    onContextMenu: !isMobile ? handleContextMenu : undefined,
+    onContextMenu: !isMobile ? (onContextMenuOverride || handleContextMenu) : undefined,
     onTouchStart: isMobile ? handleTouchStart : undefined,
     onTouchMove: isMobile ? handleTouchMove : undefined,
     onTouchEnd: isMobile ? handleTouchEnd : undefined,

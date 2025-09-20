@@ -3,6 +3,7 @@ import '../../../../styles/layouts/sidebars/ItemRenderer.css';
 import { useItems } from '../../../../context/ItemsContext';
 import { useAuth } from '../../../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import WithContextMenu from '../../../common/WithContextMenu';
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMode }) {
   const { t } = useTranslation();
@@ -96,6 +97,7 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
   }
 
   return (
+    <WithContextMenu onDelete={() => deleteItem(item.id)}>
           <div
         key={item.id}
         className={`w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem] ${
@@ -128,5 +130,6 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMo
         </pre>
       )}
     </div>
+    </WithContextMenu>
   );
 }

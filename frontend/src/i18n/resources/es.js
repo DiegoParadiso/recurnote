@@ -40,6 +40,14 @@ const es = {
     day: 'Día',
     time: 'Horario',
   },
+  timezone: {
+    label: 'Zona horaria',
+  },
+  timeformat: {
+    label: 'Formato de hora',
+    h24: '24 horas',
+    h12: '12 horas',
+  },
   pattern: {
     background: 'Fondo del círculo',
     none: 'Sin fondo',

@@ -12,6 +12,7 @@ import useIsMobile from '../hooks/useIsMobile';
 import useSidebarLayout from '../hooks/useSidebarLayout';
 import { useHomeLogic } from '../hooks/useHomeLogic';
 import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles';
+import WithContextMenu from '../components/common/WithContextMenu';
 import MobileBottomControls from '../components/common/MobileBottomControls';
 import DragTrashZone from '../components/common/DragTrashZone'; 
 import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
@@ -172,8 +173,7 @@ export default function Home() {
 
       {/* Botones Config y Tema desktop */}
       <div
-        className="fixed top-3 left-3 hidden sm:flex gap-2 items-center"
-        style={{ zIndex: 'var(--z-high)' }}
+        className="fixed top-3 left-3 z-[20] hidden sm:flex gap-2 items-center"
       >
         <div className="w-10 h-10 flex items-center justify-center">
           <ConfigButton onToggle={() => setShowConfig(v => !v)} />
@@ -193,25 +193,29 @@ export default function Home() {
       {!isMobile && (
         <>
           {isLeftSidebarPinned ? (
-            <div
-              className="hidden sm:block"
-              onMouseDownCapture={onLeftSidebarMouseDown}
-              style={{
-                position: 'fixed',
-                left: leftSidebarPos.x ?? 12,
-                top: (leftSidebarPos.y ?? (window.innerHeight - 450) / 2),
-                width: 220,
-                height: 450,
-                zIndex: 'var(--z-modal)',
-                cursor: 'grab',
-              }}
+            <WithContextMenu
+              extraOptions={[
+                { label: (<span>Ocultar Sidebar</span>), onClick: () => setIsLeftSidebarPinned(false) }
+              ]}
             >
-              <CurvedSidebar 
-                showConfig={showConfig} 
-                onSelectItem={handleSelectItemLocal}
-                isLeftSidebarPinned={true}
-              />
-            </div>
+              <div
+                className="hidden sm:block"
+                onMouseDownCapture={onLeftSidebarMouseDown}
+                style={{
+                  position: 'fixed',
+                  left: leftSidebarPos.x ?? 12,
+                  top: (leftSidebarPos.y ?? (window.innerHeight - 450) / 2),
+                  zIndex: 'var(--z-modal)',
+                  cursor: 'grab',
+                }}
+              >
+                <CurvedSidebar 
+                  showConfig={showConfig} 
+                  onSelectItem={handleSelectItemLocal}
+                  isLeftSidebarPinned={true}
+                />
+              </div>
+            </WithContextMenu>
           ) : (
             <CurvedSidebar 
               showConfig={showConfig} 
@@ -352,23 +356,36 @@ export default function Home() {
         <>
           {isRightSidebarPinned ? (
             // Fijado siempre visible lado derecho
-            <div className="hidden sm:block" style={{ zIndex: 'var(--z-modal)' }}>
-              <SidebarDayView
-                selectedDay={selectedDay}
-                setSelectedDay={setSelectedDay}
-                showRightSidebar={true}
-                isRightSidebarPinned={isRightSidebarPinned}
-                style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--color-text-secondary)',
-                  transition: 'var(--transition-all)',
-                }}
-              />
-            </div>
+            <WithContextMenu
+              extraOptions={[{ label: (<span>Ocultar Sidebar</span>), onClick: () => setIsRightSidebarPinned(false) }]}
+            >
+              <div className="hidden sm:block" style={{ zIndex: 'var(--z-modal)' }}>
+                <SidebarDayView
+                  selectedDay={selectedDay}
+                  setSelectedDay={setSelectedDay}
+                  showRightSidebar={true}
+                  isRightSidebarPinned={isRightSidebarPinned}
+                  style={{
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--color-text-secondary)',
+                    transition: 'var(--transition-all)',
+                  }}
+                />
+              </div>
+            </WithContextMenu>
           ) : (
-            // Sidebar derecho con hover nativo
-            <div className="hidden sm:block" style={{ position: 'fixed', top: 'var(--navbar-top-offset)', right: 0, height: `calc(100vh - var(--navbar-top-offset))`, zIndex: 'var(--z-modal)' }}>
+            // Sidebar derecho con hover nativo (sin menú contextual)
+            <div
+              className="hidden sm:block"
+              style={{
+                position: 'fixed',
+                top: 'var(--navbar-top-offset)',
+                right: 0,
+                height: `calc(100vh - var(--navbar-top-offset))`, 
+                zIndex: 'var(--z-modal)',
+              }}
+            >
               <SidebarDayView
                 selectedDay={selectedDay}
                 setSelectedDay={setSelectedDay}
