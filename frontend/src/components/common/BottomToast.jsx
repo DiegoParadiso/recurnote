@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import useIsMobile from '../../hooks/useIsMobile';
+import { useTranslation } from 'react-i18next';
 
+// message puede ser: string literal, o { key: 'i18n.path', params?: {...} }
 export default function BottomToast({ message, onClose, duration = 2000 }) {
   const [visible, setVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const onCloseRef = useRef(onClose);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   // Mantener siempre la última referencia de onClose sin reiniciar el efecto principal
   useEffect(() => {
@@ -35,6 +38,14 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
   }, [message, duration]);
 
   if (!shouldRender) return null;
+
+  // Resolver mensaje internacionalizado si es objeto { key, params }
+  let resolvedMessage = '';
+  if (typeof message === 'string') {
+    resolvedMessage = message;
+  } else if (message && typeof message === 'object' && message.key) {
+    resolvedMessage = t(message.key, message.params || {});
+  }
 
   const basePositionClass = isMobile
     ? 'top-0 left-1/2 -translate-x-1/2'
@@ -71,7 +82,7 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
     >
       <span className="inline-flex items-center gap-2 text-center">
         <AlertTriangle size={16} aria-hidden="true" />
-        <span>{message}</span>
+        <span>{resolvedMessage}</span>
       </span>
     </div>
   );

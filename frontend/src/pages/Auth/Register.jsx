@@ -164,7 +164,13 @@ export default function Register() {
         });
         setErrors(serverErrors);
       } else {
-        setErrors({ general: err.message || t('auth.registerError') });
+        // Intentar mapear mensajes comunes
+        const msg = (err.message || '').toLowerCase();
+        let i18nKey = 'auth.registerError';
+        if (msg.includes('invalid') || msg.includes('exists') || msg.includes('existe')) {
+          i18nKey = 'auth.emailInvalid';
+        }
+        setErrors({ general: t(i18nKey) });
       }
     } finally {
       setLoading(false);
@@ -204,7 +210,6 @@ export default function Register() {
               className={errors.name ? 'error' : ''}
               required
             />
-            {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
 
           {/* Email */}
@@ -219,7 +224,6 @@ export default function Register() {
               className={errors.name ? 'error' : ''}
               required
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           {/* Contraseña */}
@@ -243,7 +247,6 @@ export default function Register() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {errors.password && <span className="error-message">{errors.password}</span>}
             
             {/* Indicador de fortaleza de contraseña */}
             {formData.password && <PasswordStrength password={formData.password} />}
@@ -270,7 +273,6 @@ export default function Register() {
                 {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
           </div>
 
           {/* Términos y condiciones */}
@@ -298,10 +300,7 @@ export default function Register() {
             {errors.acceptTerms && <span className="error-message">{errors.acceptTerms}</span>}
           </div>
 
-          {/* Error general */}
-          {errors.general && (
-            <div className="error-message general-error">{errors.general}</div>
-          )}
+          {/* Error general se muestra solo en BottomToast */}
 
           {/* Botón de envío */}
           <button 

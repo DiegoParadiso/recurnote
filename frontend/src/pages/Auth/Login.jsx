@@ -116,7 +116,7 @@ export default function Login() {
           if (errorMsg.includes('email')) serverErrors.email = errorMsg;
           else if (errorMsg.includes('contraseña')) serverErrors.password = errorMsg;
           else if (errorMsg.includes('verificada')) {
-            serverErrors.general = errorMsg;
+            serverErrors.general = t('auth.emailNotVerified');
             // Redirigir a página de reenvío de verificación
             navigate('/resend-verification', { 
               state: { email: formData.email.trim() } 
@@ -126,7 +126,15 @@ export default function Login() {
         });
         setErrors(serverErrors);
       } else {
-        setErrors({ general: err.message || t('auth.loginError') });
+        const msg = (err.message || '').toLowerCase();
+        let i18nKey = 'auth.loginError';
+        if (msg.includes('invalid') || msg.includes('credencial') || msg.includes('contraseña')) {
+          i18nKey = 'auth.invalidCredentials';
+        }
+        if (msg.includes('verify') || msg.includes('verific')) {
+          i18nKey = 'auth.emailNotVerified';
+        }
+        setErrors({ general: t(i18nKey) });
       }
     } finally {
       setLoading(false);
@@ -171,7 +179,6 @@ export default function Login() {
               className={errors.email ? 'error' : ''}
               required
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           {/* Contraseña */}
@@ -195,13 +202,9 @@ export default function Login() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
-          {/* Error general */}
-          {errors.general && (
-            <div className="error-message general-error">{errors.general}</div>
-          )}
+          {/* Error general se muestra solo en BottomToast */}
 
           {/* Botón de envío */}
           <button 

@@ -19,7 +19,11 @@ const es = {
     large_text: 'Texto grande',
     reduced_motion: 'Animaciones reducidas',
     duplicate: 'Duplicar',
-    doubleClickToEdit: 'Doble click para editar...'
+    doubleClickToEdit: 'Doble click para editar...',
+    error_update_item: 'Error al actualizar el elemento',
+    error_delete_item: 'Error al eliminar el elemento',
+    error_update_position: 'Error al actualizar la posición del elemento',
+    error_create_item: 'Error al crear el elemento'
   },
   visual: {
     pinLeftSidebar: 'Fijar sidebar izquierdo',
@@ -168,6 +172,8 @@ const es = {
     termsRequired: 'Debes aceptar los términos y condiciones',
     loginError: 'Error en el login',
     registerError: 'Error en el registro',
+    invalidCredentials: 'Credenciales inválidas',
+    emailNotVerified: 'Tu email no está verificado',
     accept: 'Acepto los',
     terms: 'términos y condiciones',
     and: 'y la',

@@ -50,7 +50,7 @@ export default function useHandleDrop({
           // Solo eliminar si realmente se está arrastrando fuera del círculo intencionalmente
           // ItemsContext maneja automáticamente tanto items locales como del servidor
           deleteItem(itemId).catch((error) => {
-            setErrorToast('Error al eliminar el elemento');
+            setErrorToast({ key: 'common.error_delete_item' });
           });
           return;
         }
@@ -77,7 +77,7 @@ export default function useHandleDrop({
           width: label === 'Tarea' ? 200 : 100,
           height: label === 'Tarea' ? 150 : 100,
         }).catch((error) => {
-          setErrorToast('Error al crear el elemento');
+          setErrorToast({ key: 'common.error_create_item' });
         });
         return;
       }
@@ -90,7 +90,7 @@ export default function useHandleDrop({
           angle,
           distance,
         }).catch((error) => {
-          setErrorToast('Error al actualizar el elemento');
+          setErrorToast({ key: 'common.error_update_item' });
         });
         return;
       }

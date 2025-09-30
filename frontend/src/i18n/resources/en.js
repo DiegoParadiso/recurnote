@@ -19,7 +19,11 @@ const en = {
     large_text: 'Large text',
     reduced_motion: 'Reduced motion',
     duplicate: 'Duplicate',
-    doubleClickToEdit: 'Double click to edit...'
+    doubleClickToEdit: 'Double click to edit...',
+    error_update_item: 'Error updating item',
+    error_delete_item: 'Error deleting item',
+    error_update_position: 'Error updating item position',
+    error_create_item: 'Error creating item'
   },
   visual: {
     pinLeftSidebar: 'Pin left sidebar',
@@ -168,6 +172,8 @@ const en = {
     termsRequired: 'You must accept the terms and conditions',
     loginError: 'Login error',
     registerError: 'Registration error',
+    invalidCredentials: 'Invalid credentials',
+    emailNotVerified: 'Your email is not verified',
     accept: 'I accept the',
     terms: 'terms and conditions',
     and: 'and the',

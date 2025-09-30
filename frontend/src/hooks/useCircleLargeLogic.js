@@ -103,7 +103,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     
     if (Object.keys(changes).length) {
       updateItem(id, changes).catch((error) => {
-        setErrorToast('Error al actualizar el elemento');
+        setErrorToast({ key: 'common.error_update_item' });
       });
     }
   }, [selectedDay, updateItem]);
@@ -114,7 +114,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
 
     // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
     deleteItem(id).catch((error) => {
-      setErrorToast('Error al eliminar el elemento');
+      setErrorToast({ key: 'common.error_delete_item' });
     });
   }, [selectedDay, deleteItem]);
 
@@ -132,7 +132,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     
     // Usar updateItem del ItemsContext para todo (tanto servidor como local)
     updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch((error) => {
-      setErrorToast('Error al actualizar la posición del elemento');
+      setErrorToast({ key: 'common.error_update_position' });
     });
   }, [selectedDay, safeCombinedItemsByDate, updateItem]);
 
