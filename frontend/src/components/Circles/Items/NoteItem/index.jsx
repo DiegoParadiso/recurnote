@@ -477,7 +477,7 @@ export default function NoteItem({
         minWidth={minWidthPx}
         minHeight={minHeightPx}
         maxWidth={224}
-        maxHeight={800}
+        maxHeight={200}
         style={{ overflow: 'hidden' }}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
@@ -492,7 +492,7 @@ export default function NoteItem({
         }}
         onResize={(newSize) => {
           const newWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
-          const newHeight = Math.max(minHeightPx, Math.min(Math.max(newSize.height, 40), 800));
+          const newHeight = Math.max(minHeightPx, Math.min(Math.max(newSize.height, 40), 300));
           onUpdate?.(id, content, null, { width: newWidth, height: newHeight });
           onResize?.({ width: newWidth, height: newHeight });
         }}

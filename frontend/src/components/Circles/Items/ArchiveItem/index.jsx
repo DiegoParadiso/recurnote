@@ -37,7 +37,7 @@ export default function ArchivoItem({
   const wasDraggingRef = useRef(false);
   const { user } = useAuth();
   const { duplicateItem } = useItems();
-  const [minWidthPx, setMinWidthPx] = useState(180);
+  const [minWidthPx, setMinWidthPx] = useState(110);
 
   // Cargar las dimensiones naturales de la imagen cuando se sube
   useEffect(() => {
@@ -209,13 +209,14 @@ export default function ArchivoItem({
   // Calcular dimensiones del contenedor
   const getContainerDimensions = () => {
     if (!item.content?.fileData) {
-      return { width: Math.max(minWidthPx, 180), height: 80 };
+      const side = Math.max(minWidthPx, 110);
+      // Estado inicial sin archivo: forzar contenedor cuadrado más pequeño
+      return { width: side, height: side };
     }
 
     if (isImage && isExpanded && imageDimensions.width > 0) {
-      // En modo expandido, usar las dimensiones reales del archivo
-      // pero limitar el tamaño máximo para evitar que sea demasiado grande
-      const maxSize = 300; // Tamaño máximo razonable
+
+      const maxSize = 300; 
       const aspectRatio = imageDimensions.width / imageDimensions.height;
       
       let finalWidth, finalHeight;
@@ -246,6 +247,11 @@ export default function ArchivoItem({
   // Medir ancho mínimo basado en el nombre del archivo (o placeholder)
   useLayoutEffect(() => {
     try {
+      // Si no hay archivo aún, mantener mínimo cuadrado pequeño
+      if (!item.content?.fileData?.name) {
+        setMinWidthPx(110);
+        return;
+      }
       const name = item.content?.fileData?.name || 'Subir archivo...';
       // Crear elemento temporal para medir con fuente del contenedor
       const temp = document.createElement('span');
@@ -263,7 +269,7 @@ export default function ArchivoItem({
       const padding = 8 + 8 + 16; // container L/R + extra seguridad
       const borders = 2;
       const desired = Math.ceil(textWidth + padding + borders);
-      const baseMin = 180;
+      const baseMin = 110; // permitir cuadrado más pequeño
       const maxAllowed = 300;
       const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
       setMinWidthPx(minW);
@@ -280,12 +286,12 @@ export default function ArchivoItem({
           x={x}
           y={y}
           rotation={rotationEnabled ? rotation : 0}
-        width={width}
+          width={width}
           height={height}
         minWidth={minWidthPx}
-        maxWidth={Math.max(minWidthPx, width)}
-          minHeight={height}
-          maxHeight={height}
+          maxWidth={item.content?.fileData ? Math.max(minWidthPx, width) : width}
+          minHeight={item.content?.fileData ? height : width}
+          maxHeight={item.content?.fileData ? height : width}
           disableResize={true}
           onMove={({ x: newX, y: newY }) => {
             // Calcular el ángulo y distancia desde el centro del círculo
@@ -314,7 +320,7 @@ export default function ArchivoItem({
           zIndexOverride={item.zIndexOverride}
         >
           <div
-            className={`archivo-item-container ${isExpanded ? 'expanded' : ''}`}
+            className={`archivo-item-container ${isExpanded ? 'expanded' : ''} ${!item.content?.fileData ? 'empty' : ''}`}
             onClick={handleContainerClick}
             style={{
               cursor: !item.content?.fileData ? 'pointer' : 'default',
@@ -359,7 +365,7 @@ export default function ArchivoItem({
             )}
 
             {!item.content?.fileData && (
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="28"

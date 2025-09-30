@@ -92,5 +92,9 @@
 /* Icono para cuando no hay archivo */
 .archivo-item-container > div svg {
   opacity: 0.6;
-  margin-top: 10px; /* Reducido de 20px a 10px */
+}
+
+/* Sin archivo: remover padding para centrar exacto */
+.archivo-item-container.empty {
+  padding: 0;
 }
