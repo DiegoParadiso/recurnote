@@ -246,6 +246,19 @@ html.dark .file-download-link:hover {
   color: var(--color-text-primary);
 }
 
+/* Alto contraste: asegurar visibilidad fuerte del botón de eliminar */
+html[data-contrast='high'] .delete-btn {
+  opacity: 1; /* siempre visible en alto contraste */
+  color: var(--color-text-primary);
+}
+html[data-contrast='high'] .delete-btn:hover,
+html[data-contrast='high'] .delete-btn:focus-visible {
+  color: var(--color-bg);
+  background-color: var(--color-text-primary);
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
 /* Mostrar el botón de eliminar al hacer hover en el item */
 .item-card:hover .delete-btn {
   opacity: 1;

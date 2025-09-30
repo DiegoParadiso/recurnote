@@ -33,6 +33,8 @@
   --logo-brightness: 1.2;
   --logo-invert: 0;
   --logo-opacity: 0.05;
+  --logo-contrast: 1;
+  --logo-blend: normal;
 
   --checkbox-check-stroke: white;
 
@@ -124,6 +126,8 @@ html.dark {
   --logo-brightness: 3;
   --logo-invert: 1;
   --logo-opacity: 0.3;
+  --logo-contrast: 1;
+  --logo-blend: normal;
 
   --checkbox-check-stroke: black;
 
@@ -171,6 +175,8 @@ html.dark {
   --transition-colors: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* (bloque movido abajo para evitar conflictos de cascada) */
+
 /* ===== Accesibilidad ===== */
 
 /* Texto grande: escala la raíz, afectando todos los rem */
@@ -210,7 +216,12 @@ html[data-contrast='high'] {
 
   --checkbox-check-stroke: #000000;
 
-  --logo-opacity: 0.08;
+  /* Logo en alto contraste claro */
+  --logo-opacity: 0.2;
+  --logo-brightness: 1.2;
+  --logo-invert: 0;
+  --logo-contrast: 1.1;
+  --logo-blend: normal;
 }
 
 /* Alto contraste en modo oscuro */
@@ -233,7 +244,12 @@ html.dark[data-contrast='high'] {
 
   --checkbox-check-stroke: #ffffff;
 
-  --logo-opacity: 0.15;
+  /* Logo en alto contraste oscuro - aclarado real */
+  --logo-opacity: 0.5;
+  --logo-brightness: 3.2;
+  --logo-invert: 1;
+  --logo-contrast: 1.2;
+  --logo-blend: normal;
 }
 
 /* Forzar visibilidad del check en alto contraste en sidebar */

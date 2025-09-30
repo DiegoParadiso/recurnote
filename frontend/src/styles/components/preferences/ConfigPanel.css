@@ -20,6 +20,10 @@
   color: var(--color-text-primary);
 }
 
+html[data-contrast='high'] .config-panel {
+  border-right: 1px solid var(--color-text-primary);
+}
+
 /* Header */
 .config-panel-header {
   padding: 1.25rem 1.25rem;
@@ -512,6 +516,29 @@ margin-bottom: 0.8rem;
   opacity: 0.7;
 }
 
+/* Alto contraste: botones de acciones peligrosas (Eliminar items pasados / todos) */
+html[data-contrast='high'] .danger-button {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+html[data-contrast='high'] .danger-button:hover:not(:disabled),
+html[data-contrast='high'] .danger-button:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-bg);
+  border-color: var(--color-text-primary);
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+/* Asegurar alto contraste también en el icono de papelera */
+html[data-contrast='high'] .danger-button svg {
+  opacity: 1;
+}
+/* Mantener legibilidad incluso cuando esté deshabilitado */
+html[data-contrast='high'] .danger-button:disabled {
+  opacity: 0.7;
+}
+
 .auth-required-message {
   text-align: center;
   color: var(--color-text-secondary);
@@ -627,6 +654,22 @@ margin-bottom: 0.8rem;
 .cancel-button:hover:not(:disabled) {
   background: var(--color-bg-2);
   border-color: var(--color-text-primary);
+}
+
+/* Alto contraste: botones de confirmación/cancelación del modal */
+html[data-contrast='high'] .confirm-button,
+html[data-contrast='high'] .cancel-button {
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
+}
+html[data-contrast='high'] .confirm-button:hover:not(:disabled),
+html[data-contrast='high'] .confirm-button:focus-visible,
+html[data-contrast='high'] .cancel-button:hover:not(:disabled),
+html[data-contrast='high'] .cancel-button:focus-visible {
+  background: var(--color-text-primary);
+  color: var(--color-bg);
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
 }
 
 .cancel-button:disabled {

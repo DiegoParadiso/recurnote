@@ -19,7 +19,8 @@ export default function EmptyLogo({ circleSize, isSmallScreen }) {
         zIndex: Z_INDEX.base, // Por encima de los patterns (z-index: -1)
         transform: `translate(-20%, -20%) rotate(35deg)`,
         transformOrigin: 'center center',
-        filter: `brightness(var(--logo-brightness)) invert(var(--logo-invert))`,
+        filter: `brightness(var(--logo-brightness)) invert(var(--logo-invert)) contrast(var(--logo-contrast))`,
+        mixBlendMode: 'var(--logo-blend)'
       }}
     />
   );
