@@ -7,6 +7,7 @@ import useIsMobile from '../../hooks/useIsMobile';
 import '../../styles/components/preferences/ConfigPanel.css';
 import SessionOptions from './parts/SessionOptions';
 import DataManagementOptions from './parts/DataManagementOptions';
+import HelpIcon from '../common/HelpIcon';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -197,12 +198,18 @@ export default function ConfigPanel({
         </header>
         <main className="config-panel-main">
           <section className="config-section">
-            <h3>{t('common.session')}</h3>
+          <h3 className="flex items-center">
+            {t('common.session')}
+            <HelpIcon text={t('help.session')} />
+          </h3>
             <SessionOptions />
           </section>
 
           <section className="config-section">
-            <h3>{t('common.appearance')}</h3>
+          <h3 className="flex items-center">
+            {t('common.appearance')}
+            <HelpIcon text={t('help.appearance')} />
+          </h3>
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-auto-theme"
@@ -244,7 +251,10 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-            <h3>{t('common.visualization')}</h3>
+          <h3 className="flex items-center">
+            {t('common.visualization')}
+            <HelpIcon text={t('help.visualization')} />
+          </h3>
             <div className="visualization-header-options">
               {options.map(({ key, label }) => (
                 <ToggleOption
@@ -285,7 +295,10 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-            <h3>{t('common.language_region')}</h3>
+          <h3 className="flex items-center">
+            {t('common.language_region')}
+            <HelpIcon text={t('help.language_region')} />
+          </h3>
             <div className="visualization-header-options">
               <label htmlFor="language-select">{t('language.label')}</label>
               <select
@@ -400,7 +413,10 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-            <h3>{t('common.accessibility')}</h3>
+          <h3 className="flex items-center">
+            {t('common.accessibility')}
+            <HelpIcon text={t('help.accessibility')} />
+          </h3>
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-high-contrast"
@@ -426,7 +442,10 @@ export default function ConfigPanel({
           {/* Secciones ‘coming soon’ eliminadas */}
 
           <section className="config-section">
-            <h3>{t('common.data_management')}</h3>
+          <h3 className="flex items-center">
+            {t('common.data_management')}
+            <HelpIcon text={t('help.data_management')} />
+          </h3>
             <DataManagementOptions />
           </section>
         </main>

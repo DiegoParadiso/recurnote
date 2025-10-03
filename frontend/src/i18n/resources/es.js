@@ -19,11 +19,7 @@ const es = {
     large_text: 'Texto grande',
     reduced_motion: 'Animaciones reducidas',
     duplicate: 'Duplicar',
-    doubleClickToEdit: 'Doble click para editar...',
-    error_update_item: 'Error al actualizar el elemento',
-    error_delete_item: 'Error al eliminar el elemento',
-    error_update_position: 'Error al actualizar la posición del elemento',
-    error_create_item: 'Error al crear el elemento'
+    doubleClickToEdit: 'Doble click para editar...'
   },
   visual: {
     pinLeftSidebar: 'Fijar sidebar izquierdo',
@@ -172,8 +168,6 @@ const es = {
     termsRequired: 'Debes aceptar los términos y condiciones',
     loginError: 'Error en el login',
     registerError: 'Error en el registro',
-    invalidCredentials: 'Credenciales inválidas',
-    emailNotVerified: 'Tu email no está verificado',
     accept: 'Acepto los',
     terms: 'términos y condiciones',
     and: 'y la',
@@ -238,6 +232,14 @@ const es = {
       }
     }
   },
+  help: {
+    session: 'Gestiona opciones de tu sesión (iniciar, cerrar, etc).',
+    appearance: 'Cambia temas, colores y fondos.',
+    visualization: 'Elige qué elementos de tiempo y vista mostrar.',
+    language_region: 'Selecciona idioma, zona horaria y formato de hora.',
+    accessibility: 'Ajusta para mayor legibilidad y menos movimiento.',
+    data_management: 'Gestiona datos guardados, borrado y reseteo.',
+  }
 };
 
 export default es;

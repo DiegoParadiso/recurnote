@@ -19,11 +19,7 @@ const en = {
     large_text: 'Large text',
     reduced_motion: 'Reduced motion',
     duplicate: 'Duplicate',
-    doubleClickToEdit: 'Double click to edit...',
-    error_update_item: 'Error updating item',
-    error_delete_item: 'Error deleting item',
-    error_update_position: 'Error updating item position',
-    error_create_item: 'Error creating item'
+    doubleClickToEdit: 'Double click to edit...'
   },
   visual: {
     pinLeftSidebar: 'Pin left sidebar',
@@ -172,8 +168,6 @@ const en = {
     termsRequired: 'You must accept the terms and conditions',
     loginError: 'Login error',
     registerError: 'Registration error',
-    invalidCredentials: 'Invalid credentials',
-    emailNotVerified: 'Your email is not verified',
     accept: 'I accept the',
     terms: 'terms and conditions',
     and: 'and the',
@@ -238,6 +232,14 @@ const en = {
       }
     }
   },
+help: {
+  session: 'Manage your session options (login, logout, etc).',
+  appearance: 'Change themes, colors and circle background patterns.',
+  visualization: 'Choose what elements of time and layout are visible.',
+  language_region: 'Select your language, time zone and time format.',
+  accessibility: 'Adjust for better readability and motion reduction.',
+  data_management: 'Manage stored data, deletions and resets.',
+}
 };
 
 export default en;
