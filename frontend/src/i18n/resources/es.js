@@ -135,6 +135,10 @@ const es = {
     pastDeletedServer: '{{count}} items de días pasados han sido eliminados del servidor',
     pastDeleted: '{{count}} items de días pasados han sido eliminados',
     deletePastError: 'Error al eliminar items de días pasados',
+    itemLimit: 'Límite de elementos',
+    limitReached: 'Has alcanzado el límite de elementos',
+    premiumUnlimited: 'Premium - Sin límite',
+    plan: 'Plan',
   },
   auth: {
     loginTitle: 'Iniciar sesión',

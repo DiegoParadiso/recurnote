@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import BottomToast from '../../common/BottomToast';
 import { useAuth } from '../../../context/AuthContext';
 import { useItems } from '../../../context/ItemsContext';
@@ -16,7 +16,16 @@ export default function DataManagementOptions() {
   const [showConfirmPast, setShowConfirmPast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
+  const getItemLimit = () => {
+    if (!user) return 5; // Usuario local: límite 5
+    if (user.isPremium) return null; // Usuario premium: sin límite
+    return 15; // Usuario registrado normal: límite 15
+  };
+  
+  const itemLimit = getItemLimit();
   const totalItems = Object.values(itemsByDate).reduce((acc, items) => acc + items.length, 0);
+  const progressPercentage = itemLimit ? Math.min((totalItems / itemLimit) * 100, 100) : 0;
+  const isAtLimit = itemLimit ? totalItems >= itemLimit : false;
   const pastItems = Object.entries(itemsByDate).reduce((acc, [dateKey, items]) => {
     try {
       let date;
@@ -111,6 +120,34 @@ export default function DataManagementOptions() {
           <div className="stat-item full-width">
             <span className="stat-label">{t('data.mode')}:</span>
             <span className="stat-value">{t('data.local')}</span>
+          </div>
+        )}
+        
+        {itemLimit && (
+          <div className="stat-item full-width progress-item">
+            <div className="progress-header">
+              <span className="progress-label">{t('data.itemLimit')}</span>
+              <span className="progress-count">{totalItems}/{itemLimit}</span>
+            </div>
+            <div className="progress-bar-container">
+              <div 
+                className={`progress-bar ${isAtLimit ? 'at-limit' : ''}`}
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            {isAtLimit && (
+              <div className="limit-warning">
+                <AlertTriangle size={14} />
+                <span>{t('data.limitReached')}</span>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {!itemLimit && user?.isPremium && (
+          <div className="stat-item full-width premium-info">
+            <span className="stat-label">{t('data.plan')}:</span>
+            <span className="stat-value premium-badge">{t('data.premiumUnlimited')}</span>
           </div>
         )}
       </div>

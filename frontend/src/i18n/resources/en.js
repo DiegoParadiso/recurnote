@@ -135,6 +135,10 @@ const en = {
     pastDeletedServer: '{{count}} past-day items were deleted from server',
     pastDeleted: '{{count}} past-day items were deleted',
     deletePastError: 'Error deleting past-day items',
+    itemLimit: 'Item limit',
+    limitReached: 'You have reached the item limit',
+    premiumUnlimited: 'Premium - Unlimited',
+    plan: 'Plan',
   },
   auth: {
     loginTitle: 'Log in',

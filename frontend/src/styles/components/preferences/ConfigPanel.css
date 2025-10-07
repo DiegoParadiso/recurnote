@@ -392,6 +392,101 @@ margin-bottom: 0.8rem;
   padding: 0.5rem 0;
 }
 
+/* Barra de progreso integrada en data-stats */
+.stat-item.progress-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.progress-count {
+  font-size: 0.75rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-neutral-dark);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--color-highlight);
+  border-radius: 3px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  position: relative;
+}
+
+.progress-bar.at-limit {
+  background-color: var(--color-neutral-darker);
+}
+
+.limit-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-neutral);
+  border: 1px solid var(--color-neutral-dark);
+  border-radius: 3px;
+  color: var(--color-text-primary); /* Texto principal para mejor visibilidad */
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.limit-warning svg {
+  color: var(--color-text-primary); /* Icono en color principal */
+}
+
+html.dark .limit-warning {
+  background: var(--color-neutral); /* Fondo gris oscuro */
+  border-color: var(--color-neutral-dark); /* Borde gris */
+  color: var(--color-text-primary); /* Texto principal para modo oscuro */
+}
+
+html.dark .limit-warning svg {
+  color: var(--color-text-primary); /* Icono en color principal para modo oscuro */
+}
+
+/* Estilo para información premium */
+.stat-item.premium-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.premium-badge {
+  color: var(--color-highlight) !important;
+  font-weight: 600 !important;
+}
+
 .data-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
