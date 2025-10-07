@@ -243,6 +243,13 @@ const es = {
     language_region: 'Selecciona idioma, zona horaria y formato de hora.',
     accessibility: 'Ajusta para mayor legibilidad y menos movimiento.',
     data_management: 'Gestiona datos guardados, borrado y reseteo.',
+  },
+  alerts: {
+    selectDayFirst: 'Para agregar un item, primero selecciona un día en el calendario',
+    itemDeleted: 'Item eliminado correctamente',
+    itemDeleteError: 'Error al eliminar el item',
+    selectDayFirstShort: 'Seleccioná un día primero',
+    itemCreateError: 'No se pudo crear el item',
   }
 };
 

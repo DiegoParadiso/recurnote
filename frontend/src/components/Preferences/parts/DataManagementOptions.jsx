@@ -126,8 +126,6 @@ export default function DataManagementOptions() {
         {itemLimit && (
           <div className="stat-item full-width progress-item">
             <div className="progress-header">
-              <span className="progress-label">{t('data.itemLimit')}</span>
-              <span className="progress-count">{totalItems}/{itemLimit}</span>
             </div>
             <div className="progress-bar-container">
               <div 

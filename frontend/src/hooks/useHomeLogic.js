@@ -595,7 +595,7 @@ export function useHomeLogic() {
 
   const handleSelectItem = useCallback(async (item, dateKey) => {
     if (!dateKey) {
-      setToast('Seleccioná un día primero');
+      setToast(t('alerts.selectDayFirstShort'));
       return;
     }
 
@@ -623,7 +623,7 @@ export function useHomeLogic() {
         ...newItem,
       });
     } catch (e) {
-      setToast(e?.message || 'No se pudo crear el item');
+      setToast(e?.message || t('alerts.itemCreateError'));
     }
   }, [addItem, setToast]);
 

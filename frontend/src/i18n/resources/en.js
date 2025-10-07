@@ -243,6 +243,13 @@ help: {
   language_region: 'Select your language, time zone and time format.',
   accessibility: 'Adjust for better readability and motion reduction.',
   data_management: 'Manage stored data, deletions and resets.',
+},
+alerts: {
+  selectDayFirst: 'To add an item, first select a day in the calendar',
+  itemDeleted: 'Item deleted successfully',
+  itemDeleteError: 'Error deleting the item',
+  selectDayFirstShort: 'Select a day first',
+  itemCreateError: 'Could not create the item',
 }
 };
 

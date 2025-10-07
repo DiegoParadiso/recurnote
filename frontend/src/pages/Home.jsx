@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { DateTime } from 'luxon'; 
+import { DateTime } from 'luxon';
+import { useTranslation } from 'react-i18next'; 
 import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
 import CircleSmall from '../components/Circles/CircleSmall/CircleSmall';
 import SidebarDayView from '../components/layout/Sidebars/SidebarDayView/SidebarDayView';
@@ -26,6 +27,7 @@ import LocalUserIndicator from '../components/common/LocalUserIndicator';
 import LocalMigrationHandler from '../components/common/LocalMigrationHandler';
 
 export default function Home() {
+  const { t } = useTranslation();
   const { deleteItem, itemsByDate, loading: itemsLoading, error: itemsError, refreshItems, syncStatus, isRetrying, retryCount, setItemsByDate } = useItems();
   const { user, loading: authLoading, token } = useAuth();
   const { selectedDay, setSelectedDay } = useNotes();
@@ -76,12 +78,11 @@ export default function Home() {
     toast,
     draggedItem,
     setDraggedItem,
-    itemsByDate: combinedItemsByDate, // Usar los items combinados
+    itemsByDate: combinedItemsByDate, 
     errorToast,
     setErrorToast,
   } = useHomeLogic();
 
-  // Usar setItemsByDate del ItemsContext para todo
   const safeSetItemsByDate = setItemsByDate;
 
   const isMobile = useIsMobile();
@@ -128,7 +129,7 @@ export default function Home() {
 
   async function handleSelectItemLocal(item) {
     if (!dateKey) {
-      setToast('Para agregar un item, primero selecciona un día en el calendario');
+      setToast(t('alerts.selectDayFirst'));
       return;
     }
     await handleSelectItem(item, dateKey);
@@ -138,9 +139,9 @@ export default function Home() {
     try {
       // Usar solo setItemsByDate del ItemsContext
       await deleteItem(itemId);
-      setToast('Item eliminado correctamente');
+      setToast(t('alerts.itemDeleted'));
     } catch (error) {
-      setToast('Error al eliminar el item');
+      setToast(t('alerts.itemDeleteError'));
     }
   }
 
@@ -274,13 +275,10 @@ export default function Home() {
           onCircleSizeChange={setCircleLargeSize}
           onItemDrag={(itemId, pos) => {
             if (pos && pos.action === 'drop') {
-              // Es un drop, verificar si está sobre la papelera
               if (isOverTrash) {
-                // Ejecutar la lógica de eliminación
                 handleDeleteItem(itemId);
               }
             } else if (pos && pos.x !== undefined && pos.y !== undefined) {
-              // Es un drag en progreso
               const newDraggedItem = { id: itemId, ...pos };
               setDraggedItem(newDraggedItem);
             }
@@ -452,9 +450,9 @@ export default function Home() {
                   await deleteItem(numericId);
                 }
                 
-                setToast('Item eliminado correctamente');
+                setToast(t('alerts.itemDeleted'));
                               } catch (error) {
-                  setToast('Error al eliminar el item');
+                  setToast(t('alerts.itemDeleteError'));
                 }
             } else {
             }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import CircleSmall from '../CircleSmall/CircleSmall';
 import NotesArea from './NotesArea';
 import ItemsOnCircle from '../Items/ItemsOnCircle';
@@ -151,7 +152,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     selectedDay,
     rotationAngle,
     radius,
-    onInvalidDrop: () => setToastMessage('Para agregar un ítem, primero selecciona un día en el calendario'),
+    onInvalidDrop: () => setToastMessage(t('alerts.selectDayFirst')),
   });
 
   return (
