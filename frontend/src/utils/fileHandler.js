@@ -1,4 +1,5 @@
 export const MAX_MB = 3; // Para cuentas gratuitas; VIP se valida en backend
+import i18n from '../i18n/index.js';
 
 export function handleFile(e, onUpdate, id, item, x, y, showOnlyImageSetter, isVip = false) {
   const file = e.target.files[0];
@@ -6,7 +7,7 @@ export function handleFile(e, onUpdate, id, item, x, y, showOnlyImageSetter, isV
 
   const sizeMB = file.size / (1024 * 1024);
   if (!isVip && sizeMB > MAX_MB) {
-    return { error: `El archivo excede el límite de ${MAX_MB} MB` };
+    return { error: i18n.t('alerts.fileTooLarge', { max: MAX_MB }) };
   }
 
   const fileData = {

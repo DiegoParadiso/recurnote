@@ -250,6 +250,14 @@ alerts: {
   itemDeleteError: 'Error deleting the item',
   selectDayFirstShort: 'Select a day first',
   itemCreateError: 'Could not create the item',
+  fileTooLarge: 'The file exceeds the {{max}} MB limit',
+  localLimitReached: 'Limit reached. You can only have {{max}} items in local mode.',
+},
+account: {
+  modePremium: 'Premium Mode',
+  modeUser: 'User Mode',
+  modeLocal: 'Local Mode',
+  remaining: '{{count}} items'
 }
 };
 

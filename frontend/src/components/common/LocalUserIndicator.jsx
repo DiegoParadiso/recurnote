@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useItems } from '../../context/ItemsContext';
 import { useAuth } from '../../context/AuthContext';
 import useIsMobile from '../../hooks/useIsMobile';
 import './LocalUserIndicator.css';
 
 export default function LocalUserIndicator({ showAccountIndicator = true }) {
+  const { t } = useTranslation();
   const { itemsByDate } = useItems();
   const { user, token } = useAuth();
   const isMobile = useIsMobile();
@@ -33,7 +35,7 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
     if (user.is_vip) {
       // Usuario Premium
       modeInfo = {
-        mode: 'Modo Premium',
+        mode: t('account.modePremium'),
         showCount: false
       };
     } else {
@@ -41,9 +43,9 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
       maxItems = 15;
       remainingSlots = Math.max(0, maxItems - totalItems);
       modeInfo = {
-        mode: 'Modo Usuario',
+        mode: t('account.modeUser'),
         showCount: true,
-        count: `${remainingSlots} Elementos`
+        count: t('account.remaining', { count: remainingSlots })
       };
     }
   } else {
@@ -52,9 +54,9 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
     maxItems = 5;
     remainingSlots = Math.max(0, maxItems - totalItems);
     modeInfo = {
-      mode: 'Modo Local',
+      mode: t('account.modeLocal'),
       showCount: true,
-      count: `${remainingSlots} Elementos`
+      count: t('account.remaining', { count: remainingSlots })
     };
   }
 

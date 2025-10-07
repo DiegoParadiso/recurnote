@@ -453,26 +453,25 @@ margin-bottom: 0.8rem;
   background: var(--color-neutral);
   border: 1px solid var(--color-neutral-dark);
   border-radius: 3px;
-  color: var(--color-text-primary); /* Texto principal para mejor visibilidad */
+  color: var(--color-text-primary); 
   font-size: 0.75rem;
   font-weight: 500;
 }
 
 .limit-warning svg {
-  color: var(--color-text-primary); /* Icono en color principal */
+  color: var(--color-text-primary); 
 }
 
 html.dark .limit-warning {
-  background: var(--color-neutral); /* Fondo gris oscuro */
-  border-color: var(--color-neutral-dark); /* Borde gris */
-  color: var(--color-text-primary); /* Texto principal para modo oscuro */
+  background: var(--color-neutral);
+  border-color: var(--color-neutral-dark); 
+  color: var(--color-text-primary); 
 }
 
 html.dark .limit-warning svg {
-  color: var(--color-text-primary); /* Icono en color principal para modo oscuro */
+  color: var(--color-text-primary); 
 }
 
-/* Estilo para información premium */
 .stat-item.premium-info {
   display: flex;
   flex-direction: column;
@@ -611,7 +610,6 @@ html.dark .limit-warning svg {
   opacity: 0.7;
 }
 
-/* Alto contraste: botones de acciones peligrosas (Eliminar items pasados / todos) */
 html[data-contrast='high'] .danger-button {
   background: var(--color-bg);
   color: var(--color-text-primary);
@@ -625,11 +623,9 @@ html[data-contrast='high'] .danger-button:focus-visible {
   outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
 }
-/* Asegurar alto contraste también en el icono de papelera */
 html[data-contrast='high'] .danger-button svg {
   opacity: 1;
 }
-/* Mantener legibilidad incluso cuando esté deshabilitado */
 html[data-contrast='high'] .danger-button:disabled {
   opacity: 0.7;
 }
@@ -751,7 +747,6 @@ html[data-contrast='high'] .danger-button:disabled {
   border-color: var(--color-text-primary);
 }
 
-/* Alto contraste: botones de confirmación/cancelación del modal */
 html[data-contrast='high'] .confirm-button,
 html[data-contrast='high'] .cancel-button {
   border-color: var(--color-text-primary);

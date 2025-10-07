@@ -137,10 +137,20 @@ export default function ConfigPanel({
     if (!show) return;
     
     const prefs = {
-      displayOptions,
+      displayOptions: {
+        ...displayOptions,
+        // Persistir idioma 
+        language: displayOptions?.language || 'auto',
+      },
       ui: {
         leftSidebarPinned: isLeftSidebarPinned,
         rightSidebarPinned: isRightSidebarPinned,
+      },
+      // Preferencias de accesibilidad
+      accessibility: {
+        highContrast: isHighContrast,
+        textScale,
+        reducedMotion,
       },
       circlePattern: selectedPattern,
       // NO guardar showSmall en preferencias para evitar conflictos
@@ -284,14 +294,16 @@ export default function ConfigPanel({
               </div>
             )}
 
-            <div className="visualization-header-options">
-              <ToggleOption
-                id="toggle-account-indicator"
-                label={t('visual.accountIndicator')}
-                value={displayOptions.showAccountIndicator}
-                onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
-              />
-            </div>
+            {!isMobile && (
+              <div className="visualization-header-options">
+                <ToggleOption
+                  id="toggle-account-indicator"
+                  label={t('visual.accountIndicator')}
+                  value={displayOptions.showAccountIndicator}
+                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
+                />
+              </div>
+            )}
           </section>
 
           <section className="config-section">

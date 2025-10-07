@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import i18n from '../i18n/index.js';
 import { useAuth } from './AuthContext';
 import BottomToast from '../components/common/BottomToast';
 
@@ -344,7 +345,7 @@ export const ItemsProvider = ({ children }) => {
       const maxLocalItems = 5;
       
       if (totalLocalItems >= maxLocalItems) {
-        throw new Error(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+        throw new Error(i18n.t('alerts.localLimitReached', { max: maxLocalItems }));
       }
 
       // Usuario no autenticado - guardar localmente
@@ -481,8 +482,9 @@ export const ItemsProvider = ({ children }) => {
         const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
         const maxLocalItems = 5;
         if (totalLocalItems >= maxLocalItems) {
-          setErrorToast(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
-          throw new Error(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
+          const msg = i18n.t('alerts.localLimitReached', { max: maxLocalItems });
+          setErrorToast(msg);
+          throw new Error(msg);
         }
       }
 

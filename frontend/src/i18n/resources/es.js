@@ -250,6 +250,14 @@ const es = {
     itemDeleteError: 'Error al eliminar el item',
     selectDayFirstShort: 'Seleccioná un día primero',
     itemCreateError: 'No se pudo crear el item',
+    fileTooLarge: 'El archivo excede el límite de {{max}} MB',
+    localLimitReached: 'Límite alcanzado. Solo puedes tener {{max}} items en modo local.',
+  },
+  account: {
+    modePremium: 'Modo Premium',
+    modeUser: 'Modo Usuario',
+    modeLocal: 'Modo Local',
+    remaining: '{{count}} elementos'
   }
 };
 
