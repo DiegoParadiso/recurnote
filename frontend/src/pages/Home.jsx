@@ -101,10 +101,12 @@ export default function Home() {
 
   function isOverTrashZone(pos) {
     if (!pos) return false;
+    
+    // Ajustar zona de papelera para móvil
     const trashX = 0;
     const trashY = 5; 
-    const trashWidth = 80; 
-    const trashHeight = 80;
+    const trashWidth = isMobile ? 100 : 80; // Zona más grande en móvil
+    const trashHeight = isMobile ? 100 : 80;
 
     return (
       pos.x >= trashX &&

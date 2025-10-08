@@ -29,8 +29,8 @@ export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, dragg
         top: 5,
         left: 25,
         transform: 'translateX(-50%)',
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         zIndex: 'var(--z-floating)',
         pointerEvents: isActive ? 'auto' : 'none',
         display: 'flex',
@@ -38,6 +38,10 @@ export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, dragg
         alignItems: 'center',
         color: 'var(--color-text-primary)',
         cursor: isActive ? 'pointer' : 'default',
+        backgroundColor: isActive ? 'var(--color-bg)' : 'transparent',
+        border: isActive ? '2px solid var(--color-border)' : 'none',
+        borderRadius: '50%',
+        transition: 'all 0.2s ease',
       }}
       onDrop={handleDrop}
       onDragOver={handleDragOver}

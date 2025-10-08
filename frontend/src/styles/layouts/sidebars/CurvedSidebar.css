@@ -93,18 +93,19 @@
 /* Clases para modo móvil vía prop isMobile */
 .curved-sidebar-container.mobile {
     position: fixed !important;
-    left: 1rem !important; /* Mismo left que mobile-controls */
-    right: 1rem !important; /* Mismo right que mobile-controls */
+    left: 0 !important;
+    right: 0 !important;
     top: auto !important;
     bottom: var(--mobile-bottom-offset) !important; 
-    width: calc(100vw - 2rem) !important; /* Ancho ajustado por los margins */
+    width: 100vw !important;
     height: var(--mobile-carousel-height) !important;
-    background: transparent !important;
-    border: none !important;
+    background: var(--color-bg) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 1rem 1rem 0 0 !important;
     z-index: var(--z-floating);
     overflow: visible !important;
     display: flex !important;
-    justify-content: center !important; /* Esto ahora alineará con el center del space-between */
+    justify-content: center !important;
     align-items: center !important;
 }
 
@@ -114,15 +115,15 @@
     justify-content: center !important;
     align-items: center !important;
     overflow: visible !important;
-    width: auto !important;
-    height: auto !important;
-    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 1rem !important;
     gap: 1.5rem !important;
     border: none !important;
     border-radius: 0 !important;
     position: relative !important;
     margin: 0 !important;
-    background: transparent !important; /* Sin fondo del panel */
+    background: transparent !important;
 }
 
 .curved-sidebar-container.mobile .curved-sidebar-panel::-webkit-scrollbar {
