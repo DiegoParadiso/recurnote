@@ -1,30 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { useTranslation } from 'react-i18next'; 
-import CircleLarge from '../components/Circles/CircleLarge/CircleLarge';
-import CircleSmall from '../components/Circles/CircleSmall/CircleSmall';
-import SidebarDayView from '../components/layout/Sidebars/SidebarDayView/SidebarDayView';
-import CurvedSidebar from '../components/layout/Sidebars/CurvedSidebar/CurvedSidebar';
-import ConfigButton from '../components/Preferences/ConfigButton';
-import ConfigPanel from '../components/Preferences/ConfigPanel';
-import ThemeToggle from '../components/Preferences/ThemeToggle';
-import useIsMobile from '../hooks/useIsMobile';
-import useSidebarLayout from '../hooks/useSidebarLayout';
-import { useHomeLogic } from '../hooks/useHomeLogic';
-import DesktopSidebarToggles from '../components/common/DesktopSidebarToggles';
-import WithContextMenu from '../components/common/WithContextMenu';
-import MobileBottomControls from '../components/common/MobileBottomControls';
-import DragTrashZone from '../components/common/DragTrashZone'; 
-import RightSidebarOverlay from '../components/common/RightSidebarOverlay';
-import { useItems } from '../context/ItemsContext';
-import { useAuth } from '../context/AuthContext';
-import BottomToast from '../components/common/BottomToast';
-import RefreshButton from '../components/common/RefreshButton';
-import CircleSmallWithContextMenu from '../components/common/CircleSmallWithContextMenu';
-import { useNotes } from '../context/NotesContext';
-import LocalUserIndicator from '../components/common/LocalUserIndicator';
-import LocalMigrationHandler from '../components/common/LocalMigrationHandler';
+import CircleLarge from '@components/Circles/CircleLarge/CircleLarge';
+import CircleSmall from '@components/Circles/CircleSmall/CircleSmall';
+import SidebarDayView from '@components/layout/Sidebars/SidebarDayView/SidebarDayView';
+import CurvedSidebar from '@components/layout/Sidebars/CurvedSidebar/CurvedSidebar';
+import ConfigButton from '@components/Preferences/ConfigButton';
+import ConfigPanel from '@components/Preferences/ConfigPanel';
+import ThemeToggle from '@components/Preferences/ThemeToggle';
+import useIsMobile from '@hooks/useIsMobile';
+import useSidebarLayout from '@hooks/useSidebarLayout';
+import { useHomeLogic } from '@hooks/useHomeLogic';
+import DesktopSidebarToggles from '@components/common/DesktopSidebarToggles';
+import WithContextMenu from '@components/common/WithContextMenu';
+import MobileBottomControls from '@components/common/MobileBottomControls';
+import DragTrashZone from '@components/common/DragTrashZone'; 
+import RightSidebarOverlay from '@components/common/RightSidebarOverlay';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
+import BottomToast from '@components/common/BottomToast';
+import RefreshButton from '@components/common/RefreshButton';
+import CircleSmallWithContextMenu from '@components/common/CircleSmallWithContextMenu';
+import { useNotes } from '@context/NotesContext';
+import LocalUserIndicator from '@components/common/LocalUserIndicator';
+import LocalMigrationHandler from '@components/common/LocalMigrationHandler';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -97,14 +97,20 @@ export default function Home() {
   } = useSidebarLayout(selectedDay, isMobile);
 
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
-  const itemsForSelectedDay = dateKey ? combinedItemsByDate[dateKey] || [] : [];
 
-  function isOverTrashZone(pos) {
+  // Memoizar items para el día seleccionado
+  const itemsForSelectedDay = useMemo(() =>
+    dateKey ? combinedItemsByDate[dateKey] || [] : [],
+    [dateKey, combinedItemsByDate]
+  );
+
+  // Memoizar función de detección de zona de papelera
+  const isOverTrashZone = useCallback((pos) => {
     if (!pos) return false;
-    
+
     // Ajustar zona de papelera para móvil
     const trashX = 0;
-    const trashY = 5; 
+    const trashY = 5;
     const trashWidth = isMobile ? 100 : 80; // Zona más grande en móvil
     const trashHeight = isMobile ? 100 : 80;
 
@@ -114,7 +120,7 @@ export default function Home() {
       pos.y >= trashY &&
       pos.y <= trashY + trashHeight
     );
-  }
+  }, [isMobile]);
 
   // Detectar posición del touch/mouse en tiempo real durante el drag
   useEffect(() => {
@@ -161,15 +167,17 @@ export default function Home() {
     }
   }, [isMobile, showSmall, circleSmallPos.x, circleSmallPos.y, recenterCircleSmall]);
 
-  async function handleSelectItemLocal(item) {
+  // Memoizar handler de selección de item
+  const handleSelectItemLocal = useCallback(async (item) => {
     if (!dateKey) {
       setToast(t('alerts.selectDayFirst'));
       return;
     }
     await handleSelectItem(item, dateKey);
-  }
+  }, [dateKey, handleSelectItem, t, setToast]);
 
-  async function handleDeleteItem(itemId) {
+  // Memoizar handler de eliminación de item
+  const handleDeleteItem = useCallback(async (itemId) => {
     try {
       // Usar solo setItemsByDate del ItemsContext
       await deleteItem(itemId);
@@ -177,7 +185,7 @@ export default function Home() {
     } catch (error) {
       setToast(t('alerts.itemDeleteError'));
     }
-  }
+  }, [deleteItem, t, setToast]);
 
   return (
     <div

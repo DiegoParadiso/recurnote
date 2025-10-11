@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '@context/AuthContext';
+import { useTheme } from '@context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import useIsMobile from '../../hooks/useIsMobile';
-import '../../styles/components/preferences/ConfigPanel.css';
-import SessionOptions from './parts/SessionOptions';
-import DataManagementOptions from './parts/DataManagementOptions';
-import HelpIcon from '../common/HelpIcon';
+import useIsMobile from '@hooks/useIsMobile';
+import '@styles/components/preferences/ConfigPanel.css';
+import SessionOptions from '@components/Preferences/parts/SessionOptions';
+import DataManagementOptions from '@components/Preferences/parts/DataManagementOptions';
+import HelpIcon from '@components/common/HelpIcon';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (

@@ -1,6 +1,6 @@
-import '../../../../styles/layouts/sidebars/CurvedSidebar.css';
+import '@styles/layouts/sidebars/CurvedSidebar.css';
 import { useState } from 'react';
-import SidebarItem from './SidebarItem';
+import SidebarItem from '@components/layout/Sidebars/CurvedSidebar/SidebarItem';
 import { useTranslation } from 'react-i18next';
 
 export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSelectItem, isLeftSidebarPinned = false, onHover, onStartDrag }) {

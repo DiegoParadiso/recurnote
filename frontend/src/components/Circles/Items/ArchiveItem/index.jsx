@@ -1,13 +1,13 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
-import UnifiedContainer from '../../../common/UnifiedContainer';
-import WithContextMenu from '../../../common/WithContextMenu';
-import BottomToast from '../../../common/BottomToast';
-import { handleFile } from '../../../../utils/fileHandler';
+import UnifiedContainer from '@components/common/UnifiedContainer';
+import WithContextMenu from '@components/common/WithContextMenu';
+import BottomToast from '@components/common/BottomToast';
+import { handleFile } from '@utils/fileHandler';
 import { useTranslation } from 'react-i18next';
 
-import '../../../../styles/components/circles/items/ArchivoItem.css';
-import { useAuth } from '../../../../context/AuthContext';
-import { useItems } from '../../../../context/ItemsContext';
+import '@styles/components/circles/items/ArchivoItem.css';
+import { useAuth } from '@context/AuthContext';
+import { useItems } from '@context/ItemsContext';
 
 export default function ArchivoItem({
   id,

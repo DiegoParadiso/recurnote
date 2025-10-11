@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import '../../styles/components/common/contextmenu.css';
+import '@styles/components/common/contextmenu.css';
 import { useTranslation } from 'react-i18next';
 
 export default function CircleSmallWithContextMenu({ 

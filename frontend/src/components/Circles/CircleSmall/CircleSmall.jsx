@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { DateTime } from 'luxon';
-import MonthHeader from './MonthHeader';
-import DaysButtons from './DaysButtons';
-import { useSwipeMonthNavigation } from '../../../hooks/useSwipeMonthNavigation';
+import MonthHeader from '@components/Circles/CircleSmall/MonthHeader';
+import DaysButtons from '@components/Circles/CircleSmall/DaysButtons';
+import { useSwipeMonthNavigation } from '@hooks/useSwipeMonthNavigation';
 
 export default function CircleSmall({
   onDayClick,

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import i18n from '../i18n/index.js';
-import { useAuth } from './AuthContext';
-import BottomToast from '../components/common/BottomToast';
+import { useAuth } from '@context/AuthContext';
+import BottomToast from '@components/common/BottomToast';
 
 // Función debounce simple
 function debounce(func, wait) {

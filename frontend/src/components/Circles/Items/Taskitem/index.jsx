@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import UnifiedContainer from '../../../common/UnifiedContainer';
-import WithContextMenu from '../../../common/WithContextMenu';
-import { useItems } from '../../../../context/ItemsContext';
+import UnifiedContainer from '@components/common/UnifiedContainer';
+import WithContextMenu from '@components/common/WithContextMenu';
+import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
+import useIsMobile from '@hooks/useIsMobile';
 
-import '../../../../styles/components/circles/items/TaskItem.css';
+import '@styles/components/circles/items/TaskItem.css';
 
-export default function TaskItem({
+function TaskItem({
   id,
   x,
   y,
@@ -28,6 +29,7 @@ export default function TaskItem({
   onActivate,
 }) {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const baseHeight = 10; // padding mínimo del contenedor (4px arriba + 4px abajo)
   const maxTasks = 4;
   const taskHeight = 36; // altura con padding de filas (6px arriba + 6px abajo + contenido)
@@ -39,9 +41,6 @@ export default function TaskItem({
   const wasDraggingRef = useRef(false);
   const inputRefsRef = useRef({});
   const [minWidthPx, setMinWidthPx] = useState(140);
-  
-  // Detectar si es móvil
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   // Calcular altura dinámica basada en si se muestra el botón "+"
   const shouldShowButton = (item.content?.length || 0) < maxTasks && editingInputs.size > 0;
@@ -434,3 +433,5 @@ export default function TaskItem({
     </WithContextMenu>
   );
 }
+
+export default React.memo(TaskItem);

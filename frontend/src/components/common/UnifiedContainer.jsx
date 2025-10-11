@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useDragResize } from '../../hooks/useDragResize';
-import { limitPositionInsideCircle } from '../../utils/helpers/geometry';
-import { getContainerStyle } from '../../utils/styles/getContainerStyle';
+import { useDragResize } from '@hooks/useDragResize';
+import { limitPositionInsideCircle } from '@utils/helpers/geometry';
+import { getContainerStyle } from '@utils/styles/getContainerStyle';
 
 export default function UnifiedContainer({
   x, y, width, height, rotation = 0,

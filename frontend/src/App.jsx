@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from './pages/Home';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import VerifyEmail from './pages/Auth/VerifyEmail';
-import Terms from './pages/Legal/Terms';
-import Privacy from './pages/Legal/Privacy';
-import { ItemsProvider } from './context/ItemsContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { NotesProvider } from './context/NotesContext';
-import { AuthProvider } from './context/AuthContext';
+import Home from '@pages/Home';
+import Login from '@pages/Auth/Login';
+import Register from '@pages/Auth/Register';
+import VerifyEmail from '@pages/Auth/VerifyEmail';
+import Terms from '@pages/Legal/Terms';
+import Privacy from '@pages/Legal/Privacy';
+import { ItemsProvider } from '@context/ItemsContext';
+import { ThemeProvider } from '@context/ThemeContext';
+import { NotesProvider } from '@context/NotesContext';
+import { AuthProvider } from '@context/AuthContext';
 import PrivateRoute from './PrivateRoute';
 
 function AppRoutes() {

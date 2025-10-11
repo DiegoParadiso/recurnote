@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import DayItemGroup from './DayItemGroup';
-import ItemRenderer from './ItemRenderer';
+import DayItemGroup from '@components/layout/Sidebars/SidebarDayView/DayItemGroup';
+import ItemRenderer from '@components/layout/Sidebars/SidebarDayView/ItemRenderer';
 
 export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, isLocalMode }) {
   const { t } = useTranslation();

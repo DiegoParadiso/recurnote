@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import useIsMobile from '../../hooks/useIsMobile';
+import useIsMobile from '@hooks/useIsMobile';
 import { useTranslation } from 'react-i18next';
 
 // message puede ser: string literal, o { key: 'i18n.path', params?: {...} }

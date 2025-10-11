@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 export default function SessionOptions() {

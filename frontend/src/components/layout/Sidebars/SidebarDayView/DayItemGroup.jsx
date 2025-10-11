@@ -1,8 +1,8 @@
 // DayItemGroup.jsx
 import React from 'react';
 import i18n from '../../../../i18n/index.js';
-import { formatDateKey } from '../../../../utils/formatDateKey';
-import '../../../../styles/layouts/sidebars/DayItemGroup.css';
+import { formatDateKey } from '@utils/formatDateKey';
+import '@styles/layouts/sidebars/DayItemGroup.css';
 
 export default function DayItemGroup({ date, items, onDaySelect, renderItem }) {
   const key = formatDateKey(date.toObject());

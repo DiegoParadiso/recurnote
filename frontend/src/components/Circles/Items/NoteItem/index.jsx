@@ -1,11 +1,12 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { DateTime } from 'luxon';
-import UnifiedContainer from '../../../common/UnifiedContainer';
-import WithContextMenu from '../../../common/WithContextMenu';
-import { useItems } from '../../../../context/ItemsContext';
+import UnifiedContainer from '@components/common/UnifiedContainer';
+import WithContextMenu from '@components/common/WithContextMenu';
+import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
+import useIsMobile from '@hooks/useIsMobile';
 
-import '../../../../styles/components/circles/items/NoteItem.css';
+import '@styles/components/circles/items/NoteItem.css';
 
 export default function NoteItem({
   id,
@@ -28,15 +29,13 @@ export default function NoteItem({
   onActivate,
 }) {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const textareaRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
   const { content = '', width = 240, height = 80 } = item;
-  
-  // Detectar si es móvil
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const { duplicateItem } = useItems();
   const { updateItem } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(120);

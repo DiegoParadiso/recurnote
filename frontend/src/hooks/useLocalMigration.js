@@ -1,6 +1,6 @@
 import { useCallback, useState, useRef } from 'react';
-import { useItems } from '../context/ItemsContext';
-import { useAuth } from '../context/AuthContext';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
 
 export function useLocalMigration() {
   const { itemsByDate, setItemsByDate } = useItems();

@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import CircleSmall from '../CircleSmall/CircleSmall';
-import NotesArea from './NotesArea';
-import ItemsOnCircle from '../Items/ItemsOnCircle';
-import CircleBackgroundText from './CircleBackgroundText';
-import EmptyLogo from '../../common/EmptyLogo';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import { useCircleLargeLogic } from '../../../hooks/useCircleLargeLogic';
-import { useDisplayText } from '../../../hooks/useDisplayText';
-import { formatDateKey } from '../../../utils/formatDateKey';
-import BottomToast from '../../common/BottomToast';
-import useHandleDrop from '../../../hooks/useDropHandler';
-import { useItems } from '../../../context/ItemsContext';
-import { useAuth } from '../../../context/AuthContext';
-import { useTheme } from '../../../context/ThemeContext';
-import '../../../styles/components/circles/CircleLarge.css';
+import CircleSmall from '@components/Circles/CircleSmall/CircleSmall';
+import NotesArea from '@components/Circles/CircleLarge/NotesArea';
+import ItemsOnCircle from '@components/Circles/Items/ItemsOnCircle';
+import CircleBackgroundText from '@components/Circles/CircleLarge/CircleBackgroundText';
+import EmptyLogo from '@components/common/EmptyLogo';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import { useCircleLargeLogic } from '@hooks/useCircleLargeLogic';
+import { useDisplayText } from '@hooks/useDisplayText';
+import { formatDateKey } from '@utils/formatDateKey';
+import BottomToast from '@components/common/BottomToast';
+import useHandleDrop from '@hooks/useDropHandler';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
+import { useTheme } from '@context/ThemeContext';
+import '@styles/components/circles/CircleLarge.css';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange }) {
   const { width } = useWindowDimensions();

@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateTime } from 'luxon';
 import i18n from '../../../i18n/index.js';
-import '../../../styles/components/circles/MonthHeader.css';
+import '@styles/components/circles/MonthHeader.css';
 import { PRIMARY_FONT } from '../../../config/fonts';
 
 export default function MonthHeader({ date, position, onClick, isDragging = false }) {

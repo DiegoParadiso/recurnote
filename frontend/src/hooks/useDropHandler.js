@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { formatDateKey } from '../utils/formatDateKey';
-import { useItems } from '../context/ItemsContext';
+import { formatDateKey } from '@utils/formatDateKey';
+import { useItems } from '@context/ItemsContext';
 
 export default function useHandleDrop({
   containerRef,

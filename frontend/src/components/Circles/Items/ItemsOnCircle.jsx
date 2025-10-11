@@ -1,6 +1,6 @@
-import NoteItem from '../Items/NoteItem';
-import TaskItem from '../Items/Taskitem';
-import ArchiveItem from './ArchiveItem';
+import NoteItem from '@components/Circles/Items/NoteItem';
+import TaskItem from '@components/Circles/Items/Taskitem';
+import ArchiveItem from '@components/Circles/Items/ArchiveItem';
 
 export default function ItemsOnCircle({
   items,

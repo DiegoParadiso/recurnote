@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import BottomToast from '../components/common/BottomToast';
+import BottomToast from '@components/common/BottomToast';
 import i18n from '../i18n/index.js';
 
 export const AuthContext = createContext();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RIGHT_SIDEBAR_MOBILE_WIDTH } from '../../utils/constants/layout';
+import { RIGHT_SIDEBAR_MOBILE_WIDTH } from '@utils/constants/layout';
 
 export default function RightSidebarOverlay({ children }) {
   return (

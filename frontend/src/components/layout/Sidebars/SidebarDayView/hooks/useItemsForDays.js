@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
-import { formatDateKey } from '../../../../../utils/formatDateKey';
-import { useAuth } from '../../../../../context/AuthContext';
+import { formatDateKey } from '@utils/formatDateKey';
+import { useAuth } from '@context/AuthContext';
 
 export default function useItemsForDays(itemsByDate) {
   const [itemsForDays, setItemsForDays] = useState([]);

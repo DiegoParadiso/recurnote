@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../../styles/legal.css';
-import EmptyLogo from '../../components/common/EmptyLogo.jsx';
+import '@styles/legal.css';
+import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/index.js';
 

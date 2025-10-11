@@ -1,6 +1,6 @@
 import React from 'react';
 import logo from '../../assets/logorecurnote.png';
-import { Z_INDEX } from '../../utils/constants/zIndex';
+import { Z_INDEX } from '@utils/constants/zIndex';
 
 export default function EmptyLogo({ circleSize, isSmallScreen }) {
   return (

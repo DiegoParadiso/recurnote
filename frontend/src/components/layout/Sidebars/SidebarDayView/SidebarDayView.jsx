@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { useItems } from '../../../../context/ItemsContext';
-import { useAuth } from '../../../../context/AuthContext';
-import ItemsList from './ItemsList';
-import ItemRenderer from './ItemRenderer';
-import '../../../../styles/layouts/sidebars/SidebarDayView.css';
-import useItemsForDays from './hooks/useItemsForDays';
-import useAutoScrollOnHover from './hooks/useAutoScrollOnHover';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
+import ItemsList from '@components/layout/Sidebars/SidebarDayView/ItemsList';
+import ItemRenderer from '@components/layout/Sidebars/SidebarDayView/ItemRenderer';
+import '@styles/layouts/sidebars/SidebarDayView.css';
+import useItemsForDays from '@components/layout/Sidebars/SidebarDayView/hooks/useItemsForDays';
+import useAutoScrollOnHover from '@components/layout/Sidebars/SidebarDayView/hooks/useAutoScrollOnHover';
 import { useTranslation } from 'react-i18next';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {

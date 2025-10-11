@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useItems } from '../../context/ItemsContext';
-import { useAuth } from '../../context/AuthContext';
-import useIsMobile from '../../hooks/useIsMobile';
-import './LocalUserIndicator.css';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
+import useIsMobile from '@hooks/useIsMobile';
+import '@components/common/LocalUserIndicator.css';
 
 export default function LocalUserIndicator({ showAccountIndicator = true }) {
   const { t } = useTranslation();

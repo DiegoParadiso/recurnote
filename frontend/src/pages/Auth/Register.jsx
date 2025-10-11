@@ -1,11 +1,11 @@
 import { useState, useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import '../../styles/auth.css';
-import EmptyLogo from '../../components/common/EmptyLogo.jsx';
-import PasswordStrength from '../../components/common/PasswordStrength.jsx';
-import BottomToast from '../../components/common/BottomToast.jsx';
+import '@styles/auth.css';
+import EmptyLogo from '@components/common/EmptyLogo.jsx';
+import PasswordStrength from '@components/common/PasswordStrength.jsx';
+import BottomToast from '@components/common/BottomToast.jsx';
 import { useTranslation } from 'react-i18next';
 
 export default function Register() {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTheme } from '../../../context/ThemeContext';
-import '../../../styles/components/circles/DayButton.css';
+import { useTheme } from '@context/ThemeContext';
+import '@styles/components/circles/DayButton.css';
 
 function DayButton({
   day,

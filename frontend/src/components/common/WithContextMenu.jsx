@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import useIsMobile from '../../hooks/useIsMobile';
-import '../../styles/components/common/contextmenu.css';
+import useIsMobile from '@hooks/useIsMobile';
+import '@styles/components/common/contextmenu.css';
 import { useTranslation } from 'react-i18next';
 
-export default function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null, onContextMenuOverride = null }) {
+function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null, onContextMenuOverride = null }) {
   const { t } = useTranslation();
   const [menuPos, setMenuPos] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
@@ -233,3 +233,5 @@ export default function WithContextMenu({ onDelete, children, extraOptions = [],
     </>
   );
 }
+
+export default React.memo(WithContextMenu);

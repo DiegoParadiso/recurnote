@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '@context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
 export default function ConfigButton({ onToggle }) {

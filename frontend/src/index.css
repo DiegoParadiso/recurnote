@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 @import './styles/animations.css';
+@import './styles/utilities.css';
 
 html, body {
   margin: 0;

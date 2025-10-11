@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import i18n from '../i18n/index.js';
 import { DateTime } from 'luxon';
-import { useItems } from '../context/ItemsContext';
-import { useAuth } from '../context/AuthContext';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
 
 export function useHomeLogic() {
   const { itemsByDate, addItem } = useItems();

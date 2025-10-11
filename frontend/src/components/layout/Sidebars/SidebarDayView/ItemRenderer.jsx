@@ -1,9 +1,9 @@
 import React from 'react';
-import '../../../../styles/layouts/sidebars/ItemRenderer.css';
-import { useItems } from '../../../../context/ItemsContext';
-import { useAuth } from '../../../../context/AuthContext';
+import '@styles/layouts/sidebars/ItemRenderer.css';
+import { useItems } from '@context/ItemsContext';
+import { useAuth } from '@context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import WithContextMenu from '../../../common/WithContextMenu';
+import WithContextMenu from '@components/common/WithContextMenu';
 
 export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMode }) {
   const { t } = useTranslation();

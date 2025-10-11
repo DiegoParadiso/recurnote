@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useLocalMigration } from '../../hooks/useLocalMigration';
-import BottomToast from './BottomToast';
+import { useAuth } from '@context/AuthContext';
+import { useLocalMigration } from '@hooks/useLocalMigration';
+import BottomToast from '@components/common/BottomToast';
 
 export default function LocalMigrationHandler() {
   const { migrationStatus } = useAuth();

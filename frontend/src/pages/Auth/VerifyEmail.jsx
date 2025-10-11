@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import '../../styles/auth.css';
-import EmptyLogo from '../../components/common/EmptyLogo.jsx';
-import BottomToast from '../../components/common/BottomToast.jsx';
+import '@styles/auth.css';
+import EmptyLogo from '@components/common/EmptyLogo.jsx';
+import BottomToast from '@components/common/BottomToast.jsx';
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();

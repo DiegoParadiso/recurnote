@@ -1,5 +1,5 @@
 import React from 'react';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import { PRIMARY_FONT } from '../../../config/fonts'; 
 
 export default function CircleBackgroundText({ circleSize, radius, displayText }) {

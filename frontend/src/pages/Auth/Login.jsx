@@ -1,18 +1,19 @@
 import { useState, useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import '../../styles/auth.css';
-import EmptyLogo from '../../components/common/EmptyLogo.jsx';
-import BottomToast from '../../components/common/BottomToast.jsx';
+import '@styles/auth.css';
+import EmptyLogo from '@components/common/EmptyLogo.jsx';
+import BottomToast from '@components/common/BottomToast.jsx';
 import { useTranslation } from 'react-i18next';
+import useIsMobile from '@hooks/useIsMobile';
 
 export default function Login() {
   const { t } = useTranslation();
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-  const isSmallScreen = window.innerWidth < 768;
+  const isSmallScreen = useIsMobile();
 
   const [formData, setFormData] = useState({
     email: '',

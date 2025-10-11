@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../styles/components/password-strength.css';
+import '@styles/components/password-strength.css';
 
 const PasswordStrength = ({ password }) => {
   const getPasswordStrength = (password) => {

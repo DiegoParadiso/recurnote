@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../../styles/legal.css';
-import EmptyLogo from '../../components/common/EmptyLogo.jsx';
+import '@styles/legal.css';
+import EmptyLogo from '@components/common/EmptyLogo.jsx';
 
 export default function Privacy() {
   const isSmallScreen = window.innerWidth < 768;

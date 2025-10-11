@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle } from 'lucide-react';
-import BottomToast from '../../common/BottomToast';
-import { useAuth } from '../../../context/AuthContext';
-import { useItems } from '../../../context/ItemsContext';
+import BottomToast from '@components/common/BottomToast';
+import { useAuth } from '@context/AuthContext';
+import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
 
 export default function DataManagementOptions() {

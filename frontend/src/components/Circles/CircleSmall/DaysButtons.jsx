@@ -1,5 +1,5 @@
 import React from 'react';
-import DayButton from './DayButton';
+import DayButton from '@components/Circles/CircleSmall/DayButton';
 
 export default function DaysButtons({
   currentDate,
