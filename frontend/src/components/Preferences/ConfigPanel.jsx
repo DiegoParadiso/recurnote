@@ -39,11 +39,12 @@ function ToggleOption({ id, label, value, onChange }) {
 }
 
 function ComingSoonOption({ label }) {
+  const { t } = useTranslation();
   return (
-    <div className="coming-soon" title="Próximamente">
+    <div className="coming-soon" title={t('common.comingSoon')}>
       <Clock size={16} className="icon" />
       <span className="label-text">{label}</span>
-      <span className="soon-text">Próximamente</span>
+      <span className="soon-text">{t('common.comingSoon')}</span>
     </div>
   );
 }

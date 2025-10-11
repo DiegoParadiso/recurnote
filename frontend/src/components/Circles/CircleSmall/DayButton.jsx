@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../../../context/ThemeContext';
 import '../../../styles/components/circles/DayButton.css';
 
-export default function DayButton({
+function DayButton({
   day,
   style,
   angle,
@@ -70,3 +70,5 @@ export default function DayButton({
     </div>
   );
 }
+
+export default React.memo(DayButton);

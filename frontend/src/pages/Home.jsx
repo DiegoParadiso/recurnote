@@ -230,7 +230,7 @@ export default function Home() {
           {isLeftSidebarPinned ? (
             <WithContextMenu
               extraOptions={[
-                { label: (<span>Ocultar Sidebar</span>), onClick: () => setIsLeftSidebarPinned(false) }
+                { label: (<span>{t('sidebar.hide')}</span>), onClick: () => setIsLeftSidebarPinned(false) }
               ]}
             >
               <div
@@ -400,7 +400,7 @@ export default function Home() {
           {isRightSidebarPinned ? (
             // Fijado siempre visible lado derecho
             <WithContextMenu
-              extraOptions={[{ label: (<span>Ocultar Sidebar</span>), onClick: () => setIsRightSidebarPinned(false) }]}
+              extraOptions={[{ label: (<span>{t('sidebar.hide')}</span>), onClick: () => setIsRightSidebarPinned(false) }]}
             >
               <div className="hidden sm:block" style={{ zIndex: 'var(--z-modal)' }}>
                 <SidebarDayView

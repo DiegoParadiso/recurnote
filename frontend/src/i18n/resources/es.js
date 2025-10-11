@@ -19,7 +19,9 @@ const es = {
     large_text: 'Texto grande',
     reduced_motion: 'Animaciones reducidas',
     duplicate: 'Duplicar',
-    doubleClickToEdit: 'Doble click para editar...'
+    doubleClickToEdit: 'Doble click para editar...',
+    loading: 'Cargando...',
+    comingSoon: 'Próximamente'
   },
   visual: {
     pinLeftSidebar: 'Fijar sidebar izquierdo',
@@ -62,6 +64,7 @@ const es = {
   },
   sidebar: {
     close: 'Cerrar sidebar',
+    hide: 'Ocultar Sidebar',
     upcomingDays: 'próximos días',
     empty: 'No hay ítems para los próximos días',
     createFromLeft: 'Crea nuevos ítems desde el sidebar izquierdo',

@@ -19,7 +19,9 @@ const en = {
     large_text: 'Large text',
     reduced_motion: 'Reduced motion',
     duplicate: 'Duplicate',
-    doubleClickToEdit: 'Double click to edit...'
+    doubleClickToEdit: 'Double click to edit...',
+    loading: 'Loading...',
+    comingSoon: 'Coming Soon'
   },
   visual: {
     pinLeftSidebar: 'Pin left sidebar',
@@ -62,6 +64,7 @@ const en = {
   },
   sidebar: {
     close: 'Close sidebar',
+    hide: 'Hide Sidebar',
     upcomingDays: 'upcoming days',
     empty: 'No items for the next days',
     createFromLeft: 'Create new items from the left sidebar',
