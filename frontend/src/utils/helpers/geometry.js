@@ -22,44 +22,14 @@ export function getAngleFromCenter(x, y, containerRef) {
 }
 
 export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
-  if (isSmallScreen) {
-    return { x: newX, y: newY };
-  }
-
-  const { cx, cy } = circleCenter;
-  const dx = newX - cx;
-  const dy = newY - cy;
-  const distanceCenter = Math.sqrt(dx * dx + dy * dy);
-  
-  // Calcular el radio efectivo considerando el tamaño del item
-  // Para items rectangulares, necesitamos considerar la esquina más lejana
-  const halfWidth = w / 2;
-  const halfHeight = h / 2;
-  
-  // Calcular la distancia máxima permitida para que el item esté completamente dentro
-  // Usar la distancia desde el centro hasta la esquina más lejana del item
-  const itemCornerDistance = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
-  const maxDistance = maxRadius - itemCornerDistance;
-  
-  // Debug desactivado
-  
-  if (distanceCenter > maxDistance) {
-    const angle = Math.atan2(dy, dx);
-    const limitedX = cx + maxDistance * Math.cos(angle);
-    const limitedY = cy + maxDistance * Math.sin(angle);
-    
-    // Debug desactivado
-    
-    return { x: limitedX, y: limitedY };
-  }
-
-  return { x: newX, y: newY };
+  // Usar la misma lógica que limitPositionInsideCircleSimple para consistencia
+  return limitPositionInsideCircleSimple(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen);
 }
 
 // Función más precisa para limitar la posición dentro del círculo
 export function limitPositionInsideCirclePrecise(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
   if (isSmallScreen) {
-    return { x: newX, y: newY };
+    return limitPositionInsideScreen(newX, newY, w, h);
   }
 
   const { cx, cy } = circleCenter;
@@ -120,7 +90,7 @@ export function limitPositionInsideCirclePrecise(newX, newY, w, h, circleCenter,
 // Función híbrida que combina suavidad y precisión
 export function limitPositionInsideCircleSmooth(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
   if (isSmallScreen) {
-    return { x: newX, y: newY };
+    return limitPositionInsideScreen(newX, newY, w, h);
   }
 
   const { cx, cy } = circleCenter;
@@ -192,7 +162,7 @@ export function isItemInsideCircle(x, y, w, h, circleCenter, maxRadius) {
 // Función balanceada que prioriza la precisión pero mantiene algo de suavidad
 export function limitPositionInsideCircleBalanced(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
   if (isSmallScreen) {
-    return { x: newX, y: newY };
+    return limitPositionInsideScreen(newX, newY, w, h);
   }
 
   const { cx, cy } = circleCenter;
@@ -237,7 +207,7 @@ export function limitPositionInsideCircleBalanced(newX, newY, w, h, circleCenter
 // Función específica para manejar mejor los 90 grados
 export function limitPositionInsideCircle90Degrees(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
   if (isSmallScreen) {
-    return { x: newX, y: newY };
+    return limitPositionInsideScreen(newX, newY, w, h);
   }
 
   const { cx, cy } = circleCenter;
@@ -317,80 +287,143 @@ export function limitPositionInsideCircle90Degrees(newX, newY, w, h, circleCente
   return limitPositionInsideCircleBalanced(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen);
 }
 
-// Función simple y directa que permite llegar más cerca del borde
+// Función para limitar posición dentro de los límites de la pantalla (mobile)
+export function limitPositionInsideScreen(newX, newY, w, h) {
+  const halfWidth = w / 2;
+  const halfHeight = h / 2;
+
+  // Obtener dimensiones de la pantalla
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+
+  // Márgenes asimétricos: menos margen arriba/izquierda para permitir acceso a la basura
+  // La basura está en top:5, left:25, con zona de ~100x100px
+  const marginLeft = 0;   // Sin margen izquierdo para llegar a la basura
+  const marginTop = 0;    // Sin margen superior para llegar a la basura
+  const marginRight = 8;  // Margen normal en el lado derecho
+  const marginBottom = 8; // Margen normal en el lado inferior
+
+  // Calcular límites con márgenes asimétricos
+  const minX = halfWidth + marginLeft;
+  const maxX = screenWidth - halfWidth - marginRight;
+  const minY = halfHeight + marginTop;
+  const maxY = screenHeight - halfHeight - marginBottom;
+
+  // Limitar la posición dentro de los bordes de la pantalla
+  const limitedX = Math.max(minX, Math.min(maxX, newX));
+  const limitedY = Math.max(minY, Math.min(maxY, newY));
+
+  return { x: limitedX, y: limitedY };
+}
+
+// Función para calcular la máxima distancia que puede estar el centro del item
+// del centro del círculo, asegurando que todas las esquinas estén dentro
+function calculateMaxDistanceForAngle(angle, halfWidth, halfHeight, maxRadius) {
+  // Convertir ángulo a radianes
+  const angleRad = (angle * Math.PI) / 180;
+
+  // Calcular las 4 esquinas del rectángulo relativas al centro del item
+  const corners = [
+    { x: -halfWidth, y: -halfHeight }, // Superior izquierda
+    { x: halfWidth, y: -halfHeight },  // Superior derecha
+    { x: -halfWidth, y: halfHeight },  // Inferior izquierda
+    { x: halfWidth, y: halfHeight }    // Inferior derecha
+  ];
+
+  // Para cada esquina, calcular qué tan lejos puede estar el centro del item
+  // de modo que esa esquina específica esté justo en el borde del círculo
+  let minMaxDistance = maxRadius;
+
+  for (const corner of corners) {
+    // Rotar la esquina según el ángulo del item (si estuviera rotado)
+    // En este caso no hay rotación del item, así que las esquinas están alineadas
+
+    // Distancia de esta esquina al centro del item
+    const cornerDist = Math.sqrt(corner.x * corner.x + corner.y * corner.y);
+
+    // Ángulo de esta esquina relativa al centro del item
+    const cornerAngle = Math.atan2(corner.y, corner.x);
+
+    // Ángulo absoluto de esta esquina cuando el item está en 'angle'
+    const absoluteCornerAngle = angleRad + cornerAngle;
+
+    // Posición de esta esquina si el centro del item está a distancia 'd' del centro del círculo
+    // corner_x = d * cos(angleRad) + corner.x
+    // corner_y = d * sin(angleRad) + corner.y
+    // Queremos: corner_x^2 + corner_y^2 <= maxRadius^2
+
+    // Simplificando: queremos encontrar la máxima distancia 'd' tal que
+    // (d * cos(angleRad) + corner.x)^2 + (d * sin(angleRad) + corner.y)^2 = maxRadius^2
+
+    const cosA = Math.cos(angleRad);
+    const sinA = Math.sin(angleRad);
+
+    // Expandiendo: d^2 + 2*d*(corner.x*cosA + corner.y*sinA) + (corner.x^2 + corner.y^2) = maxRadius^2
+    // d^2 + 2*d*b + c - maxRadius^2 = 0
+    const b = corner.x * cosA + corner.y * sinA;
+    const c = corner.x * corner.x + corner.y * corner.y;
+
+    // Resolver ecuación cuadrática: d^2 + 2*b*d + (c - maxRadius^2) = 0
+    const discriminant = 4 * b * b - 4 * (c - maxRadius * maxRadius);
+
+    if (discriminant >= 0) {
+      const d = (-2 * b + Math.sqrt(discriminant)) / 2;
+      minMaxDistance = Math.min(minMaxDistance, d);
+    }
+  }
+
+  return minMaxDistance;
+}
+
+// Función simple y directa que verifica que todas las esquinas estén dentro del círculo
 export function limitPositionInsideCircleSimple(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
   if (isSmallScreen) {
-    return { x: newX, y: newY };
+    return limitPositionInsideScreen(newX, newY, w, h);
   }
 
   const { cx, cy } = circleCenter;
-  const dx = newX - cx;
-  const dy = newY - cy;
-  const distanceCenter = Math.sqrt(dx * dx + dy * dy);
-  
-  // Calcular la distancia máxima permitida de manera inteligente
   const halfWidth = w / 2;
   const halfHeight = h / 2;
-  
-  // Calcular el ángulo para determinar qué dimensión considerar
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-  const normalizedAngle = ((angle + 360) % 360);
-  
-  let maxDistance;
-  
-  // En los 90 grados, considerar solo la dimensión relevante
-  if (normalizedAngle >= 85 && normalizedAngle <= 95) {
-    // Arriba (90°) - considerar solo la altura
-    maxDistance = maxRadius - halfHeight;
-  } else if (normalizedAngle >= 175 && normalizedAngle <= 185) {
-    // Izquierda (180°) - considerar solo el ancho
-    maxDistance = maxRadius - halfWidth;
-  } else if (normalizedAngle >= 265 && normalizedAngle <= 275) {
-    // Abajo (270°) - considerar solo la altura
-    maxDistance = maxRadius - halfHeight;
-  } else if (normalizedAngle >= 355 || normalizedAngle <= 5) {
-    // Derecha (0°/360°) - considerar solo el ancho
-    maxDistance = maxRadius - halfWidth;
-  } else {
-    // Para otras posiciones (ángulos diagonales), ser más estricto
-    // Usar la diagonal completa para asegurar que el item esté completamente dentro
-    const diagonal = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
-    maxDistance = maxRadius - diagonal;
-  }
-  
-  // Debug
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔓 Función simple inteligente:', {
-      newPos: { x: newX, y: newY },
-      itemSize: { w, h },
-      angle: normalizedAngle,
-      direction: normalizedAngle >= 85 && normalizedAngle <= 95 ? 'arriba' : 
-                normalizedAngle >= 175 && normalizedAngle <= 185 ? 'izquierda' :
-                normalizedAngle >= 265 && normalizedAngle <= 275 ? 'abajo' :
-                normalizedAngle >= 355 || normalizedAngle <= 5 ? 'derecha' : 'diagonal',
-      maxRadius,
-      maxDistance,
-      distanceCenter,
-      willLimit: distanceCenter > maxDistance,
-      margin: maxRadius - maxDistance
-    });
-  }
-  
-  if (distanceCenter <= maxDistance) {
+
+  // Verificar si todas las esquinas están dentro del círculo
+  if (isItemInsideCircle(newX, newY, w, h, circleCenter, maxRadius)) {
     return { x: newX, y: newY };
   }
-  
-  // Aplicar límite directo
-  const rad = (normalizedAngle * Math.PI) / 180;
-  const limitedX = cx + maxDistance * Math.cos(rad);
-  const limitedY = cy + maxDistance * Math.sin(rad);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('📍 Función simple limitada:', { 
-      from: { x: newX, y: newY }, 
-      to: { x: limitedX, y: limitedY } 
-    });
+
+  // Si no está dentro, proyectar la posición deseada hacia el límite válido
+  // Buscar la posición más cercana en la dirección del movimiento
+  const dx = newX - cx;
+  const dy = newY - cy;
+  const angle = Math.atan2(dy, dx);
+
+  // Calcular las 4 esquinas en la nueva posición
+  const corners = [
+    { x: newX - halfWidth, y: newY - halfHeight },
+    { x: newX + halfWidth, y: newY - halfHeight },
+    { x: newX - halfWidth, y: newY + halfHeight },
+    { x: newX + halfWidth, y: newY + halfHeight }
+  ];
+
+  // Encontrar cuánto excede cada esquina del límite
+  let maxExcess = 0;
+  for (const corner of corners) {
+    const cornerDx = corner.x - cx;
+    const cornerDy = corner.y - cy;
+    const cornerDist = Math.sqrt(cornerDx * cornerDx + cornerDy * cornerDy);
+    const excess = cornerDist - maxRadius;
+    if (excess > maxExcess) {
+      maxExcess = excess;
+    }
   }
-  
-  return { x: limitedX, y: limitedY };
+
+  // Si hay exceso, mover el item hacia el centro para compensar
+  if (maxExcess > 0) {
+    const currentDist = Math.sqrt(dx * dx + dy * dy);
+    const adjustedDist = currentDist - maxExcess;
+    const limitedX = cx + adjustedDist * Math.cos(angle);
+    const limitedY = cy + adjustedDist * Math.sin(angle);
+    return { x: limitedX, y: limitedY };
+  }
+
+  return { x: newX, y: newY };
 }

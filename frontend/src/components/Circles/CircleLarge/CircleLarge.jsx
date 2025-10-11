@@ -139,8 +139,9 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const displayText = useDisplayText(selectedDay, displayOptions);
 
   const isSmallScreen = width <= 640;
-  // Ajustar el radio para que sea más preciso y permita mejor movimiento
-  const radius = circleSize / 2 - 20; // Reducir de 40 a 20 para más espacio
+  // Calcular radio del círculo considerando el borde
+  const BORDER_WIDTH = 1; // El borde del CircleLarge tiene 1px
+  const radius = (circleSize / 2) - BORDER_WIDTH; // Radio exacto sin el borde
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
@@ -201,10 +202,10 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         ref={containerRef}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDropFunction}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
+        onMouseDown={!isSmallScreen ? onMouseDown : undefined}
+        onMouseMove={!isSmallScreen ? onMouseMove : undefined}
+        onMouseUp={!isSmallScreen ? onMouseUp : undefined}
+        onMouseLeave={!isSmallScreen ? onMouseUp : undefined}
         id="circle-large-container"
         className={`
           ${isSmallScreen
@@ -248,6 +249,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           onNoteUpdate={handleNoteUpdate}
           onDeleteItem={handleDeleteItem}
           circleSize={circleSize}
+          maxRadius={radius}
           isSmallScreen={isSmallScreen}
           activeItemId={activeItemId}
           onItemActivate={(id) => bringToFront(id)}

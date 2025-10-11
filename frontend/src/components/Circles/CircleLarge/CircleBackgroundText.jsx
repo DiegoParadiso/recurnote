@@ -35,7 +35,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
   }
 
   // Texto arqueado en pantallas grandes
-  const textRadius = radius - 15; 
+  const textRadius = radius - 30; 
   
   return (
     <div

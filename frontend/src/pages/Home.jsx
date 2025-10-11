@@ -34,7 +34,7 @@ export default function Home() {
 
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [circleLargeSize, setCircleLargeSize] = useState(660); // Tamaño actual del CircleLarge
-
+  const [currentTouchPos, setCurrentTouchPos] = useState(null); // Posición actual del touch/mouse
 
   const [showLeftSidebarHover, setShowLeftSidebarHover] = useState(false);
   const [showRightSidebarHover, setShowRightSidebarHover] = useState(false);
@@ -116,9 +116,41 @@ export default function Home() {
     );
   }
 
+  // Detectar posición del touch/mouse en tiempo real durante el drag
   useEffect(() => {
-    setIsOverTrash(isOverTrashZone(draggedItem));
-  }, [draggedItem]);
+    if (!draggedItem || !isMobile) return;
+
+    const handleTouchMove = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        const touch = e.touches[0];
+        const pos = { x: touch.clientX, y: touch.clientY };
+        setCurrentTouchPos(pos);
+        setIsOverTrash(isOverTrashZone(pos));
+      }
+    };
+
+    const handleMouseMove = (e) => {
+      const pos = { x: e.clientX, y: e.clientY };
+      setCurrentTouchPos(pos);
+      setIsOverTrash(isOverTrashZone(pos));
+    };
+
+    const handleEnd = () => {
+      setCurrentTouchPos(null);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('mouseup', handleEnd);
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('mouseup', handleEnd);
+    };
+  }, [draggedItem, isMobile]);
 
 
 
@@ -277,9 +309,20 @@ export default function Home() {
           onCircleSizeChange={setCircleLargeSize}
           onItemDrag={(itemId, pos) => {
             if (pos && pos.action === 'drop') {
-              if (isOverTrash) {
+              // Verificar si está sobre la papelera en el momento del drop
+              // En mobile, usar currentTouchPos para detectar la posición final
+              const finalIsOverTrash = isMobile && currentTouchPos
+                ? isOverTrashZone(currentTouchPos)
+                : isOverTrash;
+
+              if (finalIsOverTrash) {
                 handleDeleteItem(itemId);
               }
+
+              // Limpiar estados después de verificar
+              setDraggedItem(null);
+              setIsOverTrash(false);
+              setCurrentTouchPos(null);
             } else if (pos && pos.x !== undefined && pos.y !== undefined) {
               const newDraggedItem = { id: itemId, ...pos };
               setDraggedItem(newDraggedItem);

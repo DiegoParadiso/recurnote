@@ -21,6 +21,7 @@ export default function ArchivoItem({
   cx,
   cy,
   circleSize,
+  maxRadius,
   isSmallScreen,
   onItemDrag,
   onItemDrop,
@@ -313,7 +314,7 @@ export default function ArchivoItem({
           onDrag={handleContainerDragStart}
           onDrop={handleContainerDragEnd}
           circleCenter={{ cx, cy }}
-          maxRadius={circleSize / 2}
+          maxRadius={maxRadius}
           isSmallScreen={isSmallScreen}
           isActive={isActive}
           onActivate={() => onActivate?.()}

@@ -11,6 +11,7 @@ export default function ItemsOnCircle({
   onNoteUpdate,
   onDeleteItem,
   circleSize,
+  maxRadius,
   rotationEnabled = true,
   isSmallScreen,
   onItemDrag,
@@ -53,6 +54,7 @@ export default function ItemsOnCircle({
               }}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
+              maxRadius={maxRadius}
               cx={cx}
               cy={cy}
               isSmallScreen={isSmallScreen}
@@ -82,6 +84,7 @@ export default function ItemsOnCircle({
               }}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
+              maxRadius={maxRadius}
               cx={cx}
               cy={cy}
               isSmallScreen={isSmallScreen}
@@ -100,7 +103,7 @@ export default function ItemsOnCircle({
               x={x}
               y={y}
               rotation={rotation}
-              rotationEnabled={rotationEnabled}  
+              rotationEnabled={rotationEnabled}
               item={item}
               onUpdate={(...args) => {
                 const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
@@ -112,6 +115,7 @@ export default function ItemsOnCircle({
               cx={cx}
               cy={cy}
               circleSize={circleSize}
+              maxRadius={maxRadius}
               isSmallScreen={isSmallScreen}
               isActive={activeItemId === item.id}
               onActivate={() => onItemActivate?.(item.id)}

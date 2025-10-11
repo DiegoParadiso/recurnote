@@ -18,6 +18,7 @@ export default function NoteItem({
   onResize,
   onDelete,
   circleSize,
+  maxRadius,
   cx,
   cy,
   isSmallScreen,
@@ -499,7 +500,7 @@ export default function NoteItem({
         onDrag={handleContainerDragStart}
         onDrop={handleContainerDragEnd}
         circleCenter={{ cx, cy }}
-        maxRadius={circleSize / 2}
+        maxRadius={maxRadius}
         isSmallScreen={isSmallScreen}
         isActive={isActive}
         onActivate={() => onActivate?.()}

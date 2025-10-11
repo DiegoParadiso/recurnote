@@ -79,7 +79,8 @@ export const useDragResize = ({
           newWidth,
           newHeight,
           circleCenter,
-          maxRadius
+          maxRadius,
+          isSmallScreen
         );
 
         if (limited.x !== pos.x || limited.y !== pos.y) {

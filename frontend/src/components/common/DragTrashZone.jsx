@@ -38,8 +38,8 @@ export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, dragg
         alignItems: 'center',
         color: 'var(--color-text-primary)',
         cursor: isActive ? 'pointer' : 'default',
-        backgroundColor: isActive ? 'var(--color-bg)' : 'transparent',
-        border: isActive ? '2px solid var(--color-border)' : 'none',
+        backgroundColor: 'transparent',
+        border: 'none',
         borderRadius: '50%',
         transition: 'all 0.2s ease',
       }}
