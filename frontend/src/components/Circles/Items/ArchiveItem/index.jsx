@@ -91,10 +91,13 @@ export default function ArchivoItem({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     // Reset drag state inmediatamente al terminar
     setIsDragging(false);
-    
+
+    // Notificar al padre que el drop ha terminado
+    onItemDrop?.(id);
+
     // Mantener wasDragging por un breve momento para evitar activaciones
     setTimeout(() => {
       wasDraggingRef.current = false;

@@ -142,7 +142,10 @@ export default function Home() {
     };
 
     const handleEnd = () => {
-      setCurrentTouchPos(null);
+      // Delay para que currentTouchPos esté disponible cuando se procese el drop
+      setTimeout(() => {
+        setCurrentTouchPos(null);
+      }, 150);
     };
 
     window.addEventListener('touchmove', handleTouchMove, { passive: true });

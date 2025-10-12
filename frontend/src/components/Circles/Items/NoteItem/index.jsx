@@ -155,9 +155,12 @@ export default function NoteItem({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     setIsDragging(false);
-    
+
+    // Notificar al padre que el drop ha terminado
+    onItemDrop?.(id);
+
     // Mantener wasDragging por un breve momento para evitar activaciones
     setTimeout(() => {
       wasDraggingRef.current = false;
