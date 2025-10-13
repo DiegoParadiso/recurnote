@@ -255,6 +255,8 @@ alerts: {
   itemCreateError: 'Could not create the item',
   fileTooLarge: 'The file exceeds the {{max}} MB limit',
   localLimitReached: 'Limit reached. You can only have {{max}} items in local mode.',
+  confirmDelete: 'Delete this item?',
+  confirmDeleteMessage: 'This action cannot be undone.',
 },
 account: {
   modePremium: 'Premium Mode',

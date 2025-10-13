@@ -4,6 +4,8 @@ import useIsMobile from '@hooks/useIsMobile';
 import '@styles/components/common/contextmenu.css';
 import { useTranslation } from 'react-i18next';
 
+let activeMenuSetter = null; // Para que solo haya un context menu visible
+
 function WithContextMenu({ onDelete, children, extraOptions = [], headerContent = null, onContextMenuOverride = null }) {
   const { t } = useTranslation();
   const [menuPos, setMenuPos] = useState(null);
@@ -26,35 +28,41 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
     e.preventDefault();
     e.stopPropagation();
 
-    // Primero cierro el menú
+    // Cerrar cualquier otro context menu activo
+    if (activeMenuSetter && activeMenuSetter !== setMenuPos) {
+      activeMenuSetter(null);
+    }
+
+    // Primero cierro el menú actual
     setMenuPos(null);
     // Después abro el nuevo en el próximo ciclo de eventos
     setTimeout(() => {
       setMenuPos({ x: e.clientX, y: e.clientY });
+      activeMenuSetter = setMenuPos;
     }, 0);
   }, []);
 
   // Función para manejar long press en móviles
   const handleLongPress = useCallback((e) => {
     if (!isMobile) return;
-    
+
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Obtener posición del touch
     const touch = e.touches[0];
-    
+
     // Calcular posición absoluta para el menú
     let menuX = touch.clientX;
     let menuY = touch.clientY;
-    
+
     // Ajustar posición para que el menú sea siempre visible en móviles
     if (isMobile) {
       const menuWidth = 200; // Ancho aproximado del menú
       const menuHeight = 150; // Alto aproximado del menú
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
-      
+
       // Ajustar posición X para que no se salga de la pantalla
       if (menuX + menuWidth > windowWidth) {
         menuX = windowWidth - menuWidth - 10;
@@ -62,7 +70,7 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
       if (menuX < 10) {
         menuX = 10;
       }
-      
+
       // Ajustar posición Y para que no se salga de la pantalla
       if (menuY + menuHeight > windowHeight) {
         menuY = windowHeight - menuHeight - 10;
@@ -71,11 +79,17 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
         menuY = 10;
       }
     }
-    
+
+    // Cerrar cualquier otro context menu activo
+    if (activeMenuSetter && activeMenuSetter !== setMenuPos) {
+      activeMenuSetter(null);
+    }
+
     // Cerrar menú existente y abrir nuevo
     setMenuPos(null);
     setTimeout(() => {
       setMenuPos({ x: menuX, y: menuY });
+      activeMenuSetter = setMenuPos;
     }, 0);
   }, [isMobile]);
 
@@ -128,7 +142,13 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
     hasMovedRef.current = false;
   }, [isMobile]);
 
-  const closeMenu = useCallback(() => setMenuPos(null), []);
+  const closeMenu = useCallback(() => {
+    setMenuPos(null);
+    // Si este menú era el activo, limpiar la referencia global
+    if (activeMenuSetter === setMenuPos) {
+      activeMenuSetter = null;
+    }
+  }, []);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -175,10 +195,42 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
         children.props.onMouseDown(e);
       }
     },
-    onContextMenu: !isMobile ? (onContextMenuOverride || handleContextMenu) : undefined,
-    onTouchStart: isMobile ? handleTouchStart : undefined,
-    onTouchMove: isMobile ? handleTouchMove : undefined,
-    onTouchEnd: isMobile ? handleTouchEnd : undefined,
+    onContextMenu: !isMobile ? (onContextMenuOverride || handleContextMenu) : (e) => {
+      // En móviles, si el target es un textarea, no aplicar context menu
+      const target = e.target;
+      if (target && target.tagName === 'TEXTAREA') {
+        return;
+      }
+      if (onContextMenuOverride) {
+        onContextMenuOverride(e);
+      } else {
+        handleContextMenu(e);
+      }
+    },
+    onTouchStart: isMobile ? (e) => {
+      // Si el touch es en un textarea, no aplicar long press
+      const target = e.target;
+      if (target && target.tagName === 'TEXTAREA') {
+        return;
+      }
+      handleTouchStart(e);
+    } : undefined,
+    onTouchMove: isMobile ? (e) => {
+      // Si el touch es en un textarea, no aplicar long press
+      const target = e.target;
+      if (target && target.tagName === 'TEXTAREA') {
+        return;
+      }
+      handleTouchMove(e);
+    } : undefined,
+    onTouchEnd: isMobile ? (e) => {
+      // Si el touch es en un textarea, no aplicar long press
+      const target = e.target;
+      if (target && target.tagName === 'TEXTAREA') {
+        return;
+      }
+      handleTouchEnd(e);
+    } : undefined,
   });
 
   return (

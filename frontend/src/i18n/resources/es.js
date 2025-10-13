@@ -255,6 +255,8 @@ const es = {
     itemCreateError: 'No se pudo crear el item',
     fileTooLarge: 'El archivo excede el límite de {{max}} MB',
     localLimitReached: 'Límite alcanzado. Solo puedes tener {{max}} items en modo local.',
+    confirmDelete: '¿Eliminar este ítem?',
+    confirmDeleteMessage: 'Esta acción no se puede deshacer.',
   },
   account: {
     modePremium: 'Modo Premium',

@@ -552,10 +552,20 @@ export default function NoteItem({
               e.target.blur();
             }
           }}
+          onClick={(e) => {
+            // En móviles, hacer click enfoca directamente el textarea
+            if (isMobile && !isEditing) {
+              startEditing();
+              // Forzar focus
+              setTimeout(() => {
+                e.target.focus();
+              }, 0);
+            }
+          }}
           onMouseDown={(e) => {
             // En móviles no delegar drag
             if (isMobile) return;
-            
+
             // Si no está en edición, delegar el drag al contenedor padre
             if (!isEditing) {
               e.preventDefault();

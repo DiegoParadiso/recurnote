@@ -26,13 +26,14 @@ html[data-contrast='high'] .config-panel {
 
 /* Header */
 .config-panel-header {
-  padding: 1.25rem 1.25rem;
+  padding: 1.25rem 0 1.25rem 0;
   background-color: var(--color-bg);
   font-size: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1rem;
 }
 
 .config-panel-header h2 {

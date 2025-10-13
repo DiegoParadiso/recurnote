@@ -35,6 +35,7 @@ export default function Home() {
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [circleLargeSize, setCircleLargeSize] = useState(660); // Tamaño actual del CircleLarge
   const [currentTouchPos, setCurrentTouchPos] = useState(null); // Posición actual del touch/mouse
+  const [itemToDelete, setItemToDelete] = useState(null); // Item pendiente de eliminación en mobile
 
   const [showLeftSidebarHover, setShowLeftSidebarHover] = useState(false);
   const [showRightSidebarHover, setShowRightSidebarHover] = useState(false);
@@ -181,14 +182,37 @@ export default function Home() {
 
   // Memoizar handler de eliminación de item
   const handleDeleteItem = useCallback(async (itemId) => {
+    // En mobile, mostrar modal de confirmación
+    if (isMobile) {
+      setItemToDelete(itemId);
+      return;
+    }
+
+    // En desktop, eliminar directamente sin toast
     try {
-      // Usar solo setItemsByDate del ItemsContext
       await deleteItem(itemId);
-      setToast(t('alerts.itemDeleted'));
     } catch (error) {
       setToast(t('alerts.itemDeleteError'));
     }
-  }, [deleteItem, t, setToast]);
+  }, [deleteItem, t, setToast, isMobile]);
+
+  // Confirmar eliminación (usado por el modal en mobile)
+  const confirmDeleteItem = useCallback(async () => {
+    if (!itemToDelete) return;
+
+    try {
+      await deleteItem(itemToDelete);
+      setItemToDelete(null);
+    } catch (error) {
+      setToast(t('alerts.itemDeleteError'));
+      setItemToDelete(null);
+    }
+  }, [itemToDelete, deleteItem, t, setToast]);
+
+  // Cancelar eliminación
+  const cancelDeleteItem = useCallback(() => {
+    setItemToDelete(null);
+  }, []);
 
   return (
     <div
@@ -542,9 +566,43 @@ export default function Home() {
 
       {/* BottomToast global */}
         <BottomToast message={toast} onClose={() => setToast('')} />
-        
+
         {/* BottomToast para errores */}
         <BottomToast message={errorToast} onClose={() => setErrorToast('')} duration={5000} />
+
+      {/* Modal de confirmación para eliminar item en mobile */}
+      {itemToDelete && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/30 flex items-center justify-center z-[10000]"
+          onClick={cancelDeleteItem}
+        >
+          <div
+            className="bg-[var(--color-bg)] rounded-lg p-6 max-w-sm mx-4 shadow-xl border border-[var(--color-border)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-3 text-[var(--color-text-primary)]">
+              {t('alerts.confirmDelete')}
+            </h3>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+              {t('alerts.confirmDeleteMessage')}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDeleteItem}
+                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-2)] transition-colors border border-[var(--color-border)]"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={confirmDeleteItem}
+                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-highlight)] text-white hover:opacity-90 transition-opacity"
+              >
+                {t('common.delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
 }
