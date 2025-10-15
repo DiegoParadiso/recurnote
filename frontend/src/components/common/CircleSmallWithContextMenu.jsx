@@ -22,14 +22,10 @@ export default function CircleSmallWithContextMenu({
     e.preventDefault();
     e.stopPropagation();
 
-    // Si hay un manejador externo, lo ejecutamos primero
     if (externalOnContextMenu) {
       externalOnContextMenu(e);
     }
-
-    // Primero cierro el menú
     setMenuPos(null);
-    // Después abro el nuevo en el próximo ciclo de eventos
     setTimeout(() => {
       setMenuPos({ x: e.clientX, y: e.clientY });
     }, 0);

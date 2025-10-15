@@ -49,7 +49,6 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
       };
     }
   } else {
-    // Modo local - usar itemsByDate que ahora incluye items locales
     totalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
     maxItems = 5;
     remainingSlots = Math.max(0, maxItems - totalItems);

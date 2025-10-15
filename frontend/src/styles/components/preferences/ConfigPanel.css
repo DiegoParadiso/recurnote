@@ -26,14 +26,13 @@ html[data-contrast='high'] .config-panel {
 
 /* Header */
 .config-panel-header {
-  padding: 1.25rem 0 1.25rem 0;
+  padding: 1.25rem 1.25rem;
   background-color: var(--color-bg);
   font-size: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 1rem;
 }
 
 .config-panel-header h2 {
@@ -78,7 +77,6 @@ html[data-contrast='high'] .config-panel {
   scroll-behavior: smooth;
 }
 
-/* Alto contraste: anillo de foco visible en controles del panel */
 html[data-contrast='high'] .config-panel button:focus-visible,
 html[data-contrast='high'] .config-panel [role="checkbox"]:focus-visible,
 html[data-contrast='high'] .config-panel select:focus-visible {
@@ -86,7 +84,6 @@ html[data-contrast='high'] .config-panel select:focus-visible {
   outline-offset: 2px;
 }
 
-/* Ocultar scrollbar en Webkit */
 .config-panel-main::-webkit-scrollbar {
   display: none;
 }
@@ -113,7 +110,6 @@ html[data-contrast='high'] .config-panel select:focus-visible {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     min-width: 100%;
-    /* Mejorar scroll en dispositivos táctiles */
     touch-action: pan-x pan-y;
     overscroll-behavior: contain;
   }

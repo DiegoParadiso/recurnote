@@ -208,7 +208,7 @@ export default function ConfigPanel({
               ×
             </button>
           </header>
-          <section className="config-section">
+          <section className="pt-5 config-section">
           <h3 className="flex items-center">
             {t('common.session')}
             <HelpIcon text={t('help.session')} />

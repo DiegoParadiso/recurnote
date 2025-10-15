@@ -1,14 +1,7 @@
 import { useRef, useCallback } from 'react';
 
 /**
- * Hook unificado para prevenir clicks accidentales durante drags
- *
- * @param {Object} options - Opciones de configuración
- * @param {number} options.threshold - Distancia en px para considerar drag (default: 5)
- * @param {number} options.delay - Tiempo en ms para considerar drag largo (default: 150)
- * @param {boolean} options.supportTouch - Habilitar soporte táctil (default: true)
- * @param {boolean} options.simple - Modo simplificado sin delay (default: false)
- * @returns {Object} Handlers y estado de drag
+ * Hook  para prevenir clicks accidentales durante drags
  */
 export function useDragPrevention(options = {}) {
   const {

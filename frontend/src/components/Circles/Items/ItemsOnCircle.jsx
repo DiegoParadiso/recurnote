@@ -124,7 +124,7 @@ export default function ItemsOnCircle({
           );
         }
 
-        // Otros labels: chip genérico con el texto del label
+        // Otros labels
         return (
           <div
             key={item.id}

@@ -155,12 +155,9 @@ export default function NoteItem({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-
+    
     setIsDragging(false);
-
-    // Notificar al padre que el drop ha terminado
-    onItemDrop?.(id);
-
+    
     // Mantener wasDragging por un breve momento para evitar activaciones
     setTimeout(() => {
       wasDraggingRef.current = false;
@@ -414,15 +411,12 @@ export default function NoteItem({
   useEffect(() => {
     if (!textareaRef.current) return;
     const textarea = textareaRef.current;
-    // Medir contenido real
     textarea.style.height = 'auto';
     const scrollHeight = textarea.scrollHeight;
     const desiredContainerHeight = Math.max(scrollHeight + 16, height); // sumar padding vertical del contenedor
     if (desiredContainerHeight !== height) {
-      // Ajustar la altura del item para evitar scroll interno
       onUpdate?.(id, content, null, { width, height: desiredContainerHeight });
     }
-    // Volver a fijar altura del textarea para ocupar el espacio disponible
     const availableHeight = desiredContainerHeight - 16;
     textarea.style.height = Math.max(scrollHeight, availableHeight) + 'px';
     textarea.style.overflowY = 'hidden';
@@ -534,14 +528,12 @@ export default function NoteItem({
             // Solo permitir edición con doble click si no se está arrastrando
             if (!isDragging && !wasDraggingRef.current) {
               startEditing();
-              // Forzar focus después de activar edición
               setTimeout(() => {
                 e.target.focus();
               }, 0);
             }
           }}
           onFocus={(e) => {
-            // En móviles comportamiento normal
             if (isMobile) {
               startEditing();
               return;
@@ -552,24 +544,11 @@ export default function NoteItem({
               e.target.blur();
             }
           }}
-          onClick={(e) => {
-            // En móviles, hacer click enfoca directamente el textarea
-            if (isMobile && !isEditing) {
-              startEditing();
-              // Forzar focus
-              setTimeout(() => {
-                e.target.focus();
-              }, 0);
-            }
-          }}
           onMouseDown={(e) => {
             // En móviles no delegar drag
             if (isMobile) return;
-
-            // Si no está en edición, delegar el drag al contenedor padre
             if (!isEditing) {
               e.preventDefault();
-              // Buscar el contenedor de drag y simular mousedown ahí
               const dragContainer = e.target.closest('[data-drag-container]');
               if (dragContainer) {
                 const mouseEvent = new MouseEvent('mousedown', {

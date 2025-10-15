@@ -4,10 +4,9 @@ import { useTheme } from '@context/ThemeContext';
 export default function DragTrashZone({ isActive, isOverTrash, onItemDrop, draggedItem }) {
   const { isLightTheme } = useTheme();
   
-  // Filtro para adaptar iconos al tema
   const iconFilter = isLightTheme 
-    ? 'brightness(0) saturate(100%)' // Negro para tema claro
-    : 'brightness(0) saturate(100%) invert(1)'; // Blanco para tema oscuro
+    ? 'brightness(0) saturate(100%)'
+    : 'brightness(0) saturate(100%) invert(1)'; 
 
   if (!isActive) return null;
 

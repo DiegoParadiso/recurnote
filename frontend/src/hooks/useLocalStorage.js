@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 /**
- * Hook reutilizable para gestionar localStorage con tipado y sincronización
+ * Hook gestionar localStorage con tipado y sincronización
  *
  * @param {string} key - Clave de localStorage
  * @param {*} initialValue - Valor inicial si no existe en localStorage

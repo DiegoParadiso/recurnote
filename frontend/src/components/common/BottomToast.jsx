@@ -11,7 +11,6 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
 
-  // Mantener siempre la última referencia de onClose sin reiniciar el efecto principal
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
