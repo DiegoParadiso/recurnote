@@ -86,90 +86,6 @@ Items {
 }
 ```
 
-## Instalación y Desarrollo
-
-### Prerrequisitos
-- Node.js 18+
-- PostgreSQL 14+
-- npm o yarn
-
-### Configuración del Backend
-```bash
-cd backend
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tu configuración de base de datos
-
-# Iniciar servidor de desarrollo
-npm run dev
-```
-
-### Configuración del Frontend
-```bash
-cd frontend
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con la URL de tu backend
-
-# Iniciar servidor de desarrollo
-npm run dev
-```
-
-### Variables de Entorno
-
-#### Backend (.env)
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/recurnote
-JWT_SECRET=your-super-secret-jwt-key
-NODE_ENV=development
-PORT=5001
-```
-
-#### Frontend (.env)
-```env
-VITE_API_URL=http://localhost:5001
-```
-
-## Características Técnicas Únicas
-
-### Sistema Drag & Drop Avanzado
-- **Touch events** para dispositivos móviles
-- **Prevención de selección** de texto durante drag
-- **Delegación de eventos** para inputs editables
-- **Estados de drag** con timeouts y recovery
-- **Drop zones** inteligentes
-
-### Patrones de Fondo Dinámicos
-- **8 patrones personalizables** con preview
-- **Filtros CSS** para adaptación automática al tema
-- **Pseudo-elementos** para aislamiento visual
-- **Sistema de z-index** centralizado
-- **Opacidad adaptativa** según modo claro/oscuro
-
-### Gestión de Estado Híbrida
-- **Context API** para estado global
-- **LocalStorage** para persistencia offline
-- **Hooks personalizados** para lógica compleja
-- **Sincronización bidireccional** automática
-
-## 📱 Responsive Design
-
-### Desktop
-- **Interfaz completa** con todas las características
-- **Sidebars** para navegación y configuración
-- **Drag & drop** con mouse y teclado
-- **Patrones de fondo** habilitados
-
-### Mobile
-- **UI optimizada** para touch
-- **Navegación por gestos** (swipe, tap)
-- **Controles adaptados** para pantallas pequeñas
-- **Modo simplificado** sin patrones de fondo
-
 ## Seguridad
 
 ### Autenticación
@@ -202,13 +118,6 @@ VITE_API_URL=http://localhost:5001
 - Múltiples ventanas para diferentes días
 - Auto-updater integrado
 
-### Funcionalidades Futuras
-- **Colaboración en tiempo real** con WebSockets
-- **Integraciones** con Google Calendar, Notion, Slack
-- **Inteligencia artificial** para sugerencias
-- **Análisis de productividad** con métricas
-- **API pública** para desarrolladores
-
 ## Testing
 
 ### Frontend
@@ -224,20 +133,6 @@ npm run lint          # ESLint
 cd backend
 npm run test          # API tests
 npm run test:db       # Database tests
-```
-
-## 📦 Deployment
-
-### Frontend (Vercel)
-```bash
-npm run build
-# Deploy automático con Git integration
-```
-
-### Backend (Railway/Heroku)
-```bash
-# Configurar variables de entorno en plataforma
-# Deploy automático desde repositorio
 ```
 
 ### Base de Datos
@@ -258,12 +153,6 @@ test: tests
 chore: tareas de mantenimiento
 ```
 
-### Pull Request Process
-1. Fork del repositorio
-2. Crear branch feature (`git checkout -b feature/nueva-caracteristica`)
-3. Commit cambios (`git commit -m 'feat: agregar nueva característica'`)
-4. Push al branch (`git push origin feature/nueva-caracteristica`)
-5. Crear Pull Request
 
 ## 📄 Licencia
 
