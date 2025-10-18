@@ -1,12 +1,9 @@
 # Recurnote
-
-> **Una aplicación innovadora de gestión de notas y tareas con interfaz circular**
-
-Recurnote revoluciona la forma de organizar tu día a día mediante una interfaz circular intuitiva que permite gestionar tareas, notas y archivos de manera visual y espacial.
+Recurnote organiza tu día a día mediante una interfaz circular intuitiva que permite gestionar tareas, notas y archivos de manera visual y espacial.
 
 ## Características Principales
 
-### Interfaz Circular Innovadora
+### Interfaz Circular 
 - **Navegación temporal** con círculo pequeño para cambiar días/meses
 - **Círculo principal** donde se organizan todos los elementos del día
 - **Posicionamiento libre** de elementos mediante drag & drop
@@ -19,7 +16,7 @@ Recurnote revoluciona la forma de organizar tu día a día mediante una interfaz
 
 ### Personalización Avanzada
 - **Temas claro/oscuro** con cambio automático
-- **8 patrones de fondo** para personalizar el círculo
+- **Patrones de fondo** para personalizar el círculo
 - **Configuración granular** de visualización y preferencias
 - **Responsive design** optimizado para desktop y móvil
 
@@ -55,35 +52,6 @@ Nodemailer 6.9.7        // Sistema de emails
 AuthContext → ThemeContext → ItemsContext → NotesContext
      ↓              ↓              ↓            ↓
   Usuario        Temas         Items        Navegación
-```
-
-## 🗄️ Modelo de Datos
-
-### Usuarios
-```sql
-Users {
-  id: INTEGER PRIMARY KEY
-  name: VARCHAR(50)
-  email: VARCHAR UNIQUE
-  password: VARCHAR(128)     -- bcrypt hash
-  is_vip: BOOLEAN
-  preferences: JSONB         -- Configuración flexible
-  email_verified: BOOLEAN
-  timestamps
-}
-```
-
-### Items
-```sql
-Items {
-  id: INTEGER PRIMARY KEY
-  user_id: INTEGER REFERENCES Users(id)
-  date: DATE                 -- Día específico
-  x, y: NUMERIC(10,2)       -- Posición en círculo
-  rotation: NUMERIC(10,2)    -- Rotación del elemento
-  item_data: JSONB          -- Contenido flexible
-  timestamps
-}
 ```
 
 ## Seguridad
