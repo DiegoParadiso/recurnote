@@ -32,6 +32,10 @@ export const User = sequelize.define('User', {
       notEmpty: true
     }
   },
+  avatar_url: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   is_vip: {
     type: DataTypes.BOOLEAN,
     allowNull: false,

@@ -179,6 +179,8 @@ const es = {
     terms: 'términos y condiciones',
     and: 'y la',
     privacy: 'política de privacidad',
+    loginWithGitHub: 'Iniciar sesión con GitHub',
+    githubAuthError: 'No se pudo iniciar sesión con GitHub. Intenta de nuevo.',
   },
   legal: {
     terms: {
@@ -263,7 +265,8 @@ const es = {
     modeUser: 'Modo Usuario',
     modeLocal: 'Modo Local',
     remaining: '{{count}} elementos'
-  }
+  },
+  onExitSyncWarn: "Hay datos sin sincronizar. Si sales ahora, se perderán los cambios que no se hayan guardado en la nube. ¿Seguro que deseas salir?",
 };
 
 export default es;

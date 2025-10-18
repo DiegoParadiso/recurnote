@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
@@ -153,12 +153,49 @@ export default function Login() {
     return fieldsFilled && noActiveErrors;
   };
 
+  // Añadir función de login social con GitHub
+  const githubLoginWindow = useRef(null);
+
+  const handleGitHubLogin = () => {
+    // URL del backend para iniciar OAuth (ajusta si tu backend deployado es diferente)
+    const authUrl = 'http://localhost:5000/auth/github';
+    // Abrir ventana popup
+    githubLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
+    // Listener para recibir el JWT
+    window.addEventListener('message', handleGitHubToken, false);
+  };
+
+  const handleGitHubToken = (event) => {
+    // Puedes validar el origen en producción para mayor seguridad
+    if (!event.data || !event.data.token) return;
+    try {
+      // Utiliza tu AuthContext para login con token directo si tienes método, si no, hazlo a mano
+      if (login.token) {
+        login.token(event.data.token);
+      } else {
+        // Alternativamente, guardar el token en localStorage y recargar
+        localStorage.setItem('token', event.data.token);
+        window.location.href = '/';
+      }
+      window.removeEventListener('message', handleGitHubToken);
+      if (githubLoginWindow.current) githubLoginWindow.current.close();
+    } catch {
+      setErrors((prev) => ({ ...prev, general: t('auth.githubAuthError') }));
+    }
+  };
+
   return (
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
         <h2>{t('auth.loginTitle')}</h2>
+
+        {/* Botón de inicio sesión con GitHub */}
+        <button type="button" className="github-login" style={{ marginBottom: 16, width: '100%' }} onClick={handleGitHubLogin}>
+          <svg viewBox="0 0 24 24" width={20} height={20} style={{ marginRight: 8, verticalAlign: 'middle' }}><path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.387.6.112.793-.262.793-.582 0-.288-.01-1.048-.015-2.057-3.338.726-4.042-1.606-4.042-1.606-.546-1.385-1.333-1.754-1.333-1.754-1.09-.745.083-.729.083-.729 1.204.085 1.838 1.236 1.838 1.236 1.07 1.834 2.809 1.304 3.495.997.108-.775.418-1.304.76-1.605-2.665-.304-5.466-1.332-5.466-5.932 0-1.31.468-2.381 1.236-3.22-.124-.303-.535-1.527.117-3.183 0 0 1.01-.323 3.3 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.288-1.553 3.296-1.23 3.296-1.23.653 1.656.243 2.88.12 3.183.77.839 1.235 1.91 1.235 3.22 0 4.61-2.803 5.625-5.474 5.922.43.37.814 1.096.814 2.21 0 1.595-.015 2.88-.015 3.273 0 .322.192.698.8.58C20.565 21.796 24 17.298 24 12c0-6.63-5.373-12-12-12z"></path></svg>
+          {t('auth.loginWithGitHub')}
+        </button>
         
         {/* Mensaje de éxito del registro */}
         {successMessage && (

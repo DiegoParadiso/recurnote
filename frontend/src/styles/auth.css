@@ -15,7 +15,7 @@
 .auth-box {
   background-color: var(--color-neutral);
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: none;
   width: 100%;
   max-width: 420px;
@@ -223,11 +223,11 @@
 .submit-button {
   margin-top: 1rem;
   padding: 0.75rem;
+  color: var(--color-text-primary);
   background-color: var(--color-minimal-primary);
-  color: #ffffff; /* Blanco fijo para máximo contraste */
   font-weight: 600; /* Más peso para mejor legibilidad */
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 1rem;
@@ -236,7 +236,6 @@
 
 .submit-button:hover:not(:disabled) {
   background-color: var(--color-minimal-accent);
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil en hover */
 }
 
@@ -255,6 +254,35 @@
 .submit-button.secondary:hover {
   background-color: var(--color-neutral-darker);
   transform: translateY(-1px);
+}
+
+.github-login {
+  padding: 0.75rem;
+  width: 100%;
+  background: var(--color-neutral);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid var(--color-neutral-dark);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px 0 rgba(80,80,80,.05);
+  transition: background 0.2s, border 0.2s, box-shadow 0.2s;
+  z-index: var(--z-base, 1);
+}
+
+.github-login:active {
+  background: var(--color-neutral-dark);
+}
+.github-login svg {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  color: var(--color-text-primary);
 }
 
 /* Footer de autenticación */

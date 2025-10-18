@@ -179,6 +179,8 @@ const en = {
     terms: 'terms and conditions',
     and: 'and the',
     privacy: 'privacy policy',
+    loginWithGitHub: 'Log in with GitHub',
+    githubAuthError: 'Could not log in with GitHub. Please try again.',
   },
   legal: {
     terms: {
@@ -263,7 +265,8 @@ account: {
   modeUser: 'User Mode',
   modeLocal: 'Local Mode',
   remaining: '{{count}} items'
-}
+},
+onExitSyncWarn: "There are unsynchronized changes. Leaving now will lose changes not yet saved to the cloud. Are you sure you want to leave?",
 };
 
 export default en;
