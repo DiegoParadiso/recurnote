@@ -68,22 +68,6 @@ AuthContext → ThemeContext → ItemsContext → NotesContext
 - **Validación de inputs** con express-validator
 - **SSL forzado** en producción
 
-### 📱 Aplicación Móvil Nativa
-**Tecnología**: React Native + Expo
-- Reutilización del 70% del código React existente
-- Gestos nativos (swipe, pinch, long press)
-- Notificaciones push para recordatorios
-- Sincronización en background
-- Integración con calendario del sistema
-
-### 🖥️ Aplicación de Escritorio
-**Tecnología**: Electron
-- Reutilización completa del código web
-- Atajos de teclado avanzados
-- Integración con sistema operativo
-- Múltiples ventanas para diferentes días
-- Auto-updater integrado
-
 ## Testing
 
 ### Frontend
@@ -93,7 +77,6 @@ npm run test          # Unit tests
 npm run test:e2e      # End-to-end tests
 npm run lint          # ESLint
 ```
-
 ### Backend
 ```bash
 cd backend
@@ -106,7 +89,6 @@ npm run test:db       # Database tests
 - **Supabase** (alternativa)
 - **AWS RDS** (producción enterprise)
 
-## Contribución
 
 ### Estructura de Commits
 ```
