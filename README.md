@@ -26,7 +26,7 @@ Recurnote organiza tu día a día mediante una interfaz circular intuitiva que p
 - **Migración de datos** local → cloud sin pérdidas
 - **Estado híbrido** para máxima disponibilidad
 
-## 🏗️ Arquitectura Técnica
+## Arquitectura Técnica
 
 ### Frontend Stack
 ```javascript
@@ -67,8 +67,6 @@ AuthContext → ThemeContext → ItemsContext → NotesContext
 - **Rate limiting** en endpoints críticos
 - **Validación de inputs** con express-validator
 - **SSL forzado** en producción
-
-## Roadmap de Expansión
 
 ### 📱 Aplicación Móvil Nativa
 **Tecnología**: React Native + Expo
