@@ -8,6 +8,7 @@ import passport from 'passport';
 import GitHubStrategy from 'passport-github2';
 import { User } from './models/user.model.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 dotenv.config();
 const app = express();
@@ -44,6 +45,7 @@ passport.use(new GitHubStrategy({
         name: profile.displayName || profile.username,
         email,
         avatar_url: profile.photos?.[0]?.value,
+        password: crypto.randomBytes(48).toString('base64'),
         email_verified: true,
         account_status: 'active',
         preferences: {}
