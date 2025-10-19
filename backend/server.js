@@ -69,7 +69,8 @@ app.get('/auth/github/callback',
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    // Responder con script para popup frontend
+    // Permitir inline script SOLO para esta respuesta
+    res.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline'");
     res.send(`<script>window.opener.postMessage({ token: '${token}' }, '*'); window.close();</script>`);
   }
 );

@@ -93,7 +93,7 @@ export default function Login() {
   const githubLoginWindow = useRef(null);
 
   const handleGitHubLogin = () => {
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
     const authUrl = `${backendUrl}/auth/github`;
     githubLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
     window.addEventListener('message', handleGitHubToken, false);
