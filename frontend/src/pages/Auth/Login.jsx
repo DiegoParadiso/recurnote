@@ -115,7 +115,7 @@ export default function Login() {
     <div className="auth-container">
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-      <div className="auth-box">
+      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
         <h2>{t('auth.loginTitle')}</h2>
 
         <button type="button" className="github-login" onClick={handleGitHubLogin}>

@@ -223,37 +223,29 @@
 .submit-button {
   margin-top: 1rem;
   padding: 0.75rem;
-  color: var(--color-text-primary);
-  background-color: var(--color-minimal-primary);
+  color: white;
+  background-color: var(--color-minimal-secondary);
   font-weight: 600; /* Más peso para mejor legibilidad */
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 1rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Sombra sutil para mejor contraste */
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: var(--color-minimal-accent);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil en hover */
+  background-color: var(--color-minimal-primary);
 }
 
 .submit-button:disabled {
+  color: var(--color-neutral-dark);
   background-color: var(--color-muted);
   cursor: not-allowed;
-  transform: none;
 }
 
-.submit-button.secondary {
-  background-color: transparent;
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-neutral-darker);
-}
 
 .submit-button.secondary:hover {
   background-color: var(--color-neutral-darker);
-  transform: translateY(-1px);
 }
 
 .github-login {
