@@ -100,7 +100,6 @@ export default function Login() {
   };
 
   const handleGitHubToken = (event) => {
-    console.log('MSG EVENT', event); // Para debug
     if (!event.data || !event.data.token) return;
     try {
       localStorage.setItem('token', event.data.token);

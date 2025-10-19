@@ -18,23 +18,32 @@ export function AuthProvider({ children }) {
     try {
       const savedUser = localStorage.getItem('user');
       const savedToken = localStorage.getItem('token');
-      
-      if (savedUser && savedToken) {
+      if (savedToken && !savedUser) {
+        // Scenario: login via OAuth/jwt, fetch user info
+        const res = await fetch(`${API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${savedToken}` }
+        });
+        if (res.ok) {
+          const me = await res.json();
+          setUser(me);
+          setToken(savedToken);
+          localStorage.setItem('user', JSON.stringify(me));
+        } else {
+          localStorage.removeItem('token');
+        }
+      } else if (savedUser && savedToken) {
         // Verificar si el token sigue siendo válido
         const isValid = await validateToken(savedToken);
         if (isValid) {
           setUser(JSON.parse(savedUser));
           setToken(savedToken);
-          // Refrescar datos del usuario
           await refreshMe();
         } else {
-          // Token inválido, limpiar localStorage
           localStorage.removeItem('user');
           localStorage.removeItem('token');
         }
       }
     } catch (error) {
-      // En caso de error, limpiar localStorage
       localStorage.removeItem('user');
       localStorage.removeItem('token');
     } finally {

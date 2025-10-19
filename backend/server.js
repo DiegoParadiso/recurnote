@@ -36,10 +36,8 @@ passport.use(new GitHubStrategy({
   scope: ['user:email']
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    console.log('🔵 [OAuth] GitHub CALLBACK profile:', JSON.stringify(profile, null, 2));
     const email = profile.emails?.[0]?.value;
     if (!email) {
-      console.warn('⚠️ [OAuth] No email obtenido de GitHub!');
       return done(null, false, { message: 'No se pudo obtener el email.' });
     }
     let user = await User.findOne({ where: { email } });
@@ -53,13 +51,9 @@ passport.use(new GitHubStrategy({
         account_status: 'active',
         preferences: {}
       });
-      console.log('🟢 [OAuth] Usuario creado:', user.id, user.email);
-    } else {
-      console.log('🟢 [OAuth] Usuario encontrado:', user.id, user.email);
     }
     return done(null, user);
   } catch (err) {
-    console.error('🔴 [OAuth] Error al crear/encontrar usuario:', err);
     done(err);
   }
 }));
