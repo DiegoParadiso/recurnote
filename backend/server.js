@@ -16,21 +16,29 @@ const app = express();
 // ==== CORS seguro ====
 app.use(cors({
   origin: function(origin, callback) {
+    // Log para depuración — revisa logs en Render o local
+    console.log('CORS origin header:', origin);
+
+    // Permitir requests sin Origin (curl, servidores, algunas extensiones)
     if (!origin) return callback(null, true);
 
-    const allowed = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'https://recurnote.xyz',
-      'https://recurnote.onrender.com'
-    ];
+    const allowed = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000,https://recurnote.xyz,https://recurnote.onrender.com')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
 
-    if (allowed.includes(origin) || origin.endsWith('.onrender.com')) {
+    const originAllowed = allowed.includes(origin)
+      || /\.(onrender|vercel)\.app$/i.test(origin)
+      || /\.(onrender)\.com$/i.test(origin)
+      || allowed.some(a => a === '*');
+
+    if (originAllowed) {
       return callback(null, true);
     }
 
     console.warn('CORS bloqueado para origen:', origin);
-    return callback(new Error('No permitido por CORS'));
+    // No lanzar un Error (500) — devolver false para que no se añadan headers CORS
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
