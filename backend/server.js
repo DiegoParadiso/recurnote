@@ -12,30 +12,31 @@ import crypto from 'crypto';
 
 dotenv.config();
 const app = express();
+// ==== CORS seguro ====
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      const allowed = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://recurnote.xyz',
+        'https://recurnote.onrender.com',
+      ];
 
-// CORS seguro
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    
-    const allowed = [
-      'http://localhost:5173', 
-      'http://localhost:3000', 
-      'https://recurnote.xyz',
-      'https://recurnote.onrender.com' 
-    ];
-    
-    if (allowed.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
-      return callback(null, true);
-    }
-    
-    return callback(new Error('No permitido por CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+      // Permitir sin origen (ej: Postman, backend interno)
+      if (!origin || allowed.includes(origin)) {
+        return callback(null, true);
+      }
 
+      console.warn('CORS bloqueado para origen:', origin);
+      return callback(new Error('No permitido por CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+app.options('*', cors());
 app.use(express.json());
 
 // Passport GitHub
