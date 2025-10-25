@@ -5,7 +5,7 @@ class EmailService {
   constructor() {
     try {
       if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('⚠️  Configuración SMTP no encontrada. Los emails no se enviarán.');
+        console.warn('Configuración SMTP no encontrada. Los emails no se enviarán.');
         this.transporter = null;
         return;
       }
@@ -38,7 +38,7 @@ class EmailService {
 
       this.verifyConnection();
     } catch (error) {
-      console.error('❌ Error al inicializar EmailService:', error);
+      console.error('Error al inicializar EmailService:', error);
       this.transporter = null;
     }
   }
@@ -48,30 +48,30 @@ class EmailService {
     try {
       console.log('🔍 Verificando conexión SMTP...');
       await this.transporter.verify();
-      console.log('✅ Conexión SMTP verificada exitosamente');
+      console.log('Conexión SMTP verificada exitosamente');
     } catch (error) {
-      console.error('❌ Error verificando conexión SMTP:', error);
+      console.error('Error verificando conexión SMTP:', error);
     }
   }
 
   async sendEmailWithRetry(mailOptions, maxRetries = 3) {
     if (!this.transporter) {
-      console.warn('⚠️  No se puede enviar email: configuración SMTP no disponible');
+      console.warn('No se puede enviar email: configuración SMTP no disponible');
       return false;
     }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`📧 Intentando enviar email (intento ${attempt}/${maxRetries})...`);
+        console.log(`Intentando enviar email (intento ${attempt}/${maxRetries})...`);
         const result = await this.transporter.sendMail(mailOptions);
-        console.log('✅ Email enviado exitosamente:', {
+        console.log('Email enviado exitosamente:', {
           messageId: result.messageId,
           to: mailOptions.to,
           subject: mailOptions.subject
         });
         return true;
       } catch (error) {
-        console.error(`❌ Error en intento ${attempt}/${maxRetries}:`, error.message);
+        console.error(`Error en intento ${attempt}/${maxRetries}:`, error.message);
         if (attempt === maxRetries) throw error;
         const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
         await new Promise(resolve => setTimeout(resolve, waitTime));
