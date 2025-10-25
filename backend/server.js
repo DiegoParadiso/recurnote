@@ -90,7 +90,14 @@ app.get('/auth/github/callback',
   }
 );
 
-// Rutas API
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 

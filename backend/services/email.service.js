@@ -1,10 +1,12 @@
-// services/email.service.js
 import { Resend } from 'resend';
 import crypto from 'crypto';
 
 class EmailService {
   constructor() {
     try {
+      console.log('🔧 Inicializando EmailService...');
+      console.log('📌 RESEND_API_KEY presente:', !!process.env.RESEND_API_KEY);
+      
       if (!process.env.RESEND_API_KEY) {
         console.warn('RESEND_API_KEY no configurada. Los emails no se enviarán.');
         this.client = null;
@@ -38,17 +40,26 @@ class EmailService {
     }
 
     try {
-      const data = await this.client.emails.send({
-        from: 'RecurNote <onboarding@resend.dev>', // O tu dominio verificado
+      // Determinar el remitente según configuración
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'RecurNote <onboarding@resend.dev>';
+      
+      // Timeout de 10 segundos
+      const emailPromise = this.client.emails.send({
+        from: fromEmail,
         to: mailOptions.to,
         subject: mailOptions.subject,
         html: mailOptions.html
       });
 
-      console.log('✅ Email enviado:', data);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email timeout after 10s')), 10000)
+      );
+
+      const data = await Promise.race([emailPromise, timeoutPromise]);
+      console.log('Email enviado:', data.id);
       return true;
     } catch (error) {
-      console.error('❌ Error enviando email:', error);
+      console.error('Error enviando email:', error.message);
       return false;
     }
   }
@@ -147,7 +158,7 @@ class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: '¡Bienvenido a Recurnote!',
+      subject: '¡Bienvenido a RecurNote!',
       html
     });
   }

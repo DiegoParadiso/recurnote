@@ -38,14 +38,14 @@ export async function register(req, res) {
       });
     }
 
-    // Generar código de verificación de 6 dígitos
+    // Generar código de verificación
     const verificationCode = emailService.generateVerificationCode();
-    const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+    const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Crear usuario (sin verificar)
+    // Crear usuario
     const user = await User.create({ 
       name, 
       email, 
@@ -56,30 +56,24 @@ export async function register(req, res) {
       verification_code_expires: codeExpiresAt
     });
 
-    // Enviar email con código
-    const emailSent = await emailService.sendVerificationCodeEmail(email, name, verificationCode);
-    
-    if (!emailSent) {
-      console.warn('⚠️  No se pudo enviar email de verificación. Activando cuenta directamente...');
-      
-      // Activar cuenta directamente (modo desarrollo)
-      await user.update({
-        email_verified: true,
-        verification_code: null,
-        verification_code_expires: null
-      });
-
-      return res.status(201).json({ 
-        message: 'Usuario registrado. Cuenta activada automáticamente (modo desarrollo).',
-        userId: user.id,
-        autoVerified: true
-      });
-    }
-
+    // ✅ RESPONDER INMEDIATAMENTE
     res.status(201).json({ 
       message: 'Usuario registrado. Revisa tu email para el código de verificación.',
       userId: user.id
     });
+
+    // 🔥 ENVIAR EMAIL EN SEGUNDO PLANO (sin await)
+    emailService.sendVerificationCodeEmail(email, name, verificationCode)
+      .then(success => {
+        if (success) {
+          console.log('✅ Email de verificación enviado a', email);
+        } else {
+          console.warn('⚠️  No se pudo enviar email a', email);
+        }
+      })
+      .catch(err => {
+        console.error('❌ Error enviando email:', err);
+      });
 
   } catch (err) {
     console.error('Error en registro:', err);
@@ -90,7 +84,6 @@ export async function register(req, res) {
   }
 }
 
-// Nueva función: Verificar código
 export async function verifyCode(req, res) {
   try {
     const { userId, code } = req.body;
@@ -102,7 +95,6 @@ export async function verifyCode(req, res) {
       });
     }
 
-    // Buscar usuario
     const user = await User.findByPk(userId);
 
     if (!user) {
@@ -119,7 +111,6 @@ export async function verifyCode(req, res) {
       });
     }
 
-    // Verificar código
     if (user.verification_code !== code) {
       return res.status(400).json({ 
         message: 'Código inválido',
@@ -127,7 +118,6 @@ export async function verifyCode(req, res) {
       });
     }
 
-    // Verificar expiración
     if (new Date() > user.verification_code_expires) {
       return res.status(400).json({ 
         message: 'El código ha expirado',
@@ -135,15 +125,16 @@ export async function verifyCode(req, res) {
       });
     }
 
-    // Activar cuenta
     await user.update({
       email_verified: true,
       verification_code: null,
       verification_code_expires: null
     });
 
-    // Enviar email de bienvenida
-    await emailService.sendWelcomeEmail(user.email, user.name);
+    // Enviar email de bienvenida en segundo plano
+    emailService.sendWelcomeEmail(user.email, user.name)
+      .then(() => console.log('✅ Email de bienvenida enviado'))
+      .catch(err => console.error('❌ Error email bienvenida:', err));
 
     res.json({ 
       message: 'Cuenta verificada exitosamente'
@@ -158,7 +149,6 @@ export async function verifyCode(req, res) {
   }
 }
 
-// Reenviar código
 export async function resendCode(req, res) {
   try {
     const { userId } = req.body;
@@ -170,7 +160,6 @@ export async function resendCode(req, res) {
       });
     }
 
-    // Buscar usuario
     const user = await User.findByPk(userId);
 
     if (!user) {
@@ -191,25 +180,26 @@ export async function resendCode(req, res) {
     const verificationCode = emailService.generateVerificationCode();
     const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Actualizar código
     await user.update({
       verification_code: verificationCode,
       verification_code_expires: codeExpiresAt
     });
 
-    // Enviar email
-    const emailSent = await emailService.sendVerificationCodeEmail(user.email, user.name, verificationCode);
-    
-    if (!emailSent) {
-      return res.status(500).json({ 
-        message: 'Error al enviar código',
-        errors: ['No se pudo enviar elf email']
-      });
-    }
-
+    // ✅ RESPONDER INMEDIATAMENTE
     res.json({ 
       message: 'Código reenviado exitosamente'
     });
+
+    // 🔥 ENVIAR EMAIL EN SEGUNDO PLANO
+    emailService.sendVerificationCodeEmail(user.email, user.name, verificationCode)
+      .then(success => {
+        if (success) {
+          console.log('✅ Código reenviado a', user.email);
+        } else {
+          console.warn('⚠️  No se pudo reenviar código');
+        }
+      })
+      .catch(err => console.error('❌ Error reenviando código:', err));
 
   } catch (err) {
     console.error('Error al reenviar código:', err);
@@ -257,7 +247,8 @@ export async function verifyEmail(req, res) {
       email_verification_expires: null
     });
 
-    await emailService.sendWelcomeEmail(user.email, user.name);
+    emailService.sendWelcomeEmail(user.email, user.name)
+      .catch(err => console.error('Error email bienvenida:', err));
 
     res.json({ 
       message: 'Email verificado correctamente. Tu cuenta ha sido activada.'
@@ -307,18 +298,12 @@ export async function resendVerificationEmail(req, res) {
       email_verification_expires: verificationExpires
     });
 
-    const emailSent = await emailService.sendVerificationEmail(email, user.name, verificationToken);
-    
-    if (!emailSent) {
-      return res.status(500).json({ 
-        message: 'Error al enviar email de verificación',
-        errors: ['Error al enviar email de verificación']
-      });
-    }
-
     res.json({ 
       message: 'Email de verificación reenviado correctamente'
     });
+
+    emailService.sendVerificationEmail(email, user.name, verificationToken)
+      .catch(err => console.error('Error reenviando email:', err));
 
   } catch (err) {
     console.error('Error al reenviar email de verificación:', err);
@@ -354,7 +339,7 @@ export async function login(req, res) {
         message: 'Tu cuenta no ha sido verificada. Revisa tu email.',
         errors: ['Cuenta no verificada'],
         requiresVerification: true,
-        userId: user.id  // Enviar userId para poder reenviar código
+        userId: user.id
       });
     }
 
@@ -400,25 +385,19 @@ export async function requestPasswordReset(req, res) {
     }
 
     const resetToken = emailService.generatePasswordResetToken();
-    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000);
 
     await user.update({
       password_reset_token: resetToken,
       password_reset_expires: resetExpires
     });
 
-    const emailSent = await emailService.sendPasswordResetEmail(email, user.name, resetToken);
-    
-    if (!emailSent) {
-      return res.status(500).json({ 
-        message: 'Error al enviar email de reset',
-        errors: ['Error al enviar email de reset']
-      });
-    }
-
     res.json({ 
       message: 'Si el email existe, recibirás un enlace para restablecer tu contraseña'
     });
+
+    emailService.sendPasswordResetEmail(email, user.name, resetToken)
+      .catch(err => console.error('Error email reset:', err));
 
   } catch (err) {
     console.error('Error en solicitud de reset de contraseña:', err);
