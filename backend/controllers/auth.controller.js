@@ -7,7 +7,7 @@ export async function register(req, res) {
   try {
     const { name, email, password, confirmPassword, acceptTerms } = req.body;
 
-    // Validaciones adicionales del servidor
+    // Validaciones
     if (!name || !email || !password || !confirmPassword) {
       return res.status(400).json({ 
         message: 'Todos los campos son requeridos',
@@ -38,63 +38,183 @@ export async function register(req, res) {
       });
     }
 
-    // Generar token de verificación
-    const verificationToken = emailService.generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+    // Generar código de verificación de 6 dígitos
+    const verificationCode = emailService.generateVerificationCode();
+    const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
 
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Crear usuario con estado pendiente
+    // Crear usuario (sin verificar)
     const user = await User.create({ 
       name, 
       email, 
       password: hashedPassword, 
       preferences: {},
-      email_verification_token: verificationToken,
-      email_verification_expires: verificationExpires
+      email_verified: false,
+      verification_code: verificationCode,
+      verification_code_expires: codeExpiresAt
     });
 
-    // Enviar email de verificación
-    const emailSent = await emailService.sendVerificationEmail(email, name, verificationToken);
+    // Enviar email con código
+    const emailSent = await emailService.sendVerificationCodeEmail(email, name, verificationCode);
     
-    // Si no se puede enviar email, activar la cuenta directamente (modo desarrollo)
     if (!emailSent) {
       console.warn('⚠️  No se pudo enviar email de verificación. Activando cuenta directamente...');
       
-      // Activar cuenta directamente
+      // Activar cuenta directamente (modo desarrollo)
       await user.update({
         email_verified: true,
-        email_verification_token: null,
-        email_verification_expires: null
+        verification_code: null,
+        verification_code_expires: null
       });
 
-      res.status(201).json({ 
-        message: 'Usuario registrado correctamente. Cuenta activada automáticamente (modo desarrollo).',
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          email_verified: true
-        }
+      return res.status(201).json({ 
+        message: 'Usuario registrado. Cuenta activada automáticamente (modo desarrollo).',
+        userId: user.id,
+        autoVerified: true
       });
-      return;
     }
 
     res.status(201).json({ 
-      message: 'Usuario registrado correctamente. Revisa tu email para verificar tu cuenta.',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        email_verified: user.email_verified
-      }
+      message: 'Usuario registrado. Revisa tu email para el código de verificación.',
+      userId: user.id
     });
 
   } catch (err) {
     console.error('Error en registro:', err);
     res.status(500).json({ 
       message: 'Error al registrar usuario', 
+      errors: ['Error interno del servidor']
+    });
+  }
+}
+
+// Nueva función: Verificar código
+export async function verifyCode(req, res) {
+  try {
+    const { userId, code } = req.body;
+
+    if (!userId || !code) {
+      return res.status(400).json({ 
+        message: 'Faltan datos de verificación',
+        errors: ['Proporciona el código de verificación']
+      });
+    }
+
+    // Buscar usuario
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ 
+        message: 'Usuario no encontrado',
+        errors: ['Usuario no encontrado']
+      });
+    }
+
+    if (user.email_verified) {
+      return res.status(400).json({ 
+        message: 'Este usuario ya está verificado',
+        errors: ['Ya estás verificado']
+      });
+    }
+
+    // Verificar código
+    if (user.verification_code !== code) {
+      return res.status(400).json({ 
+        message: 'Código inválido',
+        errors: ['El código ingresado es incorrecto']
+      });
+    }
+
+    // Verificar expiración
+    if (new Date() > user.verification_code_expires) {
+      return res.status(400).json({ 
+        message: 'El código ha expirado',
+        errors: ['Solicita un nuevo código']
+      });
+    }
+
+    // Activar cuenta
+    await user.update({
+      email_verified: true,
+      verification_code: null,
+      verification_code_expires: null
+    });
+
+    // Enviar email de bienvenida
+    await emailService.sendWelcomeEmail(user.email, user.name);
+
+    res.json({ 
+      message: 'Cuenta verificada exitosamente'
+    });
+
+  } catch (err) {
+    console.error('Error en verificación:', err);
+    res.status(500).json({ 
+      message: 'Error al verificar código', 
+      errors: ['Error interno del servidor']
+    });
+  }
+}
+
+// Reenviar código
+export async function resendCode(req, res) {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ 
+        message: 'Falta ID de usuario',
+        errors: ['ID de usuario requerido']
+      });
+    }
+
+    // Buscar usuario
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ 
+        message: 'Usuario no encontrado',
+        errors: ['Usuario no encontrado']
+      });
+    }
+
+    if (user.email_verified) {
+      return res.status(400).json({ 
+        message: 'Este usuario ya está verificado',
+        errors: ['Ya estás verificado']
+      });
+    }
+
+    // Generar nuevo código
+    const verificationCode = emailService.generateVerificationCode();
+    const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Actualizar código
+    await user.update({
+      verification_code: verificationCode,
+      verification_code_expires: codeExpiresAt
+    });
+
+    // Enviar email
+    const emailSent = await emailService.sendVerificationCodeEmail(user.email, user.name, verificationCode);
+    
+    if (!emailSent) {
+      return res.status(500).json({ 
+        message: 'Error al enviar código',
+        errors: ['No se pudo enviar el email']
+      });
+    }
+
+    res.json({ 
+      message: 'Código reenviado exitosamente'
+    });
+
+  } catch (err) {
+    console.error('Error al reenviar código:', err);
+    res.status(500).json({ 
+      message: 'Error al reenviar código', 
       errors: ['Error interno del servidor']
     });
   }
@@ -111,11 +231,9 @@ export async function verifyEmail(req, res) {
       });
     }
 
-    // Buscar usuario con el token
     const user = await User.findOne({ 
       where: { 
-        email_verification_token: token,
-        account_status: 'pending'
+        email_verification_token: token
       } 
     });
 
@@ -126,7 +244,6 @@ export async function verifyEmail(req, res) {
       });
     }
 
-    // Verificar si el token no ha expirado
     if (new Date() > user.email_verification_expires) {
       return res.status(400).json({ 
         message: 'Token de verificación expirado',
@@ -134,25 +251,16 @@ export async function verifyEmail(req, res) {
       });
     }
 
-    // Activar cuenta
     await user.update({
       email_verified: true,
       email_verification_token: null,
-      email_verification_expires: null,
-      account_status: 'active'
+      email_verification_expires: null
     });
 
-    // Enviar email de bienvenida
     await emailService.sendWelcomeEmail(user.email, user.name);
 
     res.json({ 
-      message: 'Email verificado correctamente. Tu cuenta ha sido activada.',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        account_status: user.account_status
-      }
+      message: 'Email verificado correctamente. Tu cuenta ha sido activada.'
     });
 
   } catch (err) {
@@ -175,7 +283,6 @@ export async function resendVerificationEmail(req, res) {
       });
     }
 
-    // Buscar usuario
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
@@ -192,17 +299,14 @@ export async function resendVerificationEmail(req, res) {
       });
     }
 
-    // Generar nuevo token
     const verificationToken = emailService.generateVerificationToken();
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // Actualizar token
     await user.update({
       email_verification_token: verificationToken,
       email_verification_expires: verificationExpires
     });
 
-    // Enviar nuevo email
     const emailSent = await emailService.sendVerificationEmail(email, user.name, verificationToken);
     
     if (!emailSent) {
@@ -229,7 +333,6 @@ export async function login(req, res) {
   try {
     const { email, password } = req.body;
 
-    // Buscar usuario
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ 
@@ -238,7 +341,6 @@ export async function login(req, res) {
       });
     }
 
-    // Verificar contraseña
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.status(401).json({ 
@@ -247,16 +349,15 @@ export async function login(req, res) {
       });
     }
 
-    // Verificar si la cuenta está activa
     if (!user.email_verified) {
       return res.status(403).json({ 
-        message: 'Tu cuenta no ha sido verificada. Revisa tu email o solicita un nuevo enlace de verificación.',
+        message: 'Tu cuenta no ha sido verificada. Revisa tu email.',
         errors: ['Cuenta no verificada'],
-        requiresVerification: true
+        requiresVerification: true,
+        userId: user.id  // Enviar userId para poder reenviar código
       });
     }
 
-    // Generar token JWT
     const token = jwt.sign(
       { 
         id: user.id, 
@@ -291,26 +392,21 @@ export async function requestPasswordReset(req, res) {
   try {
     const { email } = req.body;
 
-    // Buscar usuario
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      // Por seguridad, no revelar si el email existe o no
       return res.json({ 
         message: 'Si el email existe, recibirás un enlace para restablecer tu contraseña'
       });
     }
 
-    // Generar token de reset
     const resetToken = emailService.generatePasswordResetToken();
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
-    // Actualizar usuario
     await user.update({
       password_reset_token: resetToken,
       password_reset_expires: resetExpires
     });
 
-    // Enviar email
     const emailSent = await emailService.sendPasswordResetEmail(email, user.name, resetToken);
     
     if (!emailSent) {
@@ -351,11 +447,9 @@ export async function resetPassword(req, res) {
       });
     }
 
-    // Buscar usuario con el token
     const user = await User.findOne({ 
       where: { 
-        password_reset_token: token,
-        account_status: 'active'
+        password_reset_token: token
       } 
     });
 
@@ -366,7 +460,6 @@ export async function resetPassword(req, res) {
       });
     }
 
-    // Verificar si el token no ha expirado
     if (new Date() > user.password_reset_expires) {
       return res.status(400).json({ 
         message: 'Token de reset expirado',
@@ -374,10 +467,8 @@ export async function resetPassword(req, res) {
       });
     }
 
-    // Hashear nueva contraseña
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Actualizar contraseña y limpiar token
     await user.update({
       password: hashedPassword,
       password_reset_token: null,

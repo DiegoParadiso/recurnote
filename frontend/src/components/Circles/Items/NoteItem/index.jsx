@@ -422,8 +422,6 @@ export default function NoteItem({
     textarea.style.overflowY = 'hidden';
   }, [width]);
 
-
-
   // Limpiar timeouts cuando se desmonte el componente
   useEffect(() => {
     return () => {
@@ -512,71 +510,76 @@ export default function NoteItem({
           }}
         >
           <div className="noteitem-draghandle">
-          <div className="noteitem-dot"></div>
-          <div className="noteitem-dot"></div>
-          <div className="noteitem-dot"></div>
-        </div>
-        <textarea
-          ref={textareaRef}
-          className="noteitem-textarea"
-          value={content}
-          onChange={handleTextChange}
-          onDoubleClick={(e) => {
-            // En móviles no usar doble click
-            if (isMobile) return;
-            
-            // Solo permitir edición con doble click si no se está arrastrando
-            if (!isDragging && !wasDraggingRef.current) {
-              startEditing();
-              setTimeout(() => {
-                e.target.focus();
-              }, 0);
-            }
-          }}
-          onFocus={(e) => {
-            if (isMobile) {
-              startEditing();
-              return;
-            }
-            
-            // En desktop - prevenir focus directo, solo por doble click
-            if (!isEditing) {
-              e.target.blur();
-            }
-          }}
-          onMouseDown={(e) => {
-            // En móviles no delegar drag
-            if (isMobile) return;
-            if (!isEditing) {
-              e.preventDefault();
-              const dragContainer = e.target.closest('[data-drag-container]');
-              if (dragContainer) {
-                const mouseEvent = new MouseEvent('mousedown', {
-                  bubbles: true,
-                  cancelable: true,
-                  clientX: e.clientX,
-                  clientY: e.clientY,
-                  button: e.button
-                });
-                dragContainer.dispatchEvent(mouseEvent);
+            <div className="noteitem-dot"></div>
+            <div className="noteitem-dot"></div>
+            <div className="noteitem-dot"></div>
+          </div>
+          <textarea
+            ref={textareaRef}
+            className="noteitem-textarea"
+            value={content}
+            onChange={handleTextChange}
+            onClick={(e) => {
+              // En móviles: un click activa edición
+              if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
+                startEditing();
+                setTimeout(() => {
+                  e.target.focus();
+                }, 0);
               }
-            }
-          }}
-          onBlur={() => {
-            stopEditing();
-          }}
-          onKeyDown={handleTextareaKeyDown}
-          placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
-          readOnly={!isEditing}
-          style={{
-            cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
-            opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),
-            pointerEvents: isDragging ? 'none' : 'auto',
-            backgroundColor: isEditing ? 'var(--color-bg-secondary)' : 'transparent',
-            border: isEditing ? '1px solid var(--color-primary)' : '1px solid transparent',
-            resize: isEditing ? 'none' : 'none',
-          }}
-        />
+            }}
+            onDoubleClick={(e) => {
+              // En desktop: doble click activa edición
+              if (isMobile) return;
+              
+              if (!isDragging && !wasDraggingRef.current) {
+                startEditing();
+                setTimeout(() => {
+                  e.target.focus();
+                }, 0);
+              }
+            }}
+            onFocus={(e) => {
+              // En desktop - prevenir focus directo, solo por doble click
+              if (!isMobile && !isEditing) {
+                e.target.blur();
+              }
+            }}
+            onMouseDown={(e) => {
+              // En móviles no delegar drag al contenedor
+              if (isMobile) return;
+              
+              // En desktop: si no está editando, delegar el drag al contenedor
+              if (!isEditing) {
+                e.preventDefault();
+                const dragContainer = e.target.closest('[data-drag-container]');
+                if (dragContainer) {
+                  const mouseEvent = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    button: e.button
+                  });
+                  dragContainer.dispatchEvent(mouseEvent);
+                }
+              }
+            }}
+            onBlur={() => {
+              stopEditing();
+            }}
+            onKeyDown={handleTextareaKeyDown}
+            placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
+            readOnly={!isEditing}
+            style={{
+              cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
+              opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),
+              pointerEvents: isDragging ? 'none' : 'auto',
+              backgroundColor: isEditing ? 'var(--color-bg-secondary)' : 'transparent',
+              border: isEditing ? '1px solid var(--color-primary)' : '1px solid transparent',
+              resize: isEditing ? 'none' : 'none',
+            }}
+          />
         </div>
       </UnifiedContainer>
     </WithContextMenu>

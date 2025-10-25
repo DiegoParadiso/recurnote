@@ -19,7 +19,7 @@ export const User = sequelize.define('User', {
     type: DataTypes.STRING,
     unique: true,
     allowNull: false,
-    validate: { 
+    validate: {
       isEmail: true,
       notEmpty: true
     },
@@ -51,11 +51,29 @@ export const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: false,
   },
+  // Campos para verificación con código
+  verification_code: {
+    type: DataTypes.STRING(6),
+    allowNull: true,
+  },
+  verification_code_expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+
   email_verification_token: {
     type: DataTypes.STRING,
     allowNull: true,
   },
   email_verification_expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  password_reset_token: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  password_reset_expires: {
     type: DataTypes.DATE,
     allowNull: true,
   }

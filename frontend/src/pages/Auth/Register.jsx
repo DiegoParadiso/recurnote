@@ -13,6 +13,7 @@ export default function Register() {
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
   const isSmallScreen = window.innerWidth < 768;
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Estados del formulario
   const [formData, setFormData] = useState({
@@ -23,12 +24,18 @@ export default function Register() {
     acceptTerms: false
   });
 
+  // Estados de verificación
+  const [step, setStep] = useState('form'); // 'form', 'verification'
+  const [verificationCode, setVerificationCode] = useState('');
+  const [tempUserId, setTempUserId] = useState(null);
+
   // Estados de validación
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
 
   // Validaciones en tiempo real
   const validateField = (name, value) => {
@@ -114,6 +121,20 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Iniciar temporizador para reenvío
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   // Manejar envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -136,42 +157,132 @@ export default function Register() {
     setErrors({});
 
     try {
-      await register(
-        formData.name.trim(),
-        formData.email.trim(),
-        formData.password,
-        formData.confirmPassword,
-        formData.acceptTerms
-      );
-      
-      // Mostrar mensaje de éxito y redirigir
-      navigate('/login', { 
-        state: { 
-          message: 'Registro exitoso. Revisa tu email para verificar tu cuenta.' 
-        } 
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+          acceptTerms: formData.acceptTerms
+        }),
       });
-    } catch (err) {
-      // Manejar errores del servidor
-      if (err.errors && Array.isArray(err.errors)) {
-        const serverErrors = {};
-        err.errors.forEach(errorMsg => {
-          // Mapear errores del servidor a campos específicos
-          if (errorMsg.includes('nombre')) serverErrors.name = errorMsg;
-          else if (errorMsg.includes('email')) serverErrors.email = errorMsg;
-          else if (errorMsg.includes('contraseña')) serverErrors.password = errorMsg;
-          else if (errorMsg.includes('términos')) serverErrors.acceptTerms = errorMsg;
-          else serverErrors.general = errorMsg;
-        });
-        setErrors(serverErrors);
-      } else {
-        // Intentar mapear mensajes comunes
-        const msg = (err.message || '').toLowerCase();
-        let i18nKey = 'auth.registerError';
-        if (msg.includes('invalid') || msg.includes('exists') || msg.includes('existe')) {
-          i18nKey = 'auth.emailInvalid';
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Guardar ID temporal y cambiar a paso de verificación
+        setTempUserId(data.userId);
+        
+        // Si el email se activó automáticamente (modo desarrollo)
+        if (data.autoVerified) {
+          navigate('/login', { 
+            state: { 
+              message: 'Cuenta creada y activada automáticamente. Ya puedes iniciar sesión.' 
+            } 
+          });
+        } else {
+          // Modo normal: ir a verificación
+          setStep('verification');
+          startResendTimer();
         }
-        setErrors({ general: t(i18nKey) });
+      } else {
+        // Manejar errores del servidor
+        if (data.errors && Array.isArray(data.errors)) {
+          const serverErrors = {};
+          data.errors.forEach(errorMsg => {
+            if (errorMsg.includes('nombre')) serverErrors.name = errorMsg;
+            else if (errorMsg.includes('email')) serverErrors.email = errorMsg;
+            else if (errorMsg.includes('contraseña')) serverErrors.password = errorMsg;
+            else if (errorMsg.includes('términos')) serverErrors.acceptTerms = errorMsg;
+            else serverErrors.general = errorMsg;
+          });
+          setErrors(serverErrors);
+        } else {
+          setErrors({ general: data.message || t('auth.registerError') });
+        }
       }
+    } catch (err) {
+      setErrors({ general: t('auth.registerError') });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verificar código
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    
+    if (!verificationCode || verificationCode.length !== 6) {
+      setErrors({ verification: 'Ingresa un código válido de 6 dígitos' });
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/verify-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: tempUserId,
+          code: verificationCode
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Verificación exitosa
+        navigate('/login', { 
+          state: { 
+            message: 'Cuenta verificada exitosamente. Ya puedes iniciar sesión.' 
+          } 
+        });
+      } else {
+        setErrors({ verification: data.message || 'Código inválido' });
+      }
+    } catch (err) {
+      setErrors({ verification: 'Error de conexión. Intenta nuevamente.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reenviar código
+  const handleResendCode = async () => {
+    if (resendTimer > 0) return;
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/resend-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: tempUserId
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setErrors({ verification: '' });
+        startResendTimer();
+      } else {
+        setErrors({ verification: data.message || 'Error al reenviar código' });
+      }
+    } catch (err) {
+      setErrors({ verification: 'Error de conexión. Intenta nuevamente.' });
     } finally {
       setLoading(false);
     }
@@ -179,17 +290,117 @@ export default function Register() {
 
   // Verificar si el formulario es válido
   const isFormValid = () => {
-    // Verificar que todos los campos estén llenos
     const fieldsFilled = Object.values(formData).every(value => 
       typeof value === 'boolean' ? value : value.trim() !== ''
     );
-    
-    // Verificar que no haya errores activos
     const noActiveErrors = Object.values(errors).every(error => !error || error === '');
-    
     return fieldsFilled && noActiveErrors;
   };
 
+  // Vista de verificación de código
+  if (step === 'verification') {
+    return (
+      <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
+        <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
+
+        <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
+          <h2>Verifica tu email</h2>
+          <p className="verification-description">
+            Hemos enviado un código de 6 dígitos a <strong>{formData.email}</strong>
+          </p>
+          
+          <form onSubmit={handleVerifyCode}>
+            <div className="form-group">
+              <input
+                type="text"
+                placeholder="Código de verificación"
+                value={verificationCode}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setVerificationCode(value);
+                }}
+                maxLength={6}
+                className={errors.verification ? 'error' : ''}
+                style={{ 
+                  textAlign: 'center', 
+                  fontSize: '24px', 
+                  letterSpacing: '8px',
+                  fontWeight: 'bold'
+                }}
+                autoFocus
+                required
+              />
+              {errors.verification && (
+                <span className="error-message">{errors.verification}</span>
+              )}
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading || verificationCode.length !== 6}
+              className="submit-button"
+            >
+              {loading ? 'Verificando...' : 'Verificar código'}
+            </button>
+          </form>
+
+          <div className="auth-footer" style={{ marginTop: '20px' }}>
+            <p>
+              ¿No recibiste el código?{' '}
+              {resendTimer > 0 ? (
+                <span style={{ color: 'var(--color-text-secondary)' }}>
+                  Reenviar en {resendTimer}s
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={loading}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    padding: 0,
+                    font: 'inherit'
+                  }}
+                >
+                  Reenviar código
+                </button>
+              )}
+            </p>
+            <p style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setStep('form')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-text-secondary)',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: 0,
+                  font: 'inherit'
+                }}
+              >
+                ← Volver al registro
+              </button>
+            </p>
+          </div>
+        </div>
+
+        <BottomToast 
+          message={errors.general || ''} 
+          onClose={() => setErrors(prev => ({ ...prev, general: '' }))} 
+          duration={5000}
+          type="error"
+        />
+      </div>
+    );
+  }
+
+  // Vista del formulario de registro
   return (
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
@@ -210,6 +421,7 @@ export default function Register() {
               className={errors.name ? 'error' : ''}
               required
             />
+            {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
 
           {/* Email */}
@@ -221,9 +433,10 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               onBlur={() => handleBlur('email')}
-              className={errors.name ? 'error' : ''}
+              className={errors.email ? 'error' : ''}
               required
             />
+            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           {/* Contraseña */}
@@ -247,6 +460,7 @@ export default function Register() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            {errors.password && <span className="error-message">{errors.password}</span>}
             
             {/* Indicador de fortaleza de contraseña */}
             {formData.password && <PasswordStrength password={formData.password} />}
@@ -273,6 +487,7 @@ export default function Register() {
                 {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
           </div>
 
           {/* Términos y condiciones */}
@@ -299,8 +514,6 @@ export default function Register() {
             </label>
             {errors.acceptTerms && <span className="error-message">{errors.acceptTerms}</span>}
           </div>
-
-          {/* Error general se muestra solo en BottomToast */}
 
           {/* Botón de envío */}
           <button 
