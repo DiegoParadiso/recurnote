@@ -17,11 +17,23 @@ const app = express();
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true);
-    const allowed = ['http://localhost:5173', 'http://localhost:3000', 'https://recurnote.vercel.app'];
-    if (allowed.includes(origin) || origin.endsWith('.vercel.app')) return callback(null, true);
+    
+    const allowed = [
+      'http://localhost:5173', 
+      'http://localhost:3000', 
+      'https://recurnote.xyz',
+      'https://recurnote.onrender.com' 
+    ];
+    
+    if (allowed.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+      return callback(null, true);
+    }
+    
     return callback(new Error('No permitido por CORS'));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());

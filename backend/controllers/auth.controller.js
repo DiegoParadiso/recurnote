@@ -203,7 +203,7 @@ export async function resendCode(req, res) {
     if (!emailSent) {
       return res.status(500).json({ 
         message: 'Error al enviar código',
-        errors: ['No se pudo enviar el email']
+        errors: ['No se pudo enviar elf email']
       });
     }
 

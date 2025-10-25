@@ -51,6 +51,7 @@ export const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: false,
   },
+  
   // Campos para verificación con código
   verification_code: {
     type: DataTypes.STRING(6),
