@@ -8,8 +8,8 @@ import {
   resendVerificationEmail,
   requestPasswordReset,
   resetPassword,
-  verifyCode,      // Nueva función
-  resendCode       // Nueva función
+  verifyCode,
+  resendCode
 } from '../controllers/auth.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import {
@@ -25,16 +25,10 @@ const router = express.Router();
 // Rutas públicas
 router.post('/register', validateRegister, handleValidationErrors, register);
 router.post('/login', validateLogin, handleValidationErrors, login);
-
-// Nuevas rutas para verificación con código
 router.post('/verify-code', verifyCode);
 router.post('/resend-code', resendCode);
-
-// Rutas antiguas (mantener para compatibilidad)
 router.post('/verify-email/:token', verifyEmail);
 router.post('/resend-verification', resendVerificationEmail);
-
-// Rutas de reset de contraseña
 router.post('/request-password-reset', validatePasswordReset, handleValidationErrors, requestPasswordReset);
 router.post('/reset-password', validateNewPassword, handleValidationErrors, resetPassword);
 

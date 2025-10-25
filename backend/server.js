@@ -12,31 +12,31 @@ import crypto from 'crypto';
 
 dotenv.config();
 const app = express();
+
 // ==== CORS seguro ====
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      const allowed = [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'https://recurnote.xyz',
-        'https://recurnote.onrender.com',
-      ];
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
 
-      // Permitir sin origen (ej: Postman, backend interno)
-      if (!origin || allowed.includes(origin)) {
-        return callback(null, true);
-      }
+    const allowed = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://recurnote.xyz',
+      'https://recurnote.onrender.com'
+    ];
 
-      console.warn('CORS bloqueado para origen:', origin);
-      return callback(new Error('No permitido por CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
-app.options('*', cors());
+    if (allowed.includes(origin) || origin.endsWith('.onrender.com')) {
+      return callback(null, true);
+    }
+
+    console.warn('CORS bloqueado para origen:', origin);
+    return callback(new Error('No permitido por CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Passport GitHub
@@ -85,20 +85,12 @@ app.get('/auth/github/callback',
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    // Permitir inline script SOLO para esta respuesta
     res.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline'");
     res.send(`<script>window.opener.postMessage({ token: '${token}' }, '*'); window.close();</script>`);
   }
 );
 
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development'
-  });
-});
-
+// Rutas API
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 
