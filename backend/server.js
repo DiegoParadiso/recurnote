@@ -17,10 +17,9 @@ const app = express();
 // ==== CORS seguro ====
 app.use(cors({
   origin: function(origin, callback) {
-    // Log para depuración — revisa logs en Render o local
     console.log('CORS origin header:', origin);
 
-    // Permitir requests sin Origin (curl, servidores, algunas extensiones)
+    // Permitir requests sin Origin
     if (!origin) return callback(null, true);
 
     const allowed = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000,https://recurnote.xyz,https://recurnote.onrender.com')
@@ -32,6 +31,7 @@ app.use(cors({
     try {
       hostname = new URL(origin).hostname;
     } catch (e) {
+      // Ignorar error
     }
 
     const originAllowed = allowed.includes(origin)
@@ -45,7 +45,6 @@ app.use(cors({
     }
 
     console.warn('CORS bloqueado para origen:', origin);
-    // No lanzar un Error (500) — devolver false para que no se añadan headers CORS
     return callback(null, false);
   },
   credentials: true,
@@ -54,10 +53,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-// Passport GitHub
 app.use(passport.initialize());
 
+// Passport GitHub
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
@@ -121,41 +119,93 @@ passport.deserializeUser((id, done) => done(null, id));
 // Rutas GitHub
 app.get('/auth/github', passport.authenticate('github', { session: false }));
 
+app.get('/auth/github/callback',
+  passport.authenticate('github', { session: false, failureRedirect: '/login' }),
+  (req, res) => {
+    try {
+      const token = jwt.sign(
+        { id: req.user.id, email: req.user.email, email_verified: req.user.email_verified },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      const nonce = crypto.randomBytes(16).toString('hex');
+      const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+      
+      res.set(
+        'Content-Security-Policy',
+        `default-src 'none'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`
+      );
+      
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head><title>Autenticando...</title></head>
+          <body>
+            <script nonce="${nonce}">
+              try {
+                window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
+                window.close();
+              } catch(e) {
+                console.error('Error enviando token:', e);
+                document.body.innerHTML = '<p>Error de autenticación. Cierra esta ventana.</p>';
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (err) {
+      console.error('Error en callback de GitHub:', err);
+      res.status(500).send('Error de autenticación');
+    }
+  }
+);
+
 // Rutas Google
-app.get('/auth/google', passport.authenticate('google', { session: false, scope: ['profile', 'email'] }));
+app.get('/auth/google', passport.authenticate('google', { 
+  session: false, 
+  scope: ['profile', 'email'] 
+}));
 
 app.get('/auth/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
-    const token = jwt.sign(
-      { id: req.user.id, email: req.user.email, email_verified: req.user.email_verified },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-  // Generate a per-response nonce and only allow this inline script via the nonce
-  const nonce = crypto.randomBytes(16).toString('hex');
-  const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
-  res.set(
-    'Content-Security-Policy',
-    `default-src 'none'; script-src 'self' 'nonce-${nonce}' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`
-  );
-  res.send(`<script nonce="${nonce}">window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}'); window.close();</script>`);
-  }
-);
-
-app.get('/auth/github/callback',
-  passport.authenticate('github', { session: false, failureRedirect: '/login' }),
-  (req, res) => {
-    const token = jwt.sign(
-      { id: req.user.id, email: req.user.email, email_verified: req.user.email_verified },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-  // Generate a per-response nonce and only allow this inline script via the nonce
-  const nonce = crypto.randomBytes(16).toString('hex');
-  const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
-  res.set('Content-Security-Policy', `script-src 'self' 'nonce-${nonce}'`);
-  res.send(`<script nonce="${nonce}">window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}'); window.close();</script>`);
+    try {
+      const token = jwt.sign(
+        { id: req.user.id, email: req.user.email, email_verified: req.user.email_verified },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      const nonce = crypto.randomBytes(16).toString('hex');
+      const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+      
+      res.set(
+        'Content-Security-Policy',
+        `default-src 'none'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`
+      );
+      
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head><title>Autenticando...</title></head>
+          <body>
+            <script nonce="${nonce}">
+              try {
+                window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
+                window.close();
+              } catch(e) {
+                console.error('Error enviando token:', e);
+                document.body.innerHTML = '<p>Error de autenticación. Cierra esta ventana.</p>';
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (err) {
+      console.error('Error en callback de Google:', err);
+      res.status(500).send('Error de autenticación');
+    }
   }
 );
 
@@ -163,11 +213,35 @@ app.get('/auth/github/callback',
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 
+// Ruta de health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Manejo de rutas no encontradas
+app.use((req, res) => {
+  console.log('Ruta no encontrada:', req.method, req.path);
+  res.status(404).json({ 
+    message: 'Ruta no encontrada',
+    path: req.path,
+    method: req.method
+  });
+});
+
 // Conexión DB y servidor
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 connectDB().then(() => {
   const alter = process.env.NODE_ENV !== 'production';
   sequelize.sync(alter ? { alter: true } : undefined).then(() => {
-    app.listen(PORT, '0.0.0.0', () => console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`));
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`);
+      console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+      console.log(`Callback URLs configuradas:`);
+      console.log(`  - GitHub: ${process.env.GITHUB_CALLBACK_URL}`);
+      console.log(`  - Google: ${process.env.GOOGLE_CALLBACK_URL}`);
+    });
   });
+}).catch(err => {
+  console.error('Error al conectar con la base de datos:', err);
+  process.exit(1);
 });

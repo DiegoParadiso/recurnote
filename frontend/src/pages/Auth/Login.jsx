@@ -1,4 +1,4 @@
-import { useState, useContext, useRef } from 'react';
+import { useState, useContext, useRef, useEffect } from 'react';
 import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
@@ -23,12 +23,30 @@ export default function Login() {
 
   const successMessage = location.state?.message;
 
+  const githubLoginWindow = useRef(null);
+  const googleLoginWindow = useRef(null);
+
+  // Obtener la URL del backend desde las variables de entorno
+  const getBackendUrl = () => {
+    return import.meta.env.VITE_API_URL || 'http://localhost:5002';
+  };
+
+  // Cleanup al desmontar
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('message', handleGitHubToken);
+      window.removeEventListener('message', handleGoogleToken);
+      if (githubLoginWindow.current) githubLoginWindow.current.close();
+      if (googleLoginWindow.current) googleLoginWindow.current.close();
+    };
+  }, []);
+
   // Validaciones
   const validateField = (name, value) => {
     switch (name) {
       case 'email':
         if (!value.trim()) return t('auth.emailRequired');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('auth.emailInvalid');
         return '';
       case 'password':
         if (!value) return t('auth.passwordRequired');
@@ -75,8 +93,12 @@ export default function Login() {
     } catch (err) {
       const msg = (err.message || '').toLowerCase();
       let i18nKey = 'auth.loginError';
-      if (msg.includes('invalid') || msg.includes('credencial') || msg.includes('contraseña')) i18nKey = 'auth.invalidCredentials';
-      if (msg.includes('verify') || msg.includes('verific')) i18nKey = 'auth.emailNotVerified';
+      if (msg.includes('invalid') || msg.includes('credencial') || msg.includes('contraseña')) {
+        i18nKey = 'auth.invalidCredentials';
+      }
+      if (msg.includes('verify') || msg.includes('verific')) {
+        i18nKey = 'auth.emailNotVerified';
+      }
       setErrors({ general: t(i18nKey) });
     } finally {
       setLoading(false);
@@ -90,44 +112,122 @@ export default function Login() {
   };
 
   // Login con GitHub
-  const githubLoginWindow = useRef(null);
-  const googleLoginWindow = useRef(null);
-
   const handleGitHubLogin = () => {
-  const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-    const authUrl = `${backendUrl}/auth/github`;
-    githubLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
-    window.addEventListener('message', handleGitHubToken, false);
+    try {
+      const backendUrl = getBackendUrl();
+      const authUrl = `${backendUrl}/auth/github`;
+      
+      console.log('Abriendo ventana de autenticación GitHub:', authUrl);
+      
+      githubLoginWindow.current = window.open(
+        authUrl, 
+        'github-auth', 
+        'width=500,height=700,left=100,top=100'
+      );
+      
+      if (!githubLoginWindow.current) {
+        setErrors({ general: t('auth.popupBlocked') || 'Permitir ventanas emergentes' });
+        return;
+      }
+      
+      window.addEventListener('message', handleGitHubToken, false);
+    } catch (err) {
+      console.error('Error abriendo GitHub OAuth:', err);
+      setErrors({ general: t('auth.githubAuthError') || 'Error al iniciar sesión con GitHub' });
+    }
   };
 
+  // Login con Google
   const handleGoogleLogin = () => {
-  const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-    const authUrl = `${backendUrl}/auth/google`;
-    googleLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
-    window.addEventListener('message', handleGoogleToken, false);
+    try {
+      const backendUrl = getBackendUrl();
+      const authUrl = `${backendUrl}/auth/google`;
+      
+      console.log('Abriendo ventana de autenticación Google:', authUrl);
+      
+      googleLoginWindow.current = window.open(
+        authUrl, 
+        'google-auth', 
+        'width=500,height=700,left=100,top=100'
+      );
+      
+      if (!googleLoginWindow.current) {
+        setErrors({ general: t('auth.popupBlocked') || 'Permitir ventanas emergentes' });
+        return;
+      }
+      
+      window.addEventListener('message', handleGoogleToken, false);
+    } catch (err) {
+      console.error('Error abriendo Google OAuth:', err);
+      setErrors({ general: t('auth.googleAuthError') || 'Error al iniciar sesión con Google' });
+    }
   };
 
   const handleGitHubToken = (event) => {
-    if (!event.data || !event.data.token) return;
+    // Verificar que el mensaje viene de nuestro backend
+    const backendUrl = getBackendUrl();
+    const allowedOrigins = [
+      backendUrl,
+      'https://recurnote.onrender.com',
+      'http://localhost:5002',
+      'http://localhost:5001'
+    ];
+    
+    if (!allowedOrigins.some(origin => event.origin === origin)) {
+      console.warn('Mensaje recibido de origen no confiable:', event.origin);
+      return;
+    }
+
+    if (!event.data || !event.data.token) {
+      console.log('Mensaje sin token recibido');
+      return;
+    }
+
     try {
+      console.log('Token de GitHub recibido correctamente');
       localStorage.setItem('token', event.data.token);
       window.removeEventListener('message', handleGitHubToken);
-      if (githubLoginWindow.current) githubLoginWindow.current.close();
+      if (githubLoginWindow.current) {
+        githubLoginWindow.current.close();
+      }
       window.location.href = '/';
-    } catch {
-      setErrors(prev => ({ ...prev, general: t('auth.githubAuthError') }));
+    } catch (err) {
+      console.error('Error procesando token de GitHub:', err);
+      setErrors({ general: t('auth.githubAuthError') || 'Error al procesar autenticación' });
     }
   };
 
   const handleGoogleToken = (event) => {
-    if (!event.data || !event.data.token) return;
+    // Verificar que el mensaje viene de nuestro backend
+    const backendUrl = getBackendUrl();
+    const allowedOrigins = [
+      backendUrl,
+      'https://recurnote.onrender.com',
+      'http://localhost:5002',
+      'http://localhost:5001'
+    ];
+    
+    if (!allowedOrigins.some(origin => event.origin === origin)) {
+      console.warn('Mensaje recibido de origen no confiable:', event.origin);
+      return;
+    }
+
+    if (!event.data || !event.data.token) {
+      console.log('Mensaje sin token recibido');
+      return;
+    }
+
     try {
+      console.log('Token de Google recibido correctamente');
       localStorage.setItem('token', event.data.token);
       window.removeEventListener('message', handleGoogleToken);
-      if (googleLoginWindow.current) googleLoginWindow.current.close();
+      if (googleLoginWindow.current) {
+        googleLoginWindow.current.close();
+      }
       window.location.href = '/';
-    } catch {
-      setErrors(prev => ({ ...prev, general: t('auth.googleAuthError') }));
+    } catch (err) {
+      console.error('Error procesando token de Google:', err);
+      setErrors({ general: t('auth.googleAuthError') || 'Error al procesar autenticación' });
     }
   };
 
@@ -136,7 +236,6 @@ export default function Login() {
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-        {/* Header con icono */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
             width: '64px',
@@ -154,7 +253,7 @@ export default function Login() {
           <h2>{t('auth.loginTitle')}</h2>
         </div>
 
-  {/* Botón de Google */}
+        {/* Botón de Google */}
         <button 
           type="button" 
           className="google-login"
@@ -215,6 +314,8 @@ export default function Login() {
             fontWeight: '500',
             cursor: 'pointer',
             transition: 'var(--transition-all)',
+            padding: '10px 0',
+            gap: '8px'
           }}
           onMouseEnter={(e) => {
             e.target.style.borderColor = 'var(--color-highlight)';
@@ -446,7 +547,6 @@ export default function Login() {
         type="error" 
       />
 
-      {/* Agregar keyframes para la animación de carga */}
       <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
