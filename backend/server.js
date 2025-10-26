@@ -27,12 +27,10 @@ app.use(cors({
       .map(s => s.trim())
       .filter(Boolean);
 
-    // Extraer hostname para comprobar dominios y subdominios (evita problemas con protocolos/puertos)
     let hostname = origin;
     try {
       hostname = new URL(origin).hostname;
     } catch (e) {
-      // si no es una URL válida, seguir usando origin tal cual
     }
 
     const originAllowed = allowed.includes(origin)

@@ -56,23 +56,23 @@ export async function register(req, res) {
       verification_code_expires: codeExpiresAt
     });
 
-    // ✅ RESPONDER INMEDIATAMENTE
+    // respuesta inmediata
     res.status(201).json({ 
       message: 'Usuario registrado. Revisa tu email para el código de verificación.',
       userId: user.id
     });
 
-    // 🔥 ENVIAR EMAIL EN SEGUNDO PLANO (sin await)
+    // email en 2do plano (sin await)
     emailService.sendVerificationCodeEmail(email, name, verificationCode)
       .then(success => {
         if (success) {
-          console.log('✅ Email de verificación enviado a', email);
+          console.log('Email de verificación enviado a', email);
         } else {
-          console.warn('⚠️  No se pudo enviar email a', email);
+          console.warn('No se pudo enviar email a', email);
         }
       })
       .catch(err => {
-        console.error('❌ Error enviando email:', err);
+        console.error('Error enviando email:', err);
       });
 
   } catch (err) {
@@ -133,8 +133,8 @@ export async function verifyCode(req, res) {
 
     // Enviar email de bienvenida en segundo plano
     emailService.sendWelcomeEmail(user.email, user.name)
-      .then(() => console.log('✅ Email de bienvenida enviado'))
-      .catch(err => console.error('❌ Error email bienvenida:', err));
+      .then(() => console.log('Email de bienvenida enviado'))
+      .catch(err => console.error('Error email bienvenida:', err));
 
     res.json({ 
       message: 'Cuenta verificada exitosamente'
@@ -176,7 +176,7 @@ export async function resendCode(req, res) {
       });
     }
 
-    // Generar nuevo código
+    // generar nuevo código
     const verificationCode = emailService.generateVerificationCode();
     const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -185,21 +185,21 @@ export async function resendCode(req, res) {
       verification_code_expires: codeExpiresAt
     });
 
-    // ✅ RESPONDER INMEDIATAMENTE
+    // repspuesta inmediata
     res.json({ 
       message: 'Código reenviado exitosamente'
     });
 
-    // 🔥 ENVIAR EMAIL EN SEGUNDO PLANO
+    // Email en 2do plano
     emailService.sendVerificationCodeEmail(user.email, user.name, verificationCode)
       .then(success => {
         if (success) {
-          console.log('✅ Código reenviado a', user.email);
+          console.log('Código reenviado a', user.email);
         } else {
-          console.warn('⚠️  No se pudo reenviar código');
+          console.warn('No se pudo reenviar código');
         }
       })
-      .catch(err => console.error('❌ Error reenviando código:', err));
+      .catch(err => console.error('Error reenviando código:', err));
 
   } catch (err) {
     console.error('Error al reenviar código:', err);
@@ -470,6 +470,11 @@ export async function resetPassword(req, res) {
 export async function getMe(req, res) {
   try {
     const user = req.user;
+    if (!user) {
+      console.warn('getMe: req.user ausente - token posiblemente inválido o usuario eliminado');
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+
     res.json({ 
       id: user.id, 
       name: user.name, 
