@@ -180,9 +180,11 @@ const es = {
     and: 'y la',
     privacy: 'política de privacidad',
     loginWithGitHub: 'Iniciar sesión con GitHub',
+    loginWithGmail: 'Iniciar sesión con Gmail',
     githubAuthError: 'No se pudo iniciar sesión con GitHub. Intenta de nuevo.',
-  invalidCredentials: 'Email o contraseña inválidos',
-  emailNotVerified: 'Tu email no ha sido verificado. Revisa tu bandeja de entrada para el código o enlace de verificación.',
+    gmailAuthError: 'No se pudo iniciar sesión con Gmail. Intenta de nuevo.',
+    invalidCredentials: 'Email o contraseña inválidos',
+    emailNotVerified: 'Tu email no ha sido verificado. Revisa tu bandeja de entrada para el código o enlace de verificación.',
   },
   legal: {
     terms: {
@@ -237,9 +239,94 @@ const es = {
       },
       contact: {
         title: 'Contacto',
-        body: 'Si tienes preguntas sobre estos términos, contáctanos a través de:',
-        email: 'Email: legal@recurnote.com',
-        form: 'Formulario de contacto en la aplicación'
+        body: 'Si tienes preguntas sobre estos términos, contáctanos a través del email: recurnote@gmail.com',
+      }
+    },
+    privacy: {
+      title: 'Política de Privacidad',
+      lastUpdated: 'Última actualización',
+      backToRegister: 'Volver al registro',
+      infoCollected: {
+        title: 'Información que Recopilamos',
+        body: 'Recopilamos la siguiente información cuando utilizas RecurNote:',
+        items: [
+          { label: 'Información de cuenta:', value: 'nombre, email y contraseña' },
+          { label: 'Datos de uso:', value: 'cómo interactúas con la aplicación' },
+          { label: 'Contenido:', value: 'notas, tareas y preferencias que creas' },
+          { label: 'Información técnica:', value: 'tipo de dispositivo, navegador y sistema operativo' }
+        ]
+      },
+      howWeUse: {
+        title: 'Cómo Usamos tu Información',
+        body: 'Utilizamos tu información para:',
+        items: [
+          'Proporcionar y mantener el servicio de RecurNote',
+          'Personalizar tu experiencia y mostrar contenido relevante',
+          'Comunicarnos contigo sobre actualizaciones y cambios',
+          'Mejorar nuestros servicios y desarrollar nuevas funcionalidades',
+          'Garantizar la seguridad y prevenir fraudes'
+        ]
+      },
+      sharing: {
+        title: 'Compartir tu Información',
+        body: 'No vendemos, alquilamos ni compartimos tu información personal con terceros, excepto:',
+        items: [
+          'Con tu consentimiento explícito',
+          'Para cumplir con obligaciones legales',
+          'Con proveedores de servicios que nos ayudan a operar (con garantías de privacidad)',
+          'Para proteger nuestros derechos y la seguridad de otros usuarios'
+        ]
+      },
+      dataSecurity: {
+        title: 'Seguridad de Datos',
+        body: 'Implementamos medidas de seguridad técnicas y organizativas para proteger tu información:',
+        items: [
+          'Encriptación de datos en tránsito y en reposo',
+          'Acceso restringido a información personal',
+          'Monitoreo regular de seguridad',
+          'Copias de seguridad seguras'
+        ]
+      },
+      dataStorage: {
+        title: 'Almacenamiento de Datos',
+        body: 'Tus datos se almacenan en servidores seguros ubicados en centros de datos confiables. Retenemos tu información mientras mantengas una cuenta activa o según sea necesario para proporcionar servicios.'
+      },
+      yourRights: {
+        title: 'Tus Derechos',
+        body: 'Tienes derecho a:',
+        items: [
+          'Acceder a tu información personal',
+          'Corregir información inexacta',
+          'Solicitar la eliminación de tu cuenta',
+          'Exportar tus datos',
+          'Retirar el consentimiento en cualquier momento'
+        ]
+      },
+      cookies: {
+        title: 'Cookies y Tecnologías Similares',
+        body: 'Utilizamos cookies y tecnologías similares para:',
+        items: [
+          'Recordar tus preferencias y configuraciones',
+          'Analizar el uso de la aplicación',
+          'Mejorar la funcionalidad y rendimiento',
+          'Proporcionar contenido personalizado'
+        ]
+      },
+      minors: {
+        title: 'Menores de Edad',
+        body: 'RecurNote no está dirigido a menores de 13 años. No recopilamos intencionalmente información personal de menores de 13 años. Si eres padre o tutor y crees que tu hijo nos ha proporcionado información personal, contáctanos inmediatamente.'
+      },
+      international: {
+        title: 'Transferencias Internacionales',
+        body: 'Tu información puede ser transferida y procesada en países diferentes al tuyo. Nos aseguramos de que estas transferencias cumplan con las leyes de protección de datos aplicables.'
+      },
+      changes: {
+        title: 'Cambios en esta Política',
+        body: 'Podemos actualizar esta política de privacidad ocasionalmente. Te notificaremos sobre cambios significativos por email o a través de la aplicación. Te recomendamos revisar esta política regularmente.'
+      },
+      contact: {
+        title: 'Contacto',
+        body: 'Si tienes preguntas sobre esta política de privacidad o sobre cómo manejamos tu información, puedes contactarnos a través de: recurnote@gmail.com',
       }
     }
   },
@@ -272,5 +359,3 @@ const es = {
 };
 
 export default es;
-
-

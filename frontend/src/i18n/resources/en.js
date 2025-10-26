@@ -180,9 +180,11 @@ const en = {
     and: 'and the',
     privacy: 'privacy policy',
     loginWithGitHub: 'Log in with GitHub',
+    loginWithGmail: 'Log in with Gmail',
     githubAuthError: 'Could not log in with GitHub. Please try again.',
-  invalidCredentials: 'Invalid email or password',
-  emailNotVerified: 'Your account email is not verified. Check your inbox for a verification code or link.',
+    gmailAuthError: 'Could not log in with Gmail. Please try again.',
+    invalidCredentials: 'Invalid email or password',
+    emailNotVerified: 'Your account email is not verified. Check your inbox for a verification code or link.',
   },
   legal: {
     terms: {
@@ -206,7 +208,7 @@ const en = {
         body: 'You agree to use RecurNote only for lawful purposes and in accordance with these terms. You must not:',
         items: [
           'Use the service for illegal or fraudulent activities',
-          'Attempt to access other users’ accounts',
+          'Attempt to access other users\' accounts',
           'Interfere with the operation of the service',
           'Share inappropriate or offensive content'
         ]
@@ -237,40 +239,123 @@ const en = {
       },
       contact: {
         title: 'Contact',
-        body: 'If you have questions about these terms, you can contact us via:',
-        email: 'Email: legal@recurnote.com',
-        form: 'Contact form in the app'
+        body: 'If you have questions about these terms, you can contact us via email: recurnote@gmail.com',
+      }
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      lastUpdated: 'Last updated',
+      backToRegister: 'Back to register',
+      infoCollected: {
+        title: 'Information We Collect',
+        body: 'We collect the following information when you use RecurNote:',
+        items: [
+          { label: 'Account information:', value: 'name, email and password' },
+          { label: 'Usage data:', value: 'how you interact with the application' },
+          { label: 'Content:', value: 'notes, tasks and preferences you create' },
+          { label: 'Technical information:', value: 'device type, browser and operating system' }
+        ]
+      },
+      howWeUse: {
+        title: 'How We Use Your Information',
+        body: 'We use your information to:',
+        items: [
+          'Provide and maintain RecurNote service',
+          'Personalize your experience and show relevant content',
+          'Communicate with you about updates and changes',
+          'Improve our services and develop new features',
+          'Ensure security and prevent fraud'
+        ]
+      },
+      sharing: {
+        title: 'Sharing Your Information',
+        body: 'We do not sell, rent or share your personal information with third parties, except:',
+        items: [
+          'With your explicit consent',
+          'To comply with legal obligations',
+          'With service providers who help us operate (with privacy guarantees)',
+          'To protect our rights and the safety of other users'
+        ]
+      },
+      dataSecurity: {
+        title: 'Data Security',
+        body: 'We implement technical and organizational security measures to protect your information:',
+        items: [
+          'Data encryption in transit and at rest',
+          'Restricted access to personal information',
+          'Regular security monitoring',
+          'Secure backups'
+        ]
+      },
+      dataStorage: {
+        title: 'Data Storage',
+        body: 'Your data is stored on secure servers located in trusted data centers. We retain your information while you maintain an active account or as necessary to provide services.'
+      },
+      yourRights: {
+        title: 'Your Rights',
+        body: 'You have the right to:',
+        items: [
+          'Access your personal information',
+          'Correct inaccurate information',
+          'Request deletion of your account',
+          'Export your data',
+          'Withdraw consent at any time'
+        ]
+      },
+      cookies: {
+        title: 'Cookies and Similar Technologies',
+        body: 'We use cookies and similar technologies to:',
+        items: [
+          'Remember your preferences and settings',
+          'Analyze application usage',
+          'Improve functionality and performance',
+          'Provide personalized content'
+        ]
+      },
+      minors: {
+        title: 'Minors',
+        body: 'RecurNote is not directed at children under 13. We do not intentionally collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, contact us immediately.'
+      },
+      international: {
+        title: 'International Transfers',
+        body: 'Your information may be transferred and processed in countries other than yours. We ensure that these transfers comply with applicable data protection laws.'
+      },
+      changes: {
+        title: 'Changes to this Policy',
+        body: 'We may update this privacy policy occasionally. We will notify you of significant changes by email or through the application. We recommend you review this policy regularly.'
+      },
+      contact: {
+        title: 'Contact',
+        body: 'If you have questions about this privacy policy, you can contact us: recurnote@gmail.com',
       }
     }
   },
-help: {
-  session: 'Manage your session options (login, logout, etc).',
-  appearance: 'Change themes, colors and circle background patterns.',
-  visualization: 'Choose what elements of time and layout are visible.',
-  language_region: 'Select your language, time zone and time format.',
-  accessibility: 'Adjust for better readability and motion reduction.',
-  data_management: 'Manage stored data, deletions and resets.',
-},
-alerts: {
-  selectDayFirst: 'To add an item, first select a day in the calendar',
-  itemDeleted: 'Item deleted successfully',
-  itemDeleteError: 'Error deleting the item',
-  selectDayFirstShort: 'Select a day first',
-  itemCreateError: 'Could not create the item',
-  fileTooLarge: 'The file exceeds the {{max}} MB limit',
-  localLimitReached: 'Limit reached. You can only have {{max}} items in local mode.',
-  confirmDelete: 'Delete this item?',
-  confirmDeleteMessage: 'This action cannot be undone.',
-},
-account: {
-  modePremium: 'Premium Mode',
-  modeUser: 'User Mode',
-  modeLocal: 'Local Mode',
-  remaining: '{{count}} items'
-},
-onExitSyncWarn: "There are unsynchronized changes. Leaving now will lose changes not yet saved to the cloud. Are you sure you want to leave?",
+  help: {
+    session: 'Manage your session options (login, logout, etc).',
+    appearance: 'Change themes, colors and circle background patterns.',
+    visualization: 'Choose what elements of time and layout are visible.',
+    language_region: 'Select your language, time zone and time format.',
+    accessibility: 'Adjust for better readability and motion reduction.',
+    data_management: 'Manage stored data, deletions and resets.',
+  },
+  alerts: {
+    selectDayFirst: 'To add an item, first select a day in the calendar',
+    itemDeleted: 'Item deleted successfully',
+    itemDeleteError: 'Error deleting the item',
+    selectDayFirstShort: 'Select a day first',
+    itemCreateError: 'Could not create the item',
+    fileTooLarge: 'The file exceeds the {{max}} MB limit',
+    localLimitReached: 'Limit reached. You can only have {{max}} items in local mode.',
+    confirmDelete: 'Delete this item?',
+    confirmDeleteMessage: 'This action cannot be undone.',
+  },
+  account: {
+    modePremium: 'Premium Mode',
+    modeUser: 'User Mode',
+    modeLocal: 'Local Mode',
+    remaining: '{{count}} items'
+  },
+  onExitSyncWarn: "There are unsynchronized changes. Leaving now will lose changes not yet saved to the cloud. Are you sure you want to leave?",
 };
 
-export default en;
-
-
+export default en
