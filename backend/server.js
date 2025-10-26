@@ -134,6 +134,7 @@ app.get('/auth/github/callback',
       
       res.set('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'; base-uri 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`);
       
+      // Attempt to postMessage to configured origin, try www/non-www variants as fallback
       res.send(`<!DOCTYPE html>
 <html>
 <head>
@@ -145,8 +146,44 @@ app.get('/auth/github/callback',
 <script nonce="${nonce}">
 try {
   if (window.opener && !window.opener.closed) {
-    window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
-    setTimeout(function() { window.close(); }, 100);
+    var token = '${token}';
+    var targets = [];
+    try { targets.push('${frontendOrigin}'); } catch(e){}
+    // Add www/non-www variants to cover both forms
+    try {
+      var url = new URL('${frontendOrigin}');
+      var host = url.hostname;
+      if (host.startsWith('www.')) {
+        targets.push(url.protocol + '//' + host.replace(/^www\./, ''));
+      } else {
+        targets.push(url.protocol + '//' + 'www.' + host);
+      }
+    } catch(e) {
+      // ignore
+    }
+
+    var posted = false;
+    for (var i = 0; i < targets.length; i++) {
+      try {
+        window.opener.postMessage({ token: token }, targets[i]);
+        posted = true;
+        break;
+      } catch (err) {
+        // try next
+      }
+    }
+
+    // As a last resort (not recommended), attempt wildcard postMessage if nothing else worked
+    if (!posted) {
+      try {
+        window.opener.postMessage({ token: token }, '*');
+        posted = true;
+      } catch (e) {
+        console.warn('No se pudo enviar postMessage al opener con las variantes de origen.');
+      }
+    }
+
+    setTimeout(function() { window.close(); }, 150);
   } else {
     document.body.innerHTML = '<p style="text-align: center; font-family: sans-serif;">Autenticación exitosa. Puedes cerrar esta ventana.</p>';
   }
@@ -185,6 +222,7 @@ app.get('/auth/google/callback',
       
       res.set('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'; base-uri 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`);
       
+      // Attempt to postMessage to configured origin, try www/non-www variants as fallback
       res.send(`<!DOCTYPE html>
 <html>
 <head>
@@ -196,8 +234,44 @@ app.get('/auth/google/callback',
 <script nonce="${nonce}">
 try {
   if (window.opener && !window.opener.closed) {
-    window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
-    setTimeout(function() { window.close(); }, 100);
+    var token = '${token}';
+    var targets = [];
+    try { targets.push('${frontendOrigin}'); } catch(e){}
+    // Add www/non-www variants to cover both forms
+    try {
+      var url = new URL('${frontendOrigin}');
+      var host = url.hostname;
+      if (host.startsWith('www.')) {
+        targets.push(url.protocol + '//' + host.replace(/^www\./, ''));
+      } else {
+        targets.push(url.protocol + '//' + 'www.' + host);
+      }
+    } catch(e) {
+      // ignore
+    }
+
+    var posted = false;
+    for (var i = 0; i < targets.length; i++) {
+      try {
+        window.opener.postMessage({ token: token }, targets[i]);
+        posted = true;
+        break;
+      } catch (err) {
+        // try next
+      }
+    }
+
+    // As a last resort (not recommended), attempt wildcard postMessage if nothing else worked
+    if (!posted) {
+      try {
+        window.opener.postMessage({ token: token }, '*');
+        posted = true;
+      } catch (e) {
+        console.warn('No se pudo enviar postMessage al opener con las variantes de origen.');
+      }
+    }
+
+    setTimeout(function() { window.close(); }, 150);
   } else {
     document.body.innerHTML = '<p style="text-align: center; font-family: sans-serif;">Autenticación exitosa. Puedes cerrar esta ventana.</p>';
   }
