@@ -132,28 +132,31 @@ app.get('/auth/github/callback',
       const nonce = crypto.randomBytes(16).toString('hex');
       const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
       
-      res.set(
-        'Content-Security-Policy',
-        `default-src 'none'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`
-      );
+      res.set('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'; base-uri 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`);
       
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-          <head><title>Autenticando...</title></head>
-          <body>
-            <script nonce="${nonce}">
-              try {
-                window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
-                window.close();
-              } catch(e) {
-                console.error('Error enviando token:', e);
-                document.body.innerHTML = '<p>Error de autenticación. Cierra esta ventana.</p>';
-              }
-            </script>
-          </body>
-        </html>
-      `);
+      res.send(`<!DOCTYPE html>
+<html>
+<head>
+<title>Autenticando...</title>
+<meta charset="UTF-8">
+</head>
+<body>
+<p style="text-align: center; font-family: sans-serif; margin-top: 50px;">Autenticando con GitHub...</p>
+<script nonce="${nonce}">
+try {
+  if (window.opener && !window.opener.closed) {
+    window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
+    setTimeout(function() { window.close(); }, 100);
+  } else {
+    document.body.innerHTML = '<p style="text-align: center; font-family: sans-serif;">Autenticación exitosa. Puedes cerrar esta ventana.</p>';
+  }
+} catch(e) {
+  console.error('Error:', e);
+  document.body.innerHTML = '<p style="text-align: center; font-family: sans-serif; color: red;">Error de autenticación. Cierra esta ventana.</p>';
+}
+</script>
+</body>
+</html>`);
     } catch (err) {
       console.error('Error en callback de GitHub:', err);
       res.status(500).send('Error de autenticación');
@@ -180,28 +183,31 @@ app.get('/auth/google/callback',
       const nonce = crypto.randomBytes(16).toString('hex');
       const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
       
-      res.set(
-        'Content-Security-Policy',
-        `default-src 'none'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`
-      );
+      res.set('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'; base-uri 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`);
       
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-          <head><title>Autenticando...</title></head>
-          <body>
-            <script nonce="${nonce}">
-              try {
-                window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
-                window.close();
-              } catch(e) {
-                console.error('Error enviando token:', e);
-                document.body.innerHTML = '<p>Error de autenticación. Cierra esta ventana.</p>';
-              }
-            </script>
-          </body>
-        </html>
-      `);
+      res.send(`<!DOCTYPE html>
+<html>
+<head>
+<title>Autenticando...</title>
+<meta charset="UTF-8">
+</head>
+<body>
+<p style="text-align: center; font-family: sans-serif; margin-top: 50px;">Autenticando con Google...</p>
+<script nonce="${nonce}">
+try {
+  if (window.opener && !window.opener.closed) {
+    window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}');
+    setTimeout(function() { window.close(); }, 100);
+  } else {
+    document.body.innerHTML = '<p style="text-align: center; font-family: sans-serif;">Autenticación exitosa. Puedes cerrar esta ventana.</p>';
+  }
+} catch(e) {
+  console.error('Error:', e);
+  document.body.innerHTML = '<p style="text-align: center; font-family: sans-serif; color: red;">Error de autenticación. Cierra esta ventana.</p>';
+}
+</script>
+</body>
+</html>`);
     } catch (err) {
       console.error('Error en callback de Google:', err);
       res.status(500).send('Error de autenticación');
