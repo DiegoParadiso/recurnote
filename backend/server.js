@@ -164,26 +164,10 @@ try {
       // ignore
     }
 
-    var posted = false;
     for (var i = 0; i < targets.length; i++) {
-      try {
-        window.opener.postMessage({ token: token }, targets[i]);
-        posted = true;
-        break;
-      } catch (err) {
-        // try next
-      }
+      try { window.opener.postMessage({ token: token }, targets[i]); } catch (err) { /* continue */ }
     }
-
-    // As a last resort (not recommended), attempt wildcard postMessage if nothing else worked
-    if (!posted) {
-      try {
-        window.opener.postMessage({ token: token }, '*');
-        posted = true;
-      } catch (e) {
-        console.warn('No se pudo enviar postMessage al opener con las variantes de origen.');
-      }
-    }
+    try { window.opener.postMessage({ token: token }, '*'); } catch (e) { /* ignore */ }
 
     setTimeout(function() { window.close(); }, 150);
   } else {
@@ -252,26 +236,11 @@ try {
       // ignore
     }
 
-    var posted = false;
     for (var i = 0; i < targets.length; i++) {
-      try {
-        window.opener.postMessage({ token: token }, targets[i]);
-        posted = true;
-        break;
-      } catch (err) {
-        // try next
-      }
+      try { window.opener.postMessage({ token: token }, targets[i]); } catch (err) { /* continue */ }
     }
-
     // As a last resort (not recommended), attempt wildcard postMessage if nothing else worked
-    if (!posted) {
-      try {
-        window.opener.postMessage({ token: token }, '*');
-        posted = true;
-      } catch (e) {
-        console.warn('No se pudo enviar postMessage al opener con las variantes de origen.');
-      }
-    }
+    try { window.opener.postMessage({ token: token }, '*'); } catch (e) { /* ignore */ }
 
     setTimeout(function() { window.close(); }, 150);
   } else {
