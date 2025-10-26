@@ -132,8 +132,14 @@ app.get('/auth/google/callback',
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    res.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline'");
-    res.send(`<script>window.opener.postMessage({ token: '${token}' }, '*'); window.close();</script>`);
+  // Generate a per-response nonce and only allow this inline script via the nonce
+  const nonce = crypto.randomBytes(16).toString('hex');
+  const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
+  res.set(
+    'Content-Security-Policy',
+    `default-src 'none'; script-src 'self' 'nonce-${nonce}' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`
+  );
+  res.send(`<script nonce="${nonce}">window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}'); window.close();</script>`);
   }
 );
 
@@ -145,8 +151,11 @@ app.get('/auth/github/callback',
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    res.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline'");
-    res.send(`<script>window.opener.postMessage({ token: '${token}' }, '*'); window.close();</script>`);
+  // Generate a per-response nonce and only allow this inline script via the nonce
+  const nonce = crypto.randomBytes(16).toString('hex');
+  const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
+  res.set('Content-Security-Policy', `script-src 'self' 'nonce-${nonce}'`);
+  res.send(`<script nonce="${nonce}">window.opener.postMessage({ token: '${token}' }, '${frontendOrigin}'); window.close();</script>`);
   }
 );
 

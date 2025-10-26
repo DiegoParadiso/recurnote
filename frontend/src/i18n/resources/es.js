@@ -182,6 +182,7 @@ const es = {
     loginWithGitHub: 'Iniciar sesión con GitHub',
     loginWithGmail: 'Iniciar sesión con Gmail',
   loginWithGoogle: 'Iniciar sesión con Google',
+  continueWith: 'O continúa con',
     githubAuthError: 'No se pudo iniciar sesión con GitHub. Intenta de nuevo.',
     gmailAuthError: 'No se pudo iniciar sesión con Gmail. Intenta de nuevo.',
   googleAuthError: 'No se pudo iniciar sesión con Google. Intenta de nuevo.',

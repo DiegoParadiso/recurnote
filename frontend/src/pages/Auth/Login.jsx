@@ -94,14 +94,14 @@ export default function Login() {
   const googleLoginWindow = useRef(null);
 
   const handleGitHubLogin = () => {
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+  const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
     const authUrl = `${backendUrl}/auth/github`;
     githubLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
     window.addEventListener('message', handleGitHubToken, false);
   };
 
   const handleGoogleLogin = () => {
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+  const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
     const authUrl = `${backendUrl}/auth/google`;
     googleLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
     window.addEventListener('message', handleGoogleToken, false);
@@ -154,27 +154,11 @@ export default function Login() {
           <h2>{t('auth.loginTitle')}</h2>
         </div>
 
-        {/* Botón de Email */}
+  {/* Botón de Google */}
         <button 
           type="button" 
-          className="gmail-login"
+          className="google-login"
           onClick={handleGoogleLogin}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            border: '2px solid var(--color-border)',
-            borderRadius: '10px',
-            background: 'var(--color-neutral)',
-            color: 'var(--color-text-primary)',
-            fontSize: '15px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'var(--transition-all)',
-            gap: '8px',
-            padding: '10px 0'
-          }}
           onMouseEnter={(e) => {
             e.target.style.borderColor = 'var(--color-highlight)';
             e.target.style.transform = 'translateY(-1px)';
@@ -185,27 +169,6 @@ export default function Login() {
             e.target.style.transform = 'translateY(0)';
             e.target.style.boxShadow = 'none';
           }}
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 48 48" 
-            width="20" 
-            height="20"
-          >
-            <path fill="#4caf50" d="M45,16.2l-5,2.75l-5,4.75L35,40h7c1.657,0,3-1.343,3-3V16.2z"></path>
-            <path fill="#1e88e5" d="M3,16.2l3.614,1.71L13,23.7V40H6c-1.657,0-3-1.343-3-3V16.2z"></path>
-            <polygon fill="#e53935" points="35,11.2 24,19.45 13,11.2 12,17 13,23.7 24,31.95 35,23.7 36,17"></polygon>
-            <path fill="#c62828" d="M3,12.298V16.2l10,7.5V11.2L9.876,8.859C9.132,8.301,8.228,8,7.298,8h0C4.924,8,3,9.924,3,12.298z"></path>
-            <path fill="#fbc02d" d="M45,12.298V16.2l-10,7.5V11.2l3.124-2.341C38.868,8.301,39.772,8,40.702,8h0 C43.076,8,45,9.924,45,12.298z"></path>
-          </svg>
-          {t('auth.loginWithGmail')}
-        </button>
-        
-        {/* Botón de Google */}
-        <button 
-          type="button" 
-          className="google-login"
-          onClick={handleGoogleLogin}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -224,11 +187,11 @@ export default function Login() {
             marginTop: '10px'
           }}
         >
-          <svg viewBox="0 0 24 24" width={20} height={20}>
-            <path fill="#ea4335" d="M12 11.9v3.9h5.4c-.2 1.2-.9 2.2-1.9 2.9l3 2.3C20.9 20 22 16.6 22 12c0-.8-.1-1.6-.2-2.4H12z"/>
-            <path fill="#34a853" d="M6.2 14.4c-.6-1.1-.6-2.4 0-3.5L3.3 8.6C1.4 11 1.4 13.6 3.3 16l2.9-1.6z"/>
-            <path fill="#fbbc04" d="M12 6.6c1.6 0 3 .6 4.1 1.7l3-3C17.8 2.9 15.1 2 12 2 8.2 2 4.9 4 3.3 7.3l2.9 1.7C8.8 7.1 10.3 6.6 12 6.6z"/>
-            <path fill="#4285f4" d="M22 12c0-.7-.1-1.3-.2-1.9H12v3.6h5.4c-.2 1-.9 1.9-1.9 2.6l3 2.3C20.9 17.9 22 15.1 22 12z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
           </svg>
           {t('auth.loginWithGoogle')}
         </button>
@@ -239,6 +202,7 @@ export default function Login() {
           className="github-login"
           onClick={handleGitHubLogin}
           style={{
+            marginTop: '7px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -288,7 +252,7 @@ export default function Login() {
             fontWeight: '500',
             transition: 'var(--transition-colors)'
           }}>
-            O continúa con
+            {t('auth.continueWith')}
           </span>
           <div style={{
             flex: 1,

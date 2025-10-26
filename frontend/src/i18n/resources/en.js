@@ -182,6 +182,7 @@ const en = {
     loginWithGitHub: 'Log in with GitHub',
     loginWithGmail: 'Log in with Gmail',
   loginWithGoogle: 'Log in with Google',
+  continueWith: 'Or continue with',
     githubAuthError: 'Could not log in with GitHub. Please try again.',
     gmailAuthError: 'Could not log in with Gmail. Please try again.',
   googleAuthError: 'Could not log in with Google. Please try again.',
