@@ -91,12 +91,20 @@ export default function Login() {
 
   // Login con GitHub
   const githubLoginWindow = useRef(null);
+  const googleLoginWindow = useRef(null);
 
   const handleGitHubLogin = () => {
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
     const authUrl = `${backendUrl}/auth/github`;
     githubLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
     window.addEventListener('message', handleGitHubToken, false);
+  };
+
+  const handleGoogleLogin = () => {
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    const authUrl = `${backendUrl}/auth/google`;
+    googleLoginWindow.current = window.open(authUrl, '_blank', 'width=500,height=700');
+    window.addEventListener('message', handleGoogleToken, false);
   };
 
   const handleGitHubToken = (event) => {
@@ -108,6 +116,18 @@ export default function Login() {
       window.location.href = '/';
     } catch {
       setErrors(prev => ({ ...prev, general: t('auth.githubAuthError') }));
+    }
+  };
+
+  const handleGoogleToken = (event) => {
+    if (!event.data || !event.data.token) return;
+    try {
+      localStorage.setItem('token', event.data.token);
+      window.removeEventListener('message', handleGoogleToken);
+      if (googleLoginWindow.current) googleLoginWindow.current.close();
+      window.location.href = '/';
+    } catch {
+      setErrors(prev => ({ ...prev, general: t('auth.googleAuthError') }));
     }
   };
 
@@ -138,7 +158,7 @@ export default function Login() {
         <button 
           type="button" 
           className="gmail-login"
-          onClick={handleGitHubLogin} // reemplazr dsp
+          onClick={handleGoogleLogin}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -181,6 +201,38 @@ export default function Login() {
           {t('auth.loginWithGmail')}
         </button>
         
+        {/* Botón de Google */}
+        <button 
+          type="button" 
+          className="google-login"
+          onClick={handleGoogleLogin}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            border: '2px solid var(--color-border)',
+            borderRadius: '10px',
+            background: 'var(--color-neutral)',
+            color: 'var(--color-text-primary)',
+            fontSize: '15px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'var(--transition-all)',
+            gap: '8px',
+            padding: '10px 0',
+            marginTop: '10px'
+          }}
+        >
+          <svg viewBox="0 0 24 24" width={20} height={20}>
+            <path fill="#ea4335" d="M12 11.9v3.9h5.4c-.2 1.2-.9 2.2-1.9 2.9l3 2.3C20.9 20 22 16.6 22 12c0-.8-.1-1.6-.2-2.4H12z"/>
+            <path fill="#34a853" d="M6.2 14.4c-.6-1.1-.6-2.4 0-3.5L3.3 8.6C1.4 11 1.4 13.6 3.3 16l2.9-1.6z"/>
+            <path fill="#fbbc04" d="M12 6.6c1.6 0 3 .6 4.1 1.7l3-3C17.8 2.9 15.1 2 12 2 8.2 2 4.9 4 3.3 7.3l2.9 1.7C8.8 7.1 10.3 6.6 12 6.6z"/>
+            <path fill="#4285f4" d="M22 12c0-.7-.1-1.3-.2-1.9H12v3.6h5.4c-.2 1-.9 1.9-1.9 2.6l3 2.3C20.9 17.9 22 15.1 22 12z"/>
+          </svg>
+          {t('auth.loginWithGoogle')}
+        </button>
+
         {/* Botón de GitHub */}
         <button 
           type="button" 
