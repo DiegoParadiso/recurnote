@@ -181,6 +181,8 @@ const en = {
     privacy: 'privacy policy',
     loginWithGitHub: 'Log in with GitHub',
     githubAuthError: 'Could not log in with GitHub. Please try again.',
+  invalidCredentials: 'Invalid email or password',
+  emailNotVerified: 'Your account email is not verified. Check your inbox for a verification code or link.',
   },
   legal: {
     terms: {

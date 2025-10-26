@@ -181,6 +181,8 @@ const es = {
     privacy: 'política de privacidad',
     loginWithGitHub: 'Iniciar sesión con GitHub',
     githubAuthError: 'No se pudo iniciar sesión con GitHub. Intenta de nuevo.',
+  invalidCredentials: 'Email o contraseña inválidos',
+  emailNotVerified: 'Tu email no ha sido verificado. Revisa tu bandeja de entrada para el código o enlace de verificación.',
   },
   legal: {
     terms: {

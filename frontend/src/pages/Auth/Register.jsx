@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef, useEffect } from 'react';
 import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
@@ -26,8 +26,10 @@ export default function Register() {
 
   // Estados de verificación
   const [step, setStep] = useState('form'); // 'form', 'verification'
+  const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
   const [verificationCode, setVerificationCode] = useState('');
   const [tempUserId, setTempUserId] = useState(null);
+  const inputRefs = useRef([]);
 
   // Estados de validación
   const [errors, setErrors] = useState({});
@@ -36,6 +38,15 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+
+  // Enfocar el primer input cuando se muestra la verificación
+  useEffect(() => {
+    if (step === 'verification') {
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
+    }
+  }, [step]);
 
   // Validaciones en tiempo real
   const validateField = (name, value) => {
@@ -212,6 +223,47 @@ export default function Register() {
     }
   };
 
+  // Manejar cambios en los dígitos del código
+  const handleCodeChange = (index, value) => {
+    if (value && !/^\d$/.test(value)) return;
+
+    const newCode = [...codeDigits];
+    newCode[index] = value;
+    setCodeDigits(newCode);
+    setVerificationCode(newCode.join(''));
+
+    // Si hay valor, pasar al siguiente campo
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  // Manejar teclas en los inputs del código
+  const handleCodeKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!codeDigits[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  // Manejar pegado de código
+  const handleCodePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim();
+    
+    if (/^\d{6}$/.test(pastedData)) {
+      const newCode = pastedData.split('');
+      setCodeDigits(newCode);
+      setVerificationCode(pastedData);
+      inputRefs.current[5]?.focus();
+    }
+  };
+
   // Verificar código
   const handleVerifyCode = async (e) => {
     e.preventDefault();
@@ -297,6 +349,9 @@ export default function Register() {
     return fieldsFilled && noActiveErrors;
   };
 
+  // Verificar si el código está completo
+  const isCodeComplete = codeDigits.every(digit => digit !== '');
+
   // Vista de verificación de código
   if (step === 'verification') {
     return (
@@ -304,45 +359,99 @@ export default function Register() {
         <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
         <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-          <h2>Verifica tu email</h2>
-          <p className="verification-description">
-            Hemos enviado un código de 6 dígitos a <strong>{formData.email}</strong>
-          </p>
-          
-          <form onSubmit={handleVerifyCode}>
-            <div className="form-group">
-              <input
-                type="text"
-                placeholder="Código de verificación"
-                value={verificationCode}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                  setVerificationCode(value);
-                }}
-                maxLength={6}
-                className={errors.verification ? 'error' : ''}
-                style={{ 
-                  textAlign: 'center', 
-                  fontSize: '24px', 
-                  letterSpacing: '8px',
-                  fontWeight: 'bold'
-                }}
-                autoFocus
-                required
-              />
-              {errors.verification && (
-                <span className="error-message">{errors.verification}</span>
-              )}
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              background: 'var(--color-highlight)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              transition: 'var(--transition-colors)'
+            }}>
+              <svg 
+                style={{ width: '32px', height: '32px', color: 'var(--color-neutral)' }} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
+                />
+              </svg>
             </div>
+            <h2>Verifica tu email</h2>
+            <p className="verification-description">
+              Hemos enviado un código de 6 dígitos a <strong>{formData.email}</strong>
+            </p>
+          </div>
 
-            <button 
-              type="submit" 
-              disabled={loading || verificationCode.length !== 6}
-              className="submit-button"
-            >
-              {loading ? 'Verificando...' : 'Verificar código'}
-            </button>
-          </form>
+          {/* 6 campos para el código */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '10px', 
+            justifyContent: 'center', 
+            marginBottom: '8px' 
+          }}>
+            {codeDigits.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => (inputRefs.current[index] = el)}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleCodeChange(index, e.target.value)}
+                onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                onPaste={index === 0 ? handleCodePaste : undefined}
+                style={{
+                  width: '52px',
+                  height: '60px',
+                  textAlign: 'center',
+                  fontSize: '28px',
+                  fontWeight: '700',
+                  border: '2px solid',
+                  borderColor: digit ? 'var(--color-highlight)' : 'var(--color-border)',
+                  borderRadius: '12px',
+                  backgroundColor: digit ? 'var(--bg-highlight)' : 'var(--color-neutral)',
+                  color: 'var(--color-text-primary)',
+                  outline: 'none',
+                  transition: 'var(--transition-all)',
+                  cursor: 'text'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--color-highlight)';
+                  e.target.style.boxShadow = '0 0 0 3px var(--color-neutral-dark)';
+                }}
+                onBlur={(e) => {
+                  if (!digit) {
+                    e.target.style.borderColor = 'var(--color-border)';
+                  }
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            ))}
+          </div>
+
+          {errors.verification && (
+            <span className="error-message" style={{ display: 'block', textAlign: 'center', marginBottom: '18px' }}>
+              {errors.verification}
+            </span>
+          )}
+
+          <button
+            onClick={handleVerifyCode}
+            disabled={loading || !isCodeComplete}
+            className="submit-button mx-auto block"
+          >
+            {loading ? 'Verificando...' : 'Verificar código'}
+          </button>
 
           <div className="auth-footer" style={{ marginTop: '20px' }}>
             <p>
@@ -359,11 +468,10 @@ export default function Register() {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'var(--color-primary)',
+                    color: 'var(--color-muted)',
                     cursor: 'pointer',
                     textDecoration: 'underline',
                     padding: 0,
-                    font: 'inherit'
                   }}
                 >
                   Reenviar código
@@ -373,15 +481,18 @@ export default function Register() {
             <p style={{ marginTop: '10px' }}>
               <button
                 type="button"
-                onClick={() => setStep('form')}
+                onClick={() => {
+                  setStep('form');
+                  setCodeDigits(['', '', '', '', '', '']);
+                  setVerificationCode('');
+                }}
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--color-text-secondary)',
+                  color: 'var(--color-muted)',
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   padding: 0,
-                  font: 'inherit'
                 }}
               >
                 ← Volver al registro
