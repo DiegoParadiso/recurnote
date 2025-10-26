@@ -17,7 +17,9 @@ const app = express();
 // ==== CORS seguro ====
 app.use(cors({
   origin: function(origin, callback) {
-    console.log('CORS origin header:', origin);
+    // No loguear cuando origin es undefined (peticiones de consola/curl sin origin)
+    if (typeof origin !== 'string') origin = undefined;
+    if (origin) console.log('CORS origin header:', origin);
 
     // Permitir requests sin Origin
     if (!origin) return callback(null, true);
@@ -296,6 +298,26 @@ app.use('/api/items', itemRoutes);
 // Ruta de health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root route to reduce 404 noise
+app.get('/', (req, res) => {
+  res.send('Recurnote backend');
+});
+
+// Global error and signal handlers to help diagnose unexpected exits
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err && err.stack ? err.stack : err);
+  // optionally exit or keep running depending on environment
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down gracefully');
+  process.exit(0);
 });
 
 // Manejo de rutas no encontradas
