@@ -505,7 +505,7 @@ export default function Login() {
             <Link 
               to="/register"
               style={{
-                color: 'var(--color-highlight)',
+                color: 'var(--color-text-primary)',
                 fontWeight: '600',
                 textDecoration: 'none',
                 transition: 'var(--transition-colors)'

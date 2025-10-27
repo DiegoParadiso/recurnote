@@ -189,6 +189,24 @@ const es = {
     invalidCredentials: 'Email o contraseña inválidos',
     emailNotVerified: 'Tu email no ha sido verificado. Revisa tu bandeja de entrada para el código o enlace de verificación.',
   },
+  forgot: {
+    title: '¿Olvidaste tu contraseña?',
+    subtitle: 'Ingresá tu email y te enviaremos instrucciones para restablecerla.',
+    sending: 'Enviando...',
+    sendCta: 'Enviar instrucciones',
+    sentInfo: 'Si el email existe, recibirás instrucciones para restablecer tu contraseña en breve.',
+    errorGeneric: 'No se pudo procesar la solicitud',
+    backToLogin: 'Volver a iniciar sesión'
+  },
+  reset: {
+    title: 'Creá una nueva contraseña',
+    subtitle: 'Ingresá y confirmá tu nueva contraseña para recuperar el acceso.',
+    saving: 'Guardando...',
+    saveCta: 'Guardar nueva contraseña',
+    success: 'Contraseña cambiada correctamente. Redirigiendo...',
+    errorGeneric: 'No se pudo restablecer la contraseña',
+    invalidLink: 'Enlace inválido o expirado'
+  },
   legal: {
     terms: {
       title: 'Términos y Condiciones',

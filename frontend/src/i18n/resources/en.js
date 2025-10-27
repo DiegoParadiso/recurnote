@@ -189,6 +189,24 @@ const en = {
     invalidCredentials: 'Invalid email or password',
     emailNotVerified: 'Your account email is not verified. Check your inbox for a verification code or link.',
   },
+  forgot: {
+    title: 'Forgot your password?',
+    subtitle: 'Enter your email and we\'ll send you instructions to reset it.',
+    sending: 'Sending...',
+    sendCta: 'Send instructions',
+    sentInfo: 'If the email exists, you\'ll receive reset instructions shortly.',
+    errorGeneric: 'Could not process the request',
+    backToLogin: 'Back to log in'
+  },
+  reset: {
+    title: 'Create a new password',
+    subtitle: 'Enter and confirm your new password to regain access.',
+    saving: 'Saving...',
+    saveCta: 'Save new password',
+    success: 'Password changed successfully. Redirecting...',
+    errorGeneric: 'Could not reset the password',
+    invalidLink: 'Invalid or expired link'
+  },
   legal: {
     terms: {
       title: 'Terms and Conditions',

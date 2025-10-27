@@ -1,7 +1,7 @@
 import { useState, useContext, useRef, useEffect } from 'react';
 import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import '@styles/auth.css';
 import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import PasswordStrength from '@components/common/PasswordStrength.jsx';
@@ -517,7 +517,22 @@ export default function Register() {
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-        <h2>{t('auth.registerTitle')}</h2>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            background: 'var(--color-highlight)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            transition: 'var(--transition-colors)'
+          }}>
+            <UserPlus style={{ width: '28px', height: '28px', color: 'var(--color-neutral)' }} />
+          </div>
+          <h2>{t('auth.registerTitle')}</h2>
+        </div>
         
         <form onSubmit={handleSubmit}>
           {/* Nombre */}

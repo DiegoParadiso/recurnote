@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from '@pages/Home';
 import Login from '@pages/Auth/Login';
+import ForgotPassword from '@pages/Auth/ForgotPassword';
+import ResetPassword from '@pages/Auth/ResetPassword';
 import Register from '@pages/Auth/Register';
 import VerifyEmail from '@pages/Auth/VerifyEmail';
 import Terms from '@pages/Legal/Terms';
@@ -24,6 +26,8 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Rutas legales */}
       <Route path="/terms" element={<Terms />} />
