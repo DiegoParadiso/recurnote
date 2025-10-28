@@ -59,6 +59,23 @@ function TaskItem({
     }
   };
 
+  // En móviles, enfocar input después de activar edición (readOnly -> editable)
+  const focusEditableInput = (index) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = inputRefsRef.current[index];
+        if (!el) return;
+        try {
+          el.focus({ preventScroll: true });
+          const len = (el.value || '').length;
+          if (typeof el.setSelectionRange === 'function') {
+            el.setSelectionRange(len, len);
+          }
+        } catch (_) {}
+      });
+    });
+  };
+
   const handleTaskChange = (index, value) => {
     // No cambiar el texto si acabamos de hacer drag
     if (wasDraggingRef.current || isDragging) {
@@ -349,23 +366,30 @@ function TaskItem({
                 type="text"
                 value={task}
                 onChange={(e) => handleTaskChange(index, e.target.value)}
-                onDoubleClick={(e) => {
+                onDoubleClick={() => {
                   // En móviles no usar doble click
                   if (isMobile) return;
                   
                   // Solo permitir edición con doble click si no se está arrastrando
                   if (!isDragging && !wasDraggingRef.current) {
                     startEditing(index);
-                    // Forzar focus después de activar edición
-                    setTimeout(() => {
-                      e.target.focus();
-                    }, 0);
+                    focusEditableInput(index);
+                  }
+                }}
+                onClick={() => {
+                  // En móviles: tap único activa edición y enfoca
+                  if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
+                    startEditing(index);
+                    focusEditableInput(index);
                   }
                 }}
                 onFocus={(e) => {
                   // En móviles comportamiento normal
                   if (isMobile) {
-                    startEditing(index);
+                    if (!editingInputs.has(index)) {
+                      startEditing(index);
+                      focusEditableInput(index);
+                    }
                     return;
                   }
                   
@@ -402,6 +426,8 @@ function TaskItem({
                 placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}  
                 className="taskitem-input"
                 readOnly={!editingInputs.has(index)}
+                inputMode="text"
+                enterKeyHint="done"
                 style={{
                   cursor: isMobile ? 'text' : (editingInputs.has(index) ? 'text' : 'grab'),
                   opacity: isMobile ? 1 : (editingInputs.has(index) ? 1 : 0.7),

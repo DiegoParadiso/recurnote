@@ -162,6 +162,9 @@ export default function NoteItem({
     setTimeout(() => {
       wasDraggingRef.current = false;
     }, 200);
+
+    // Notificar al padre que finalizó el drop (habilita lógica de basura en móvil)
+    onItemDrop?.(id);
   };
 
   // Funciones para manejar edición
@@ -177,6 +180,22 @@ export default function NoteItem({
         textarea.style.overflowY = 'hidden';
       }
     }, 0);
+  };
+
+  const focusEditableTextarea = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = textareaRef.current;
+        if (!el) return;
+        try {
+          el.focus({ preventScroll: true });
+          const len = (el.value || '').length;
+          if (typeof el.setSelectionRange === 'function') {
+            el.setSelectionRange(len, len);
+          }
+        } catch (_) {}
+      });
+    });
   };
 
   const stopEditing = () => {
@@ -519,24 +538,20 @@ export default function NoteItem({
             className="noteitem-textarea"
             value={content}
             onChange={handleTextChange}
-            onClick={(e) => {
-              // En móviles: un click activa edición
+            onClick={() => {
+              // En móviles: un click activa edición y enfoca luego de aplicar cambios
               if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
                 startEditing();
-                setTimeout(() => {
-                  e.target.focus();
-                }, 0);
+                focusEditableTextarea();
               }
             }}
-            onDoubleClick={(e) => {
+            onDoubleClick={() => {
               // En desktop: doble click activa edición
               if (isMobile) return;
               
               if (!isDragging && !wasDraggingRef.current) {
                 startEditing();
-                setTimeout(() => {
-                  e.target.focus();
-                }, 0);
+                focusEditableTextarea();
               }
             }}
             onFocus={(e) => {
@@ -571,6 +586,8 @@ export default function NoteItem({
             onKeyDown={handleTextareaKeyDown}
             placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
             readOnly={!isEditing}
+            inputMode="text"
+            enterKeyHint="done"
             style={{
               cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
               opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),

@@ -21,7 +21,9 @@ const en = {
     duplicate: 'Duplicate',
     doubleClickToEdit: 'Double click to edit...',
     loading: 'Loading...',
-    comingSoon: 'Coming Soon'
+    comingSoon: 'Coming Soon',
+    cancel: 'Cancel',
+    delete: 'Delete'
   },
   visual: {
     pinLeftSidebar: 'Pin left sidebar',

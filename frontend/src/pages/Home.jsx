@@ -25,6 +25,7 @@ import CircleSmallWithContextMenu from '@components/common/CircleSmallWithContex
 import { useNotes } from '@context/NotesContext';
 import LocalUserIndicator from '@components/common/LocalUserIndicator';
 import LocalMigrationHandler from '@components/common/LocalMigrationHandler';
+import '@styles/pages/Home.css';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -216,12 +217,7 @@ export default function Home() {
 
   return (
     <div
-      className="scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
-      style={{
-        backgroundColor: 'var(--color-bg)',
-        color: 'var(--color-text-primary)',
-        transition: 'var(--transition-colors)',
-      }}
+      className="home-page scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
     >
       {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
       {isMobile && !draggedItem && (
@@ -243,7 +239,7 @@ export default function Home() {
 
       {/* Botones Config y Tema desktop */}
       <div
-        className="fixed top-3 left-3 z-[20] hidden sm:flex gap-2 items-center"
+        className="home-desktop-topbar hidden sm:flex gap-2 items-center"
       >
         <div className="w-10 h-10 flex items-center justify-center">
           <ConfigButton onToggle={() => setShowConfig(v => !v)} />
@@ -269,14 +265,11 @@ export default function Home() {
               ]}
             >
               <div
-                className="hidden sm:block"
+                className="hidden sm:block home-left-sidebar-fixed"
                 onMouseDownCapture={onLeftSidebarMouseDown}
                 style={{
-                  position: 'fixed',
                   left: leftSidebarPos.x ?? 12,
                   top: (leftSidebarPos.y ?? (window.innerHeight - 450) / 2),
-                  zIndex: 'var(--z-modal)',
-                  cursor: 'grab',
                 }}
               >
                 <CurvedSidebar 
@@ -331,9 +324,6 @@ export default function Home() {
       <div
         className="relative flex items-center justify-center px-4 sm:px-0 circle-large-wrapper"
         style={{
-          borderRadius: '12px',
-          backgroundColor: 'var(--color-bg)',
-          transition: 'var(--transition-all)',
           width: isMobile ? '100vw' : 'auto',
         }}
       >
@@ -380,18 +370,10 @@ export default function Home() {
           <button
             onClick={() => setShowSmall(!showSmall)}
             aria-label="Toggle mostrar pequeño"
-            className="absolute top-1/2 transform -translate-y-1/2 z-10 hidden sm:flex"
+            className="home-toggle-small hidden sm:flex"
             style={{
-              left: `calc(50% + ${(circleLargeSize / 2 - 20)}px + 35px)`, // Centrado + radio del círculo + margen reducido
-              color: 'var(--color-text-secondary)',
-              backgroundColor: 'transparent',
-              border: 'none',
-              fontSize: '1.2rem',
-              userSelect: 'none',
-              transition: 'var(--transition-normal)',
+              left: `calc(50% + ${(circleLargeSize / 2 - 20)}px + 35px)`,
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
           >
             {showSmall ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -405,18 +387,14 @@ export default function Home() {
           onHide={() => setShowSmall(false)}
         >
           <div
-            className="fixed"
+            className="home-circlesmall-fixed"
             onMouseDownCapture={onCircleSmallMouseDown}
             onDoubleClick={onCircleSmallDoubleClick}
             style={{
-              zIndex: 'var(--z-high)',
-              cursor: 'grab',
               left: circleSmallPos.x,
               top: circleSmallPos.y,
               width: smallSize,
               height: smallSize,
-              borderRadius: '50%',
-              pointerEvents: 'auto',
             }}
           >
             <CircleSmall
@@ -437,32 +415,19 @@ export default function Home() {
             <WithContextMenu
               extraOptions={[{ label: (<span>{t('sidebar.hide')}</span>), onClick: () => setIsRightSidebarPinned(false) }]}
             >
-              <div className="hidden sm:block" style={{ zIndex: 'var(--z-modal)' }}>
+              <div className="hidden sm:block home-right-sidebar-panel">
                 <SidebarDayView
                   selectedDay={selectedDay}
                   setSelectedDay={setSelectedDay}
                   showRightSidebar={true}
                   isRightSidebarPinned={isRightSidebarPinned}
-                  style={{
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '8px',
-                    backgroundColor: 'var(--color-text-secondary)',
-                    transition: 'var(--transition-all)',
-                  }}
                 />
               </div>
             </WithContextMenu>
           ) : (
             // Sidebar derecho con hover nativo (sin menú contextual)
             <div
-              className="hidden sm:block"
-              style={{
-                position: 'fixed',
-                top: 'var(--navbar-top-offset)',
-                right: 0,
-                height: `calc(100vh - var(--navbar-top-offset))`, 
-                zIndex: 'var(--z-modal)',
-              }}
+              className="hidden sm:block home-right-sidebar-fixed"
             >
               <SidebarDayView
                 selectedDay={selectedDay}
@@ -583,19 +548,19 @@ export default function Home() {
             <h3 className="text-lg font-semibold mb-3 text-[var(--color-text-primary)]">
               {t('alerts.confirmDelete')}
             </h3>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
               {t('alerts.confirmDeleteMessage')}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={cancelDeleteItem}
-                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-2)] transition-colors border border-[var(--color-border)]"
+                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-2)] transition-colors border border-[var(--color-neutral-dark)]"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={confirmDeleteItem}
-                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-highlight)] text-white hover:opacity-90 transition-opacity"
+                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral-darker)] text-white hover:opacity-90 transition-opacity"
               >
                 {t('common.delete')}
               </button>
