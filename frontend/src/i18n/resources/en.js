@@ -165,7 +165,7 @@ const en = {
     passwordRequired: 'Password is required',
     passwordMin: 'Password must be at least 8 characters',
     passwordMax: 'Password cannot exceed 128 characters',
-    passwordStrength: 'Must include lowercase, uppercase, number and special char',
+    passwordStrength: 'Must include lowercase, uppercase and number',
     nameRequired: 'Name is required',
     nameMin: 'Name must be at least 2 characters',
     nameMax: 'Name cannot exceed 50 characters',
@@ -188,6 +188,18 @@ const en = {
   googleAuthError: 'Could not log in with Google. Please try again.',
     invalidCredentials: 'Invalid email or password',
     emailNotVerified: 'Your account email is not verified. Check your inbox for a verification code or link.',
+    pwStrength: {
+      weak: 'Weak',
+      fair: 'Fair',
+      good: 'Good',
+      excellent: 'Excellent'
+    },
+    pwReqs: {
+      length: 'At least 8 characters',
+      lowercase: 'One lowercase',
+      uppercase: 'One uppercase',
+      number: 'One number'
+    },
   },
   forgot: {
     title: 'Forgot your password?',

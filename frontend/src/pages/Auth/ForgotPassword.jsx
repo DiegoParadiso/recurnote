@@ -14,10 +14,25 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [error, setError] = useState('');
+  const [fieldError, setFieldError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+  const validateEmail = (val) => {
+    if (!val.trim()) return t('auth.emailRequired');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return t('auth.emailInvalid');
+    return '';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true);
+    const err = validateEmail(email);
+    setFieldError(err);
+    if (err) {
+      setError(err);
+      return;
+    }
     setLoading(true);
     setError('');
     setToast('');
@@ -37,6 +52,13 @@ export default function ForgotPassword() {
       setError(t('forgot.errorGeneric'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setEmail(e.target.value);
+    if (submitted) {
+      setFieldError(validateEmail(e.target.value));
     }
   };
 
@@ -81,16 +103,18 @@ export default function ForgotPassword() {
                 name="email"
                 placeholder={t('auth.emailPlaceholder')}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleChange}
                 required
                 style={{ width: '100%', paddingLeft: '44px' }}
+                className={submitted && fieldError ? 'error' : ''}
               />
             </div>
+            
           </div>
 
           <button
             type="submit"
-            disabled={loading || !email.trim()}
+            disabled={loading}
             className="submit-button"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }}
           >

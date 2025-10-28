@@ -165,7 +165,7 @@ const es = {
     passwordRequired: 'La contraseña es requerida',
     passwordMin: 'La contraseña debe tener al menos 8 caracteres',
     passwordMax: 'La contraseña no puede tener más de 128 caracteres',
-    passwordStrength: 'Debe contener minúscula, mayúscula, número y carácter especial',
+    passwordStrength: 'Debe contener minúscula, mayúscula y número',
     nameRequired: 'El nombre es requerido',
     nameMin: 'El nombre debe tener al menos 2 caracteres',
     nameMax: 'El nombre no puede tener más de 50 caracteres',
@@ -188,6 +188,18 @@ const es = {
   googleAuthError: 'No se pudo iniciar sesión con Google. Intenta de nuevo.',
     invalidCredentials: 'Email o contraseña inválidos',
     emailNotVerified: 'Tu email no ha sido verificado. Revisa tu bandeja de entrada para el código o enlace de verificación.',
+    pwStrength: {
+      weak: 'Débil',
+      fair: 'Regular',
+      good: 'Buena',
+      excellent: 'Excelente'
+    },
+    pwReqs: {
+      length: 'Mínimo 8 caracteres',
+      lowercase: 'Una minúscula',
+      uppercase: 'Una mayúscula',
+      number: 'Un número'
+    },
   },
   forgot: {
     title: '¿Olvidaste tu contraseña?',

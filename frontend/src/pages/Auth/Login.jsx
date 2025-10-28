@@ -17,7 +17,7 @@ export default function Login() {
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -59,14 +59,9 @@ export default function Login() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (touched[name]) {
+    if (submitted) {
       setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
     }
-  };
-
-  const handleBlur = (name) => {
-    setTouched(prev => ({ ...prev, [name]: true }));
-    setErrors(prev => ({ ...prev, [name]: validateField(name, formData[name]) }));
   };
 
   const validateForm = () => {
@@ -76,13 +71,19 @@ export default function Login() {
       if (error) newErrors[key] = error;
     });
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setTouched({ email: true, password: true });
-    if (!validateForm()) return;
+    setSubmitted(true);
+    const newErrors = validateForm();
+    const hasErrors = Object.keys(newErrors).length > 0;
+    if (hasErrors) {
+      const firstErrMsg = newErrors.email || newErrors.password || Object.values(newErrors)[0];
+      setErrors(prev => ({ ...prev, general: firstErrMsg }));
+      return;
+    }
 
     setLoading(true);
     setErrors({});
@@ -402,9 +403,8 @@ export default function Login() {
                 name="email" 
                 placeholder={t('auth.emailPlaceholder')}
                 value={formData.email} 
-                onChange={handleChange} 
-                onBlur={() => handleBlur('email')}
-                className={errors.email ? 'error' : ''}
+                onChange={handleChange}
+                className={submitted && errors.email ? 'error' : ''}
                 style={{
                   width: '100%',
                   paddingLeft: '44px'
@@ -412,7 +412,6 @@ export default function Login() {
                 required 
               />
             </div>
-            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           {/* Password */}
@@ -436,9 +435,8 @@ export default function Login() {
                 name="password"
                 placeholder={t('auth.passwordPlaceholder')} 
                 value={formData.password}
-                onChange={handleChange} 
-                onBlur={() => handleBlur('password')}
-                className={errors.password ? 'error' : ''}
+                onChange={handleChange}
+                className={submitted && errors.password ? 'error' : ''}
                 style={{
                   paddingLeft: '44px'
                 }}
@@ -455,13 +453,12 @@ export default function Login() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
           {/* Botón de submit */}
           <button 
             type="submit" 
-            disabled={loading || !isFormValid()} 
+            disabled={loading} 
             className="submit-button"
             style={{
               display: 'flex',

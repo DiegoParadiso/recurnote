@@ -16,6 +16,7 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [toast, setToast] = useState('');
   const [error, setError] = useState('');
   const [pwError, setPwError] = useState('');
@@ -34,8 +35,8 @@ export default function ResetPassword() {
     if (!pwd) return t('auth.passwordRequired');
     if (pwd.length < 8) return t('auth.passwordMin');
     if (pwd.length > 128) return t('auth.passwordMax');
-    // Same pattern used in Register.jsx
-    const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    // Updated to match new policy (no special char required)
+    const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+/;
     if (!strong.test(pwd)) return t('auth.passwordStrength');
     return '';
   };
@@ -47,18 +48,24 @@ export default function ResetPassword() {
   };
 
   useEffect(() => {
-    setPwError(validatePassword(password));
-    setConfirmError(validateConfirm(password, confirmPassword));
-  }, [password, confirmPassword]);
+    if (submitted) {
+      setPwError(validatePassword(password));
+      setConfirmError(validateConfirm(password, confirmPassword));
+    }
+  }, [password, confirmPassword, submitted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!token) return;
+    setSubmitted(true);
     const pErr = validatePassword(password);
     const cErr = validateConfirm(password, confirmPassword);
     setPwError(pErr);
     setConfirmError(cErr);
-    if (pErr || cErr) return;
+    if (pErr || cErr) {
+      setError(pErr || cErr);
+      return;
+    }
     setLoading(true);
     setError('');
     setToast('');
@@ -121,7 +128,7 @@ export default function ResetPassword() {
                 placeholder={t('auth.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={''}
+                className={submitted && pwError ? 'error' : ''}
                 style={{ paddingLeft: '44px' }}
                 required
               />
@@ -138,7 +145,7 @@ export default function ResetPassword() {
                 placeholder={t('auth.confirmPasswordPlaceholder')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={''}
+                className={submitted && confirmError ? 'error' : ''}
                 style={{ paddingLeft: '44px' }}
                 required
               />
@@ -147,9 +154,7 @@ export default function ResetPassword() {
 
           <button
             type="submit"
-            disabled={
-              loading || !password || !confirmPassword || pwError !== '' || confirmError !== ''
-            }
+            disabled={loading}
             className="submit-button"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }}
           >

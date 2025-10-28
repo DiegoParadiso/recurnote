@@ -33,7 +33,7 @@ export default function Register() {
 
   // Estados de validación
   const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -72,7 +72,7 @@ export default function Register() {
         if (!value) return t('auth.passwordRequired');
         if (value.length < 8) return t('auth.passwordMin');
         if (value.length > 128) return t('auth.passwordMax');
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(value)) {
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+/.test(value)) {
           return t('auth.passwordStrength');
         }
         return '';
@@ -101,8 +101,8 @@ export default function Register() {
       [name]: fieldValue
     }));
 
-    // Validar campo cuando se modifica
-    if (touched[name]) {
+    // Validar campo en tiempo real solo después de intentar enviar
+    if (submitted) {
       const error = validateField(name, fieldValue);
       setErrors(prev => ({
         ...prev,
@@ -111,15 +111,7 @@ export default function Register() {
     }
   };
 
-  // Manejar cuando un campo pierde el foco
-  const handleBlur = (name) => {
-    setTouched(prev => ({ ...prev, [name]: true }));
-    const error = validateField(name, formData[name]);
-    setErrors(prev => ({
-      ...prev,
-      [name]: error
-    }));
-  };
+  // Ya no validamos en blur; solo al enviar o si ya se envió
 
   // Validar todo el formulario
   const validateForm = () => {
@@ -129,7 +121,7 @@ export default function Register() {
       if (error) newErrors[key] = error;
     });
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   // Iniciar temporizador para reenvío
@@ -150,17 +142,16 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Marcar todos los campos como tocados
-    setTouched({
-      name: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
-      acceptTerms: true
-    });
+    // Marcar que se intentó enviar
+    setSubmitted(true);
 
     // Validar formulario
-    if (!validateForm()) {
+    const newErrors = validateForm();
+    const hasErrors = Object.keys(newErrors).length > 0;
+    if (hasErrors) {
+      const firstErrMsg =
+        newErrors.name || newErrors.email || newErrors.password || newErrors.confirmPassword || newErrors.acceptTerms || Object.values(newErrors)[0];
+      setErrors(prev => ({ ...prev, general: firstErrMsg }));
       return;
     }
 
@@ -543,11 +534,9 @@ export default function Register() {
               placeholder={t('auth.namePlaceholder')}
               value={formData.name}
               onChange={handleChange}
-              onBlur={() => handleBlur('name')}
-              className={errors.name ? 'error' : ''}
+              className={submitted && errors.name ? 'error' : ''}
               required
             />
-            {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
 
           {/* Email */}
@@ -558,11 +547,9 @@ export default function Register() {
               placeholder={t('auth.emailPlaceholder')}
               value={formData.email}
               onChange={handleChange}
-              onBlur={() => handleBlur('email')}
-              className={errors.email ? 'error' : ''}
+              className={submitted && errors.email ? 'error' : ''}
               required
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           {/* Contraseña */}
@@ -574,8 +561,7 @@ export default function Register() {
                 placeholder={t('auth.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleChange}
-                onBlur={() => handleBlur('password')}
-                className={errors.password ? 'error' : ''}
+                className={submitted && errors.password ? 'error' : ''}
                 required
               />
               <button
@@ -586,7 +572,7 @@ export default function Register() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {errors.password && <span className="error-message">{errors.password}</span>}
+            
             
             {/* Indicador de fortaleza de contraseña */}
             {formData.password && <PasswordStrength password={formData.password} />}
@@ -601,8 +587,7 @@ export default function Register() {
                 placeholder={t('auth.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                onBlur={() => handleBlur('confirmPassword')}
-                className={errors.confirmPassword ? 'error' : ''}
+                className={submitted && errors.confirmPassword ? 'error' : ''}
                 required
               />
               <button
@@ -613,7 +598,7 @@ export default function Register() {
                 {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+            
           </div>
 
           {/* Términos y condiciones */}
@@ -624,8 +609,7 @@ export default function Register() {
                 name="acceptTerms"
                 checked={formData.acceptTerms}
                 onChange={handleChange}
-                onBlur={() => handleBlur('acceptTerms')}
-                className={errors.acceptTerms ? 'error' : ''}
+                className={submitted && errors.acceptTerms ? 'error' : ''}
               />
               <span className="checkbox-text">
                 {t('auth.accept')}{' '}
@@ -638,13 +622,13 @@ export default function Register() {
                 </Link>
               </span>
             </label>
-            {errors.acceptTerms && <span className="error-message">{errors.acceptTerms}</span>}
+            
           </div>
 
           {/* Botón de envío */}
           <button 
             type="submit" 
-            disabled={loading || !isFormValid()}
+            disabled={loading}
             className="submit-button"
           >
             {loading ? t('auth.creating') : t('auth.registerCta')}
