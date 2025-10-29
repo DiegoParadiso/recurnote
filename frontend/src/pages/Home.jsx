@@ -542,13 +542,13 @@ export default function Home() {
           onClick={cancelDeleteItem}
         >
           <div
-            className="bg-[var(--color-bg)] rounded-lg p-6 max-w-sm mx-4 shadow-xl border border-[var(--color-border)]"
+            className="bg-[var(--color-bg)] rounded-lg p-6 max-w-md mx-4 border border-[var(--color-text-secondary)]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold mb-3 text-[var(--color-text-primary)]">
               {t('alerts.confirmDelete')}
             </h3>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            <p className="text-sm text-[var(--color-muted)] mb-4">
               {t('alerts.confirmDeleteMessage')}
             </p>
             <div className="flex gap-3">

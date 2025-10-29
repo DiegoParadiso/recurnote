@@ -49,7 +49,7 @@ function AppRoutes() {
 }
 
 function GlobalSyncExitListener() {
-  const { syncStatus } = useItems();
+  const { syncStatus } = useItems() || {};
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (syncStatus === 'syncing') {

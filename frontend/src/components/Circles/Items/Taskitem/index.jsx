@@ -59,7 +59,6 @@ function TaskItem({
     }
   };
 
-  // En móviles, enfocar input después de activar edición (readOnly -> editable)
   const focusEditableInput = (index) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {

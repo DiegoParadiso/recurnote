@@ -1,18 +1,15 @@
-/* Root wrapper for Home page */
 .home-page {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   transition: var(--transition-colors);
 }
 
-/* Main content container around CircleLarge */
 .circle-large-wrapper {
   border-radius: 12px;
   background-color: var(--color-bg);
   transition: var(--transition-all);
 }
 
-/* Top-left fixed controls (desktop) */
 .home-desktop-topbar {
   position: fixed;
   top: 0.75rem; /* top-3 */
@@ -20,14 +17,12 @@
   z-index: var(--z-modal);
 }
 
-/* Fixed left sidebar wrapper when pinned (desktop) */
 .home-left-sidebar-fixed {
   position: fixed;
   z-index: var(--z-modal);
   cursor: grab;
 }
 
-/* Right sidebar fixed region (desktop) */
 .home-right-sidebar-fixed {
   position: fixed;
   top: var(--navbar-top-offset);
@@ -36,7 +31,6 @@
   z-index: var(--z-modal);
 }
 
-/* CircleSmall floating container (desktop) */
 .home-circlesmall-fixed {
   position: fixed;
   z-index: var(--z-high);
@@ -45,7 +39,6 @@
   pointer-events: auto;
 }
 
-/* SidebarDayView panel styles when pinned */
 .home-right-sidebar-panel {
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -59,7 +52,7 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  display: none; /* hidden by default, use sm:flex via utility */
+  display: none; 
   background-color: transparent;
   border: none;
   font-size: 1.2rem;
@@ -69,4 +62,18 @@
 }
 .home-toggle-small:hover {
   color: var(--color-text-primary);
+}
+
+/* Mobile-only: prevent vertical scroll on Home so CircleLarge stays aligned */
+@media (max-width: 640px) {
+  .home-page {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .circle-large-wrapper {
+    overflow: hidden;
+  }
 }
