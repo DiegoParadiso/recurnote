@@ -94,14 +94,16 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         } sidebar-container`}
       >
         <div className="px-4 md:pt-7 pb-7 flex-shrink-0">
-          <h2 className="sidebar-header">{t('sidebar.upcomingDays')}</h2>
+          <h2 className="sidebar-header pt-2 text-center w-full">{t('sidebar.upcomingDays')}</h2>
         </div>
+        <div className="border-t mx-4" style={{ borderColor: 'var(--color-border)' }} />
 
         <div
           ref={scrollContainerRef}
           className="sidebar-scroll-area scroll-hidden"
           style={{ position: 'relative', zIndex: 'var(--z-mid)' }}
         >
+          {itemsForDays.length > 0 && <div className="mt-2" />}
           <ItemsList
             itemsForDays={itemsForDays}
             setSelectedDay={handleDaySelect}
