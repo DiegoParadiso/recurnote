@@ -257,7 +257,7 @@ export default function UnifiedContainer({
           ...style,
           backgroundColor: 'var(--color-neutral)',
           color: 'var(--color-text-primary)',
-          border: '1px solid var(--color-text-secondary)',
+          border: '1px solid var(--color-neutral-darker)',
         }
       })}
       data-is-dragging={isCurrentlyDragging()}

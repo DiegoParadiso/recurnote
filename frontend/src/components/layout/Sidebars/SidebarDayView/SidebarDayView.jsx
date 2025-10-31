@@ -112,7 +112,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
           />
         </div>
         <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="text-center" style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+          <div className="text-center" style={{ fontSize: '10px', color: 'var(--color-muted)' }}>
             {t('sidebar.shownFrom')} <strong>{new Date().toLocaleDateString(i18n.language || 'en')}</strong>
           </div>
         </div>

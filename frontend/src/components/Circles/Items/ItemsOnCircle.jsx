@@ -142,7 +142,7 @@ export default function ItemsOnCircle({
               borderRadius: '9999px',
               fontSize: '0.75rem',
               fontWeight: '600',
-              border: '1px solid var(--color-text-secondary)',
+              border: '1px solid var(--color-neutral-darker)',
               backgroundColor: 'var(--color-bg)',
               color: 'var(--color-text-primary)',
               backdropFilter: 'blur(4px)',

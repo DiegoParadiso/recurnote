@@ -5,7 +5,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
       <button
         onClick={onToggleRight}
         aria-label="Toggle right sidebar"
-        className="fixed right-0 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideLeftRight_2s_ease-in-out_infinite] hidden sm:flex"
+        className="fixed right-1 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-400 animate-[slideLeftRight_2s_ease-in-out_infinite] hidden sm:flex"
         style={{
           top: '50vh',
           transform: 'translateY(-50%)',
@@ -25,7 +25,7 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
       <button
         onClick={onToggleLeft}
         aria-label="Toggle left sidebar"
-        className="fixed left-0 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-300 animate-[slideRightLeft_2s_ease-in-out_infinite] hidden sm:flex"
+        className="fixed left-1 cursor-pointer flex items-center justify-center w-8 h-8 text-gray-400 animate-[slideRightLeft_2s_ease-in-out_infinite] hidden sm:flex"
         style={{
           top: '50vh',
           transform: 'translateY(-50%)',

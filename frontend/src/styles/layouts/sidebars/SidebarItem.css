@@ -4,7 +4,7 @@
   position: relative;
   width: 120px;
   height: 70px;
-  border: 1px solid var(--color-text-secondary);
+  border: 1px solid var(--color-neutral-darker);
   border-radius: 0.5rem;
   padding: 0.5rem;
   cursor: grab;
@@ -20,15 +20,11 @@
 
 .sidebar-item:hover {
   background-color: var(--color-neutral);
-  border-color: var(--color-text-secondary);
-}
-
-html.dark .sidebar-item {
-  border-color: var(--sidebar-dark-border);
+  border-color: var(--color-text-muted);
 }
 
 html.dark .sidebar-item:hover {
-  background-color: var(--color-neutral-dark);
+  background-color: var(--color-neutral);
   border-color: var(--color-text-secondary);
 }
 
@@ -46,7 +42,7 @@ html.dark .sidebar-item:hover {
 .sidebar-item-nota .dot {
   width: 6px;
   height: 6px;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-neutral-darker);
   border-radius: 9999px;
   transition: all 0.2s ease;
 }
@@ -61,12 +57,28 @@ html.dark .sidebar-item:hover {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-darker);
+}
+
+.sidebar-item-tarea .check-line svg,
+.sidebar-item-tarea .check-line svg * {
+  color: var(--color-neutral-darker);
+  stroke: var(--color-neutral-darker);
+  fill: none;
+}
+
+.sidebar-item:hover .sidebar-item-tarea .check-line svg,
+.sidebar-item:hover .sidebar-item-tarea .check-line svg *,
+.sidebar-item-tarea:hover .check-line svg,
+.sidebar-item-tarea:hover .check-line svg * {
+  color: var(--color-text-primary);
+  stroke: var(--color-text-primary);
+  fill: none;
 }
 
 .sidebar-item-tarea .bar {
   height: 6px;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-neutral-darker);
   border-radius: 9999px;
   flex: 1;
   transition: all 0.2s ease;
@@ -76,17 +88,6 @@ html.dark .sidebar-item:hover {
   background-color: var(--color-muted);
 }
 
-html.dark .sidebar-item-tarea .check-line {
-  color: var(--color-text-secondary);
-}
-
-html.dark .sidebar-item-tarea .bar {
-  background-color: var(--color-empty-content);
-}
-
-html.dark .sidebar-item-tarea:hover .bar {
-  background-color: var(--color-muted);
-}
 
 /* EVENTO - Vista previa con línea superior y bloques */
 .sidebar-item-evento {
@@ -104,7 +105,7 @@ html.dark .sidebar-item-tarea:hover .bar {
   top: 9px;
   left: 0;
   width: 100%;
-  border-top: 2px solid var(--color-text-secondary);
+  border-top: 2px solid var(--color-neutral-darker);
   transition: all 0.2s ease;
 }
 
@@ -121,12 +122,12 @@ html.dark .sidebar-item-tarea:hover .bar {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-neutral-darker);
   transition: all 0.2s ease;
 }
 
 .sidebar-item-evento .block.light {
-  background-color: var(--color-empty-content);
+  background-color: var(--color-neutral-darker);
   opacity: 0.7;
 }
 
@@ -135,35 +136,10 @@ html.dark .sidebar-item-tarea:hover .bar {
 }
 
 .sidebar-item-evento:hover .block.light {
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-neutral-darker);
   opacity: 0.9;
 }
 
-html.dark .sidebar-item-evento .top-line {
-  border-color: var(--color-empty-content);
-}
-
-html.dark .sidebar-item-evento .block {
-  background-color: var(--color-empty-content);
-}
-
-html.dark .sidebar-item-evento .block.light {
-  background-color: var(--color-empty-content);
-  opacity: 0.7;
-}
-
-html.dark .sidebar-item-evento:hover .top-line {
-  border-color: var(--color-muted);
-}
-
-html.dark .sidebar-item-evento:hover .block {
-  background-color: var(--color-text-secondary);
-}
-
-html.dark .sidebar-item-evento:hover .block.light {
-  background-color: var(--color-text-secondary);
-  opacity: 0.9;
-}
 
 /* ARCHIVO - Vista previa con barra superior, pestaña y separador */
 .sidebar-item-archivo {
@@ -178,10 +154,10 @@ html.dark .sidebar-item-evento:hover .block.light {
 
 .sidebar-item-archivo .top-bar {
   position: absolute;
-  top: 10px;
+  top: 12px;
   left: 0;
   width: 100%;
-  border-top: 2px solid var(--color-text-secondary);
+  border-top: 1px solid var(--color-neutral-darker);
   transition: all 0.2s ease;
 }
 
@@ -196,7 +172,7 @@ html.dark .sidebar-item-evento:hover .block.light {
   width: 30px;
   height: 12px;
   border-radius: 2px 0 0 0;
-  background-color: var(--color-text-secondary);
+  background-color: var(--color-neutral-darker);
   transition: all 0.2s ease;
 }
 
@@ -206,38 +182,10 @@ html.dark .sidebar-item-evento:hover .block.light {
 
 .sidebar-item-archivo .separator {
   width: 80%;
-  border-top: 1px solid var(--color-text-secondary);
-  margin: 0;
-  padding: 0;
-  left: 0;
+  border-top: 1px solid var(--color-neutral-darker);
 }
 
 .sidebar-item-archivo:hover .separator {
-  border-color: var(--color-muted);
-}
-
-html.dark .sidebar-item-archivo .top-bar {
-  border-color: var(--color-empty-content);
-}
-
-html.dark .sidebar-item-archivo .tab {
-  background-color: var(--color-empty-content);
-}
-
-html.dark .sidebar-item-archivo .separator {
-  border-color: var(--color-empty-content);
-  transition: none;
-}
-
-html.dark .sidebar-item-archivo:hover .top-bar {
-  border-color: var(--color-muted);
-}
-
-html.dark .sidebar-item-archivo:hover .tab {
-  background-color: var(--color-muted);
-}
-
-html.dark .sidebar-item-archivo:hover .separator {
   border-color: var(--color-muted);
 }
 
@@ -278,5 +226,16 @@ html.dark .sidebar-item-archivo:hover .separator {
   .sidebar-item-archivo .tab {
     width: 25px;
     height: 10px;
+  }
+
+.sidebar-item-archivo .separator {
+  right: 50%;
+  position: absolute;
+  top: 14px;
+}
+
+
+  .sidebar-item-archivo .top-bar {
+    top: 9px;
   }
 }

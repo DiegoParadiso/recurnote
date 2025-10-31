@@ -19,17 +19,17 @@ export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskChec
   if (itemsForDays.length === 0) {
     return (
       <>
-        <div className="flex flex-col items-center justify-center py-8 pt-4 px-4 text-center gap-3">
+        <div className="flex flex-col items-center justify-center pt-4 px-4 text-center gap-2">
           <img
             src={isDark ? '/assets/image.png' : '/assets/image2.png'}
             alt=""
             className="h-[20rem] w-auto max-w-full opacity-90 pt-5 pb-5"
             aria-hidden
           />
-          <p className="text-sm dark:text-gray-400">
+          <p className="text-sm text-[color:var(--color-text-primary)]">
             {t('sidebar.empty')}
           </p>
-          <p className="text-[12px] text-[color:var(--color-text-secondary)]">
+          <p className="text-[12px] text-[color:var(--color-muted)]">
             {t('sidebar.createFromLeft')}
           </p>
         </div>
