@@ -215,7 +215,6 @@ export default function Home() {
     setItemToDelete(null);
   }, []);
 
-  // ----- Prevent Scroll by Keyboard -----
   useEffect(() => {
     function blockScrollKeys(e) {
       // Bloquear flechas, space, PageUp/PageDown, Home/End
@@ -237,19 +236,38 @@ export default function Home() {
     <div
       className="home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
     >
-      {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
-      {isMobile && !draggedItem && (
-        <div className="fixed top-3 left-0 right-0 z-[30] sm:hidden flex justify-between items-center px-4">
-          <div className="w-10 h-10 flex items-center justify-center" aria-label="Mostrar configuración móvil">
+      {isMobile && (
+        <div 
+          className="fixed top-3 left-0 right-0 sm:hidden flex justify-between items-center px-4"
+          style={{
+            zIndex: draggedItem ? 1 : 20, 
+            pointerEvents: 'none', 
+            opacity: draggedItem ? 0 : 1,
+            transition: 'opacity 0.2s ease'
+          }}
+        >
+          <div 
+            className="w-10 h-10 flex items-center justify-center" 
+            aria-label="Mostrar configuración móvil"
+            style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
+          >
             <ConfigButton onToggle={() => setShowConfig(v => !v)} />
           </div>
-          <div className="w-10 h-10 flex items-center justify-center" aria-label="Recargar items">
+          <div 
+            className="w-10 h-10 flex items-center justify-center" 
+            aria-label="Recargar items"
+            style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
+          >
             <RefreshButton 
               onClick={refreshItems}
               loading={syncStatus === 'syncing'}
             />
           </div>
-          <div className="w-10 h-10 flex items-center justify-center" aria-label="Toggle tema oscuro móvil">
+          <div 
+            className="w-10 h-10 flex items-center justify-center" 
+            aria-label="Toggle tema oscuro móvil"
+            style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
+          >
             <ThemeToggle />
           </div>
         </div>
@@ -258,6 +276,9 @@ export default function Home() {
       {/* Botones Config y Tema desktop */}
       <div
         className="home-desktop-topbar hidden sm:flex gap-2 items-center"
+        style={{
+          pointerEvents: draggedItem && isMobile ? 'none' : 'auto'
+        }}
       >
         <div className="w-10 h-10 flex items-center justify-center">
           <ConfigButton onToggle={() => setShowConfig(v => !v)} />
@@ -323,7 +344,12 @@ export default function Home() {
 
       {/* Indicador de error para items con reintento automático */}
       {itemsError && (
-        <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div 
+          className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
+          style={{
+            pointerEvents: draggedItem && isMobile ? 'none' : 'auto'
+          }}
+        >
           <div className="flex items-center">
             <span className="mr-2">⚠️</span>
             <div>

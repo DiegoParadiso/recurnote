@@ -4,7 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import '@styles/resize-handle.css';
 import './i18n/index.js';
+import { setupFetchTimeout } from './utils/setupFetchTimeout.js';
 import App from './App.jsx';
+
+// Initialize global fetch timeout and 408 redirect handler
+setupFetchTimeout();
 
 const root = createRoot(document.getElementById('root'));
 

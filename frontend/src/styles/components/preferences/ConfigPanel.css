@@ -764,8 +764,12 @@ html[data-contrast='high'] .cancel-button:focus-visible {
 /* Responsive */
 @media (max-width: 640px) {
   .data-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr !important;
     gap: 0.5rem;
+  }
+  
+  .data-stats .stat-item {
+    width: 100%;
   }
   
   .danger-actions {

@@ -157,12 +157,10 @@ export default function NoteItem({
     
     setIsDragging(false);
     
-    // Mantener wasDragging por un breve momento para evitar activaciones
     setTimeout(() => {
       wasDraggingRef.current = false;
     }, 200);
 
-    // Notificar al padre que finalizó el drop (habilita lógica de basura en móvil)
     onItemDrop?.(id);
   };
 

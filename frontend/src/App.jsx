@@ -7,6 +7,8 @@ import Register from '@pages/Auth/Register';
 import VerifyEmail from '@pages/Auth/VerifyEmail';
 import Terms from '@pages/Legal/Terms';
 import Privacy from '@pages/Legal/Privacy';
+import NotFound from '@pages/NotFound';
+import RequestTimeout from '@pages/RequestTimeout';
 import React, { useEffect } from 'react';
 import { useItems } from '@context/ItemsContext';
 import i18n from './i18n/index.js';
@@ -42,8 +44,11 @@ function AppRoutes() {
         }
       />
 
-      {/* Ruta catch-all */}
-      <Route path="*" element={<Navigate to="/" />} />
+      {/* 408 Request Timeout */}
+      <Route path="/408" element={<RequestTimeout />} />
+
+      {/* Ruta catch-all - 404 Not Found */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

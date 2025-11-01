@@ -390,6 +390,11 @@ const en = {
     modeLocal: 'Local Mode',
     remaining: '{{count}} items'
   },
+  notFound: {
+    title: 'Page Not Found',
+    message: 'Sorry, the page you are looking for does not exist',
+    backHome: 'Back to Home'
+  },
   onExitSyncWarn: "There are unsynchronized changes. Leaving now will lose changes not yet saved to the cloud. Are you sure you want to leave?",
 };
 

@@ -390,6 +390,11 @@ const es = {
     modeLocal: 'Modo Local',
     remaining: '{{count}} elementos'
   },
+  notFound: {
+    title: 'Página no encontrada',
+    message: 'Lo sentimos, la página que buscas no existe',
+    backHome: 'Volver al inicio'
+  },
   onExitSyncWarn: "Hay datos sin sincronizar. Si sales ahora, se perderán los cambios que no se hayan guardado en la nube. ¿Seguro que deseas salir?",
 };
 
