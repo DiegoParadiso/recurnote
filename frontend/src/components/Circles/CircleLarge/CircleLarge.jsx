@@ -139,9 +139,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const displayText = useDisplayText(selectedDay, displayOptions);
 
   const isSmallScreen = width <= 640;
-  // Calcular radio del círculo considerando el borde
-  const BORDER_WIDTH = 1; // El borde del CircleLarge tiene 1px
-  const radius = (circleSize / 2) - BORDER_WIDTH; // Radio exacto sin el borde
+  const BORDER_WIDTH = 1; 
+  const radius = (circleSize / 2) - BORDER_WIDTH; 
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 

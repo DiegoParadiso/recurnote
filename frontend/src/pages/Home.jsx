@@ -215,9 +215,27 @@ export default function Home() {
     setItemToDelete(null);
   }, []);
 
+  // ----- Prevent Scroll by Keyboard -----
+  useEffect(() => {
+    function blockScrollKeys(e) {
+      // Bloquear flechas, space, PageUp/PageDown, Home/End
+      const keys = [
+        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+        'PageUp', 'PageDown', 'Home', 'End', ' ' // space
+      ];
+      if (keys.includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }
+    window.addEventListener('keydown', blockScrollKeys, { passive: false });
+    return () => window.removeEventListener('keydown', blockScrollKeys);
+  }, []);
+
   return (
     <div
-      className="home-page scroll-hidden pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
+      className="home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
     >
       {/* Botones Config móvil - OCULTO SI draggedItem y SOLO en MOBILE */}
       {isMobile && !draggedItem && (

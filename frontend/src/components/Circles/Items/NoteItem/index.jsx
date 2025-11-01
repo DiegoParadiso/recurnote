@@ -131,7 +131,6 @@ export default function NoteItem({
         textarea.style.height = availableHeight + 'px';
       }
       
-      textarea.style.overflowY = 'hidden';
     }
   };
 
@@ -177,7 +176,6 @@ export default function NoteItem({
         textarea.style.height = 'auto';
         const scrollHeight = textarea.scrollHeight;
         textarea.style.height = scrollHeight + 'px';
-        textarea.style.overflowY = 'hidden';
       }
     }, 0);
   };
@@ -207,7 +205,6 @@ export default function NoteItem({
       requestAnimationFrame(() => {
         const availableHeight = height - 16;
         textarea.style.height = availableHeight + 'px';
-        textarea.style.overflowY = 'hidden';
       });
     }
   };
@@ -358,7 +355,6 @@ export default function NoteItem({
       }
       
       textarea.style.height = scrollHeight + 'px';
-      textarea.style.overflowY = 'hidden';
     }
   }, [content, isEditing, height, id, onUpdate, width]);
 
@@ -381,7 +377,6 @@ export default function NoteItem({
       const textarea = textareaRef.current;
       const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
       textarea.style.height = availableHeight + 'px';
-      textarea.style.overflowY = 'hidden';
     }
   }, [height, isEditing]);
 
@@ -393,7 +388,6 @@ export default function NoteItem({
       requestAnimationFrame(() => {
         const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
         textarea.style.height = availableHeight + 'px';
-        textarea.style.overflowY = 'hidden';
       });
     }
   }, [width, height]);
@@ -406,7 +400,6 @@ export default function NoteItem({
       requestAnimationFrame(() => {
         const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
         textarea.style.height = availableHeight + 'px';
-        textarea.style.overflowY = 'hidden';
       });
     }
   }, [height]);
@@ -420,7 +413,6 @@ export default function NoteItem({
         requestAnimationFrame(() => {
           const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
           textarea.style.height = availableHeight + 'px';
-          textarea.style.overflowY = 'hidden';
         });
       });
     }
@@ -438,7 +430,6 @@ export default function NoteItem({
     }
     const availableHeight = desiredContainerHeight - 16;
     textarea.style.height = Math.max(scrollHeight, availableHeight) + 'px';
-    textarea.style.overflowY = 'hidden';
   }, [width]);
 
   // Limpiar timeouts cuando se desmonte el componente
@@ -492,7 +483,6 @@ export default function NoteItem({
         minHeight={minHeightPx}
         maxWidth={224}
         maxHeight={200}
-        style={{ overflow: 'hidden' }}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const dx = x - cx;
