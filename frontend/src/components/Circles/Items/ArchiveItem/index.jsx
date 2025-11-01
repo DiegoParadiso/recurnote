@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import UnifiedContainer from '@components/common/UnifiedContainer';
 import WithContextMenu from '@components/common/WithContextMenu';
-import BottomToast from '@components/common/BottomToast';
 import { handleFile } from '@utils/fileHandler';
 import { useTranslation } from 'react-i18next';
 
@@ -27,11 +26,12 @@ export default function ArchivoItem({
   onItemDrop,
   isActive,
   onActivate,
+  onErrorToast,
 }) {
   const { t } = useTranslation();
   const fileInputRef = useRef();
   const [isExpanded, setIsExpanded] = useState(!!item.isExpanded);
-  const [toastMessage, setToastMessage] = useState('');
+  // Notificaciones se delegan a Home mediante onErrorToast
   const [isDragging, setIsDragging] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const timeoutRef = useRef(null);
@@ -57,9 +57,9 @@ export default function ArchivoItem({
   const onFileChange = (e) => {
     const { error } = handleFile(e, onUpdate, id, item, x, y, null, !!user?.is_vip);
     if (error) {
-      setToastMessage(error);
+      onErrorToast?.(error);
     } else {
-      setToastMessage('');
+      // sin toast local
     }
   };
 
@@ -166,7 +166,7 @@ export default function ArchivoItem({
     try {
       await duplicateItem(id);
     } catch (error) {
-      setToastMessage(t('file.duplicateError'));
+      onErrorToast?.(t('file.duplicateError'));
     }
   };
 
@@ -398,11 +398,7 @@ export default function ArchivoItem({
         </UnifiedContainer>
       </WithContextMenu>
 
-      <BottomToast
-        message={toastMessage}
-        onClose={() => setToastMessage('')}
-        duration={3000}
-      />
+      {/* Toasts delegados al Home vía onErrorToast */}
     </>
   );
 }

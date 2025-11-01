@@ -376,6 +376,8 @@ export default function Home() {
           displayOptions={displayOptions}
           selectedDay={selectedDay}
           onCircleSizeChange={setCircleLargeSize}
+          onErrorToast={setErrorToast}
+          onInfoToast={setToast}
           onItemDrag={(itemId, pos) => {
             if (pos && pos.action === 'drop') {
               // Verificar si está sobre la papelera en el momento del drop

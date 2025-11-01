@@ -9,15 +9,15 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import { useCircleLargeLogic } from '@hooks/useCircleLargeLogic';
 import { useDisplayText } from '@hooks/useDisplayText';
 import { formatDateKey } from '@utils/formatDateKey';
-import BottomToast from '@components/common/BottomToast';
 import useHandleDrop from '@hooks/useDropHandler';
 import { useItems } from '@context/ItemsContext';
 import { useAuth } from '@context/AuthContext';
 import { useTheme } from '@context/ThemeContext';
 import '@styles/components/circles/CircleLarge.css';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange, onErrorToast, onInfoToast }) {
   const { width } = useWindowDimensions();
+  const { t } = useTranslation();
   const [circleSize, setCircleSize] = useState(680);
   const [activeItemId, setActiveItemId] = useState(null);
   const [zOrderMap, setZOrderMap] = useState({}); // { [itemId]: number }
@@ -134,7 +134,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     onCircleSizeChange?.(newSize);
   }, [width, onCircleSizeChange]);
 
-  // Rotación y actualización de ítems se maneja dentro del hook useCircleLargeLogic
 
   const displayText = useDisplayText(selectedDay, displayOptions);
 
@@ -155,6 +154,22 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     onInvalidDrop: () => setToastMessage(t('alerts.selectDayFirst')),
   });
 
+  // Reenviar errores de drop 
+  useEffect(() => {
+    if (dropErrorToast) {
+      onErrorToast?.(dropErrorToast);
+      setDropErrorToast('');
+    }
+  }, [dropErrorToast, onErrorToast, setDropErrorToast]);
+
+  // Reenviar mensajes-errores informativos 
+  useEffect(() => {
+    if (toastMessage) {
+      onInfoToast?.(toastMessage);
+      setToastMessage('');
+    }
+  }, [toastMessage, onInfoToast, setToastMessage]);
+
   return (
     <div
       className="relative select-none uppercase circle-large-container"
@@ -170,8 +185,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         displayText={displayText}
         isSmallScreen={isSmallScreen}
       />
-
-      {/* CircleSmall en desktop ahora se renderiza en Home para drag global */}
 
       {isSmallScreen && showSmall && (
         <div
@@ -253,13 +266,9 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           activeItemId={activeItemId}
           onItemActivate={(id) => bringToFront(id)}
           zOrderMap={zOrderMap}
+          onErrorToast={onErrorToast}
         />
       </div>
-
-      <BottomToast message={toastMessage} onClose={() => setToastMessage('')} />
-      
-      {/* BottomToast para errores del hook useHandleDrop */}
-      <BottomToast message={dropErrorToast} onClose={() => setDropErrorToast('')} duration={5000} />
     </div>
   );
 }

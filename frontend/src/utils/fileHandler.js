@@ -44,7 +44,9 @@ export function handleFile(e, onUpdate, id, item, x, y, showOnlyImageSetter, isV
           { width, height },
           { x, y }
         );
-        showOnlyImageSetter(false);
+        if (typeof showOnlyImageSetter === 'function') {
+          showOnlyImageSetter(false);
+        }
       };
       img.src = base64;
     } else {
@@ -55,7 +57,9 @@ export function handleFile(e, onUpdate, id, item, x, y, showOnlyImageSetter, isV
         { width: 180, height: 100 },
         { x, y }
       );
-      showOnlyImageSetter(false);
+      if (typeof showOnlyImageSetter === 'function') {
+        showOnlyImageSetter(false);
+      }
     }
   };
   reader.readAsDataURL(file);

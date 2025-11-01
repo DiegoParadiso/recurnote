@@ -18,7 +18,8 @@ export default function ItemsOnCircle({
   onItemDrop,
   activeItemId,
   onItemActivate,
-  zOrderMap
+  zOrderMap,
+  onErrorToast
 }) {
   return (
     <>
@@ -120,6 +121,7 @@ export default function ItemsOnCircle({
               isActive={activeItemId === item.id}
               onActivate={() => onItemActivate?.(item.id)}
               zIndexOverride={zIndexOverride}
+              onErrorToast={onErrorToast}
             />
           );
         }
