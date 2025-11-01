@@ -1,6 +1,5 @@
 import React from 'react';
 import logo from '../../assets/logorecurnote.png';
-import { Z_INDEX } from '@utils/constants/zIndex';
 
 export default function EmptyLogo({ circleSize, isSmallScreen }) {
   return (
@@ -16,7 +15,7 @@ export default function EmptyLogo({ circleSize, isSmallScreen }) {
         opacity: 'var(--logo-opacity)',
         pointerEvents: 'none',
         userSelect: 'none',
-        zIndex: Z_INDEX.base,
+        zIndex: 'var(--z-base)',
         transform: `translate(-20%, -20%) rotate(35deg)`,
         transformOrigin: 'center center',
         filter: `brightness(var(--logo-brightness)) invert(var(--logo-invert)) contrast(var(--logo-contrast))`,
