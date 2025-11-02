@@ -4,7 +4,7 @@ html, body {
 }
 
 .home-page {
-  overflow: hidden !important;
+  overflow: hidden;
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   transition: var(--transition-colors);
@@ -76,6 +76,9 @@ html, body {
     height: 100dvh;
     min-height: 100dvh;
     max-height: 100dvh;
+  }
+
+  .home-page:not([style*="overflow: visible"]) {
     overflow: hidden;
   }
 

@@ -97,3 +97,16 @@
 .archivo-item-container.empty {
   padding: 0;
 }
+
+/* Material Symbols icon para archivos no-imagen */
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48;
+  font-size: 48px;
+  color: var(--color-text-primary);
+  opacity: 0.7;
+  user-select: none;
+}

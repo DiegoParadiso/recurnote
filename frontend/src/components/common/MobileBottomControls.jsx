@@ -8,7 +8,8 @@ export default function MobileBottomControls({
   showLeftSidebarMobile, 
   setShowLeftSidebarMobile, 
   showRightSidebarMobile, 
-  setShowRightSidebarMobile 
+  setShowRightSidebarMobile,
+  isDragging = false,
 }) {
   const { isLightTheme } = useTheme();
   
@@ -17,7 +18,10 @@ export default function MobileBottomControls({
     ? 'brightness(0) saturate(100%)' // Negro para tema claro
     : 'brightness(0) saturate(100%) invert(1)'; // Blanco para tema oscuro
   return (
-    <div className="mobile-controls">
+    <div
+      className="mobile-controls"
+      style={{ zIndex: (isDragging || showLeftSidebarMobile) ? 1 : undefined }}
+    >
       <button 
         onClick={() => setShowLeftSidebarMobile(prev => !prev)} 
         aria-label="Mostrar sidebar izquierdo" 

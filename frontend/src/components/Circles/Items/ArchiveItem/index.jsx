@@ -36,9 +36,14 @@ export default function ArchivoItem({
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
+  const hasAutoExpandedRef = useRef(false);
   const { user } = useAuth();
   const { duplicateItem } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(110);
+
+  const isImage =
+    item.content?.fileData?.type === 'image/jpeg' ||
+    item.content?.fileData?.type === 'image/png';
 
   // Cargar las dimensiones naturales de la imagen cuando se sube
   useEffect(() => {
@@ -49,10 +54,24 @@ export default function ArchivoItem({
           width: img.naturalWidth,
           height: img.naturalHeight
         });
+        
+        // Si no hay estado de expansión guardado y no se ha expandido automáticamente antes, expandir por defecto
+        if (!hasAutoExpandedRef.current && (item.isExpanded === undefined || item.isExpanded === null)) {
+          hasAutoExpandedRef.current = true;
+          setIsExpanded(true);
+          onUpdate?.(
+            id,
+            item.content || {},
+            null,
+            null,
+            null,
+            { isExpanded: true }
+          );
+        }
       };
       img.src = item.content.base64;
     }
-  }, [item.content?.base64]);
+  }, [item.content?.base64, isImage, item.isExpanded, id, onUpdate]);
 
   const onFileChange = (e) => {
     const { error } = handleFile(e, onUpdate, id, item, x, y, null, !!user?.is_vip);
@@ -170,10 +189,6 @@ export default function ArchivoItem({
     }
   };
 
-  const isImage =
-    item.content?.fileData?.type === 'image/jpeg' ||
-    item.content?.fileData?.type === 'image/png';
-
   // Determinar qué opciones mostrar en el menú contextual
   const getContextMenuOptions = () => {
     const options = [];
@@ -219,6 +234,10 @@ export default function ArchivoItem({
     }
 
     if (isImage && isExpanded && imageDimensions.width > 0) {
+      // Si el item ya tiene dimensiones guardadas, usarlas
+      if (item.width && item.height) {
+        return { width: item.width, height: item.height };
+      }
 
       const maxSize = 300; 
       const aspectRatio = imageDimensions.width / imageDimensions.height;
@@ -243,10 +262,62 @@ export default function ArchivoItem({
     }
 
     // En modo normal, dimensiones estándar
-    return { width: Math.max(minWidthPx, 180), height: isImage ? 180 : 80 };
+    // En mobile, aumentar altura para acomodar el botón de descarga
+    // Para archivos no-imagen, aumentar altura para acomodar el ícono de docs (48px)
+    const baseHeight = isImage ? 180 : 130;
+    const mobileExtraHeight = isSmallScreen ? 30 : 0;
+    return { width: Math.max(minWidthPx, 180), height: baseHeight + mobileExtraHeight };
   };
 
   const { width, height } = getContainerDimensions();
+
+  // Manejador de resize que mantiene la relación de aspecto
+  const handleResize = (newSize) => {
+    if (!isImage || !isExpanded || imageDimensions.width === 0) return;
+
+    const aspectRatio = imageDimensions.width / imageDimensions.height;
+    
+    // Calcular la diagonal del rectángulo solicitado
+    const requestedDiagonal = Math.sqrt(newSize.width * newSize.width + newSize.height * newSize.height);
+    const currentDiagonal = Math.sqrt(width * width + height * height);
+    
+    // Escalar basado en la diagonal
+    const scale = requestedDiagonal / currentDiagonal;
+    
+    let finalWidth = width * scale;
+    let finalHeight = finalWidth / aspectRatio;
+    
+    // Aplicar límites
+    const maxSize = 600;
+    const minWidth = minWidthPx;
+    const minHeight = 40;
+    
+    if (finalWidth > maxSize) {
+      finalWidth = maxSize;
+      finalHeight = finalWidth / aspectRatio;
+    }
+    if (finalHeight > maxSize) {
+      finalHeight = maxSize;
+      finalWidth = finalHeight * aspectRatio;
+    }
+    if (finalWidth < minWidth) {
+      finalWidth = minWidth;
+      finalHeight = finalWidth / aspectRatio;
+    }
+    if (finalHeight < minHeight) {
+      finalHeight = minHeight;
+      finalWidth = finalHeight * aspectRatio;
+    }
+    
+    // Actualizar las dimensiones
+    onUpdate?.(
+      id,
+      item.content || {},
+      null,
+      { width: Math.round(finalWidth), height: Math.round(finalHeight) },
+      { x, y }
+    );
+  };
 
   // Medir ancho mínimo basado en el nombre del archivo (o placeholder)
   useLayoutEffect(() => {
@@ -292,11 +363,12 @@ export default function ArchivoItem({
           rotation={rotationEnabled ? rotation : 0}
           width={width}
           height={height}
-        minWidth={minWidthPx}
-          maxWidth={item.content?.fileData ? Math.max(minWidthPx, width) : width}
-          minHeight={item.content?.fileData ? height : width}
-          maxHeight={item.content?.fileData ? height : width}
-          disableResize={true}
+          minWidth={minWidthPx}
+          maxWidth={item.content?.fileData && isImage && isExpanded ? 600 : (item.content?.fileData ? Math.max(minWidthPx, width) : width)}
+          minHeight={item.content?.fileData && isImage && isExpanded ? 40 : (item.content?.fileData ? height : width)}
+          maxHeight={item.content?.fileData && isImage && isExpanded ? 600 : (item.content?.fileData ? height : width)}
+          disableResize={!(isImage && isExpanded)}
+          onResize={handleResize}
           onMove={({ x: newX, y: newY }) => {
             // Calcular el ángulo y distancia desde el centro del círculo
             const dx = newX - cx;
@@ -342,6 +414,11 @@ export default function ArchivoItem({
 
             {!isExpanded && item.content?.fileData && (
               <>
+                {!isImage && (
+                  <span className="material-symbols-outlined" style={{ marginTop: 8, marginBottom: 4 }}>
+                    docs
+                  </span>
+                )}
                 <p
                   className="truncate"
                   title={item.content.fileData.name}

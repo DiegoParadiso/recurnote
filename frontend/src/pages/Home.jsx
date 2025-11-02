@@ -235,6 +235,9 @@ export default function Home() {
   return (
     <div
       className="home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
+      style={{
+        overflow: draggedItem ? 'visible' : undefined
+      }}
     >
       {isMobile && (
         <div 
@@ -567,6 +570,7 @@ export default function Home() {
         selectedDay={selectedDay}
         setSelectedDay={setSelectedDay}
         isMobile={isMobile}
+        isDragging={!!draggedItem}
       />
 
       {/* Indicador de usuario local */}
