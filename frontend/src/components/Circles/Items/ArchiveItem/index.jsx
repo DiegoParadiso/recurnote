@@ -263,7 +263,6 @@ export default function ArchivoItem({
 
     // En modo normal, dimensiones estándar
     // En mobile, aumentar altura para acomodar el botón de descarga
-    // Para archivos no-imagen, aumentar altura para acomodar el ícono de docs (48px)
     const baseHeight = isImage ? 180 : 130;
     const mobileExtraHeight = isSmallScreen ? 30 : 0;
     return { width: Math.max(minWidthPx, 180), height: baseHeight + mobileExtraHeight };

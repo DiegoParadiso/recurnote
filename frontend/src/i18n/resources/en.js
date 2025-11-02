@@ -25,6 +25,21 @@ const en = {
     cancel: 'Cancel',
     delete: 'Delete'
   },
+  premium: {
+    upgradeToPremium: 'Creator Mode',
+    unlockFullPotential: 'Unlock the full potential with Creator features',
+    unlimitedNotes: 'Unlimited notes',
+    unlimitedNotesDesc: 'Create as many notes and tasks as you want without limits.',
+    exclusiveStyles: 'Exclusive styles',
+    exclusiveStylesDesc: 'Unlock unique backgrounds, colors and designs to customize your experience',
+    whiteboardMode: 'Whiteboard Mode',
+    whiteboardModeDesc: 'Organize your ideas in an unlimited visual workspace',
+    fullHistory: 'Full history access',
+    fullHistoryDesc: 'Recover previous versions of your notes and past activities',
+    upgradeNow: 'Activate Creator Mode',
+    freeTrial: 'Try it free for 7 days',
+    newBadge: 'New',
+  },
   visual: {
     pinLeftSidebar: 'Pin left sidebar',
     pinRightSidebar: 'Pin right sidebar',

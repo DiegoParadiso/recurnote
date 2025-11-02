@@ -8,6 +8,8 @@ import '@styles/components/preferences/ConfigPanel.css';
 import SessionOptions from '@components/Preferences/parts/SessionOptions';
 import DataManagementOptions from '@components/Preferences/parts/DataManagementOptions';
 import HelpIcon from '@components/common/HelpIcon';
+import usePremiumModal from '@hooks/usePremiumModal';
+import PremiumModal from '@components/Premium/PremiumModal';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -93,6 +95,7 @@ export default function ConfigPanel({
   const { isLightTheme, setIsLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme, isHighContrast, setIsHighContrast, textScale, setTextScale, reducedMotion, setReducedMotion } = useTheme();
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const { isOpen: isPremiumOpen, openModal: openPremiumModal, closeModal: closePremiumModal, handleUpgrade } = usePremiumModal();
   
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {
@@ -101,9 +104,34 @@ export default function ConfigPanel({
 
   // Función para cambiar el pattern
   const handlePatternChange = (patternId) => {
+    if (patternId === selectedPattern) return;
+    
     setSelectedPattern(patternId);
     localStorage.setItem('circlePattern', patternId);
-    // Disparar evento personalizado para que CircleLarge se actualice
+    
+    // Actualizar preferencias del usuario si está autenticado
+    if (token && user) {
+      const prefs = {
+        ...user.preferences,
+        circlePattern: patternId
+      };
+      
+      // Guardar en el servidor
+      fetch(`${API_URL}/api/auth/preferences`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences: prefs })
+      });
+      
+      // Actualizar usuario local
+      const updatedUser = { ...user, preferences: prefs };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    
+    // Notificar a otros componentes del cambio
     window.dispatchEvent(new CustomEvent('patternChanged', { detail: patternId }));
   };
 
@@ -463,6 +491,7 @@ export default function ConfigPanel({
           </section>
         </main>
       </aside>
+      <PremiumModal isOpen={isPremiumOpen} onClose={closePremiumModal} onUpgrade={handleUpgrade} />
     </>
   );
 }
