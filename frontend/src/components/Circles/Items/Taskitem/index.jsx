@@ -40,6 +40,8 @@ function TaskItem({
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
   const inputRefsRef = useRef({});
+  const touchStartPosRef = useRef(null);
+  const touchIsDragRef = useRef(false);
   const [minWidthPx, setMinWidthPx] = useState(140);
 
   // Calcular altura dinámica basada en si se muestra el botón "+"
@@ -381,23 +383,73 @@ function TaskItem({
                 value={task}
                 onChange={(e) => handleTaskChange(index, e.target.value)}
                 onTouchStart={(e) => {
-                  // En móviles: activar edición inmediatamente al tocar, antes de que otros eventos interfieran
+                  // En móviles: solo activar edición si NO es un intento de drag
                   if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
-                    e.stopPropagation(); // Evitar que el contenedor capture el evento
-                    // Activar edición de forma síncrona
-                    setEditingInputs(prev => new Set([...prev, index]));
-                    // Usar requestAnimationFrame para el focus después de que el DOM se actualice
-                    requestAnimationFrame(() => {
-                      const el = inputRefsRef.current[index];
-                      if (el) {
-                        el.focus(); // Sin preventScroll en móvil
-                        const len = (el.value || '').length;
-                        if (typeof el.setSelectionRange === 'function') {
-                          el.setSelectionRange(len, len);
-                        }
-                      }
-                    });
+                    // Guardar posición inicial para detectar si es drag o click
+                    touchStartPosRef.current = {
+                      x: e.touches[0].clientX,
+                      y: e.touches[0].clientY,
+                      time: Date.now(),
+                      inputIndex: index
+                    };
+                    touchIsDragRef.current = false;
+                    // NO hacer stopPropagation aquí - esperar a ver si es drag o focus
                   }
+                }}
+                onTouchMove={(e) => {
+                  // Si el usuario mueve el dedo, es un drag, no un intento de focus
+                  if (isMobile && touchStartPosRef.current) {
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - touchStartPosRef.current.x;
+                    const dy = touch.clientY - touchStartPosRef.current.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Si se movió más de 10px, es un drag
+                    if (distance > 10) {
+                      touchIsDragRef.current = true;
+                      // Prevenir scroll en el input durante drag
+                      const inputEl = inputRefsRef.current[index];
+                      if (inputEl) {
+                        inputEl.style.overflow = 'hidden';
+                        inputEl.style.pointerEvents = 'none';
+                      }
+                      // Permitir que el drag continúe - no interferir
+                      touchStartPosRef.current = null;
+                    }
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  // Restaurar estilos del input si se había modificado para drag
+                  if (isMobile) {
+                    const inputEl = inputRefsRef.current[index];
+                    if (inputEl) {
+                      inputEl.style.overflow = '';
+                      inputEl.style.pointerEvents = '';
+                    }
+                  }
+                  
+                  // Si fue un touch sin movimiento y no es drag, activar edición
+                  if (isMobile && touchStartPosRef.current && !touchIsDragRef.current && !isDragging && !wasDraggingRef.current) {
+                    const timeSinceStart = Date.now() - touchStartPosRef.current.time;
+                    const inputIndex = touchStartPosRef.current.inputIndex;
+                    // Solo activar si fue un touch rápido (< 300ms) sin movimiento y es el mismo input
+                    if (timeSinceStart < 300 && inputIndex === index && !editingInputs.has(index)) {
+                      e.stopPropagation(); // Prevenir que el contenedor lo capture ahora
+                      setEditingInputs(prev => new Set([...prev, index]));
+                      requestAnimationFrame(() => {
+                        const el = inputRefsRef.current[index];
+                        if (el) {
+                          el.focus();
+                          const len = (el.value || '').length;
+                          if (typeof el.setSelectionRange === 'function') {
+                            el.setSelectionRange(len, len);
+                          }
+                        }
+                      });
+                    }
+                  }
+                  touchStartPosRef.current = null;
+                  touchIsDragRef.current = false;
                 }}
                 onDoubleClick={() => {
                   // En móviles no usar doble click

@@ -35,6 +35,8 @@ export default function NoteItem({
   const [isEditing, setIsEditing] = useState(false);
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
+  const touchStartPosRef = useRef(null);
+  const touchIsDragRef = useRef(false);
   const { content = '', width = 240, height = 80 } = item;
   const { duplicateItem } = useItems();
   const { updateItem } = useItems();
@@ -542,23 +544,67 @@ export default function NoteItem({
             value={content}
             onChange={handleTextChange}
             onTouchStart={(e) => {
-              // En móviles: activar edición inmediatamente al tocar, antes de que otros eventos interfieran
+              // En móviles: solo activar edición si NO es un intento de drag
               if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
-                e.stopPropagation(); // Evitar que el contenedor capture el evento
-                // Activar edición de forma síncrona
-                setIsEditing(true);
-                // Usar requestAnimationFrame para el focus después de que el DOM se actualice
-                requestAnimationFrame(() => {
-                  const el = textareaRef.current;
-                  if (el) {
-                    el.focus(); // Sin preventScroll en móvil
-                    const len = (el.value || '').length;
-                    if (typeof el.setSelectionRange === 'function') {
-                      el.setSelectionRange(len, len);
-                    }
-                  }
-                });
+                // Guardar posición inicial para detectar si es drag o click
+                touchStartPosRef.current = {
+                  x: e.touches[0].clientX,
+                  y: e.touches[0].clientY,
+                  time: Date.now()
+                };
+                touchIsDragRef.current = false;
+                // NO hacer stopPropagation aquí - esperar a ver si es drag o focus
               }
+            }}
+            onTouchMove={(e) => {
+              // Si el usuario mueve el dedo, es un drag, no un intento de focus
+              if (isMobile && touchStartPosRef.current) {
+                const touch = e.touches[0];
+                const dx = touch.clientX - touchStartPosRef.current.x;
+                const dy = touch.clientY - touchStartPosRef.current.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Si se movió más de 10px, es un drag
+                if (distance > 10) {
+                  touchIsDragRef.current = true;
+                  // Prevenir scroll en el input durante drag
+                  if (textareaRef.current) {
+                    textareaRef.current.style.overflow = 'hidden';
+                    textareaRef.current.style.pointerEvents = 'none';
+                  }
+                  // Permitir que el drag continúe - no interferir
+                  touchStartPosRef.current = null;
+                }
+              }
+            }}
+            onTouchEnd={(e) => {
+              // Restaurar estilos del textarea si se había modificado para drag
+              if (isMobile && textareaRef.current) {
+                textareaRef.current.style.overflow = '';
+                textareaRef.current.style.pointerEvents = '';
+              }
+              
+              // Si fue un touch sin movimiento y no es drag, activar edición
+              if (isMobile && touchStartPosRef.current && !touchIsDragRef.current && !isDragging && !wasDraggingRef.current) {
+                const timeSinceStart = Date.now() - touchStartPosRef.current.time;
+                // Solo activar si fue un touch rápido (< 300ms) sin movimiento
+                if (timeSinceStart < 300) {
+                  e.stopPropagation(); // Prevenir que el contenedor lo capture ahora
+                  setIsEditing(true);
+                  requestAnimationFrame(() => {
+                    const el = textareaRef.current;
+                    if (el) {
+                      el.focus();
+                      const len = (el.value || '').length;
+                      if (typeof el.setSelectionRange === 'function') {
+                        el.setSelectionRange(len, len);
+                      }
+                    }
+                  });
+                }
+              }
+              touchStartPosRef.current = null;
+              touchIsDragRef.current = false;
             }}
             onClick={() => {
               // En móviles: asegurar que si el touchStart no funcionó, el click sí lo haga
