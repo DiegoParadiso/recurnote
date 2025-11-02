@@ -24,7 +24,7 @@ export default function NotFound() {
         color: 'var(--color-text-primary)',
       }}
     >
-      <div className="flex flex-col items-center justify-center text-center gap-4 max-w-lg">
+      <div className="flex flex-col items-center justify-center text-center gap-4 max-w-md">
         <img
           src={isDark ? '/assets/image4.png' : '/assets/image3.png'}
           alt=""

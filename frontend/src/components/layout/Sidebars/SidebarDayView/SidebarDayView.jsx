@@ -73,7 +73,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
       {/* Botón cerrar solo en móviles */}
       {isMobile && (
         <button
-          className="self-end p-4 text-xl text-[var(--color-text-primary)] z-50"
+          className="self-end pt-2 pr-3 pb-0 text-xl text-[var(--color-text-primary)] z-50"
           onClick={onClose}
           aria-label={t('sidebar.close')}
         >
@@ -93,9 +93,10 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             : 'absolute -right-[var(--sidebar-width)] top-0 group-hover:right-0 cursor-default'
         } sidebar-container`}
       >
-        <div className={`${isMobile ? 'pt-2' : 'pt-7'} py-5 flex-shrink-0`}>
+        <div className={`${isMobile ? 'pt-0 pb-6' : 'pt-8 pb-5'} flex-shrink-0`}>
           <h2 className="sidebar-header text-center w-full">{t('sidebar.upcomingDays')}</h2>
         </div>
+      
         <div className="border-t mx-4" style={{ borderColor: 'var(--color-border)' }} />
 
         <div

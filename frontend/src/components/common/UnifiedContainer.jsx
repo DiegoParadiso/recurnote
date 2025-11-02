@@ -113,6 +113,24 @@ export default function UnifiedContainer({
     if (e.touches.length !== 1) return;
 
     const touch = e.touches[0];
+    const target = e.target;
+    
+    // No iniciar drag si el touch es sobre un input, textarea o elemento interactivo
+    const tag = target.tagName.toLowerCase();
+    if (['input', 'textarea', 'select', 'button', 'a'].includes(tag)) {
+      return;
+    }
+    
+    // Verificar si el target es editable o está dentro de un elemento editable
+    if (target.contentEditable === 'true' || target.isContentEditable) {
+      return;
+    }
+    
+    // Verificar si está dentro de un contenedor editable (como el data-drag-container que tiene inputs dentro)
+    const editableParent = target.closest('input, textarea, [contenteditable="true"]');
+    if (editableParent) {
+      return;
+    }
     
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };

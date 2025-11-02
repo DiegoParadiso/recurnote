@@ -217,7 +217,21 @@ export default function Home() {
 
   useEffect(() => {
     function blockScrollKeys(e) {
-      // Bloquear flechas, space, PageUp/PageDown, Home/End
+      // No bloquear teclas si el usuario está escribiendo en un input, textarea o elemento editable
+      const activeElement = document.activeElement;
+      const isEditable = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.contentEditable === 'true' ||
+        activeElement.isContentEditable
+      );
+      
+      // Si está editando, permitir todas las teclas
+      if (isEditable) {
+        return;
+      }
+      
+      // Bloquear flechas, space, PageUp/PageDown, Home/End solo cuando NO se está editando
       const keys = [
         'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
         'PageUp', 'PageDown', 'Home', 'End', ' ' // space
@@ -235,9 +249,6 @@ export default function Home() {
   return (
     <div
       className="home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
-      style={{
-        overflow: draggedItem ? 'visible' : undefined
-      }}
     >
       {isMobile && (
         <div 
@@ -369,9 +380,11 @@ export default function Home() {
 
       {/* Contenido principal */}
       <div
-        className="relative flex items-center justify-center px-4 sm:px-0 circle-large-wrapper"
+        className="relative flex items-center justify-center circle-large-wrapper"
         style={{
           width: isMobile ? '100vw' : 'auto',
+          paddingLeft: isMobile ? 4 : undefined,
+          paddingRight: isMobile ? 4 : undefined,
         }}
       >
         <CircleLarge
@@ -379,8 +392,6 @@ export default function Home() {
           displayOptions={displayOptions}
           selectedDay={selectedDay}
           onCircleSizeChange={setCircleLargeSize}
-          onErrorToast={setErrorToast}
-          onInfoToast={setToast}
           onItemDrag={(itemId, pos) => {
             if (pos && pos.action === 'drop') {
               // Verificar si está sobre la papelera en el momento del drop
@@ -570,7 +581,6 @@ export default function Home() {
         selectedDay={selectedDay}
         setSelectedDay={setSelectedDay}
         isMobile={isMobile}
-        isDragging={!!draggedItem}
       />
 
       {/* Indicador de usuario local */}

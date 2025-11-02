@@ -60,19 +60,34 @@ function TaskItem({
   };
 
   const focusEditableInput = (index) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = inputRefsRef.current[index];
-        if (!el) return;
-        try {
-          el.focus({ preventScroll: true });
-          const len = (el.value || '').length;
-          if (typeof el.setSelectionRange === 'function') {
-            el.setSelectionRange(len, len);
-          }
-        } catch (_) {}
-      });
-    });
+    const el = inputRefsRef.current[index];
+    if (!el) return;
+    
+    // En móvil, no usar preventScroll para permitir que el navegador muestre el teclado correctamente
+    // y en desktop usar preventScroll para evitar saltos de scroll
+    const focusOptions = isMobile ? {} : { preventScroll: true };
+    
+    try {
+      // En móvil, hacer focus inmediatamente sin delays
+      if (isMobile) {
+        el.focus(focusOptions);
+        const len = (el.value || '').length;
+        if (typeof el.setSelectionRange === 'function') {
+          el.setSelectionRange(len, len);
+        }
+      } else {
+        // En desktop, usar requestAnimationFrame para evitar problemas visuales
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.focus(focusOptions);
+            const len = (el.value || '').length;
+            if (typeof el.setSelectionRange === 'function') {
+              el.setSelectionRange(len, len);
+            }
+          });
+        });
+      }
+    } catch (_) {}
   };
 
   const handleTaskChange = (index, value) => {
@@ -365,6 +380,25 @@ function TaskItem({
                 type="text"
                 value={task}
                 onChange={(e) => handleTaskChange(index, e.target.value)}
+                onTouchStart={(e) => {
+                  // En móviles: activar edición inmediatamente al tocar, antes de que otros eventos interfieran
+                  if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
+                    e.stopPropagation(); // Evitar que el contenedor capture el evento
+                    // Activar edición de forma síncrona
+                    setEditingInputs(prev => new Set([...prev, index]));
+                    // Usar requestAnimationFrame para el focus después de que el DOM se actualice
+                    requestAnimationFrame(() => {
+                      const el = inputRefsRef.current[index];
+                      if (el) {
+                        el.focus(); // Sin preventScroll en móvil
+                        const len = (el.value || '').length;
+                        if (typeof el.setSelectionRange === 'function') {
+                          el.setSelectionRange(len, len);
+                        }
+                      }
+                    });
+                  }
+                }}
                 onDoubleClick={() => {
                   // En móviles no usar doble click
                   if (isMobile) return;
@@ -376,18 +410,21 @@ function TaskItem({
                   }
                 }}
                 onClick={() => {
-                  // En móviles: tap único activa edición y enfoca
+                  // En móviles: asegurar que si el touchStart no funcionó, el click sí lo haga
                   if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
                     startEditing(index);
                     focusEditableInput(index);
                   }
                 }}
                 onFocus={(e) => {
-                  // En móviles comportamiento normal
+                  // En móvil: si el input recibió focus pero no está en modo edición, activarlo
                   if (isMobile) {
                     if (!editingInputs.has(index)) {
                       startEditing(index);
-                      focusEditableInput(index);
+                      // Asegurar que el teclado se muestre
+                      setTimeout(() => {
+                        e.target.focus();
+                      }, 0);
                     }
                     return;
                   }
@@ -424,7 +461,7 @@ function TaskItem({
                 onKeyDown={(e) => handleInputKeyDown(e, index)}
                 placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}  
                 className="taskitem-input"
-                readOnly={!editingInputs.has(index)}
+                readOnly={isMobile ? false : !editingInputs.has(index)} // En móvil siempre permitir focus nativo
                 inputMode="text"
                 enterKeyHint="done"
                 style={{

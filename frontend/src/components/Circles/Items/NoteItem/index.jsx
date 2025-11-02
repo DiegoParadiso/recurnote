@@ -179,19 +179,34 @@ export default function NoteItem({
   };
 
   const focusEditableTextarea = () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = textareaRef.current;
-        if (!el) return;
-        try {
-          el.focus({ preventScroll: true });
-          const len = (el.value || '').length;
-          if (typeof el.setSelectionRange === 'function') {
-            el.setSelectionRange(len, len);
-          }
-        } catch (_) {}
-      });
-    });
+    const el = textareaRef.current;
+    if (!el) return;
+    
+    // En móvil, no usar preventScroll para permitir que el navegador muestre el teclado correctamente
+    // y en desktop usar preventScroll para evitar saltos de scroll
+    const focusOptions = isMobile ? {} : { preventScroll: true };
+    
+    try {
+      // En móvil, hacer focus inmediatamente sin delays
+      if (isMobile) {
+        el.focus(focusOptions);
+        const len = (el.value || '').length;
+        if (typeof el.setSelectionRange === 'function') {
+          el.setSelectionRange(len, len);
+        }
+      } else {
+        // En desktop, usar requestAnimationFrame para evitar problemas visuales
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.focus(focusOptions);
+            const len = (el.value || '').length;
+            if (typeof el.setSelectionRange === 'function') {
+              el.setSelectionRange(len, len);
+            }
+          });
+        });
+      }
+    } catch (_) {}
   };
 
   const stopEditing = () => {
@@ -526,8 +541,27 @@ export default function NoteItem({
             className="noteitem-textarea"
             value={content}
             onChange={handleTextChange}
+            onTouchStart={(e) => {
+              // En móviles: activar edición inmediatamente al tocar, antes de que otros eventos interfieran
+              if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
+                e.stopPropagation(); // Evitar que el contenedor capture el evento
+                // Activar edición de forma síncrona
+                setIsEditing(true);
+                // Usar requestAnimationFrame para el focus después de que el DOM se actualice
+                requestAnimationFrame(() => {
+                  const el = textareaRef.current;
+                  if (el) {
+                    el.focus(); // Sin preventScroll en móvil
+                    const len = (el.value || '').length;
+                    if (typeof el.setSelectionRange === 'function') {
+                      el.setSelectionRange(len, len);
+                    }
+                  }
+                });
+              }
+            }}
             onClick={() => {
-              // En móviles: un click activa edición y enfoca luego de aplicar cambios
+              // En móviles: asegurar que si el touchStart no funcionó, el click sí lo haga
               if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
                 startEditing();
                 focusEditableTextarea();
@@ -543,6 +577,14 @@ export default function NoteItem({
               }
             }}
             onFocus={(e) => {
+              // En móvil: si el input recibió focus pero no está en modo edición, activarlo
+              if (isMobile && !isEditing) {
+                startEditing();
+                // Asegurar que el teclado se muestre
+                setTimeout(() => {
+                  e.target.focus();
+                }, 0);
+              }
               // En desktop - prevenir focus directo, solo por doble click
               if (!isMobile && !isEditing) {
                 e.target.blur();
@@ -573,7 +615,7 @@ export default function NoteItem({
             }}
             onKeyDown={handleTextareaKeyDown}
             placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
-            readOnly={!isEditing}
+            readOnly={isMobile ? false : !isEditing} // En móvil siempre permitir focus nativo
             inputMode="text"
             enterKeyHint="done"
             style={{

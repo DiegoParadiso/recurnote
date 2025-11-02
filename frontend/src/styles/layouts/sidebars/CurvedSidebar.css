@@ -133,12 +133,6 @@
     justify-content: center;
 }
 
-/* Solid background for items in mobile CurvedSidebar */
-.curved-sidebar-container.mobile .sidebar-item {
-    background-color: var(--color-neutral) !important;
-    border-color: var(--color-text-secondary) !important;
-}
-
 
 .curved-sidebar-container.pinned .curved-sidebar-panel {
   position: static !important; /* para que el wrapper fije la posición exacta */

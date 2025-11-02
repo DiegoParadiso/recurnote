@@ -52,7 +52,7 @@
   transition: background-color 0.2s ease, border-color 0.2s ease;
   line-height: 0; 
   box-sizing: border-box; 
-  padding: 0.5px; /* micro padding para centrar mejor el SVG dentro del box */
+  padding: 1px; /* micro padding para centrar mejor el SVG dentro del box */
 }
 
 .checkbox-box.checked {
@@ -63,14 +63,13 @@
 
 .checkbox-svg {
   width: 10px;
-  height: 10px; /* cuadrado para un centrado más consistente con padding */
+  height: 10px; 
   stroke: var(--color-text-primary);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
   display: block;
-  transform: translateY(0.75px); /* micro-nudge vertical para centrar ópticamente */
 }
 
 /* Input text */
