@@ -84,7 +84,15 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
     >
       <span className="inline-flex items-center gap-2 text-center" style={{ overflow: 'hidden', maxWidth: '100%' }}>
         <AlertTriangle size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{resolvedMessage}</span>
+        <span
+          style={{
+            overflow: 'hidden',
+            maxWidth: '100%',
+            wordBreak: 'break-word',
+            display: 'block',
+            textAlign: 'center',
+          }}
+        >{resolvedMessage}</span>
       </span>
     </div>
   );
