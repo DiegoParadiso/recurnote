@@ -9,7 +9,10 @@
   font-weight: 600;
   text-transform: uppercase;
   color: var(--color-text-primary);
-  font-family: 'Fira Code', monospace;
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   transition: all 0.3s ease;
   pointer-events: none;
 }

@@ -26,7 +26,7 @@ html[data-contrast='high'] .config-panel {
 
 /* Header */
 .config-panel-header {
-  padding: 1.25rem 1.25rem;
+  padding: 1.25rem 1.25rem 1.25rem 1.25rem;
   background-color: var(--color-bg);
   font-size: 1rem;
   display: flex;
@@ -38,10 +38,15 @@ html[data-contrast='high'] .config-panel {
 .config-panel-header h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  font-family: 'Fira Code', monospace;
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   text-transform: uppercase;
   user-select: none;
   color: var(--color-text-primary);
+  margin: 0;
+  padding-left: 0;
 }
 
 .config-panel-close-btn {
@@ -145,7 +150,10 @@ html[data-contrast='high'] .config-panel select:focus-visible {
 .config-section h3 {
   font-weight: 600;
   font-size: 0.9rem;
-  font-family: 'Fira Code', monospace;
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   text-transform: uppercase;
   margin-bottom: 1rem;
   color: var(--color-text-primary);
@@ -534,6 +542,10 @@ html.dark .limit-warning svg {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .warning-text {
@@ -665,6 +677,10 @@ html[data-contrast='high'] .danger-button:disabled {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .confirmation-modal p {
@@ -786,4 +802,11 @@ html[data-contrast='high'] .cancel-button:focus-visible {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* Clase para Roboto Slab */
+.roboto-slab {
+  font-family: "Roboto Slab", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
 }

@@ -23,7 +23,10 @@
   color: var(--color-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-family: monospace;
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .sidebar-scroll-area {

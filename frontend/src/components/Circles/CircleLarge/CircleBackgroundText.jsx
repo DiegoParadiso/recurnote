@@ -21,7 +21,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
           pointerEvents: 'none',
           zIndex: 'var(--z-mid-low)',
           color: 'var(--color-text-primary)',
-          fontFamily: PRIMARY_FONT,
+          fontFamily: 'Roboto Slab, serif',
           fontSize: circleSize * 0.03, // Un poquito más grande (antes era 0.025)
           letterSpacing: 1.5,
           fontWeight: 600,
@@ -64,7 +64,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
         </defs>
         <text
           fill="currentColor"
-          fontFamily={PRIMARY_FONT}
+          fontFamily="Roboto Slab, serif"
           fontSize={circleSize * 0.03}
           letterSpacing="2"
           fontWeight="600"
