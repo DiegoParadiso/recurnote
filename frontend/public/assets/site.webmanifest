@@ -1,15 +1,16 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Recurnote – Notes by Date",
+  "short_name": "Recurnote",
+  "description": "A calm calendar for your thoughts — plan your days and stay organized with recurring reminders.",
   "icons": [
     {
-      "src": "/web-app-manifest-192x192.png",
+      "src": "/assets/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "/assets/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -17,5 +18,7 @@
   ],
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
 }
