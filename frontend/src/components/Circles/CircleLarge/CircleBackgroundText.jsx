@@ -15,7 +15,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
       <div
         style={{
           position: 'absolute',
-          top: '7%',
+          top: '9%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
           pointerEvents: 'none',
@@ -27,6 +27,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText }
           fontWeight: 600,
           textAlign: 'center',
           width: '80%',
+          paddingTop: '1rem',
         }}
       >
         {displayText.toUpperCase()}

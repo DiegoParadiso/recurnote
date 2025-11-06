@@ -397,18 +397,32 @@ function TaskItem({
                   }
                 }}
                 onTouchMove={(e) => {
-                  // Si el usuario mueve el dedo, es un drag, no un intento de focus
+                  // Si el usuario mueve el dedo, verificar si es scroll o drag
                   if (isMobile && touchStartPosRef.current) {
+                    const inputEl = inputRefsRef.current[index];
+                    if (!inputEl) return;
+                    
                     const touch = e.touches[0];
-                    const dx = touch.clientX - touchStartPosRef.current.x;
-                    const dy = touch.clientY - touchStartPosRef.current.y;
+                    const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
+                    const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // Si se movió más de 10px, es un drag
-                    if (distance > 10) {
+                    // Verificar si el input tiene scroll disponible (aunque los inputs normalmente no scrollan)
+                    // Pero el contenedor padre (.taskitem-content) sí puede tener scroll
+                    const contentContainer = inputEl.closest('.taskitem-content');
+                    const hasScroll = contentContainer && contentContainer.scrollHeight > contentContainer.clientHeight;
+                    
+                    // Si el movimiento es principalmente vertical Y hay scroll disponible, permitir scroll
+                    if (distance > 10 && hasScroll && dy > dx && dy > 15) {
+                      // Es un intento de scroll, no activar drag
+                      e.stopPropagation();
+                      return;
+                    }
+                    
+                    // Si se movió más de 10px y es principalmente horizontal, es un drag
+                    if (distance > 10 && (dx > dy || !hasScroll)) {
                       touchIsDragRef.current = true;
                       // Prevenir scroll en el input durante drag
-                      const inputEl = inputRefsRef.current[index];
                       if (inputEl) {
                         inputEl.style.overflow = 'hidden';
                         inputEl.style.pointerEvents = 'none';

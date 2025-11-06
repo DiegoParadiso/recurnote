@@ -557,15 +557,25 @@ export default function NoteItem({
               }
             }}
             onTouchMove={(e) => {
-              // Si el usuario mueve el dedo, es un drag, no un intento de focus
-              if (isMobile && touchStartPosRef.current) {
+              // Si el usuario mueve el dedo, verificar si es scroll o drag
+              if (isMobile && touchStartPosRef.current && textareaRef.current) {
                 const touch = e.touches[0];
-                const dx = touch.clientX - touchStartPosRef.current.x;
-                const dy = touch.clientY - touchStartPosRef.current.y;
+                const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
+                const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                // Si se movió más de 10px, es un drag
-                if (distance > 10) {
+                // Verificar si el textarea tiene scroll disponible
+                const hasScroll = textareaRef.current.scrollHeight > textareaRef.current.clientHeight;
+                
+                // Si el movimiento es principalmente vertical Y hay scroll disponible, permitir scroll
+                if (distance > 10 && hasScroll && dy > dx && dy > 15) {
+                  // Es un intento de scroll, no activar drag
+                  e.stopPropagation();
+                  return;
+                }
+                
+                // Si se movió más de 10px y es principalmente horizontal, es un drag
+                if (distance > 10 && (dx > dy || !hasScroll)) {
                   touchIsDragRef.current = true;
                   // Prevenir scroll en el input durante drag
                   if (textareaRef.current) {

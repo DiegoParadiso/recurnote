@@ -40,5 +40,7 @@
   line-height: 1.4;
   position: relative;
   height: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
