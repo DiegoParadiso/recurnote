@@ -96,7 +96,9 @@ export default function UnifiedContainer({
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = false;
     
-    // No marcar dragging aún; esperar al umbral de movimiento
+    // Marcar dragging para que el handler global procese el movimiento
+    isDragging.current = true;
+    // onDrag se notificará cuando el movimiento supere el umbral
     dragStartPos.current = {
       mouseX: e.clientX,
       mouseY: e.clientY,
@@ -104,7 +106,6 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
-    // onDrag se notificará cuando el movimiento supere el umbral
   };
 
   const onTouchStartDrag = (e) => {
@@ -112,12 +113,19 @@ export default function UnifiedContainer({
 
     const touch = e.touches[0];
     const target = e.target;
-    
+    const tag = target.tagName?.toLowerCase?.() || '';
+    const isInteractive = ['input', 'textarea', 'select', 'button', 'a'].includes(tag) || target.isContentEditable || target.contentEditable === 'true';
+
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
-    
-    // No marcar dragging aún; esperar al umbral de movimiento
+
+    // Para elementos NO interactivos: prevenir scroll y marcar dragging desde el inicio
+    if (!isInteractive) {
+      e.preventDefault();
+      isDragging.current = true;
+    }
+    // onDrag se notificará cuando el movimiento supere el umbral
     dragStartPos.current = {
       mouseX: touch.clientX,
       mouseY: touch.clientY,
@@ -125,7 +133,6 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
-    // onDrag se notificará cuando el movimiento supere el umbral
   };
 
   const onMouseMoveDrag = (e) => {
@@ -148,7 +155,6 @@ export default function UnifiedContainer({
   const onTouchMoveDrag = (e) => {
     if (e.touches.length !== 1) return;
     e.preventDefault();
-    e.stopPropagation();
     const touch = e.touches[0];
     
     if (dragStartRef.current) {
