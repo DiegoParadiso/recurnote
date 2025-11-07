@@ -210,6 +210,8 @@ html.dark .sidebar-item:hover {
     width: 100px;
     height: 60px;
     padding: 0.4rem;
+    background-color: var(--color-neutral);
+    border-color: var(--color-text-muted);
   }
 
   .sidebar-item-nota .dot {
@@ -237,5 +239,9 @@ html.dark .sidebar-item:hover {
 
   .sidebar-item-archivo .top-bar {
     top: 9px;
+  }
+  html.dark .sidebar-item {
+    background-color: var(--color-neutral);
+    border-color: var(--color-text-secondary);
   }
 }

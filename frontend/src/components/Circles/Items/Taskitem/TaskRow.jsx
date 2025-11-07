@@ -73,16 +73,20 @@ export default function TaskRow({
         }}
         onTouchMove={(e) => {
           if (isMobile) {
-            e.preventDefault();
-            // No stopPropagation: permitir que el contenedor maneje el drag
-            if (touchStartPosRef.current) {
-              const touch = e.touches[0];
-              const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
-              const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
-              const distance = Math.sqrt(dx * dx + dy * dy);
-              if (distance > 10) {
-                touchIsDragRef.current = true;
-                touchStartPosRef.current = null;
+            // Permitir selección nativa cuando el input está en edición
+            const isEditingThis = editingInputs.has(index);
+            if (!isEditingThis) {
+              e.preventDefault();
+              // No stopPropagation: permitir que el contenedor maneje el drag
+              if (touchStartPosRef.current) {
+                const touch = e.touches[0];
+                const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
+                const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 10) {
+                  touchIsDragRef.current = true;
+                  touchStartPosRef.current = null;
+                }
               }
             }
           }

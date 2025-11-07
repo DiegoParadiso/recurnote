@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import '@styles/components/circles/items/ArchivoItem.css';
 import { useAuth } from '@context/AuthContext';
 import { useItems } from '@context/ItemsContext';
+import { computePolarFromXY } from '@utils/helpers/geometry';
 
 export default function ArchivoItem({
   id,
@@ -370,11 +371,7 @@ export default function ArchivoItem({
           onResize={handleResize}
           onMove={({ x: newX, y: newY }) => {
             // Calcular el ángulo y distancia desde el centro del círculo
-            const dx = newX - cx;
-            const dy = newY - cy;
-            const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
+            const { angle, distance } = computePolarFromXY(newX, newY, cx, cy);
             onUpdate?.(
               id,
               item.content || {},
@@ -399,7 +396,13 @@ export default function ArchivoItem({
             onClick={handleContainerClick}
             style={{
               cursor: !item.content?.fileData ? 'pointer' : 'default',
+              userSelect: isDragging ? 'none' : 'auto',
+              WebkitUserSelect: isDragging ? 'none' : 'auto',
+              MozUserSelect: isDragging ? 'none' : 'auto',
+              msUserSelect: isDragging ? 'none' : 'auto',
+              pointerEvents: isDragging ? 'none' : 'auto',
             }}
+            data-drag-container="true"
           >
             {isImage && (
               <img

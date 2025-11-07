@@ -19,30 +19,14 @@ export default function UnifiedContainer({
   isActive = false,
   onActivate,
   zIndexOverride,
-  dragDisabledUntil,
   ...rest
 }) {
 
-  
+  const containerRef = useRef(null);
   const [pos, setPos] = useState({ x, y });
   const [sizeState, setSizeState] = useState({ width, height });
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
-  const dragOwnerIdRef = useRef(Symbol('dragOwner'));
-
-  const blockUserSelect = () => {
-    document.body.style.userSelect = 'none';
-    document.body.style.WebkitUserSelect = 'none';
-    document.body.style.MozUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
-  };
-
-  const restoreUserSelect = () => {
-    document.body.style.userSelect = '';
-    document.body.style.WebkitUserSelect = '';
-    document.body.style.MozUserSelect = '';
-    document.body.style.msUserSelect = '';
-  };
 
   useEffect(() => {
     const limited = limitPositionInsideCircle(
@@ -70,12 +54,12 @@ export default function UnifiedContainer({
       onDrop?.();
       isDragging.current = false;
     }
-    if (window.__rnActiveDrag && window.__rnActiveDrag.owner === dragOwnerIdRef.current) {
-      window.__rnActiveDrag = null;
-    }
     
     // Restaurar selección de texto cuando termine el drag
-    restoreUserSelect();
+    document.body.style.userSelect = '';
+    document.body.style.WebkitUserSelect = '';
+    document.body.style.MozUserSelect = '';
+    document.body.style.msUserSelect = '';
   };
   
   const handleTouchEnd = (e) => {
@@ -83,16 +67,15 @@ export default function UnifiedContainer({
       onDrop?.();
       isDragging.current = false;
     }
-    if (window.__rnActiveDrag && window.__rnActiveDrag.owner === dragOwnerIdRef.current) {
-      window.__rnActiveDrag = null;
-    }
     
     // Restaurar selección de texto cuando termine el drag
-    restoreUserSelect();
+    document.body.style.userSelect = '';
+    document.body.style.WebkitUserSelect = '';
+    document.body.style.MozUserSelect = '';
+    document.body.style.msUserSelect = '';
   };
   
   const onMouseDownDrag = (e) => {
-    if (dragDisabledUntil && Date.now() < dragDisabledUntil) return;
     const tag = e.target.tagName.toLowerCase();
 
     if (['input', 'textarea', 'select'].includes(tag)) return;
@@ -102,29 +85,18 @@ export default function UnifiedContainer({
 
     e.stopPropagation();
     e.preventDefault(); // Prevenir selección de texto
-    // Finalizar cualquier drag activo previo (candado global)
-    if (window.__rnActiveDrag && typeof window.__rnActiveDrag.end === 'function') {
-      try { window.__rnActiveDrag.end(); } catch {}
-    }
-    window.__rnActiveDrag = {
-      owner: dragOwnerIdRef.current,
-      end: () => {
-        if (isDragging.current) onDrop?.();
-        isDragging.current = false;
-        isDraggingRef.current = false;
-      }
-    };
     
     // Prevenir selección de texto a nivel global durante drag
-    blockUserSelect();
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
     
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = false;
     
-    // Marcar dragging para que el handler global procese el movimiento
     isDragging.current = true;
-    // onDrag se notificará cuando el movimiento supere el umbral
     dragStartPos.current = {
       mouseX: e.clientX,
       mouseY: e.clientY,
@@ -132,6 +104,9 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
+    
+    // Notificar inmediatamente que el drag comenzó
+    onDrag?.({ x: pos.x, y: pos.y });
   };
 
   const onTouchStartDrag = (e) => {
@@ -139,33 +114,31 @@ export default function UnifiedContainer({
 
     const touch = e.touches[0];
     const target = e.target;
-    const tag = target.tagName?.toLowerCase?.() || '';
-    const isInteractive = ['input', 'textarea', 'select', 'button', 'a'].includes(tag) || target.isContentEditable || target.contentEditable === 'true';
-
-    if (dragDisabledUntil && Date.now() < dragDisabledUntil) return;
-
+    
+    // No iniciar drag si el touch es sobre un input, textarea o elemento interactivo
+    const tag = target.tagName.toLowerCase();
+    if (['input', 'textarea', 'select', 'button', 'a'].includes(tag)) {
+      return;
+    }
+    
+    // Verificar si el target es editable o está dentro de un elemento editable
+    if (target.contentEditable === 'true' || target.isContentEditable) {
+      return;
+    }
+    
+    // Verificar si está dentro de un contenedor editable (como el data-drag-container que tiene inputs dentro)
+    const editableParent = target.closest('input, textarea, [contenteditable="true"]');
+    if (editableParent) {
+      return;
+    }
+    
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
-
-    // Para elementos NO interactivos: prevenir scroll y marcar dragging desde el inicio
-    if (!isInteractive) {
-      e.preventDefault();
-      // Finalizar cualquier drag activo previo (candado global)
-      if (window.__rnActiveDrag && typeof window.__rnActiveDrag.end === 'function') {
-        try { window.__rnActiveDrag.end(); } catch {}
-      }
-      window.__rnActiveDrag = {
-        owner: dragOwnerIdRef.current,
-        end: () => {
-          if (isDragging.current) onDrop?.();
-          isDragging.current = false;
-          isDraggingRef.current = false;
-        }
-      };
-      isDragging.current = true;
-    }
-    // onDrag se notificará cuando el movimiento supere el umbral
+    
+    // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
+    // Solo registrar la posición inicial
+    isDragging.current = true;
     dragStartPos.current = {
       mouseX: touch.clientX,
       mouseY: touch.clientY,
@@ -173,6 +146,9 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
+    
+    // Notificar inmediatamente que el drag comenzó
+    onDrag?.({ x: pos.x, y: pos.y });
   };
 
   const onMouseMoveDrag = (e) => {
@@ -182,19 +158,14 @@ export default function UnifiedContainer({
       const distance = Math.sqrt(dx * dx + dy * dy);
       
       // Si se movió más de 5px, se considera drag
-      if (distance > 10) {
-        if (!isDraggingRef.current) {
-          isDraggingRef.current = true;
-          isDragging.current = true;
-          onDrag?.({ x: pos.x, y: pos.y });
-        }
+      if (distance > 5) {
+        isDraggingRef.current = true;
       }
     }
   };
 
   const onTouchMoveDrag = (e) => {
     if (e.touches.length !== 1) return;
-    e.preventDefault();
     const touch = e.touches[0];
     
     if (dragStartRef.current) {
@@ -203,12 +174,8 @@ export default function UnifiedContainer({
       const distance = Math.sqrt(dx * dx + dy * dy);
       
       // Si se movió más de 5px, se considera drag
-      if (distance > 10) {
-        if (!isDraggingRef.current) {
-          isDraggingRef.current = true;
-          isDragging.current = true;
-          onDrag?.({ x: pos.x, y: pos.y });
-        }
+      if (distance > 5) {
+        isDraggingRef.current = true;
       }
     }
   };
@@ -226,10 +193,16 @@ export default function UnifiedContainer({
     };
 
     // Bloquear selección de texto durante el resize
-    blockUserSelect();
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
 
     const restoreSelection = () => {
-      restoreUserSelect();
+      document.body.style.userSelect = '';
+      document.body.style.WebkitUserSelect = '';
+      document.body.style.MozUserSelect = '';
+      document.body.style.msUserSelect = '';
       window.removeEventListener('mouseup', restoreSelection);
       window.removeEventListener('touchend', restoreSelection);
       window.removeEventListener('touchcancel', restoreSelection);
@@ -255,10 +228,16 @@ export default function UnifiedContainer({
     };
 
     // Bloquear selección de texto durante el resize (por si hay mouse+touch híbrido)
-    blockUserSelect();
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
 
     const restoreSelection = () => {
-      restoreUserSelect();
+      document.body.style.userSelect = '';
+      document.body.style.WebkitUserSelect = '';
+      document.body.style.MozUserSelect = '';
+      document.body.style.msUserSelect = '';
       window.removeEventListener('mouseup', restoreSelection);
       window.removeEventListener('touchend', restoreSelection);
       window.removeEventListener('touchcancel', restoreSelection);
@@ -269,11 +248,14 @@ export default function UnifiedContainer({
     window.addEventListener('touchcancel', restoreSelection);
   };
 
-  
+  // Función para verificar si se está haciendo drag
+  const isCurrentlyDragging = () => {
+    return isDraggingRef.current;
+  };
 
   return (
     <div
-      {...rest}
+      ref={containerRef}
       onMouseDown={onMouseDownDrag}
       onMouseMove={onMouseMoveDrag}
       onTouchStart={onTouchStartDrag}
@@ -294,10 +276,9 @@ export default function UnifiedContainer({
           backgroundColor: 'var(--color-neutral)',
           color: 'var(--color-text-primary)',
           border: '1px solid var(--color-neutral-darker)',
-          touchAction: 'none',
         }
       })}
-      data-is-dragging={isDraggingRef.current}
+      data-is-dragging={isCurrentlyDragging()}
     >
       {children}
       {!disableResize && (

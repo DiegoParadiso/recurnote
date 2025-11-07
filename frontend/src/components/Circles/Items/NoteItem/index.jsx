@@ -380,7 +380,7 @@ export default function NoteItem({
               }
             }}
             onTouchMove={(e) => {
-              if (isMobile) {
+              if (isMobile && !isEditing) {
                 e.preventDefault();
               }
             }}
