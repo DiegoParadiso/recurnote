@@ -29,6 +29,9 @@ export const ItemsProvider = ({ children }) => {
   const [errorToast, setErrorToast] = useState('');
 
   const retryTimeoutRef = useRef(null);
+  // Debounce por item para sincronizaciones al backend (drag/resize)
+  const updateTimersRef = useRef(new Map()); // id -> timeoutId
+  const updateQueueRef = useRef(new Map());  // id -> { url, payload }
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Función para cargar items del localStorage cuando no hay usuario
@@ -419,12 +422,12 @@ export const ItemsProvider = ({ children }) => {
     if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) {
       return;
     }
-    
+      
     if (user && token) {
-      // Usuario autenticado - actualizar en servidor
+      // Usuario autenticado - actualizar en servidor con debounce por item
       const operationId = `update_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
-      
+
       // Asegurar que enviamos item_data como objeto
       const payload = {
         ...(date !== undefined ? { date } : {}),
@@ -434,48 +437,54 @@ export const ItemsProvider = ({ children }) => {
         ...(rotation_enabled !== undefined ? { rotation_enabled } : {}),
         ...(Object.keys(itemData).length ? { item_data: { ...itemData } } : {})
       };
-      
-      try {
-        const response = await fetch(`${API_URL}/api/items/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-        
-        // Solo lanzar error si hay un problema real de red o servidor
-        if (!response.ok) {
-                  // Si el item no existe (404), no es un error crítico
-        if (response.status === 404) {
-          // Item no encontrado, no es un error crítico
-        } else {
-          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-        }
-        }
-        
-        // Remover operación pendiente
-        setPendingOperations(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(operationId);
-          return newSet;
-        });
-      } catch (error) {
-        // Remover operación pendiente en caso de error
-        setPendingOperations(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(operationId);
-          return newSet;
-        });
-        
-        // Solo lanzar error si es un problema real de red
-        if (error.name === 'TypeError' || error.message.includes('fetch')) {
-          throw error;
-        }
-        
-        // Para otros errores, no hacer nada
+
+      const url = `${API_URL}/api/items/${id}`;
+      // Encolar última actualización por id
+      updateQueueRef.current.set(id, { url, payload });
+      // Limpiar timeout previo si existe
+      const prevTimeout = updateTimersRef.current.get(id);
+      if (prevTimeout) {
+        clearTimeout(prevTimeout);
       }
+      // Programar envío consolidado
+      const timeoutId = setTimeout(async () => {
+        const entry = updateQueueRef.current.get(id);
+        updateQueueRef.current.delete(id);
+        updateTimersRef.current.delete(id);
+        if (!entry) return;
+        try {
+          const response = await fetch(entry.url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(entry.payload)
+          });
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              // Item no encontrado, no es crítico
+            } else {
+              throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+            }
+          }
+        } catch (error) {
+          // Solo propagar errores de red
+          if (error.name === 'TypeError' || (error.message && error.message.includes('fetch'))) {
+            console.error('Network error on updateItem:', error);
+          }
+        } finally {
+          // Remover operación pendiente
+          setPendingOperations(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(operationId);
+            return newSet;
+          });
+        }
+      }, 250); // debounce 250ms
+
+      updateTimersRef.current.set(id, timeoutId);
     }
     // Si es modo local, no hacer nada más - ya se guardó en localStorage
   }
