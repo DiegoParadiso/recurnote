@@ -415,6 +415,11 @@ export const ItemsProvider = ({ children }) => {
       return newState;
     });
     
+    // Evitar sincronizar con backend si el ID es temporal o local
+    if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) {
+      return;
+    }
+    
     if (user && token) {
       // Usuario autenticado - actualizar en servidor
       const operationId = `update_${id}`;
