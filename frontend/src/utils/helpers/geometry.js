@@ -9,6 +9,15 @@ export function isColliding(x1, y1, w1, h1, x2, y2, w2, h2, margin = 8) {
   );
 }
 
+// Compute polar coordinates (angle in degrees, distance in px)
+export function computePolarFromXY(x, y, cx, cy) {
+  const dx = x - cx;
+  const dy = y - cy;
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  return { angle, distance };
+}
+
 export function getAngleFromCenter(x, y, containerRef) {
   if (!containerRef.current) return 0;
   const rect = containerRef.current.getBoundingClientRect();

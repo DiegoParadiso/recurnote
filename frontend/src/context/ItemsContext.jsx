@@ -3,19 +3,6 @@ import i18n from '../i18n/index.js';
 import { useAuth } from '@context/AuthContext';
 import BottomToast from '@components/common/BottomToast';
 
-// Función debounce simple
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
 const ItemsContext = createContext();
 
 export const ItemsProvider = ({ children }) => {
@@ -209,15 +196,6 @@ export const ItemsProvider = ({ children }) => {
       loadItems();
     }
   }, [user, token, authLoading]);
-
-  // Debounce para loadItems - evitar múltiples ejecuciones seguidas
-  const debouncedLoadItems = useCallback(
-    debounce(() => {
-  
-      loadItems();
-    }, 1000), // 1 segundo de delay
-    [loadItems]
-  );
 
   // Función para recargar items manualmente
   const refreshItems = () => {
@@ -508,10 +486,6 @@ export const ItemsProvider = ({ children }) => {
   async function updateItem(id, changes) {
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
     
-    // Log para detectar cuándo se está moviendo un item
-    if (x !== undefined || y !== undefined) {
-  
-    }
     
     // INTERCEPTAR: Si es un item recién duplicado y se está moviendo, forzar posición original
     if ((x !== undefined || y !== undefined) && !changes._forcePosition) {

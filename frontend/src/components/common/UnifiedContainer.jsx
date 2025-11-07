@@ -23,12 +23,26 @@ export default function UnifiedContainer({
   ...rest
 }) {
 
-  const containerRef = useRef(null);
+  
   const [pos, setPos] = useState({ x, y });
   const [sizeState, setSizeState] = useState({ width, height });
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
   const dragOwnerIdRef = useRef(Symbol('dragOwner'));
+
+  const blockUserSelect = () => {
+    document.body.style.userSelect = 'none';
+    document.body.style.WebkitUserSelect = 'none';
+    document.body.style.MozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+  };
+
+  const restoreUserSelect = () => {
+    document.body.style.userSelect = '';
+    document.body.style.WebkitUserSelect = '';
+    document.body.style.MozUserSelect = '';
+    document.body.style.msUserSelect = '';
+  };
 
   useEffect(() => {
     const limited = limitPositionInsideCircle(
@@ -61,10 +75,7 @@ export default function UnifiedContainer({
     }
     
     // Restaurar selección de texto cuando termine el drag
-    document.body.style.userSelect = '';
-    document.body.style.WebkitUserSelect = '';
-    document.body.style.MozUserSelect = '';
-    document.body.style.msUserSelect = '';
+    restoreUserSelect();
   };
   
   const handleTouchEnd = (e) => {
@@ -77,10 +88,7 @@ export default function UnifiedContainer({
     }
     
     // Restaurar selección de texto cuando termine el drag
-    document.body.style.userSelect = '';
-    document.body.style.WebkitUserSelect = '';
-    document.body.style.MozUserSelect = '';
-    document.body.style.msUserSelect = '';
+    restoreUserSelect();
   };
   
   const onMouseDownDrag = (e) => {
@@ -108,10 +116,7 @@ export default function UnifiedContainer({
     };
     
     // Prevenir selección de texto a nivel global durante drag
-    document.body.style.userSelect = 'none';
-    document.body.style.WebkitUserSelect = 'none';
-    document.body.style.MozUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
+    blockUserSelect();
     
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -221,16 +226,10 @@ export default function UnifiedContainer({
     };
 
     // Bloquear selección de texto durante el resize
-    document.body.style.userSelect = 'none';
-    document.body.style.WebkitUserSelect = 'none';
-    document.body.style.MozUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
+    blockUserSelect();
 
     const restoreSelection = () => {
-      document.body.style.userSelect = '';
-      document.body.style.WebkitUserSelect = '';
-      document.body.style.MozUserSelect = '';
-      document.body.style.msUserSelect = '';
+      restoreUserSelect();
       window.removeEventListener('mouseup', restoreSelection);
       window.removeEventListener('touchend', restoreSelection);
       window.removeEventListener('touchcancel', restoreSelection);
@@ -256,16 +255,10 @@ export default function UnifiedContainer({
     };
 
     // Bloquear selección de texto durante el resize (por si hay mouse+touch híbrido)
-    document.body.style.userSelect = 'none';
-    document.body.style.WebkitUserSelect = 'none';
-    document.body.style.MozUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
+    blockUserSelect();
 
     const restoreSelection = () => {
-      document.body.style.userSelect = '';
-      document.body.style.WebkitUserSelect = '';
-      document.body.style.MozUserSelect = '';
-      document.body.style.msUserSelect = '';
+      restoreUserSelect();
       window.removeEventListener('mouseup', restoreSelection);
       window.removeEventListener('touchend', restoreSelection);
       window.removeEventListener('touchcancel', restoreSelection);
@@ -276,14 +269,11 @@ export default function UnifiedContainer({
     window.addEventListener('touchcancel', restoreSelection);
   };
 
-  // Función para verificar si se está haciendo drag
-  const isCurrentlyDragging = () => {
-    return isDraggingRef.current;
-  };
+  
 
   return (
     <div
-      ref={containerRef}
+      {...rest}
       onMouseDown={onMouseDownDrag}
       onMouseMove={onMouseMoveDrag}
       onTouchStart={onTouchStartDrag}
@@ -307,7 +297,7 @@ export default function UnifiedContainer({
           touchAction: 'none',
         }
       })}
-      data-is-dragging={isCurrentlyDragging()}
+      data-is-dragging={isDraggingRef.current}
     >
       {children}
       {!disableResize && (

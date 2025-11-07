@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useItems } from '@context/ItemsContext';
 import { useAuth } from '@context/AuthContext';
-import useHandleDrop from '@hooks/useDropHandler';
 import useRotationControls from '@hooks/useRotationControls';
 import { formatDateKey } from '@utils/formatDateKey';
 
@@ -22,12 +21,8 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     rotationSpeed,
   });
 
-  const debounceTimersRef = useRef(new Map());
-  
-  const combinedItemsByDate = itemsByDate || {};
-  
-  // Asegurar que combinedItemsByDate siempre sea un objeto
-  const safeCombinedItemsByDate = combinedItemsByDate || {};
+  // Asegurar que itemsByDate siempre sea un objeto seguro para lecturas
+  const safeCombinedItemsByDate = itemsByDate || {};
   
   // Usar refs para evitar recreación de funciones
   const setItemsByDateRef = useRef(setItemsByDate);
@@ -42,18 +37,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     onItemDragRef.current = onItemDrag;
   }, [setItemsByDate, user, token, onItemDrag]);
   
-  const scheduleUpdate = useCallback((id, changes, delayMs = 500) => {
-    const timers = debounceTimersRef.current;
-    if (timers.has(id)) clearTimeout(timers.get(id));
-    const t = setTimeout(() => {
-      // Usar updateItem del ItemsContext para todo (tanto servidor como local)
-      updateItem(id, changes).catch((error) => {
-        console.error('Error updating item:', error);
-      });
-      timers.delete(id);
-    }, delayMs);
-    timers.set(id, t);
-  }, [updateItem]);
+  
 
   useEffect(() => {
     const delta = (rotationAngle - prevRotationRef.current + 360) % 360;

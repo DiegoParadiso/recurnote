@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import UnifiedContainer from '@components/common/UnifiedContainer';
 import WithContextMenu from '@components/common/WithContextMenu';
 import { useItems } from '@context/ItemsContext';
@@ -8,6 +8,7 @@ import useTaskDrag from './hooks/useTaskDrag';
 import useTaskEditing from './hooks/useTaskEditing';
 import useTaskSizing from './hooks/useTaskSizing';
 import TaskRow from './TaskRow';
+import { computePolarFromXY } from '@utils/helpers/geometry';
 
 import '@styles/components/circles/items/TaskItem.css';
 
@@ -18,13 +19,11 @@ function TaskItem({
   rotation,
   rotationEnabled = true,
   item,
-  onMove,
   onResize,
   onUpdate,
   onDelete,
   cx,
   cy,
-  circleSize,
   maxRadius,
   isSmallScreen,
   onItemDrag,
@@ -34,9 +33,9 @@ function TaskItem({
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const baseHeight = 10; // padding mínimo del contenedor (4px arriba + 4px abajo)
+  const baseHeight = 10; 
   const maxTasks = 4;
-  const taskHeight = 36; // altura con padding de filas (6px arriba + 6px abajo + contenido)
+  const taskHeight = 36; 
   const buttonHeight = 30;
   const visibleTasksCount = Math.min(item.content?.length || 0, maxTasks);
   const {
@@ -44,7 +43,6 @@ function TaskItem({
     wasDraggingRef,
     handleContainerDragStart,
     handleContainerDragEnd,
-    setIsDragging,
   } = useTaskDrag({ id, onActivate, onItemDrop });
   const [editingInputs, setEditingInputs] = useState(new Set());
   const inputRefsRef = useRef({});
@@ -76,7 +74,7 @@ function TaskItem({
     focusEditableInput: focusEditableInputHook,
   } = useTaskEditing({ isMobile, inputRefsRef });
 
-  // Mantener referencias originales delegando en el hook, para no alterar comentarios ni llamadas existentes
+  // Mantener referencias originales delegando en el hook
   useEffect(() => {
     setEditingInputs(editingInputsHook);
   }, [editingInputsHook]);
@@ -136,7 +134,6 @@ function TaskItem({
 
   // Funciones para manejar edición de inputs
   const startEditing = (index) => startEditingHook(index);
-
   const stopEditing = (index) => stopEditingHook(index);
 
   const handleInputKeyDown = (e, index) => handleInputKeyDownHook(e, index);
@@ -189,11 +186,7 @@ function TaskItem({
         dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
-          const dx = x - cx;
-          const dy = y - cy;
-          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
+          const { angle, distance } = computePolarFromXY(x, y, cx, cy);
           // Actualizar la posición del item
           onUpdate?.(id, item.content || [], item.checked || [], null, { x, y }, { angle, distance });
           onItemDrag?.(id, { x, y });

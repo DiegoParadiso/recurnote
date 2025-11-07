@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import UnifiedContainer from '@components/common/UnifiedContainer';
 import WithContextMenu from '@components/common/WithContextMenu';
@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
 import useNoteEditing from './hooks/useNoteEditing';
 import useNoteSizing from './hooks/useNoteSizing';
+import { computePolarFromXY } from '@utils/helpers/geometry';
 
 import '@styles/components/circles/items/NoteItem.css';
 
@@ -20,7 +21,6 @@ export default function NoteItem({
   onUpdate,
   onResize,
   onDelete,
-  circleSize,
   maxRadius,
   cx,
   cy,
@@ -114,7 +114,7 @@ export default function NoteItem({
     }
   };
 
-  const computedMinHeight = height;
+  
 
   const handleTextChange = (e) => {
     // No cambiar texto si se está arrastrando
@@ -328,11 +328,7 @@ export default function NoteItem({
         dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
-          const dx = x - cx;
-          const dy = y - cy;
-          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
+          const { angle, distance } = computePolarFromXY(x, y, cx, cy);
           // Actualizar la posición del item
           onUpdate?.(id, content, null, null, { x, y }, { angle, distance });
           onItemDrag?.(id, { x, y });
