@@ -96,7 +96,7 @@ export default function UnifiedContainer({
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = false;
     
-    isDragging.current = true;
+    // No marcar dragging aún; esperar al umbral de movimiento
     dragStartPos.current = {
       mouseX: e.clientX,
       mouseY: e.clientY,
@@ -104,9 +104,7 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
-    
-    // Notificar inmediatamente que el drag comenzó
-    onDrag?.({ x: pos.x, y: pos.y });
+    // onDrag se notificará cuando el movimiento supere el umbral
   };
 
   const onTouchStartDrag = (e) => {
@@ -115,30 +113,11 @@ export default function UnifiedContainer({
     const touch = e.touches[0];
     const target = e.target;
     
-    // No iniciar drag si el touch es sobre un input, textarea o elemento interactivo
-    const tag = target.tagName.toLowerCase();
-    if (['input', 'textarea', 'select', 'button', 'a'].includes(tag)) {
-      return;
-    }
-    
-    // Verificar si el target es editable o está dentro de un elemento editable
-    if (target.contentEditable === 'true' || target.isContentEditable) {
-      return;
-    }
-    
-    // Verificar si está dentro de un contenedor editable (como el data-drag-container que tiene inputs dentro)
-    const editableParent = target.closest('input, textarea, [contenteditable="true"]');
-    if (editableParent) {
-      return;
-    }
-    
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
     
-    // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
-    // Solo registrar la posición inicial
-    isDragging.current = true;
+    // No marcar dragging aún; esperar al umbral de movimiento
     dragStartPos.current = {
       mouseX: touch.clientX,
       mouseY: touch.clientY,
@@ -146,9 +125,7 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
-    
-    // Notificar inmediatamente que el drag comenzó
-    onDrag?.({ x: pos.x, y: pos.y });
+    // onDrag se notificará cuando el movimiento supere el umbral
   };
 
   const onMouseMoveDrag = (e) => {
@@ -159,7 +136,11 @@ export default function UnifiedContainer({
       
       // Si se movió más de 5px, se considera drag
       if (distance > 5) {
-        isDraggingRef.current = true;
+        if (!isDraggingRef.current) {
+          isDraggingRef.current = true;
+          isDragging.current = true;
+          onDrag?.({ x: pos.x, y: pos.y });
+        }
       }
     }
   };
@@ -177,7 +158,11 @@ export default function UnifiedContainer({
       
       // Si se movió más de 5px, se considera drag
       if (distance > 5) {
-        isDraggingRef.current = true;
+        if (!isDraggingRef.current) {
+          isDraggingRef.current = true;
+          isDragging.current = true;
+          onDrag?.({ x: pos.x, y: pos.y });
+        }
       }
     }
   };

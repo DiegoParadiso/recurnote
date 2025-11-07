@@ -1,19 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import hasRealContent from '@utils/hasRealContent';
 
 export default function NotePreview({ item }) {
   const { t } = useTranslation();
-
-  const hasRealContent = (content) => {
-    if (!content) return false;
-    if (typeof content === 'string') return content.trim().length > 0;
-    if (Array.isArray(content)) return content.some(it => it && it.trim && it.trim().length > 0);
-    if (typeof content === 'object') {
-      if (content.fileData && content.base64) return true;
-      return Object.keys(content).length > 0 && JSON.stringify(content) !== '{}';
-    }
-    return false;
-  };
 
   if (typeof item.content === 'object' && item.content.fileData && item.content.base64) {
     return (

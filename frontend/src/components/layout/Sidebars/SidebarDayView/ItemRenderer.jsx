@@ -1,30 +1,17 @@
 import React from 'react';
 import '@styles/layouts/sidebars/ItemRenderer.css';
 import { useItems } from '@context/ItemsContext';
-import { useAuth } from '@context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import WithContextMenu from '@components/common/WithContextMenu';
 import TaskPreview from './previews/TaskPreview';
 import NotePreview from './previews/NotePreview';
+import hasRealContent from '@utils/hasRealContent';
 
-export default function ItemRenderer({ item, dateKey, toggleTaskCheck, isLocalMode }) {
+export default function ItemRenderer({ item, dateKey, toggleTaskCheck }) {
   const { t } = useTranslation();
   const { deleteItem } = useItems();
-  const { user, token } = useAuth();
 
-  // Función para determinar si el item tiene contenido real
-  const hasRealContent = (content) => {
-    if (!content) return false;
-    if (typeof content === 'string') return content.trim().length > 0;
-    if (Array.isArray(content)) return content.some(item => item && item.trim && item.trim().length > 0);
-    if (typeof content === 'object') {
-      // Para archivos, verificar si realmente hay datos
-      if (content.fileData && content.base64) return true;
-      // Para otros objetos, verificar si no está vacío
-      return Object.keys(content).length > 0 && JSON.stringify(content) !== '{}';
-    }
-    return false;
-  };
+  // hasRealContent centralizado en util
 
   const handleDelete = async (e) => {
     e.preventDefault();

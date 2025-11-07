@@ -1,8 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useItems } from '@context/ItemsContext';
-import { useAuth } from '@context/AuthContext';
 import ItemsList from '@components/layout/Sidebars/SidebarDayView/ItemsList';
-import ItemRenderer from '@components/layout/Sidebars/SidebarDayView/ItemRenderer';
 import '@styles/layouts/sidebars/SidebarDayView.css';
 import useItemsForDays from '@hooks/data/useItemsForDays';
 import useAutoScrollOnHover from '@hooks/ui/useAutoScrollOnHover';
@@ -11,10 +9,9 @@ import { useTranslation } from 'react-i18next';
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { t, i18n } = useTranslation();
   const { itemsByDate, setItemsByDate, updateItem } = useItems();
-  const { user, token } = useAuth();
   
   // Usar items del ItemsContext (que maneja tanto servidor como local)
-  const { itemsForDays, startDate } = useItemsForDays(itemsByDate);
+  const { itemsForDays } = useItemsForDays(itemsByDate);
   
   const [isHoveringTop, setIsHoveringTop] = useState(false);
   const [isHoveringBottom, setIsHoveringBottom] = useState(false);
@@ -109,7 +106,6 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             itemsForDays={itemsForDays}
             setSelectedDay={handleDaySelect}
             toggleTaskCheck={toggleTaskCheck}
-            isLocalMode={!user || !token}
           />
         </div>
         <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>

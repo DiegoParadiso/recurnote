@@ -40,8 +40,7 @@ export default function NoteItem({
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
   const { content = '', width = 240, height = 80 } = item;
-  const { duplicateItem } = useItems();
-  const { updateItem } = useItems();
+  const { duplicateItem, updateItem } = useItems();
   // Sizing y edición mediante hooks dedicados
   const { minWidthPx, minHeightPx } = useNoteSizing({ textareaRef, content, width, height, id, onUpdate, t, isMobile });
   const { isEditing, setIsEditing, startEditing, stopEditing, focusEditableTextarea, handleTextareaKeyDown } = useNoteEditing({ textareaRef, isMobile, height, id, content, onUpdate });
@@ -390,11 +389,10 @@ export default function NoteItem({
             onTouchMove={(e) => {
               if (isMobile) {
                 e.preventDefault();
-                e.stopPropagation();
+                // No stopPropagation: permitir que el contenedor maneje el drag
               }
             }}
             onTouchEnd={(e) => {
-              // Si fue un touch y no estábamos en drag programático, activar edición rápida
               if (isMobile && touchStartPosRef.current && !touchIsDragRef.current && !isDragging && !wasDraggingRef.current) {
                 const timeSinceStart = Date.now() - touchStartPosRef.current.time;
                 // Solo activar si fue un touch rápido (< 300ms) sin movimiento

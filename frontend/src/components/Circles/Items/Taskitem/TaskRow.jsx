@@ -72,7 +72,7 @@ export default function TaskRow({
         onTouchMove={(e) => {
           if (isMobile) {
             e.preventDefault();
-            e.stopPropagation();
+            // No stopPropagation: permitir que el contenedor maneje el drag
             if (touchStartPosRef.current) {
               const touch = e.touches[0];
               const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
