@@ -8,7 +8,6 @@ export default function useItemsForDays(itemsByDate) {
   const [startDate, setStartDate] = useState(null);
   const { user, token } = useAuth();
 
-  // Usar itemsByDate del ItemsContext (que ahora incluye tanto servidor como local)
   const combinedItemsByDate = () => {
     return itemsByDate || {};
   };
@@ -24,7 +23,6 @@ export default function useItemsForDays(itemsByDate) {
       return;
     }
 
-    // Obtener todas las fechas que tienen items
     const fechasConItems = Object.keys(currentItemsByDate)
       .map(key => {
         try {
@@ -40,13 +38,11 @@ export default function useItemsForDays(itemsByDate) {
       return;
     }
 
-    // Ordenar fechas y obtener la fecha máxima
     fechasConItems.sort((a, b) => a.toMillis() - b.toMillis());
     const maxDate = fechasConItems[fechasConItems.length - 1];
     
     const itemsList = [];
 
-    // Generar lista de días desde hoy hasta la fecha máxima
     for (let date = today; date <= maxDate; date = date.plus({ days: 1 })) {
       const key = formatDateKey(date.toObject());
       const items = currentItemsByDate[key] || [];

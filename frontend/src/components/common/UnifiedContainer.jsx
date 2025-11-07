@@ -166,6 +166,8 @@ export default function UnifiedContainer({
 
   const onTouchMoveDrag = (e) => {
     if (e.touches.length !== 1) return;
+    e.preventDefault();
+    e.stopPropagation();
     const touch = e.touches[0];
     
     if (dragStartRef.current) {
@@ -276,6 +278,7 @@ export default function UnifiedContainer({
           backgroundColor: 'var(--color-neutral)',
           color: 'var(--color-text-primary)',
           border: '1px solid var(--color-neutral-darker)',
+          touchAction: 'none',
         }
       })}
       data-is-dragging={isCurrentlyDragging()}

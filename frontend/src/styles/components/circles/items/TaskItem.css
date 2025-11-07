@@ -11,8 +11,16 @@
   justify-content: center;
   padding: 4px;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  -webkit-overflow-scrolling: auto;
+  touch-action: auto;
+}
+
+/* Disable scroll in mobile/touch devices */
+@media (pointer: coarse) {
+  .taskitem-content {
+    overflow: hidden !important;
+    touch-action: none !important;
+  }
 }
 
 .taskitem-row {

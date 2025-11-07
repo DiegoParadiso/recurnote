@@ -40,7 +40,15 @@
   line-height: 1.4;
   position: relative;
   height: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  -webkit-overflow-scrolling: auto;
+  touch-action: auto;
+}
+
+/* Disable scrolling on mobile/touch devices */
+@media (pointer: coarse) {
+  .noteitem-textarea {
+    overflow: hidden !important;
+    touch-action: none !important;
+  }
 }
 
