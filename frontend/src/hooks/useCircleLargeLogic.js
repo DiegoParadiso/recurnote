@@ -6,7 +6,7 @@ import useRotationControls from '@hooks/useRotationControls';
 import { formatDateKey } from '@utils/formatDateKey';
 
 export function useCircleLargeLogic(selectedDay, onItemDrag) {
-  const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
+  const { itemsByDate, setItemsByDate, updateItem, deleteItem, flushItemUpdate } = useItems();
   const { user, token } = useAuth();
   
   const containerRef = useRef(null);
@@ -134,6 +134,8 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch((error) => {
       setErrorToast({ key: 'common.error_update_position' });
     });
+    // Forzar envío inmediato del último payload de posición para evitar rollback al recargar
+    flushItemUpdate?.(id);
   }, [selectedDay, safeCombinedItemsByDate, updateItem]);
 
   const handleItemDrop = (id) => {

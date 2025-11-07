@@ -401,8 +401,22 @@ export const ItemsProvider = ({ children }) => {
     const payload = buildPayload(changes);
     const debounceMs = typeof opts.debounceMs === 'number' ? opts.debounceMs : 1000;
 
-    // Guardar último payload por id (coalescer)
-    updateQueueRef.current.set(id, { url, payload, debounceMs });
+    // Guardar/Mergear último payload por id (coalescer)
+    const prevEntry = updateQueueRef.current.get(id);
+    if (prevEntry) {
+      const mergedPayload = {
+        ...prevEntry.payload,
+        ...payload,
+        item_data: {
+          ...(prevEntry.payload?.item_data || {}),
+          ...(payload?.item_data || {}),
+        },
+      };
+      const mergedDebounce = Math.max(prevEntry.debounceMs || 0, debounceMs);
+      updateQueueRef.current.set(id, { url: prevEntry.url || url, payload: mergedPayload, debounceMs: mergedDebounce });
+    } else {
+      updateQueueRef.current.set(id, { url, payload, debounceMs });
+    }
 
     // Limpiar timeout previo
     const prevTimeout = updateTimersRef.current.get(id);
