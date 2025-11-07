@@ -19,6 +19,7 @@ export default function UnifiedContainer({
   isActive = false,
   onActivate,
   zIndexOverride,
+  dragDisabledUntil,
   ...rest
 }) {
 
@@ -76,6 +77,7 @@ export default function UnifiedContainer({
   };
   
   const onMouseDownDrag = (e) => {
+    if (dragDisabledUntil && Date.now() < dragDisabledUntil) return;
     const tag = e.target.tagName.toLowerCase();
 
     if (['input', 'textarea', 'select'].includes(tag)) return;
@@ -116,6 +118,8 @@ export default function UnifiedContainer({
     const tag = target.tagName?.toLowerCase?.() || '';
     const isInteractive = ['input', 'textarea', 'select', 'button', 'a'].includes(tag) || target.isContentEditable || target.contentEditable === 'true';
 
+    if (dragDisabledUntil && Date.now() < dragDisabledUntil) return;
+
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
@@ -142,7 +146,7 @@ export default function UnifiedContainer({
       const distance = Math.sqrt(dx * dx + dy * dy);
       
       // Si se movió más de 5px, se considera drag
-      if (distance > 5) {
+      if (distance > 10) {
         if (!isDraggingRef.current) {
           isDraggingRef.current = true;
           isDragging.current = true;
@@ -163,7 +167,7 @@ export default function UnifiedContainer({
       const distance = Math.sqrt(dx * dx + dy * dy);
       
       // Si se movió más de 5px, se considera drag
-      if (distance > 5) {
+      if (distance > 10) {
         if (!isDraggingRef.current) {
           isDraggingRef.current = true;
           isDragging.current = true;

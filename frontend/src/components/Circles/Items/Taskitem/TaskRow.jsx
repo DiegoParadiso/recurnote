@@ -20,6 +20,8 @@ export default function TaskRow({
   touchIsDragRef,
   taskHeight,
   placeholder,
+  onInputFocus,
+  onInputBlur,
 }) {
   return (
     <div className="scroll-hidden taskitem-row" style={{ height: taskHeight }}>
@@ -121,6 +123,7 @@ export default function TaskRow({
           }
         }}
         onFocus={(e) => {
+          if (typeof onInputFocus === 'function') onInputFocus();
           if (isMobile) {
             if (!editingInputs.has(index)) {
               startEditing(index);
@@ -153,6 +156,7 @@ export default function TaskRow({
         }}
         onBlur={() => {
           stopEditing(index);
+          if (typeof onInputBlur === 'function') onInputBlur();
         }}
         onKeyDown={(e) => handleInputKeyDown(e, index)}
         placeholder={placeholder}

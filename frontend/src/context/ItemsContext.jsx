@@ -29,9 +29,10 @@ export const ItemsProvider = ({ children }) => {
   const [errorToast, setErrorToast] = useState('');
 
   const retryTimeoutRef = useRef(null);
-  // Debounce por item para sincronizaciones al backend (drag/resize)
   const updateTimersRef = useRef(new Map()); // id -> timeoutId
-  const updateQueueRef = useRef(new Map());  // id -> { url, payload }
+  const updateQueueRef = useRef(new Map());  // id -> { url, payload, debounceMs }
+  const inFlightRef = useRef(0);
+  const PENDING_LIMIT = 3;
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Función para cargar items del localStorage cuando no hay usuario
@@ -379,6 +380,117 @@ export const ItemsProvider = ({ children }) => {
     }
   }
 
+  // Construir payload para API a partir de "changes"
+  const buildPayload = (changes) => {
+    const { date, x, y, rotation, rotation_enabled, ...itemData } = changes || {};
+    return {
+      ...(date !== undefined ? { date } : {}),
+      ...(x !== undefined ? { x } : {}),
+      ...(y !== undefined ? { y } : {}),
+      ...(rotation !== undefined ? { rotation } : {}),
+      ...(rotation_enabled !== undefined ? { rotation_enabled } : {}),
+      ...(itemData && Object.keys(itemData).length ? { item_data: { ...itemData } } : {}),
+    };
+  };
+
+  // Encolar envío con quiet-time por item. opts: { debounceMs, flush }
+  const queueItemUpdate = useCallback((id, changes, opts = {}) => {
+    if (!user || !token) return; // sin backend
+    if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) return;
+    const url = `${API_URL}/api/items/${id}`;
+    const payload = buildPayload(changes);
+    const debounceMs = typeof opts.debounceMs === 'number' ? opts.debounceMs : 1000;
+
+    // Guardar último payload por id (coalescer)
+    updateQueueRef.current.set(id, { url, payload, debounceMs });
+
+    // Limpiar timeout previo
+    const prevTimeout = updateTimersRef.current.get(id);
+    if (prevTimeout) clearTimeout(prevTimeout);
+
+    const scheduleSend = () => {
+      const entry = updateQueueRef.current.get(id);
+      if (!entry) return;
+      // Control de concurrencia simple
+      const send = async () => {
+        updateQueueRef.current.delete(id);
+        try {
+          inFlightRef.current += 1;
+          const response = await fetch(entry.url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(entry.payload),
+          });
+          if (!response.ok && response.status !== 404) {
+            // 404 no es crítico; otros errores loguearlos
+            console.error('Server error on updateItem:', response.status, response.statusText);
+          }
+        } catch (err) {
+          // Errores de red: log y permitir reintento por próxima edición/flush
+          console.error('Network error on updateItem:', err?.message || err);
+        } finally {
+          inFlightRef.current = Math.max(0, inFlightRef.current - 1);
+        }
+      };
+
+      if (inFlightRef.current >= PENDING_LIMIT) {
+        const retryId = setTimeout(scheduleSend, 200);
+        updateTimersRef.current.set(id, retryId);
+        return;
+      }
+      // Enviar ahora
+      send();
+    };
+
+    if (opts.flush) {
+      // Enviar inmediatamente (pero respetando concurrencia)
+      scheduleSend();
+      return;
+    }
+
+    const timeoutId = setTimeout(scheduleSend, debounceMs);
+    updateTimersRef.current.set(id, timeoutId);
+  }, [API_URL, token, user]);
+
+  // Forzar envío inmediato si hay update encolado para el id
+  const flushItemUpdate = useCallback((id) => {
+    const entry = updateQueueRef.current.get(id);
+    if (entry) {
+      queueItemUpdate(id, entry.payload, { flush: true });
+    }
+  }, [queueItemUpdate]);
+
+  // Estado de sincronización por item (rueda/check)
+  const isItemSyncing = useCallback((id) => {
+    if (!id) return false;
+    if (updateQueueRef.current.has(id)) return true;
+    for (const op of pendingOperations) {
+      if (typeof op === 'string' && op.endsWith(`_${id}`)) return true;
+    }
+    return false;
+  }, [pendingOperations]);
+
+  // Flush en visibility hidden / beforeunload
+  useEffect(() => {
+    const flushAll = () => {
+      for (const [id, entry] of updateQueueRef.current.entries()) {
+        queueItemUpdate(id, entry.payload, { flush: true });
+      }
+    };
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') flushAll();
+    };
+    window.addEventListener('beforeunload', flushAll);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('beforeunload', flushAll);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [queueItemUpdate]);
+
   async function updateItem(id, changes) {
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
     
@@ -424,67 +536,24 @@ export const ItemsProvider = ({ children }) => {
     }
       
     if (user && token) {
-      // Usuario autenticado - actualizar en servidor con debounce por item
       const operationId = `update_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
 
-      // Asegurar que enviamos item_data como objeto
-      const payload = {
-        ...(date !== undefined ? { date } : {}),
-        ...(x !== undefined ? { x } : {}),
-        ...(y !== undefined ? { y } : {}),
-        ...(rotation !== undefined ? { rotation } : {}),
-        ...(rotation_enabled !== undefined ? { rotation_enabled } : {}),
-        ...(Object.keys(itemData).length ? { item_data: { ...itemData } } : {})
-      };
+      // Determinar debounce según tipo de cambio
+      const hasText = Object.prototype.hasOwnProperty.call(itemData, 'content');
+      const hasGeometry = (x !== undefined || y !== undefined || changes?.width !== undefined || changes?.height !== undefined || rotation !== undefined);
+      const debounceMs = hasText ? 1000 : (hasGeometry ? 1500 : 800);
 
-      const url = `${API_URL}/api/items/${id}`;
-      // Encolar última actualización por id
-      updateQueueRef.current.set(id, { url, payload });
-      // Limpiar timeout previo si existe
-      const prevTimeout = updateTimersRef.current.get(id);
-      if (prevTimeout) {
-        clearTimeout(prevTimeout);
-      }
-      // Programar envío consolidado
-      const timeoutId = setTimeout(async () => {
-        const entry = updateQueueRef.current.get(id);
-        updateQueueRef.current.delete(id);
-        updateTimersRef.current.delete(id);
-        if (!entry) return;
-        try {
-          const response = await fetch(entry.url, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(entry.payload)
-          });
+      queueItemUpdate(id, changes, { debounceMs });
 
-          if (!response.ok) {
-            if (response.status === 404) {
-              // Item no encontrado, no es crítico
-            } else {
-              throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-            }
-          }
-        } catch (error) {
-          // Solo propagar errores de red
-          if (error.name === 'TypeError' || (error.message && error.message.includes('fetch'))) {
-            console.error('Network error on updateItem:', error);
-          }
-        } finally {
-          // Remover operación pendiente
-          setPendingOperations(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(operationId);
-            return newSet;
-          });
-        }
-      }, 250); // debounce 250ms
-
-      updateTimersRef.current.set(id, timeoutId);
+      // Remover operación pendiente cuando el envío ocurra (aprox). Simplificación: timeout extra
+      setTimeout(() => {
+        setPendingOperations(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(operationId);
+          return newSet;
+        });
+      }, debounceMs + 2000);
     }
     // Si es modo local, no hacer nada más - ya se guardó en localStorage
   }
@@ -712,6 +781,8 @@ export const ItemsProvider = ({ children }) => {
         updateItem, 
         deleteItem, 
         duplicateItem,
+        flushItemUpdate,
+        isItemSyncing,
         loading, 
         error, 
         refreshItems,

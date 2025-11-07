@@ -40,7 +40,8 @@ export default function NoteItem({
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
   const { content = '', width = 240, height = 80 } = item;
-  const { duplicateItem, updateItem } = useItems();
+  const { duplicateItem, updateItem, flushItemUpdate } = useItems();
+  const editingGraceUntilRef = useRef(0);
   // Sizing y edición mediante hooks dedicados
   const { minWidthPx, minHeightPx } = useNoteSizing({ textareaRef, content, width, height, id, onUpdate, t, isMobile });
   const { isEditing, setIsEditing, startEditing, stopEditing, focusEditableTextarea, handleTextareaKeyDown } = useNoteEditing({ textareaRef, isMobile, height, id, content, onUpdate });
@@ -166,14 +167,10 @@ export default function NoteItem({
     }, 200);
 
     onItemDrop?.(id);
+    // Flush de posición/dimensiones al finalizar drag
+    flushItemUpdate?.(id);
   };
 
-  // Funciones para manejar edición
-  // startEditing, stopEditing, focusEditableTextarea y handleTextareaKeyDown ahora vienen del hook
-
-  // Ancho mínimo ahora es responsabilidad de useNoteSizing
-
-  // Altura mínima ahora es responsabilidad de useNoteSizing
 
   // Desenfocar textarea cuando se detecta drag
   useEffect(() => {
@@ -328,6 +325,7 @@ export default function NoteItem({
         minHeight={minHeightPx}
         maxWidth={224}
         maxHeight={200}
+        dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const dx = x - cx;
@@ -383,19 +381,16 @@ export default function NoteItem({
                   time: Date.now()
                 };
                 touchIsDragRef.current = false;
-                // NO hacer stopPropagation aquí - esperar a ver si es drag o focus
               }
             }}
             onTouchMove={(e) => {
               if (isMobile) {
                 e.preventDefault();
-                // No stopPropagation: permitir que el contenedor maneje el drag
               }
             }}
             onTouchEnd={(e) => {
               if (isMobile && touchStartPosRef.current && !touchIsDragRef.current && !isDragging && !wasDraggingRef.current) {
                 const timeSinceStart = Date.now() - touchStartPosRef.current.time;
-                // Solo activar si fue un touch rápido (< 300ms) sin movimiento
                 if (timeSinceStart < 300) {
                   e.stopPropagation(); // Prevenir que el contenedor lo capture ahora
                   setIsEditing(true);
@@ -443,6 +438,8 @@ export default function NoteItem({
               if (!isMobile && !isEditing) {
                 e.target.blur();
               }
+              // Activar período de gracia para evitar micro-drag al iniciar edición
+              editingGraceUntilRef.current = Date.now() + 200;
             }}
             onMouseDown={(e) => {
               // En móviles no delegar drag al contenedor
@@ -466,6 +463,8 @@ export default function NoteItem({
             }}
             onBlur={() => {
               stopEditing();
+              // Forzar flush de cambios de texto al salir de edición
+              flushItemUpdate?.(id);
             }}
             onKeyDown={handleTextareaKeyDown}
             placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}

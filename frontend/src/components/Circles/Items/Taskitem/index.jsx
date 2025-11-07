@@ -81,7 +81,8 @@ function TaskItem({
     setEditingInputs(editingInputsHook);
   }, [editingInputsHook]);
 
-  const { duplicateItem } = useItems();
+  const { duplicateItem, flushItemUpdate } = useItems();
+  const editingGraceUntilRef = useRef(0);
 
   const handleDuplicate = async () => {
     try {
@@ -185,6 +186,7 @@ function TaskItem({
         maxWidth={400}
         minHeight={computedMinHeight}
         maxHeight={computedMinHeight}
+        dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const dx = x - cx;
@@ -203,7 +205,10 @@ function TaskItem({
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
         onDrag={handleContainerDragStart}
-        onDrop={handleContainerDragEnd}
+        onDrop={(...args) => {
+          handleContainerDragEnd(...args);
+          flushItemUpdate?.(id);
+        }}
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}
         isSmallScreen={isSmallScreen}
@@ -243,6 +248,8 @@ function TaskItem({
               touchIsDragRef={touchIsDragRef}
               taskHeight={taskHeight}
               placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}
+              onInputFocus={() => { editingGraceUntilRef.current = Date.now() + 200; }}
+              onInputBlur={() => { flushItemUpdate?.(id); }}
             />
           ))}
 
