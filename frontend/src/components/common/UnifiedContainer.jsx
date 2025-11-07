@@ -28,6 +28,7 @@ export default function UnifiedContainer({
   const [sizeState, setSizeState] = useState({ width, height });
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
+  const dragOwnerIdRef = useRef(Symbol('dragOwner'));
 
   useEffect(() => {
     const limited = limitPositionInsideCircle(
@@ -55,6 +56,9 @@ export default function UnifiedContainer({
       onDrop?.();
       isDragging.current = false;
     }
+    if (window.__rnActiveDrag && window.__rnActiveDrag.owner === dragOwnerIdRef.current) {
+      window.__rnActiveDrag = null;
+    }
     
     // Restaurar selección de texto cuando termine el drag
     document.body.style.userSelect = '';
@@ -67,6 +71,9 @@ export default function UnifiedContainer({
     if (isDragging.current) {
       onDrop?.();
       isDragging.current = false;
+    }
+    if (window.__rnActiveDrag && window.__rnActiveDrag.owner === dragOwnerIdRef.current) {
+      window.__rnActiveDrag = null;
     }
     
     // Restaurar selección de texto cuando termine el drag
@@ -87,6 +94,18 @@ export default function UnifiedContainer({
 
     e.stopPropagation();
     e.preventDefault(); // Prevenir selección de texto
+    // Finalizar cualquier drag activo previo (candado global)
+    if (window.__rnActiveDrag && typeof window.__rnActiveDrag.end === 'function') {
+      try { window.__rnActiveDrag.end(); } catch {}
+    }
+    window.__rnActiveDrag = {
+      owner: dragOwnerIdRef.current,
+      end: () => {
+        if (isDragging.current) onDrop?.();
+        isDragging.current = false;
+        isDraggingRef.current = false;
+      }
+    };
     
     // Prevenir selección de texto a nivel global durante drag
     document.body.style.userSelect = 'none';
@@ -127,6 +146,18 @@ export default function UnifiedContainer({
     // Para elementos NO interactivos: prevenir scroll y marcar dragging desde el inicio
     if (!isInteractive) {
       e.preventDefault();
+      // Finalizar cualquier drag activo previo (candado global)
+      if (window.__rnActiveDrag && typeof window.__rnActiveDrag.end === 'function') {
+        try { window.__rnActiveDrag.end(); } catch {}
+      }
+      window.__rnActiveDrag = {
+        owner: dragOwnerIdRef.current,
+        end: () => {
+          if (isDragging.current) onDrop?.();
+          isDragging.current = false;
+          isDraggingRef.current = false;
+        }
+      };
       isDragging.current = true;
     }
     // onDrag se notificará cuando el movimiento supere el umbral
