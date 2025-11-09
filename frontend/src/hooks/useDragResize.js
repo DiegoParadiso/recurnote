@@ -17,7 +17,8 @@ export const useDragResize = ({
   onDrag,
   onDrop,
   rotation,
-  isSmallScreen = false
+  isSmallScreen = false,
+  aspectRatio = null // Nuevo: relación de aspecto (width/height) para mantener durante resize
 }) => {
   const isDragging = useRef(false);
   const isResizing = useRef(false);
@@ -138,29 +139,122 @@ export const useDragResize = ({
         const dx = clientX - resizeStartPos.current.mouseX;
         const dy = clientY - resizeStartPos.current.mouseY;
 
-        let newWidth = Math.min(Math.max(resizeStartPos.current.width + dx, minWidth), maxWidth);
-        let newHeight = Math.min(Math.max(resizeStartPos.current.height + dy, minHeight), maxHeight);
+        let newWidth = resizeStartPos.current.width + dx;
+        let newHeight = resizeStartPos.current.height + dy;
 
-        const limited = limitPositionInsideCircleSimple(
-          pos.x,
-          pos.y,
-          newWidth,
-          newHeight,
-          circleCenter,
-          maxRadius,
-          isSmallScreen
-        );
+        // Si hay aspect ratio definido, mantenerlo durante el resize
+        if (aspectRatio && aspectRatio > 0) {
+          // Determinar qué dimensión está cambiando más (en términos relativos)
+          const widthChange = Math.abs(dx / resizeStartPos.current.width);
+          const heightChange = Math.abs(dy / resizeStartPos.current.height);
+          
+          if (widthChange > heightChange) {
+            // El ancho es la dimensión dominante - ajustar altura según el ancho
+            newHeight = newWidth / aspectRatio;
+          } else {
+            // La altura es la dimensión dominante - ajustar ancho según la altura
+            newWidth = newHeight * aspectRatio;
+          }
+          
+          // Ahora aplicar límites de manera inteligente manteniendo el aspect ratio
+          // Primero verificar límites máximos
+          if (newWidth > maxWidth) {
+            newWidth = maxWidth;
+            newHeight = newWidth / aspectRatio;
+          }
+          if (newHeight > maxHeight) {
+            newHeight = maxHeight;
+            newWidth = newHeight * aspectRatio;
+          }
+          
+          // Luego verificar límites mínimos
+          if (newWidth < minWidth) {
+            newWidth = minWidth;
+            newHeight = newWidth / aspectRatio;
+          }
+          if (newHeight < minHeight) {
+            newHeight = minHeight;
+            newWidth = newHeight * aspectRatio;
+          }
+          
+          // Si después de aplicar mínimos, alguna dimensión quedó fuera de rango, ajustar
+          if (newWidth > maxWidth) {
+            newWidth = maxWidth;
+            newHeight = newWidth / aspectRatio;
+          }
+          if (newHeight > maxHeight) {
+            newHeight = maxHeight;
+            newWidth = newHeight * aspectRatio;
+          }
+        } else {
+          // Sin aspect ratio, aplicar límites directamente
+          newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
+          newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+        }
 
-        if (limited.x !== pos.x || limited.y !== pos.y) {
-          const distToCenter = Math.sqrt(
-            (limited.x - circleCenter.cx) ** 2 + (limited.y - circleCenter.cy) ** 2
+        // Detectar si estamos agrandando o achicando
+        const isGrowing = newWidth > sizeState.width || newHeight > sizeState.height;
+
+        // Para mobile, usar límites de pantalla
+        if (isSmallScreen) {
+          const screenLimited = limitPositionInsideCircleSimple(
+            pos.x, pos.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen
           );
-          const maxAllowedDiagonal = maxRadius - distToCenter;
-          const currentDiagonal = Math.sqrt(newWidth ** 2 + newHeight ** 2) / 2;
-          const scale = Math.min(1, maxAllowedDiagonal / currentDiagonal);
-
-          newWidth *= scale;
-          newHeight *= scale;
+          
+          // Si la posición cambió, ajustar el tamaño proporcionalmente
+          if (screenLimited.x !== pos.x || screenLimited.y !== pos.y) {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const maxPossibleWidth = Math.min(newWidth, screenWidth - 16);
+            const maxPossibleHeight = Math.min(newHeight, screenHeight - 16);
+            
+            newWidth = maxPossibleWidth;
+            newHeight = maxPossibleHeight;
+          }
+        } else if (isGrowing) {
+          // Para desktop, solo verificar límites del círculo cuando estamos AGRANDANDO
+          // Si estamos achicando, permitir siempre (nunca se saldrá del círculo al achicar)
+          const { cx, cy } = circleCenter;
+          const halfWidth = newWidth / 2;
+          const halfHeight = newHeight / 2;
+          
+          // Calcular las 4 esquinas del elemento con el nuevo tamaño
+          const corners = [
+            { x: pos.x - halfWidth, y: pos.y - halfHeight }, // Superior izquierda
+            { x: pos.x + halfWidth, y: pos.y - halfHeight }, // Superior derecha
+            { x: pos.x - halfWidth, y: pos.y + halfHeight }, // Inferior izquierda
+            { x: pos.x + halfWidth, y: pos.y + halfHeight }  // Inferior derecha
+          ];
+          
+          // Verificar si alguna esquina está fuera del círculo
+          let maxExcess = 0;
+          for (const corner of corners) {
+            const cornerDx = corner.x - cx;
+            const cornerDy = corner.y - cy;
+            const cornerDist = Math.sqrt(cornerDx * cornerDx + cornerDy * cornerDy);
+            const excess = cornerDist - maxRadius;
+            if (excess > maxExcess) {
+              maxExcess = excess;
+            }
+          }
+          
+          // Si hay exceso, reducir el tamaño proporcionalmente
+          if (maxExcess > 0) {
+            // Calcular el factor de escala necesario para que todas las esquinas estén dentro
+            const currentMaxCornerDist = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
+            const centerDist = Math.sqrt((pos.x - cx) ** 2 + (pos.y - cy) ** 2);
+            const maxAllowedCornerDist = maxRadius - centerDist;
+            
+            if (maxAllowedCornerDist > 0) {
+              const scale = Math.min(1, maxAllowedCornerDist / currentMaxCornerDist);
+              newWidth = Math.max(minWidth, newWidth * scale);
+              newHeight = Math.max(minHeight, newHeight * scale);
+            } else {
+              // Si el centro está muy cerca del borde, usar tamaños mínimos
+              newWidth = minWidth;
+              newHeight = minHeight;
+            }
+          }
         }
 
         setSizeState({ width: newWidth, height: newHeight });
@@ -171,6 +265,10 @@ export const useDragResize = ({
     const onEnd = () => {
       if (isDragging.current) {
         onDrop?.(); // avisar que terminó el drag
+      }
+      if (isResizing.current) {
+        // Asegurar que se conserve el último tamaño válido al finalizar
+        onResize?.({ width: sizeState.width, height: sizeState.height });
       }
       isDragging.current = false;
       isResizing.current = false;
@@ -205,7 +303,8 @@ export const useDragResize = ({
     onDrag,
     onDrop,
     isSmallScreen,
-    rotation
+    rotation,
+    aspectRatio
   ]);
 
   return {

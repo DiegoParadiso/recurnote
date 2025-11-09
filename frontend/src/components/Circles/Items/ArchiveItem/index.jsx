@@ -8,6 +8,7 @@ import '@styles/components/circles/items/ArchivoItem.css';
 import { useAuth } from '@context/AuthContext';
 import { useItems } from '@context/ItemsContext';
 import { computePolarFromXY } from '@utils/helpers/geometry';
+import { useCallback } from 'react';
 
 export default function ArchivoItem({
   id,
@@ -39,8 +40,9 @@ export default function ArchivoItem({
   const wasDraggingRef = useRef(false);
   const hasAutoExpandedRef = useRef(false);
   const { user } = useAuth();
-  const { duplicateItem } = useItems();
+  const { duplicateItem, markItemAsDragging, unmarkItemAsDragging } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(110);
+  const dragTimeoutRef = useRef(null);
 
   const isImage =
     item.content?.fileData?.type === 'image/jpeg' ||
@@ -96,16 +98,20 @@ export default function ArchivoItem({
     }
   };
 
-  const handleContainerDragStart = () => {
+  const handleContainerDragStart = useCallback(() => {
     onActivate?.();
+    
+    // Marcar el item como en drag inmediatamente para bloquear otras actualizaciones
+    markItemAsDragging?.(id);
+    
     // Pequeño delay para permitir clicks rápidos
     timeoutRef.current = setTimeout(() => {
       setIsDragging(true);
       wasDraggingRef.current = true;
     }, 100);
-  };
+  }, [id, onActivate, markItemAsDragging]);
 
-  const handleContainerDragEnd = () => {
+  const handleContainerDragEnd = useCallback(() => {
     // Limpiar timeout si existe
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -118,11 +124,21 @@ export default function ArchivoItem({
     // Notificar al padre que el drop ha terminado
     onItemDrop?.(id);
 
+    // Desmarcar el item como en drag después de un pequeño delay para asegurar que
+    // la última actualización se procese
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+    }
+    dragTimeoutRef.current = setTimeout(() => {
+      unmarkItemAsDragging?.(id);
+      dragTimeoutRef.current = null;
+    }, 300);
+
     // Mantener wasDragging por un breve momento para evitar activaciones
     setTimeout(() => {
       wasDraggingRef.current = false;
     }, 200);
-  };
+  }, [id, onItemDrop, unmarkItemAsDragging]);
 
   const handleImageDoubleClick = (e) => {
     // No cambiar vista si se está arrastando
@@ -153,8 +169,12 @@ export default function ArchivoItem({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      if (dragTimeoutRef.current) {
+        clearTimeout(dragTimeoutRef.current);
+        unmarkItemAsDragging?.(id);
+      }
     };
-  }, []);
+  }, [id, unmarkItemAsDragging]);
 
   const handleDownload = (e) => {
     e.stopPropagation();
@@ -271,53 +291,26 @@ export default function ArchivoItem({
 
   const { width, height } = getContainerDimensions();
 
-  // Manejador de resize que mantiene la relación de aspecto
-  const handleResize = (newSize) => {
+  // Calcular aspect ratio si hay imagen expandida
+  const aspectRatio = (isImage && isExpanded && imageDimensions.width > 0)
+    ? imageDimensions.width / imageDimensions.height
+    : null;
+
+  // Manejador de resize simplificado - useDragResize ya mantiene el aspect ratio
+  const handleResize = useCallback((newSize) => {
     if (!isImage || !isExpanded || imageDimensions.width === 0) return;
 
-    const aspectRatio = imageDimensions.width / imageDimensions.height;
-    
-    // Calcular la diagonal del rectángulo solicitado
-    const requestedDiagonal = Math.sqrt(newSize.width * newSize.width + newSize.height * newSize.height);
-    const currentDiagonal = Math.sqrt(width * width + height * height);
-    
-    // Escalar basado en la diagonal
-    const scale = requestedDiagonal / currentDiagonal;
-    
-    let finalWidth = width * scale;
-    let finalHeight = finalWidth / aspectRatio;
-    
-    // Aplicar límites
-    const maxSize = 600;
-    const minWidth = minWidthPx;
-    const minHeight = 40;
-    
-    if (finalWidth > maxSize) {
-      finalWidth = maxSize;
-      finalHeight = finalWidth / aspectRatio;
-    }
-    if (finalHeight > maxSize) {
-      finalHeight = maxSize;
-      finalWidth = finalHeight * aspectRatio;
-    }
-    if (finalWidth < minWidth) {
-      finalWidth = minWidth;
-      finalHeight = finalWidth / aspectRatio;
-    }
-    if (finalHeight < minHeight) {
-      finalHeight = minHeight;
-      finalWidth = finalHeight * aspectRatio;
-    }
-    
-    // Actualizar las dimensiones
+    // Solo guardar el nuevo tamaño, ya viene corregido por useDragResize
+    // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
     onUpdate?.(
       id,
       item.content || {},
       null,
-      { width: Math.round(finalWidth), height: Math.round(finalHeight) },
-      { x, y }
+      { width: Math.round(newSize.width), height: Math.round(newSize.height) },
+      { x, y },
+      { fromDrag: false } // Resize no es drag, pero sí es una operación del usuario
     );
-  };
+  }, [id, isImage, isExpanded, imageDimensions.width, item.content, x, y, onUpdate]);
 
   // Medir ancho mínimo basado en el nombre del archivo (o placeholder)
   useLayoutEffect(() => {
@@ -363,22 +356,24 @@ export default function ArchivoItem({
           rotation={rotationEnabled ? rotation : 0}
           width={width}
           height={height}
-          minWidth={minWidthPx}
+          minWidth={item.content?.fileData && isImage && isExpanded ? 120 : minWidthPx}
           maxWidth={item.content?.fileData && isImage && isExpanded ? 600 : (item.content?.fileData ? Math.max(minWidthPx, width) : width)}
-          minHeight={item.content?.fileData && isImage && isExpanded ? 40 : (item.content?.fileData ? height : width)}
+          minHeight={item.content?.fileData && isImage && isExpanded ? 90 : (item.content?.fileData ? height : width)}
           maxHeight={item.content?.fileData && isImage && isExpanded ? 600 : (item.content?.fileData ? height : width)}
           disableResize={!(isImage && isExpanded)}
+          aspectRatio={aspectRatio}
           onResize={handleResize}
           onMove={({ x: newX, y: newY }) => {
             // Calcular el ángulo y distancia desde el centro del círculo
             const { angle, distance } = computePolarFromXY(newX, newY, cx, cy);
+            // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
             onUpdate?.(
               id,
               item.content || {},
               null,
               { width, height },
               { x: newX, y: newY },
-              { angle, distance }
+              { angle, distance, fromDrag: true } // Combinar extra en un solo objeto
             );
             onItemDrag?.(id, { x: newX, y: newY });
           }}

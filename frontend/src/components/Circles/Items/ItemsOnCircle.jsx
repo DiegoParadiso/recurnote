@@ -51,7 +51,9 @@ export default function ItemsOnCircle({
               onItemDrop={onItemDrop}
               onUpdate={(...args) => {
                 const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
-                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
+                const { fromDrag, ...restExtra } = extra || {};
+                const opts = fromDrag !== undefined ? { fromDrag } : {};
+                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, restExtra, opts);
               }}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
@@ -81,7 +83,9 @@ export default function ItemsOnCircle({
               onItemDrop={onItemDrop}
               onUpdate={(...args) => {
                 const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
-                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
+                const { fromDrag, ...restExtra } = extra || {};
+                const opts = fromDrag !== undefined ? { fromDrag } : {};
+                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, restExtra, opts);
               }}
               onDelete={() => onDeleteItem(item.id)}
               circleSize={circleSize}
@@ -108,7 +112,9 @@ export default function ItemsOnCircle({
               item={item}
               onUpdate={(...args) => {
                 const [id, newContent, newPolar, maybeSize, newPosition, extra] = args;
-                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra);
+                const { fromDrag, ...restExtra } = extra || {};
+                const opts = fromDrag !== undefined ? { fromDrag } : {};
+                onNoteUpdate(id, newContent, newPolar, maybeSize, newPosition, cx, cy, restExtra, opts);
               }}
               onDelete={onDeleteItem}
               onItemDrag={onItemDrag}

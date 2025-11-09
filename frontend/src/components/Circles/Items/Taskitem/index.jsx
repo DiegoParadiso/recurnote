@@ -188,7 +188,8 @@ function TaskItem({
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const { angle, distance } = computePolarFromXY(x, y, cx, cy);
           // Actualizar la posición del item
-          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y }, { angle, distance });
+          // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
+          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y }, { angle, distance, fromDrag: true });
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {

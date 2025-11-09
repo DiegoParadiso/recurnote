@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { DateTime } from 'luxon';
 import UnifiedContainer from '@components/common/UnifiedContainer';
 import WithContextMenu from '@components/common/WithContextMenu';
@@ -40,8 +40,9 @@ export default function NoteItem({
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
   const { content = '', width = 240, height = 80 } = item;
-  const { duplicateItem, updateItem, flushItemUpdate } = useItems();
+  const { duplicateItem, updateItem, flushItemUpdate, markItemAsDragging, unmarkItemAsDragging } = useItems();
   const editingGraceUntilRef = useRef(0);
+  const dragTimeoutRef = useRef(null);
   // Sizing y edición mediante hooks dedicados
   const { minWidthPx, minHeightPx } = useNoteSizing({ textareaRef, content, width, height, id, onUpdate, t, isMobile });
   const { isEditing, setIsEditing, startEditing, stopEditing, focusEditableTextarea, handleTextareaKeyDown } = useNoteEditing({ textareaRef, isMobile, height, id, content, onUpdate });
@@ -69,6 +70,19 @@ export default function NoteItem({
     const interval = setInterval(() => setNow(new Date()), 30000); // actualizar cada 30s
     return () => clearInterval(interval);
   }, []);
+
+  // Limpiar timeouts cuando se desmonte el componente
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (dragTimeoutRef.current) {
+        clearTimeout(dragTimeoutRef.current);
+        unmarkItemAsDragging?.(id);
+      }
+    };
+  }, [id, unmarkItemAsDragging]);
 
   const getCountdownLabel = () => {
     if (!assignedTime) return '';
@@ -139,8 +153,12 @@ export default function NoteItem({
     }
   };
 
-  const handleContainerDragStart = () => {
+  const handleContainerDragStart = useCallback(() => {
     onActivate?.();
+    
+    // Marcar el item como en drag inmediatamente
+    markItemAsDragging?.(id);
+    
     // Limpiar timeout anterior si existe
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -151,9 +169,9 @@ export default function NoteItem({
       setIsDragging(true);
       wasDraggingRef.current = true;
     }, 100);
-  };
+  }, [id, onActivate, markItemAsDragging]);
 
-  const handleContainerDragEnd = () => {
+  const handleContainerDragEnd = useCallback(() => {
     // Limpiar timeout si existe
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -162,6 +180,15 @@ export default function NoteItem({
     
     setIsDragging(false);
     
+    // Desmarcar el item como en drag
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+    }
+    dragTimeoutRef.current = setTimeout(() => {
+      unmarkItemAsDragging?.(id);
+      dragTimeoutRef.current = null;
+    }, 300);
+    
     setTimeout(() => {
       wasDraggingRef.current = false;
     }, 200);
@@ -169,7 +196,7 @@ export default function NoteItem({
     onItemDrop?.(id);
     // Flush de posición/dimensiones al finalizar drag
     flushItemUpdate?.(id);
-  };
+  }, [id, onItemDrop, flushItemUpdate, unmarkItemAsDragging]);
 
 
   // Desenfocar textarea cuando se detecta drag
@@ -330,7 +357,8 @@ export default function NoteItem({
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const { angle, distance } = computePolarFromXY(x, y, cx, cy);
           // Actualizar la posición del item
-          onUpdate?.(id, content, null, null, { x, y }, { angle, distance });
+          // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
+          onUpdate?.(id, content, null, { width, height }, { x, y }, { angle, distance, fromDrag: true });
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {

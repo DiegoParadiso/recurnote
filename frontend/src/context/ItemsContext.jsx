@@ -5,6 +5,9 @@ import BottomToast from '@components/common/BottomToast';
 
 const ItemsContext = createContext();
 
+// Ref global para tracking de items siendo arrastrados
+const draggingItemsRef = { current: new Set() };
+
 export const ItemsProvider = ({ children }) => {
   const { user, token, loading: authLoading } = useAuth();
   const [itemsByDate, setItemsByDate] = useState({});
@@ -371,13 +374,26 @@ export const ItemsProvider = ({ children }) => {
     };
   };
 
-  // Encolar envío con quiet-time por item. opts: { debounceMs, flush }
+  // Encolar envío con quiet-time por item. opts: { debounceMs, flush, isDragging }
   const queueItemUpdate = useCallback((id, changes, opts = {}) => {
     if (!user || !token) return; // sin backend
     if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) return;
+    
+    // Si el item está siendo arrastrado por otro proceso, no encolar
+    if (opts.isDragging === false && draggingItemsRef.current.has(id)) {
+      return; // Ignorar actualizaciones externas mientras se arrastra
+    }
+    
     const url = `${API_URL}/api/items/${id}`;
     const payload = buildPayload(changes);
     const debounceMs = typeof opts.debounceMs === 'number' ? opts.debounceMs : 1000;
+
+    // Limpiar timeout previo ANTES de mergear
+    const prevTimeout = updateTimersRef.current.get(id);
+    if (prevTimeout) {
+      clearTimeout(prevTimeout);
+      updateTimersRef.current.delete(id);
+    }
 
     // Guardar/Mergear último payload por id (coalescer)
     const prevEntry = updateQueueRef.current.get(id);
@@ -390,19 +406,17 @@ export const ItemsProvider = ({ children }) => {
           ...(payload?.item_data || {}),
         },
       };
-      const mergedDebounce = Math.max(prevEntry.debounceMs || 0, debounceMs);
+      // Si estamos en drag, usar el debounce más largo para agrupar movimientos
+      const mergedDebounce = opts.isDragging ? Math.max(prevEntry.debounceMs || 0, debounceMs, 2000) : debounceMs;
       updateQueueRef.current.set(id, { url: prevEntry.url || url, payload: mergedPayload, debounceMs: mergedDebounce });
     } else {
       updateQueueRef.current.set(id, { url, payload, debounceMs });
     }
 
-    // Limpiar timeout previo
-    const prevTimeout = updateTimersRef.current.get(id);
-    if (prevTimeout) clearTimeout(prevTimeout);
-
     const scheduleSend = () => {
       const entry = updateQueueRef.current.get(id);
       if (!entry) return;
+      
       // Control de concurrencia simple
       const send = async () => {
         updateQueueRef.current.delete(id);
@@ -465,6 +479,23 @@ export const ItemsProvider = ({ children }) => {
     return false;
   }, [pendingOperations]);
 
+  // Marcar item como "en drag" para evitar actualizaciones externas
+  const markItemAsDragging = useCallback((id) => {
+    if (!id) return;
+    draggingItemsRef.current.add(id);
+  }, []);
+
+  // Desmarcar item como "en drag"
+  const unmarkItemAsDragging = useCallback((id) => {
+    if (!id) return;
+    draggingItemsRef.current.delete(id);
+  }, []);
+
+  // Verificar si un item está siendo arrastrado
+  const isItemDragging = useCallback((id) => {
+    return draggingItemsRef.current.has(id);
+  }, []);
+
   // Flush en visibility hidden / beforeunload
   useEffect(() => {
     const flushAll = () => {
@@ -483,9 +514,14 @@ export const ItemsProvider = ({ children }) => {
     };
   }, [queueItemUpdate]);
 
-  async function updateItem(id, changes) {
+  async function updateItem(id, changes, opts = {}) {
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
     
+    // Si el item está siendo arrastrado Y esta actualización no viene del drag, ignorar
+    const isDraggingItem = draggingItemsRef.current.has(id);
+    if (isDraggingItem && !opts.fromDrag) {
+      return; // Ignorar actualizaciones externas mientras se arrastra
+    }
     
     // INTERCEPTAR: Si es un item recién duplicado y se está moviendo, forzar posición original
     if ((x !== undefined || y !== undefined) && !changes._forcePosition) {
@@ -499,7 +535,7 @@ export const ItemsProvider = ({ children }) => {
           _forcePosition: true, // Marcar para evitar recursión
           _justDuplicated: false // Ya no es recién duplicado
         };
-        return await updateItem(id, forcedChanges);
+        return await updateItem(id, forcedChanges, opts);
       }
     }
     
@@ -527,12 +563,13 @@ export const ItemsProvider = ({ children }) => {
       const operationId = `update_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
 
-      // Determinar debounce según tipo de cambio
+      // Determinar debounce según tipo de cambio y si está en drag
       const hasText = Object.prototype.hasOwnProperty.call(itemData, 'content');
       const hasGeometry = (x !== undefined || y !== undefined || changes?.width !== undefined || changes?.height !== undefined || rotation !== undefined);
-      const debounceMs = hasText ? 1000 : (hasGeometry ? 1500 : 800);
+      // Durante drag, usar debounce más largo para agrupar movimientos
+      const debounceMs = opts.fromDrag ? 2000 : (hasText ? 1000 : (hasGeometry ? 1500 : 800));
 
-      queueItemUpdate(id, changes, { debounceMs });
+      queueItemUpdate(id, changes, { debounceMs, isDragging: opts.fromDrag });
 
       // Remover operación pendiente cuando el envío ocurra (aprox). Simplificación: timeout extra
       setTimeout(() => {
@@ -771,10 +808,12 @@ export const ItemsProvider = ({ children }) => {
         duplicateItem,
         flushItemUpdate,
         isItemSyncing,
+        markItemAsDragging,
+        unmarkItemAsDragging,
+        isItemDragging,
         loading, 
         error, 
         refreshItems,
- // Función para desbloquear loadItems
         syncStatus: getSyncStatus(),
         isRetrying,
         retryCount,

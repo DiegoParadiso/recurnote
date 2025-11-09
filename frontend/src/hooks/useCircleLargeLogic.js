@@ -70,7 +70,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     }
   };
 
-  const handleNoteUpdate = useCallback((id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra) => {
+  const handleNoteUpdate = useCallback((id, newContent, newPolar, maybeSize, newPosition, cx, cy, extra, opts = {}) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
     if (!dateKey) return;
 
@@ -86,7 +86,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     if (extra && typeof extra === 'object') Object.assign(changes, extra);
     
     if (Object.keys(changes).length) {
-      updateItem(id, changes).catch((error) => {
+      updateItem(id, changes, opts).catch((error) => {
         setErrorToast({ key: 'common.error_update_item' });
       });
     }
@@ -115,12 +115,13 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     const y = item.distance * Math.sin(angleRad);
     
     // Usar updateItem del ItemsContext para todo (tanto servidor como local)
-    updateItem(id, { angle: item.angle, distance: item.distance, x, y }).catch((error) => {
+    // Marcar como fromDrag: true para que se procese con debounce largo
+    updateItem(id, { angle: item.angle, distance: item.distance, x, y }, { fromDrag: true }).catch((error) => {
       setErrorToast({ key: 'common.error_update_position' });
     });
     // Forzar envío inmediato del último payload de posición para evitar rollback al recargar
     flushItemUpdate?.(id);
-  }, [selectedDay, safeCombinedItemsByDate, updateItem]);
+  }, [selectedDay, safeCombinedItemsByDate, updateItem, flushItemUpdate]);
 
   const handleItemDrop = (id) => {
     // Solo persistir la posición, no llamar a onItemDrop del componente padre

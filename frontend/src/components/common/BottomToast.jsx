@@ -63,7 +63,7 @@ export default function BottomToast({ message, onClose, duration = 2000 }) {
       className={`
         fixed transform ${basePositionClass}
         px-6 py-2 text-sm
-        ${roundedClass} shadow-md
+        ${roundedClass}
         backdrop-blur-md normal-case
         flex justify-center
         transition-transform duration-700 ease-out
