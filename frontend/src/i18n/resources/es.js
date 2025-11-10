@@ -29,6 +29,7 @@ const es = {
     pinLeftSidebar: 'Fijar sidebar izquierdo',
     pinRightSidebar: 'Fijar sidebar derecho',
     accountIndicator: 'Indicador de cuenta',
+    fullboardMode: 'Modo Libre',
   },
   language: {
     label: 'Idioma',

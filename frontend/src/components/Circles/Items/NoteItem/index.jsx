@@ -29,6 +29,7 @@ export default function NoteItem({
   onItemDrop,
   isActive,
   onActivate,
+  fullboardMode = false,
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -372,6 +373,7 @@ export default function NoteItem({
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}
         isSmallScreen={isSmallScreen}
+        fullboardMode={fullboardMode}
         isActive={isActive}
         onActivate={() => onActivate?.()}
         zIndexOverride={item.zIndexOverride}

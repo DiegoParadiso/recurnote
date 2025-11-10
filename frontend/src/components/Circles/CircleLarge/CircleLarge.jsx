@@ -15,7 +15,7 @@ import { useAuth } from '@context/AuthContext';
 import { useTheme } from '@context/ThemeContext';
 import '@styles/components/circles/CircleLarge.css';
 
-export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange, onErrorToast, onInfoToast }) {
+export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange, onErrorToast, onInfoToast, fullboardMode = false }) {
   const { width } = useWindowDimensions();
   const { t } = useTranslation();
   const [circleSize, setCircleSize] = useState(680);
@@ -139,9 +139,10 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
 
   const isSmallScreen = width <= 640;
   const BORDER_WIDTH = 1; 
-  const radius = (circleSize / 2) - BORDER_WIDTH; 
-  const cx = circleSize / 2;
-  const cy = circleSize / 2;
+  // En fullboard mode, radio muy grande para permitir posicionamiento libre
+  const radius = fullboardMode ? 10000 : ((circleSize / 2) - BORDER_WIDTH); 
+  const cx = fullboardMode ? 0 : (circleSize / 2);
+  const cy = fullboardMode ? 0 : (circleSize / 2);
 
   // Usar items del ItemsContext (que maneja tanto servidor como local)
   const itemsForSelectedDay = selectedDay ? contextItemsByDate[formatDateKey(selectedDay)] || [] : [];
@@ -151,6 +152,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     selectedDay,
     rotationAngle,
     radius,
+    fullboardMode,
     onInvalidDrop: () => setToastMessage(t('alerts.selectDayFirst')),
   });
 
@@ -175,7 +177,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
       className="relative select-none uppercase circle-large-container"
       style={{
         width: '100%',
-        height: isSmallScreen ? '100dvh' : circleSize,
+        height: isSmallScreen ? '100dvh' : (fullboardMode ? '100vh' : circleSize),
         margin: '0 auto',
       }}
     >
@@ -184,6 +186,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         radius={radius}
         displayText={displayText}
         isSmallScreen={isSmallScreen}
+        fullboardMode={fullboardMode}
       />
 
       {isSmallScreen && showSmall && (
@@ -214,27 +217,33 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         ref={containerRef}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDropFunction}
-        onMouseDown={!isSmallScreen ? onMouseDown : undefined}
-        onMouseMove={!isSmallScreen ? onMouseMove : undefined}
-        onMouseUp={!isSmallScreen ? onMouseUp : undefined}
-        onMouseLeave={!isSmallScreen ? onMouseUp : undefined}
+        onMouseDown={!isSmallScreen && !fullboardMode ? onMouseDown : undefined}
+        onMouseMove={!isSmallScreen && !fullboardMode ? onMouseMove : undefined}
+        onMouseUp={!isSmallScreen && !fullboardMode ? onMouseUp : undefined}
+        onMouseLeave={!isSmallScreen && !fullboardMode ? onMouseUp : undefined}
         id="circle-large-container"
         className={`
           ${isSmallScreen
             ? 'absolute inset-0 flex items-center justify-center z-[1]'
-            : 'rounded-full border flex items-center justify-center overflow-hidden'
+            : fullboardMode
+              ? 'absolute inset-0 flex items-start justify-center'
+              : 'rounded-full border flex items-center justify-center overflow-hidden'
           }
-          ${!isSmallScreen && selectedPattern !== 'none' && selectedDay ? 'circle-with-pattern' : ''}
+          ${!isSmallScreen && !fullboardMode && selectedPattern !== 'none' && selectedDay ? 'circle-with-pattern' : ''}
         `}
         style={{
-          width: isSmallScreen ? '100%' : circleSize,
-          height: isSmallScreen ? '100dvh' : circleSize,
-          margin: isSmallScreen ? undefined : '0 auto',
-          transform: isSmallScreen ? 'none' : `rotate(${rotationAngle}deg)`,
-          borderColor: isSmallScreen ? 'transparent' : 'var(--circle-border-light)',
-          borderStyle: isSmallScreen ? 'none' : 'solid',
-          position: 'relative',
-          ...(isSmallScreen ? {} : getPatternStyles()),
+          width: isSmallScreen ? '100%' : (fullboardMode ? '100vw' : circleSize),
+          height: isSmallScreen ? '100dvh' : (fullboardMode ? '100vh' : circleSize),
+          margin: isSmallScreen ? undefined : (fullboardMode ? undefined : '0 auto'),
+          transform: (isSmallScreen || fullboardMode) ? 'none' : `rotate(${rotationAngle}deg)`,
+          borderColor: (isSmallScreen || fullboardMode) ? 'transparent' : 'var(--circle-border-light)',
+          borderStyle: (isSmallScreen || fullboardMode) ? 'none' : 'solid',
+          position: fullboardMode ? 'fixed' : 'relative',
+          top: fullboardMode ? 0 : undefined,
+          left: fullboardMode ? 0 : undefined,
+          overflow: fullboardMode ? 'visible' : undefined,
+          zIndex: fullboardMode ? 'var(--z-mid)' : undefined,
+          ...((isSmallScreen || fullboardMode) ? {} : getPatternStyles()),
         }}
       >
         {!selectedDay && (
@@ -245,7 +254,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         )}
 
         {selectedDay && (
-          <div style={{ transform: isSmallScreen ? 'none' : `rotate(${-rotationAngle}deg)` }}>
+          <div style={{ transform: (isSmallScreen || fullboardMode) ? 'none' : `rotate(${-rotationAngle}deg)` }}>
             <NotesArea dayInfo={selectedDay} />
           </div>
         )}
@@ -254,7 +263,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           items={itemsForSelectedDay}
           cx={cx}
           cy={cy}
-          rotationAngle={rotationAngle}
+          rotationAngle={fullboardMode ? 0 : rotationAngle}
           onItemDrag={onItemDrag}
           onItemDrop={handleItemDrop}
           onNoteDragStart={handleNoteDragStart}
@@ -267,6 +276,10 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           onItemActivate={(id) => bringToFront(id)}
           zOrderMap={zOrderMap}
           onErrorToast={onErrorToast}
+          rotationEnabled={!fullboardMode}
+          fullboardMode={fullboardMode}
+          containerWidth={fullboardMode ? width : circleSize}
+          containerHeight={fullboardMode ? (typeof window !== 'undefined' ? window.innerHeight : 800) : circleSize}
         />
       </div>
     </div>

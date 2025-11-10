@@ -83,6 +83,11 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
       changes.width = maybeSize.width;
       changes.height = maybeSize.height;
     }
+    // Agregar coordenadas x, y cuando newPosition está presente
+    if (newPosition?.x !== undefined && newPosition?.y !== undefined) {
+      changes.x = newPosition.x;
+      changes.y = newPosition.y;
+    }
     if (extra && typeof extra === 'object') Object.assign(changes, extra);
     
     if (Object.keys(changes).length) {

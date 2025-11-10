@@ -18,7 +18,8 @@ export const useDragResize = ({
   onDrop,
   rotation,
   isSmallScreen = false,
-  aspectRatio = null // Nuevo: relación de aspecto (width/height) para mantener durante resize
+  aspectRatio = null, // Nuevo: relación de aspecto (width/height) para mantener durante resize
+  fullboardMode = false,
 }) => {
   const isDragging = useRef(false);
   const isResizing = useRef(false);
@@ -56,14 +57,14 @@ export const useDragResize = ({
         const cy = circleCenter.cy;
         let x0 = dragStartPos.current.x + correctedDx;
         let y0 = dragStartPos.current.y + correctedDy;
-        if (isSmallScreen) {
-          // MOBILE: límite por pantalla, sin ningún círculo
+        if (isSmallScreen || fullboardMode) {
+          // MOBILE o FULLBOARD: límite por pantalla, sin ningún círculo
           const limited = limitPositionInsideCircleSimple(
             x0, y0,
             sizeState.width, sizeState.height,
-            circleCenter, // param, pero limitPositionInsideCircleSimple delega correctamente a limitPositionInsideScreen en mobile
+            circleCenter, // param, pero limitPositionInsideCircleSimple delega correctamente a limitPositionInsideScreen en mobile/fullboard
             maxRadius,
-            isSmallScreen
+            isSmallScreen || fullboardMode
           );
           setPos({ x: limited.x, y: limited.y });
           onMove?.({ x: limited.x, y: limited.y });
@@ -149,15 +150,11 @@ export const useDragResize = ({
           const heightChange = Math.abs(dy / resizeStartPos.current.height);
           
           if (widthChange > heightChange) {
-            // El ancho es la dimensión dominante - ajustar altura según el ancho
             newHeight = newWidth / aspectRatio;
           } else {
-            // La altura es la dimensión dominante - ajustar ancho según la altura
             newWidth = newHeight * aspectRatio;
           }
           
-          // Ahora aplicar límites de manera inteligente manteniendo el aspect ratio
-          // Primero verificar límites máximos
           if (newWidth > maxWidth) {
             newWidth = maxWidth;
             newHeight = newWidth / aspectRatio;
@@ -195,10 +192,10 @@ export const useDragResize = ({
         // Detectar si estamos agrandando o achicando
         const isGrowing = newWidth > sizeState.width || newHeight > sizeState.height;
 
-        // Para mobile, usar límites de pantalla
-        if (isSmallScreen) {
+        // Para mobile o fullboard, usar límites de pantalla
+        if (isSmallScreen || fullboardMode) {
           const screenLimited = limitPositionInsideCircleSimple(
-            pos.x, pos.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen
+            pos.x, pos.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
           );
           
           // Si la posición cambió, ajustar el tamaño proporcionalmente

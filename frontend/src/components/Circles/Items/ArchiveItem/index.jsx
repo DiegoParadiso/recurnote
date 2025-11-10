@@ -29,6 +29,7 @@ export default function ArchivoItem({
   isActive,
   onActivate,
   onErrorToast,
+  fullboardMode = false,
 }) {
   const { t } = useTranslation();
   const fileInputRef = useRef();
@@ -366,7 +367,6 @@ export default function ArchivoItem({
           onMove={({ x: newX, y: newY }) => {
             // Calcular el ángulo y distancia desde el centro del círculo
             const { angle, distance } = computePolarFromXY(newX, newY, cx, cy);
-            // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
             onUpdate?.(
               id,
               item.content || {},
@@ -382,6 +382,7 @@ export default function ArchivoItem({
           circleCenter={{ cx, cy }}
           maxRadius={maxRadius}
           isSmallScreen={isSmallScreen}
+          fullboardMode={fullboardMode}
           isActive={isActive}
           onActivate={() => onActivate?.()}
           zIndexOverride={item.zIndexOverride}

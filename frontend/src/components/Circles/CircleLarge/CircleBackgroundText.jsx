@@ -2,32 +2,33 @@ import React from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { PRIMARY_FONT } from '../../../config/fonts'; 
 
-export default function CircleBackgroundText({ circleSize, radius, displayText }) {
+export default function CircleBackgroundText({ circleSize, radius, displayText, fullboardMode = false }) {
   const { width } = useWindowDimensions();
   const isSmallScreen = width <= 640;
 
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
-  if (isSmallScreen) {
-    // Texto recto centrado en móviles
+  if (isSmallScreen || fullboardMode) {
+    // Texto recto centrado en móviles y fullboard mode
     return (
       <div
         style={{
           position: 'absolute',
-          top: '9%',
+          top: fullboardMode ? '0' : '9%',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: fullboardMode ? 'translateX(-50%)' : 'translate(-50%, 0)',
           pointerEvents: 'none',
           zIndex: 'var(--z-mid-low)',
           color: 'var(--color-text-primary)',
           fontFamily: 'Roboto Slab, serif',
-          fontSize: circleSize * 0.03, // Un poquito más grande (antes era 0.025)
-          letterSpacing: 1.5,
+          fontSize: fullboardMode ? '1.5rem' : (circleSize * 0.03), // Más chico en fullboard
+          letterSpacing: fullboardMode ? 2 : 1.5,
           fontWeight: 600,
           textAlign: 'center',
-          width: '80%',
-          paddingTop: '1rem',
+          width: fullboardMode ? 'auto' : '80%',
+          paddingTop: fullboardMode ? '2rem' : '1rem',
+          whiteSpace: fullboardMode ? 'nowrap' : 'normal', // No romper línea en fullboard
         }}
       >
         {displayText.toUpperCase()}

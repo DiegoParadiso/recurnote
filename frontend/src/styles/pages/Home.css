@@ -57,17 +57,35 @@ html, body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 10;
-  display: flex; 
-  background-color: transparent;
+  padding: 0; /* icon only */
+  background: transparent;
   border: none;
-  font-size: 1.2rem;
-  user-select: none;
-  transition: var(--transition-normal);
-  color: var(--color-neutral-darker);
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-all);
+  z-index: var(--z-mid);
 }
+
 .home-toggle-small:hover {
-  color: var(--color-text-primary);
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Fullboard Mode Styles */
+.fullboard-drop-zone {
+  background: transparent;
+}
+
+.fullboard-drop-zone * {
+  pointer-events: auto !important;
+}
+
+.home-page.fullboard-active,
+.circle-large-wrapper.fullboard-active {
+  overflow: visible !important;
 }
 
 /* Mobile-only: prevent vertical scroll on Home so CircleLarge stays aligned */

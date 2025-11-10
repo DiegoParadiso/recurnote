@@ -257,22 +257,6 @@ export function limitPositionInsideCircle90Degrees(newX, newY, w, h, circleCente
       maxDistance = maxRadius - halfWidth;
     }
     
-    // Debug para los 90 grados
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🎯 90 grados detectado:', {
-        angle: normalizedAngle,
-        direction: normalizedAngle >= 85 && normalizedAngle <= 95 ? 'arriba' : 
-                  normalizedAngle >= 175 && normalizedAngle <= 185 ? 'izquierda' :
-                  normalizedAngle >= 265 && normalizedAngle <= 275 ? 'abajo' : 'derecha',
-        maxRadius,
-        halfWidth,
-        halfHeight,
-        maxDistance,
-        distanceCenter,
-        willLimit: distanceCenter > maxDistance
-      });
-    }
-    
     if (distanceCenter <= maxDistance) {
       return { x: newX, y: newY };
     }
@@ -281,13 +265,6 @@ export function limitPositionInsideCircle90Degrees(newX, newY, w, h, circleCente
     const rad = (normalizedAngle * Math.PI) / 180;
     const limitedX = cx + maxDistance * Math.cos(rad);
     const limitedY = cy + maxDistance * Math.sin(rad);
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📍 90 grados limitado:', { 
-        from: { x: newX, y: newY }, 
-        to: { x: limitedX, y: limitedY } 
-      });
-    }
     
     return { x: limitedX, y: limitedY };
   }
@@ -298,40 +275,39 @@ export function limitPositionInsideCircle90Degrees(newX, newY, w, h, circleCente
 
 // Función para limitar posición dentro de los límites de la pantalla (mobile)
 export function limitPositionInsideScreen(newX, newY, w, h) {
+  // IMPORTANTE: newX y newY son las coordenadas del CENTRO del elemento
+  // debido a transform: translate(-50%, -50%) en getContainerStyle
+  
   const halfWidth = w / 2;
   const halfHeight = h / 2;
 
-  // Obtener dimensiones de la pantalla
+  // Obtener dimensiones de la pantalla visible
   const screenWidth = window.innerWidth;
   const screenHeight = window.innerHeight;
 
-  // Márgenes asimétricos: menos margen arriba/izquierda para permitir acceso a la basura
-  // La basura está en top:5, left:25, con zona de ~100x100px
-  const marginLeft = 0;   // Sin margen izquierdo para llegar a la basura
-  const marginTop = 0;    // Sin margen superior para llegar a la basura
-  const marginRight = 8;  // Margen normal en el lado derecho
-  const marginBottom = 8; // Margen normal en el lado inferior
+  // Márgenes mínimos en todos los lados (los items pueden quedar debajo del sidebar)
+  const marginLeft = 4;   // Margen mínimo izquierdo
+  const marginRight = 4;  // Margen mínimo derecho
+  const marginTop = 4;    // Margen mínimo superior
+  const marginBottom = 4; // Margen mínimo inferior
 
-  // Calcular límites con márgenes asimétricos
+  // Calcular los límites: El CENTRO del elemento debe estar entre:
+  // - Mínimo: halfWidth/halfHeight + margin (para que el borde izq/sup quede dentro)
+  // - Máximo: screenWidth/Height - halfWidth/halfHeight - margin (para que el borde der/inf quede dentro)
   const minX = halfWidth + marginLeft;
   const maxX = screenWidth - halfWidth - marginRight;
   const minY = halfHeight + marginTop;
   const maxY = screenHeight - halfHeight - marginBottom;
 
-  // Limitar la posición dentro de los bordes de la pantalla
+  // Limitar la posición del centro dentro de los bordes calculados
   const limitedX = Math.max(minX, Math.min(maxX, newX));
   const limitedY = Math.max(minY, Math.min(maxY, newY));
 
   return { x: limitedX, y: limitedY };
 }
 
-// Función para calcular la máxima distancia que puede estar el centro del item
-// del centro del círculo, asegurando que todas las esquinas estén dentro
 function calculateMaxDistanceForAngle(angle, halfWidth, halfHeight, maxRadius) {
-  // Convertir ángulo a radianes
   const angleRad = (angle * Math.PI) / 180;
-
-  // Calcular las 4 esquinas del rectángulo relativas al centro del item
   const corners = [
     { x: -halfWidth, y: -halfHeight }, // Superior izquierda
     { x: halfWidth, y: -halfHeight },  // Superior derecha
@@ -339,15 +315,10 @@ function calculateMaxDistanceForAngle(angle, halfWidth, halfHeight, maxRadius) {
     { x: halfWidth, y: halfHeight }    // Inferior derecha
   ];
 
-  // Para cada esquina, calcular qué tan lejos puede estar el centro del item
-  // de modo que esa esquina específica esté justo en el borde del círculo
   let minMaxDistance = maxRadius;
 
   for (const corner of corners) {
-    // Rotar la esquina según el ángulo del item (si estuviera rotado)
-    // En este caso no hay rotación del item, así que las esquinas están alineadas
 
-    // Distancia de esta esquina al centro del item
     const cornerDist = Math.sqrt(corner.x * corner.x + corner.y * corner.y);
 
     // Ángulo de esta esquina relativa al centro del item
@@ -356,23 +327,11 @@ function calculateMaxDistanceForAngle(angle, halfWidth, halfHeight, maxRadius) {
     // Ángulo absoluto de esta esquina cuando el item está en 'angle'
     const absoluteCornerAngle = angleRad + cornerAngle;
 
-    // Posición de esta esquina si el centro del item está a distancia 'd' del centro del círculo
-    // corner_x = d * cos(angleRad) + corner.x
-    // corner_y = d * sin(angleRad) + corner.y
-    // Queremos: corner_x^2 + corner_y^2 <= maxRadius^2
-
-    // Simplificando: queremos encontrar la máxima distancia 'd' tal que
-    // (d * cos(angleRad) + corner.x)^2 + (d * sin(angleRad) + corner.y)^2 = maxRadius^2
-
     const cosA = Math.cos(angleRad);
     const sinA = Math.sin(angleRad);
-
-    // Expandiendo: d^2 + 2*d*(corner.x*cosA + corner.y*sinA) + (corner.x^2 + corner.y^2) = maxRadius^2
-    // d^2 + 2*d*b + c - maxRadius^2 = 0
     const b = corner.x * cosA + corner.y * sinA;
     const c = corner.x * corner.x + corner.y * corner.y;
 
-    // Resolver ecuación cuadrática: d^2 + 2*b*d + (c - maxRadius^2) = 0
     const discriminant = 4 * b * b - 4 * (c - maxRadius * maxRadius);
 
     if (discriminant >= 0) {

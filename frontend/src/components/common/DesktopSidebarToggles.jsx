@@ -1,4 +1,13 @@
-export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isLeftSidebarPinned, isRightSidebarPinned }) {
+export default function DesktopSidebarToggles({ 
+  onToggleLeft, 
+  onToggleRight, 
+  isLeftSidebarPinned, 
+  isRightSidebarPinned,
+  draggedItem,
+  fullboardMode 
+}) {
+  const shouldHide = draggedItem && fullboardMode;
+  
   return (
     <>
       {/* Toggle derecho - pegado al borde derecho */}
@@ -11,8 +20,9 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
           transform: 'translateY(-50%)',
           background: 'transparent',
           border: 'none',
-          opacity: isRightSidebarPinned ? 0.3 : 1,
-          transition: 'opacity 0.3s ease',
+          opacity: shouldHide ? 0 : (isRightSidebarPinned ? 0.3 : 1),
+          pointerEvents: shouldHide ? 'none' : 'auto',
+          transition: 'opacity 0.2s ease',
           zIndex: 'var(--z-high)'
         }}
       >
@@ -31,8 +41,9 @@ export default function DesktopSidebarToggles({ onToggleLeft, onToggleRight, isL
           transform: 'translateY(-50%)',
           background: 'transparent',
           border: 'none',
-          opacity: isLeftSidebarPinned ? 0.3 : 1,
-          transition: 'opacity 0.3s ease',
+          opacity: shouldHide ? 0 : (isLeftSidebarPinned ? 0.3 : 1),
+          pointerEvents: shouldHide ? 'none' : 'auto',
+          transition: 'opacity 0.2s ease',
           zIndex: 'var(--z-high)'
         }}
       >

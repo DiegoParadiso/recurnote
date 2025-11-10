@@ -20,6 +20,7 @@ export default function UnifiedContainer({
   onActivate,
   zIndexOverride,
   aspectRatio = null, // Nuevo: relación de aspecto para mantener durante resize
+  fullboardMode = false,
   ...rest
 }) {
 
@@ -37,19 +38,20 @@ export default function UnifiedContainer({
     rotation,
     isSmallScreen,
     aspectRatio, // Pasar el aspect ratio a useDragResize
+    fullboardMode,
   });
   
   useEffect(() => {
     if (isDragging.current || isResizing.current) return;
     const limited = limitPositionInsideCircle(
-      x, y, width, height, circleCenter, maxRadius, isSmallScreen
+      x, y, width, height, circleCenter, maxRadius, isSmallScreen || fullboardMode
     );
     setPos({ x: limited.x, y: limited.y });
     setSizeState({
       width: Math.min(Math.max(width, minWidth), maxWidth),
       height: Math.min(Math.max(height, minHeight), maxHeight),
     });
-  }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen, isDragging, isResizing]);
+  }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen, fullboardMode, isDragging, isResizing]);
   
   const handleMouseUp = (e) => {
     if (isDragging.current) {

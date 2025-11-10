@@ -55,6 +55,7 @@ export default function Home() {
 
   const {
     circleSmallPos,
+    setCircleSmallPos,
     smallSize,
     onCircleSmallMouseDown,
     onCircleSmallDoubleClick,
@@ -99,6 +100,9 @@ export default function Home() {
   } = useSidebarLayout(selectedDay, isMobile);
 
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
+  
+  // Definir fullboardMode antes de usarlo en useEffects
+  const fullboardMode = displayOptions?.fullboardMode && !isMobile;
 
   // Memoizar items para el día seleccionado
   const itemsForSelectedDay = useMemo(() =>
@@ -168,9 +172,36 @@ export default function Home() {
   // Cargar posición del CircleSmall cuando se muestre en desktop
   useEffect(() => {
     if (!isMobile && showSmall && (!circleSmallPos.x || !circleSmallPos.y)) {
-      recenterCircleSmall();
+      // Si está en fullboard mode, usar posición centrada
+      if (fullboardMode) {
+        const centerX = window.innerWidth / 2 - smallSize / 2;
+        const posY = 120;
+        setCircleSmallPos({ x: centerX, y: posY });
+      } else {
+        recenterCircleSmall();
+      }
     }
-  }, [isMobile, showSmall, circleSmallPos.x, circleSmallPos.y, recenterCircleSmall]);
+  }, [isMobile, showSmall, circleSmallPos.x, circleSmallPos.y, recenterCircleSmall, fullboardMode, smallSize, setCircleSmallPos]);
+
+  // Reposicionar CircleSmall en el centro cuando se activa fullboard mode
+  // Nota: no dependemos de circleSmallPos para no interferir con el drag
+  useEffect(() => {
+    if (!isMobile && showSmall && fullboardMode) {
+      const centerX = window.innerWidth / 2 - smallSize / 2;
+      const posY = 120; // Debajo del texto de la fecha
+
+      setCircleSmallPos({ x: centerX, y: posY });
+
+      // Listener para mantener centrado al redimensionar ventana
+      const handleResize = () => {
+        const newCenterX = window.innerWidth / 2 - smallSize / 2;
+        setCircleSmallPos({ x: newCenterX, y: posY });
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [fullboardMode, isMobile, showSmall, smallSize, setCircleSmallPos]);
 
   // Memoizar handler de selección de item
   const handleSelectItemLocal = useCallback(async (item) => {
@@ -248,7 +279,7 @@ export default function Home() {
 
   return (
     <div
-      className="home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative"
+      className={`home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
     >
       {isMobile && (
         <div 
@@ -291,7 +322,9 @@ export default function Home() {
       <div
         className="home-desktop-topbar hidden sm:flex gap-2 items-center"
         style={{
-          pointerEvents: draggedItem && isMobile ? 'none' : 'auto'
+          pointerEvents: draggedItem && (isMobile || fullboardMode) ? 'none' : 'auto',
+          opacity: draggedItem && fullboardMode ? 0 : 1,
+          transition: 'opacity 0.2s ease'
         }}
       >
         <div className="w-10 h-10 flex items-center justify-center">
@@ -380,9 +413,10 @@ export default function Home() {
 
       {/* Contenido principal */}
       <div
-        className="relative flex items-center justify-center circle-large-wrapper"
+        className={`relative flex items-center justify-center circle-large-wrapper ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
         style={{
-          width: isMobile ? '100vw' : 'auto',
+          width: (isMobile || displayOptions?.fullboardMode) ? '100vw' : 'auto',
+          height: displayOptions?.fullboardMode ? '100vh' : 'auto',
           paddingLeft: isMobile ? 4 : undefined,
           paddingRight: isMobile ? 4 : undefined,
         }}
@@ -392,6 +426,7 @@ export default function Home() {
           displayOptions={displayOptions}
           selectedDay={selectedDay}
           onCircleSizeChange={setCircleLargeSize}
+          fullboardMode={displayOptions.fullboardMode && !isMobile}
           onItemDrag={(itemId, pos) => {
             if (pos && pos.action === 'drop') {
               // Verificar si está sobre la papelera en el momento del drop
@@ -425,8 +460,8 @@ export default function Home() {
           setLocalItemsByDate={safeSetItemsByDate}
         />
 
-        {/* Botón toggle mostrar pequeño (solo desktop) */}
-        {!isMobile && (
+        {/* Botón toggle mostrar pequeño (solo desktop y modo normal) */}
+        {!isMobile && !displayOptions.fullboardMode && (
           <button
             onClick={() => setShowSmall(!showSmall)}
             aria-label="Toggle mostrar pequeño"
@@ -523,6 +558,8 @@ export default function Home() {
           onToggleRight={() => setIsRightSidebarPinned(prev => !prev)}
           isLeftSidebarPinned={isLeftSidebarPinned}
           isRightSidebarPinned={isRightSidebarPinned}
+          draggedItem={draggedItem}
+          fullboardMode={fullboardMode}
         />
       )}
 

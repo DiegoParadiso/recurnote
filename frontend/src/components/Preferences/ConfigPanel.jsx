@@ -333,6 +333,17 @@ export default function ConfigPanel({
                 />
               </div>
             )}
+
+            {!isMobile && (
+              <div className="visualization-header-options">
+                <ToggleOption
+                  id="toggle-fullboard-mode"
+                  label={t('visual.fullboardMode')}
+                  value={displayOptions.fullboardMode}
+                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }))}
+                />
+              </div>
+            )}
           </section>
 
           <section className="config-section">

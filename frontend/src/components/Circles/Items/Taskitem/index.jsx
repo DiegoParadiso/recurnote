@@ -30,6 +30,7 @@ function TaskItem({
   onItemDrop,
   isActive,
   onActivate,
+  fullboardMode = false,
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -206,6 +207,7 @@ function TaskItem({
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}
         isSmallScreen={isSmallScreen}
+        fullboardMode={fullboardMode}
         isActive={isActive}
         onActivate={() => onActivate?.()}
         zIndexOverride={item.zIndexOverride}
