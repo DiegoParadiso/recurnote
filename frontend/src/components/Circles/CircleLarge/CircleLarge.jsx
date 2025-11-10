@@ -250,6 +250,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           <EmptyLogo
             circleSize={isSmallScreen ? circleSize * 3 : circleSize * 0.5}
             isSmallScreen={isSmallScreen}
+            isFullboardMode={fullboardMode}
           />
         )}
 
