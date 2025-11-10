@@ -621,7 +621,10 @@ export default function Home() {
       />
 
       {/* Indicador de usuario local */}
-      <LocalUserIndicator showAccountIndicator={displayOptions.showAccountIndicator !== false} />
+      <LocalUserIndicator 
+        showAccountIndicator={displayOptions.showAccountIndicator !== false}
+        fullboardMode={displayOptions?.fullboardMode}
+      />
       
       {/* Handler de migración local */}
       <LocalMigrationHandler />

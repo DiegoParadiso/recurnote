@@ -243,7 +243,6 @@ export default function ConfigPanel({
           </h3>
             <SessionOptions />
           </section>
-
           <section className="config-section">
           <h3 className="flex items-center">
             {t('common.appearance')}
@@ -288,24 +287,32 @@ export default function ConfigPanel({
                 </div>
               )}
           </section>
-
           <section className="config-section">
           <h3 className="flex items-center">
             {t('common.visualization')}
             <HelpIcon text={t('help.visualization')} />
           </h3>
-            <div className="visualization-header-options">
-              {options.map(({ key, label }) => (
+          {!isMobile && (
+              <div className="visualization-header-options">
                 <ToggleOption
-                  key={key}
-                  id={`toggle-${key}`}
-                  label={` ${label}`}
-                  value={displayOptions[key]}
-                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
+                  id="toggle-fullboard-mode"
+                  label={t('visual.fullboardMode')}
+                  value={displayOptions.fullboardMode}
+                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }))}
                 />
-              ))}
-            </div>
+              </div>
+            )}
 
+            {!isMobile && (
+              <div className="visualization-header-options">
+                <ToggleOption
+                  id="toggle-account-indicator"
+                  label={t('visual.accountIndicator')}
+                  value={displayOptions.showAccountIndicator}
+                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
+                />
+              </div>
+            )}
             {!isMobile && (
               <div className="visualization-header-options">
                 <ToggleOption
@@ -322,28 +329,17 @@ export default function ConfigPanel({
                 />
               </div>
             )}
-
-            {!isMobile && (
-              <div className="visualization-header-options">
+            <div className="visualization-header-options">
+              {options.map(({ key, label }) => (
                 <ToggleOption
-                  id="toggle-account-indicator"
-                  label={t('visual.accountIndicator')}
-                  value={displayOptions.showAccountIndicator}
-                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
+                  key={key}
+                  id={`toggle-${key}`}
+                  label={` ${label}`}
+                  value={displayOptions[key]}
+                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
                 />
-              </div>
-            )}
-
-            {!isMobile && (
-              <div className="visualization-header-options">
-                <ToggleOption
-                  id="toggle-fullboard-mode"
-                  label={t('visual.fullboardMode')}
-                  value={displayOptions.fullboardMode}
-                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }))}
-                />
-              </div>
-            )}
+              ))}
+            </div>
           </section>
 
           <section className="config-section">

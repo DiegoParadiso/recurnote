@@ -211,6 +211,17 @@
   z-index: var(--z-toast);
 }
 
+/* Extras para casos especiales (fullboard/local user indicator) */
+.z-fullboard {
+  /* Por encima de overlay/modals si es necesario */
+  z-index: var(--z-fullboard, 12000);
+}
+
+.z-max {
+  /* Máxima prioridad visual */
+  z-index: var(--z-max, 99999);
+}
+
 /* === ANIMATIONS === */
 
 @keyframes fadeIn {

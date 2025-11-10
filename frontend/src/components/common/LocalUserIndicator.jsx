@@ -5,7 +5,7 @@ import { useAuth } from '@context/AuthContext';
 import useIsMobile from '@hooks/useIsMobile';
 import '@components/common/LocalUserIndicator.css';
 
-export default function LocalUserIndicator({ showAccountIndicator = true }) {
+export default function LocalUserIndicator({ showAccountIndicator = true, fullboardMode = false }) {
   const { t } = useTranslation();
   const { itemsByDate } = useItems();
   const { user, token } = useAuth();
@@ -71,8 +71,9 @@ export default function LocalUserIndicator({ showAccountIndicator = true }) {
 
   return (
     <div
-      className="fixed bottom-4 left-4 z-low px-3 py-2 rounded-lg text-sm font-medium backdrop-blur-sm local-user-indicator"
+      className={`fixed bottom-4 left-4 ${fullboardMode ? 'z-max' : 'z-low'} px-3 py-2 rounded-lg text-sm font-medium backdrop-blur-sm local-user-indicator`}
       style={{
+        zIndex: fullboardMode ? 'var(--z-max, 99999)' : 'var(--z-low)',
         color: 'var(--color-text-primary)',
         border: '1px solid var(--color-border)', // Borde sutil transparente
         transition: 'var(--transition-colors)',
