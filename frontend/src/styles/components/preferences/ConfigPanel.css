@@ -46,7 +46,6 @@ html[data-contrast='high'] .config-panel {
   user-select: none;
   color: var(--color-text-primary);
   margin: 0;
-  padding-left: 0;
 }
 
 .config-panel-close-btn {

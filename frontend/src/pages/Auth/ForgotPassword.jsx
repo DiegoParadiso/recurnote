@@ -77,20 +77,6 @@ export default function ForgotPassword() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'var(--color-highlight)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-            transition: 'var(--transition-colors)'
-          }}>
-            <Mail style={{ width: '28px', height: '28px', color: 'var(--color-neutral)' }} />
-          </div>
-          <h2>{t('forgot.title')}</h2>
           <p style={{ color: 'var(--color-muted)', marginTop: '8px', fontSize: '14px' }}>{t('forgot.subtitle')}</p>
         </div>
 

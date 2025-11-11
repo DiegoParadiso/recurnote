@@ -237,23 +237,6 @@ export default function Login() {
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'var(--color-highlight)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 20px',
-            transition: 'var(--transition-colors)'
-          }}>
-            <LogIn style={{ width: '32px', height: '32px', color: 'var(--color-neutral)' }} />
-          </div>
-          <h2>{t('auth.loginTitle')}</h2>
-        </div>
-
         {/* Botón de Google */}
         <button 
           type="button" 

@@ -507,24 +507,7 @@ export default function Register() {
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'var(--color-highlight)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-            transition: 'var(--transition-colors)'
-          }}>
-            <UserPlus style={{ width: '28px', height: '28px', color: 'var(--color-neutral)' }} />
-          </div>
-          <h2>{t('auth.registerTitle')}</h2>
-        </div>
-        
+      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>  
         <form onSubmit={handleSubmit}>
           {/* Nombre */}
           <div className="form-group">
