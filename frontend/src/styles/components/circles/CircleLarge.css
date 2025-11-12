@@ -17,7 +17,7 @@
   filter: var(--pattern-filter);
   opacity: var(--pattern-opacity);
   border-radius: inherit;
-  z-index: -1;
+  z-index: var(--z-behind, -1);
   pointer-events: none;
 }
 

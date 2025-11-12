@@ -196,7 +196,7 @@ html.dark .file-download-link:hover {
   border-radius: 0;
   padding: 0;
   cursor: pointer;
-  z-index: 10;
+  z-index: var(--z-base);
   font-size: 16px;
   font-weight: 400;
   line-height: 1;

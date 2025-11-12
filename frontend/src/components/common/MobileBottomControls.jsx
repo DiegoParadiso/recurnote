@@ -20,7 +20,7 @@ export default function MobileBottomControls({
   return (
     <div
       className="mobile-controls"
-      style={{ zIndex: (isDragging || showLeftSidebarMobile) ? 1 : undefined }}
+      style={{ zIndex: (isDragging || showLeftSidebarMobile) ? 'var(--z-base)' : undefined }}
     >
       <button 
         onClick={() => setShowLeftSidebarMobile(prev => !prev)} 

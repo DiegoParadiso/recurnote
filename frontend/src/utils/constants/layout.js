@@ -1,4 +1,3 @@
-// Layout constants
 export const MOBILE_BOTTOM_SAFE_OFFSET = 60;
 export const RIGHT_SIDEBAR_MOBILE_WIDTH = 'calc(100vw - 50px)';
 export const SIDEBAR_WIDTH_PX = 260;

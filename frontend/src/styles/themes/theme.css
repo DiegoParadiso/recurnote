@@ -88,7 +88,10 @@
   --z-high: 35;
   --z-overlay: 45;
   --z-modal: 75;
-  --z-floating: 105;
+  --z-floating: 105; /* Flotantes, carouseles, elementos arriba de modals pero debajo de toast */
+  --z-fullboard: 12000; /* Fullboard y overlays que deben sobrepasar overlays estándar */
+  --z-max: 99999; /* Prioridad visual absoluta */
+  --z-behind: -1;   /* Elementos decorativos detrás de todo (ej.: backgrounds) */
   --z-toast: 9999;
 
   /* Transitions */

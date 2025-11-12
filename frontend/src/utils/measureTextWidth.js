@@ -1,6 +1,3 @@
-// Shared text measurement utilities
-// Uses canvas 2D context when available; falls back to a rough estimate
-
 let sharedCanvas;
 let sharedCtx;
 

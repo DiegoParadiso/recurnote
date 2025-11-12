@@ -121,7 +121,7 @@ export default function ResetPassword() {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <div className="password-input-container" style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none', zIndex: 1, transition: 'var(--transition-colors)' }} />
+              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none', zIndex: 'var(--z-base)', transition: 'var(--transition-colors)' }} />
               <input
                 type="password"
                 name="password"
@@ -138,7 +138,7 @@ export default function ResetPassword() {
 
           <div className="form-group">
             <div className="password-input-container" style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none', zIndex: 1, transition: 'var(--transition-colors)' }} />
+              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none', zIndex: 'var(--z-base)', transition: 'var(--transition-colors)' }} />
               <input
                 type="password"
                 name="confirmPassword"

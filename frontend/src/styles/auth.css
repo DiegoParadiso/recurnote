@@ -269,7 +269,7 @@
   margin-bottom: 0.50rem;
   box-shadow: 0 2px 8px 0 rgba(80,80,80,.05);
   transition: background 0.2s, border 0.2s, box-shadow 0.2s;
-  z-index: var(--z-base, 1);
+  z-index: var(--z-base);
 }
 
 .gmail-login {
@@ -289,7 +289,7 @@
   margin-bottom: 0.50rem;
   box-shadow: 0 2px 8px 0 rgba(80,80,80,.05);
   transition: background 0.2s, border 0.2s, box-shadow 0.2s;
-  z-index: var(--z-base, 1);
+  z-index: var(--z-base);
 }
 
 .github-login:active {

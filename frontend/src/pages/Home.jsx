@@ -285,7 +285,7 @@ export default function Home() {
         <div 
           className="fixed top-3 left-0 right-0 sm:hidden flex justify-between items-center px-4"
           style={{
-            zIndex: draggedItem ? 1 : 20, 
+            zIndex: draggedItem ? 'var(--z-base)' : 'var(--z-mid)',
             pointerEvents: 'none', 
             opacity: draggedItem ? 0 : 1,
             transition: 'opacity 0.2s ease'

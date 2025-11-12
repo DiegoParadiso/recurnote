@@ -19,7 +19,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText, 
           left: '50%',
           transform: fullboardMode ? 'translateX(-50%)' : 'translate(-50%, 0)',
           pointerEvents: 'none',
-          zIndex: fullboardMode ? 12000 : 'var(--z-mid-low)',
+          zIndex: fullboardMode ? 'var(--z-fullboard)' : 'var(--z-mid-low)',
           color: 'var(--color-text-primary)',
           fontFamily: 'Roboto Slab, serif',
           fontSize: fullboardMode ? '1.5rem' : (circleSize * 0.03), // Más chico en fullboard

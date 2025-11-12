@@ -1,4 +1,3 @@
-// Z-Index constants (mirror theme.css)
 export const Z_INDEX = {
   base: 1,
   low: 10,

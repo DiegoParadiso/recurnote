@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { limitPositionInsideCircleSimple } from '@utils/helpers/geometry';
+import { limitPositionInsideCircle } from '@utils/helpers/geometry';
 
 export const useDragResize = ({
   pos,
@@ -59,10 +59,10 @@ export const useDragResize = ({
         let y0 = dragStartPos.current.y + correctedDy;
         if (isSmallScreen || fullboardMode) {
           // MOBILE o FULLBOARD: límite por pantalla, sin ningún círculo
-          const limited = limitPositionInsideCircleSimple(
+          const limited = limitPositionInsideCircle(
             x0, y0,
             sizeState.width, sizeState.height,
-            circleCenter, // param, pero limitPositionInsideCircleSimple delega correctamente a limitPositionInsideScreen en mobile/fullboard
+            circleCenter, // param, pero limitPositionInsideCircle delega correctamente a limitPositionInsideScreen en mobile/fullboard
             maxRadius,
             isSmallScreen || fullboardMode
           );
@@ -194,7 +194,7 @@ export const useDragResize = ({
 
         // Para mobile o fullboard, usar límites de pantalla
         if (isSmallScreen || fullboardMode) {
-          const screenLimited = limitPositionInsideCircleSimple(
+          const screenLimited = limitPositionInsideCircle(
             pos.x, pos.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
           );
           

@@ -409,7 +409,7 @@ export default function Login() {
                   transform: 'translateY(-50%)',
                   color: 'var(--color-muted)',
                   pointerEvents: 'none',
-                  zIndex: 1,
+                  zIndex: 'var(--z-base)',
                   transition: 'var(--transition-colors)'
                 }}
               />
