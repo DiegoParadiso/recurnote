@@ -500,7 +500,7 @@ export default function NoteItem({
             style={{
               cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
               opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),
-              pointerEvents: isDragging ? 'none' : 'auto',
+              pointerEvents: (isMobile && !isEditing) ? 'none' : (isDragging ? 'none' : 'auto'),
               backgroundColor: isEditing ? 'var(--color-bg-secondary)' : 'transparent',
               border: isEditing ? '1px solid var(--color-primary)' : '1px solid transparent',
               resize: isEditing ? 'none' : 'none',

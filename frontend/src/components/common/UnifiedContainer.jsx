@@ -100,7 +100,7 @@ export default function UnifiedContainer({
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
 
-    if (['input', 'textarea', 'select'].includes(tag)) return;
+    if (["input", "textarea", "select", "button", "a"].includes(tag)) return;
     if (e.target.dataset.resizeHandle) return;
 
     onActivate?.();

@@ -24,7 +24,71 @@ export default function TaskRow({
   onInputBlur,
 }) {
   return (
-    <div className="scroll-hidden taskitem-row" style={{ height: taskHeight }}>
+    <div
+      className="scroll-hidden taskitem-row"
+      style={{ height: taskHeight }}
+      onTouchStart={(e) => {
+        if (
+          isMobile &&
+          !editingInputs.has(index) &&
+          !isDragging &&
+          !wasDraggingRef.current
+        ) {
+          touchStartPosRef.current = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+            time: Date.now(),
+            inputIndex: index,
+          };
+          touchIsDragRef.current = false;
+        }
+      }}
+      onTouchMove={(e) => {
+        if (isMobile) {
+          const isEditingThis = editingInputs.has(index);
+          if (!isEditingThis) {
+            e.preventDefault();
+            if (touchStartPosRef.current) {
+              const touch = e.touches[0];
+              const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
+              const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              if (distance > 10) {
+                touchIsDragRef.current = true;
+                touchStartPosRef.current = null;
+              }
+            }
+          }
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (
+          isMobile &&
+          touchStartPosRef.current &&
+          !touchIsDragRef.current &&
+          !isDragging &&
+          !wasDraggingRef.current
+        ) {
+          const timeSinceStart = Date.now() - touchStartPosRef.current.time;
+          const inputIndex = touchStartPosRef.current.inputIndex;
+          if (timeSinceStart < 300 && inputIndex === index && !editingInputs.has(index)) {
+            e.stopPropagation();
+            setEditingInputs((prev) => new Set([...prev, index]));
+            requestAnimationFrame(() => {
+              focusEditableInput(index);
+            });
+          }
+        }
+        touchStartPosRef.current = null;
+        touchIsDragRef.current = false;
+      }}
+      onClick={() => {
+        if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
+          startEditing(index);
+          focusEditableInput(index);
+        }
+      }}
+    >
       <label
         tabIndex={0}
         className="checkbox-label"
@@ -171,7 +235,7 @@ export default function TaskRow({
         style={{
           cursor: isMobile ? 'text' : (editingInputs.has(index) ? 'text' : 'grab'),
           opacity: isMobile ? 1 : (editingInputs.has(index) ? 1 : 0.7),
-          pointerEvents: isDragging ? 'none' : 'auto',
+          pointerEvents: isMobile && !editingInputs.has(index) ? 'none' : (isDragging ? 'none' : 'auto'),
           backgroundColor: editingInputs.has(index) ? 'var(--color-bg-secondary)' : 'transparent',
           border: editingInputs.has(index) ? '1px solid var(--color-primary)' : '1px solid transparent',
         }}
