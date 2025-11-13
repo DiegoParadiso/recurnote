@@ -19,7 +19,7 @@ export default function UnifiedContainer({
   isActive = false,
   onActivate,
   zIndexOverride,
-  aspectRatio = null, // Nuevo: relación de aspecto para mantener durante resize
+  aspectRatio = null,
   fullboardMode = false,
   ...rest
 }) {
@@ -29,6 +29,8 @@ export default function UnifiedContainer({
   const [sizeState, setSizeState] = useState({ width, height });
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
+  const prevModeRef = useRef({ isSmallScreen, fullboardMode });
+  
   const { isDragging, isResizing, dragStartPos, resizeStartPos } = useDragResize({
     pos, setPos, sizeState, setSizeState,
     minWidth, minHeight, maxWidth, maxHeight,
@@ -37,21 +39,37 @@ export default function UnifiedContainer({
     onDrop,  
     rotation,
     isSmallScreen,
-    aspectRatio, // Pasar el aspect ratio a useDragResize
+    aspectRatio,
     fullboardMode,
   });
   
   useEffect(() => {
     if (isDragging.current || isResizing.current) return;
+    
+    const modeChanged = 
+      prevModeRef.current.isSmallScreen !== isSmallScreen ||
+      prevModeRef.current.fullboardMode !== fullboardMode;
+    
+    prevModeRef.current = { isSmallScreen, fullboardMode };
+    
+    const positionToCheck = modeChanged ? pos : { x, y };
     const limited = limitPositionInsideCircle(
-      x, y, width, height, circleCenter, maxRadius, isSmallScreen || fullboardMode
+      positionToCheck.x, positionToCheck.y, width, height, 
+      circleCenter, maxRadius, isSmallScreen || fullboardMode
     );
-    setPos({ x: limited.x, y: limited.y });
+    
+    if (modeChanged || limited.x !== pos.x || limited.y !== pos.y) {
+      setPos({ x: limited.x, y: limited.y });
+      if (modeChanged && onMove) {
+        onMove({ x: limited.x, y: limited.y });
+      }
+    }
+    
     setSizeState({
       width: Math.min(Math.max(width, minWidth), maxWidth),
       height: Math.min(Math.max(height, minHeight), maxHeight),
     });
-  }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen, fullboardMode, isDragging, isResizing]);
+  }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen, fullboardMode, isDragging, isResizing, pos, onMove]);
   
   const handleMouseUp = (e) => {
     if (isDragging.current) {

@@ -35,8 +35,9 @@ export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRad
   const { cx, cy } = circleCenter;
   const halfWidth = w / 2;
   const halfHeight = h / 2;
+  const safetyMargin = 3;
 
-  if (isItemInsideCircle(newX, newY, w, h, circleCenter, maxRadius)) {
+  if (isItemInsideCircle(newX, newY, w, h, circleCenter, maxRadius - safetyMargin)) {
     return { x: newX, y: newY };
   }
 
@@ -57,7 +58,7 @@ export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRad
     const cornerDx = corner.x - cx;
     const cornerDy = corner.y - cy;
     const cornerDist = Math.sqrt(cornerDx * cornerDx + cornerDy * cornerDy);
-    const excess = cornerDist - maxRadius;
+    const excess = cornerDist - (maxRadius - safetyMargin);
     if (excess > maxExcess) {
       maxExcess = excess;
     }
@@ -68,7 +69,7 @@ export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRad
   }
 
   const currentDist = Math.sqrt(dx * dx + dy * dy);
-  const adjustedDist = currentDist - maxExcess;
+  const adjustedDist = Math.max(0, currentDist - maxExcess);
 
   return {
     x: cx + adjustedDist * Math.cos(angle),
@@ -105,10 +106,11 @@ export function limitPositionInsideScreen(newX, newY, w, h) {
   const halfHeight = h / 2;
   const screenWidth = window.innerWidth;
   const screenHeight = window.innerHeight;
-  const marginLeft = 4;
-  const marginRight = 4;
-  const marginTop = 4;
-  const marginBottom = 4;
+  const safetyMargin = 3;
+  const marginLeft = 4 + safetyMargin;
+  const marginRight = 4 + safetyMargin;
+  const marginTop = 4 + safetyMargin;
+  const marginBottom = 4 + safetyMargin;
   const minX = halfWidth + marginLeft;
   const maxX = screenWidth - halfWidth - marginRight;
   const minY = halfHeight + marginTop;
