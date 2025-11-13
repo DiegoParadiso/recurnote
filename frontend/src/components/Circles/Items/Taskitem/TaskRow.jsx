@@ -235,7 +235,7 @@ export default function TaskRow({
         style={{
           cursor: isMobile ? 'text' : (editingInputs.has(index) ? 'text' : 'grab'),
           opacity: isMobile ? 1 : (editingInputs.has(index) ? 1 : 0.7),
-          pointerEvents: isMobile && !editingInputs.has(index) ? 'none' : (isDragging ? 'none' : 'auto'),
+          pointerEvents: isDragging ? 'none' : 'auto',
           backgroundColor: editingInputs.has(index) ? 'var(--color-bg-secondary)' : 'transparent',
           border: editingInputs.has(index) ? '1px solid var(--color-primary)' : '1px solid transparent',
         }}
