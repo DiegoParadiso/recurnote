@@ -195,8 +195,6 @@ export default function NoteItem({
     }, 200);
 
     onItemDrop?.(id);
-    // Flush de posición/dimensiones al finalizar drag
-    flushItemUpdate?.(id);
   }, [id, onItemDrop, flushItemUpdate, unmarkItemAsDragging]);
 
 

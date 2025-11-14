@@ -5,7 +5,7 @@ import useRotationControls from '@hooks/useRotationControls';
 import { formatDateKey } from '@utils/formatDateKey';
 
 export function useCircleLargeLogic(selectedDay, onItemDrag) {
-  const { itemsByDate, setItemsByDate, updateItem, deleteItem, flushItemUpdate } = useItems();
+  const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
   const { user, token } = useAuth();
   
   const containerRef = useRef(null);
@@ -107,31 +107,8 @@ export function useCircleLargeLogic(selectedDay, onItemDrag) {
     });
   }, [selectedDay, deleteItem]);
 
-  const persistPositionOnDrop = useCallback((id) => {
-    const dateKey = selectedDay ? formatDateKey(selectedDay) : null;
-    if (!dateKey) return;
-    
-    const item = (safeCombinedItemsByDate[dateKey] || []).find(i => i.id === id);
-    if (!item) return;
-    
-    // SIEMPRE recalcular posición para mantener consistencia con el círculo
-    const angleRad = (item.angle * Math.PI) / 180;
-    const x = item.distance * Math.cos(angleRad);
-    const y = item.distance * Math.sin(angleRad);
-    
-    // Usar updateItem del ItemsContext para todo (tanto servidor como local)
-    // Marcar como fromDrag: true para que se procese con debounce largo
-    updateItem(id, { angle: item.angle, distance: item.distance, x, y }, { fromDrag: true }).catch((error) => {
-      setErrorToast({ key: 'common.error_update_position' });
-    });
-    // Forzar envío inmediato del último payload de posición para evitar rollback al recargar
-    flushItemUpdate?.(id);
-  }, [selectedDay, safeCombinedItemsByDate, updateItem, flushItemUpdate]);
-
   const handleItemDrop = (id) => {
-    // Solo persistir la posición, no llamar a onItemDrop del componente padre
-    persistPositionOnDrop(id);
-    
+    // No persistir inmediatamente; dejar que el debounce por inactividad haga el guardado
     // También llamar al onItemDrop del componente padre si existe
     if (onItemDragRef.current) {
       onItemDragRef.current(id, { action: 'drop' });
