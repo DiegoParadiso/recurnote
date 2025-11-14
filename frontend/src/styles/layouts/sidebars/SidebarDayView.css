@@ -3,7 +3,9 @@
   border-left: 1px solid var(--color-text-secondary);
   width: var(--sidebar-width);
   height: 100vh;
-  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Use transform for smoother GPU-accelerated animations */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
   display: flex;
   flex-direction: column;
   opacity: 0.98;
@@ -14,8 +16,19 @@
 }
 
 /* Posición oculta por defecto para el hover en desktop */
+/* Hidden state via transform to avoid layout thrash */
 .sidebar-hidden {
-  right: calc(var(--sidebar-width) * -1);
+  transform: translateX(100%);
+}
+
+/* Visible state */
+.sidebar-visible {
+  transform: translateX(0);
+}
+
+/* Reveal on hover of the parent group (desktop) */
+.group:hover .sidebar-container {
+  transform: translateX(0);
 }
 
 .sidebar-header {

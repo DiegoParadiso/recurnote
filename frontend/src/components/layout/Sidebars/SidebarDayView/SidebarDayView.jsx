@@ -85,10 +85,8 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         className={`${
           isMobile
             ? 'sidebar-mobile'
-            : isRightSidebarPinned
-            ? 'absolute right-0 top-0 cursor-default'
-            : 'absolute -right-[var(--sidebar-width)] top-0 group-hover:right-0 cursor-default'
-        } sidebar-container`}
+            : 'absolute right-0 top-0 cursor-default'
+        } sidebar-container ${!isMobile && (isRightSidebarPinned ? 'sidebar-visible' : 'sidebar-hidden')}`}
       >
         <div className={`${isMobile ? 'pt-0 pb-6' : 'pt-8 pb-5'} flex-shrink-0`}>
           <h2 className="sidebar-header text-center w-full">{t('sidebar.upcomingDays')}</h2>
