@@ -96,7 +96,7 @@ export default function TaskRow({
           if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
             if (!isDragging && !wasDraggingRef.current) {
-              handleCheckChange(index, !checked);
+              handleCheckChange(index, !checked, e);
             }
           }
         }}
@@ -105,7 +105,7 @@ export default function TaskRow({
           type="checkbox"
           className="checkbox-input"
           checked={checked}
-          onChange={(e) => handleCheckChange(index, e.target.checked)}
+          onChange={(e) => handleCheckChange(index, e.target.checked, e)}
           disabled={isDragging}
         />
         <span className={`checkbox-box ${checked ? 'checked' : ''}`}>

@@ -357,7 +357,7 @@ export default function NoteItem({
           const { angle, distance } = computePolarFromXY(x, y, cx, cy);
           // Actualizar la posición del item
           // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
-          onUpdate?.(id, content, null, { width, height }, { x, y }, { angle, distance, fromDrag: true });
+          onUpdate?.(id, content, null, undefined, { x, y }, { angle, distance, fromDrag: true });
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {

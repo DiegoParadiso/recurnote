@@ -103,22 +103,31 @@ export default function useRotationControls({
 
     const handleKeyDown = (e) => {
       if (e.repeat) return;
-      if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
-        e.preventDefault();
-        currentKey = e.key;
-        if (!isRotating) {
-          isRotating = true;
-          rotate();
-        }
+      if (!['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) return;
+
+      // No rotar si el foco está en un input/textarea o elemento editable
+      const ae = document.activeElement;
+      const tag = ae?.tagName?.toLowerCase();
+      const isEditable = (
+        (tag === 'input' || tag === 'textarea') ||
+        ae?.isContentEditable === true ||
+        ae?.getAttribute?.('contenteditable') === 'true'
+      );
+      if (isEditable) return; // permitir que las flechas se usen dentro del campo
+
+      e.preventDefault();
+      currentKey = e.key;
+      if (!isRotating) {
+        isRotating = true;
+        rotate();
       }
     };
 
     const handleKeyUp = (e) => {
-      if (['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
-        isRotating = false;
-        currentKey = null;
-        cancelAnimationFrame(animationFrameId);
-      }
+      if (!['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) return;
+      isRotating = false;
+      currentKey = null;
+      cancelAnimationFrame(animationFrameId);
     };
 
     window.addEventListener('keydown', handleKeyDown);

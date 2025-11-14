@@ -49,12 +49,8 @@ function TaskItem({
   const inputRefsRef = useRef({});
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
-  // Sizing calculado vía hook dedicado
+  const computedMinHeight = Math.min(baseHeight + visibleTasksCount * taskHeight, 400);
   const shouldShowButton = (item.content?.length || 0) < maxTasks && editingInputs.size > 0;
-  const computedMinHeight =
-    visibleTasksCount >= maxTasks || !shouldShowButton
-      ? Math.min(baseHeight + visibleTasksCount * taskHeight, 400)
-      : Math.min(baseHeight + visibleTasksCount * taskHeight + buttonHeight, 400);
 
   const { minWidthPx } = useTaskSizing({
     isMobile,
@@ -113,12 +109,18 @@ function TaskItem({
     onUpdate?.(id, currentTasks, currentChecks);
   };
 
-  const handleCheckChange = (index, checked) => {
-    // No cambiar el checkbox si acabamos de hacer drag
-    if (wasDraggingRef.current || isDragging) {
-      return;
+  const handleCheckChange = (index, checked, event) => {
+    // Permitir cambios directos desde el checkbox aunque haya habido drag reciente
+    // (evita bloquear la interacción tras acciones del menú contextual)
+    if (event && event.nativeEvent) {
+      // click directo del usuario: permitir
+    } else {
+      // Si no es un evento directo (p.ej. programático) y justo hubo drag, evitar glitch
+      if (wasDraggingRef.current || isDragging) {
+        return;
+      }
     }
-    
+
     const updatedChecks = [...(item.checked || [])];
     updatedChecks[index] = checked;
     onUpdate?.(id, item.content || [], updatedChecks);
@@ -252,10 +254,8 @@ function TaskItem({
           {shouldShowButton && (
             <button
               onClick={(e) => {
-                // Solo agregar tarea si no se está arrastrando
-                if (!isDragging && !wasDraggingRef.current) {
-                  addTask();
-                }
+                e.stopPropagation();
+                addTask();
               }}
               className="taskitem-addbutton"
               type="button"

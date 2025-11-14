@@ -94,6 +94,21 @@
   display: none; /* Chrome, Safari, Edge */
 }
 
+/* === FORM FIELD SCROLL DISABLE === */
+/* Ocultar y deshabilitar scroll en todos los inputs y textareas */
+input, textarea {
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: manipulation;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
+}
+
+input::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
 /* === TEXT === */
 
 .text-center {

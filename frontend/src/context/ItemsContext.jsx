@@ -517,10 +517,19 @@ export const ItemsProvider = ({ children }) => {
   async function updateItem(id, changes, opts = {}) {
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
     
-    // Si el item está siendo arrastrado Y esta actualización no viene del drag, ignorar
+    // Si el item está siendo arrastrado y la actualización no viene del drag,
+    // solo ignorar si intenta modificar geometría. Permitir contenido/checked.
     const isDraggingItem = draggingItemsRef.current.has(id);
     if (isDraggingItem && !opts.fromDrag) {
-      return; // Ignorar actualizaciones externas mientras se arrastra
+      const changeKeys = Object.keys(changes || {});
+      const touchesGeometry = changeKeys.some(k => (
+        k === 'x' || k === 'y' || k === 'angle' || k === 'distance' ||
+        k === 'width' || k === 'height' || k === 'rotation' || k === 'rotation_enabled'
+      ));
+      if (touchesGeometry) {
+        return; // Ignorar cambios geométricos externos durante drag
+      }
+      // Si no toca geometría (p.ej. content/checked), permitir update
     }
     
     // INTERCEPTAR: Si es un item recién duplicado y se está moviendo, forzar posición original
@@ -539,20 +548,28 @@ export const ItemsProvider = ({ children }) => {
       }
     }
     
-    // Actualizar estado visual inmediatamente para ambos casos
-    setItemsByDate(prev => {
-      const newState = { ...prev };
-      for (const dateKey in newState) {
-        newState[dateKey] = newState[dateKey].map(i => i.id === id ? { ...i, ...changes } : i);
-      }
-      
-      // Si es modo local, guardar en localStorage
-      if (!user || !token) {
-        saveLocalItems(newState);
-      }
-      
-      return newState;
-    });
+    // Determinar si el cambio es únicamente geométrico (sin width/height) durante drag
+    const changedKeys = Object.keys(changes || {});
+    const isGeomOnly = changedKeys.length > 0 && changedKeys.every(k => (
+      k === 'x' || k === 'y' || k === 'angle' || k === 'distance'
+    ));
+
+    const shouldSkipVisualUpdate = (opts?.fromDrag && isGeomOnly && user && token);
+
+    if (!shouldSkipVisualUpdate) {
+      // Actualizar estado visual inmediatamente
+      setItemsByDate(prev => {
+        const newState = { ...prev };
+        for (const dateKey in newState) {
+          newState[dateKey] = newState[dateKey].map(i => i.id === id ? { ...i, ...changes } : i);
+        }
+        // Si es modo local, guardar en localStorage
+        if (!user || !token) {
+          saveLocalItems(newState);
+        }
+        return newState;
+      });
+    }
     
     // Evitar sincronizar con backend si el ID es temporal o local
     if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) {
