@@ -38,6 +38,8 @@ function TaskItem({
   const maxTasks = 4;
   const taskHeight = 36; 
   const buttonHeight = 30;
+  const containerGap = 2; // debe coincidir con .taskitem-content { gap }
+  const containerPadding = 4; // debe coincidir con .taskitem-content { padding }
   const visibleTasksCount = Math.min(item.content?.length || 0, maxTasks);
   const {
     isDragging,
@@ -49,8 +51,15 @@ function TaskItem({
   const inputRefsRef = useRef({});
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
-  const computedMinHeight = Math.min(baseHeight + visibleTasksCount * taskHeight, 400);
   const shouldShowButton = (item.content?.length || 0) < maxTasks && editingInputs.size > 0;
+  // Altura dinámica: filas + botón (si aparece) + gaps entre hijos + padding del contenedor
+  const childrenCount = visibleTasksCount + (shouldShowButton ? 1 : 0);
+  const gapsCount = Math.max(childrenCount - 1, 0);
+  const dynamicHeight = Math.min(
+    baseHeight + (visibleTasksCount * taskHeight) + (shouldShowButton ? buttonHeight : 0) + (gapsCount * containerGap) + (containerPadding * 2),
+    400
+  );
+  const computedMinHeight = dynamicHeight;
 
   const { minWidthPx } = useTaskSizing({
     isMobile,
@@ -152,8 +161,6 @@ function TaskItem({
           input.blur();
         }
       });
-      // Limpiar estado de edición durante drag
-      setEditingInputs(new Set());
     }
   }, [isDragging]);
 
@@ -181,11 +188,11 @@ function TaskItem({
         y={y}
         rotation={rotationEnabled ? rotation : 0}
         width={Math.max(item.width || 200, minWidthPx)}
-        height={computedMinHeight}
+        height={dynamicHeight}
         minWidth={minWidthPx}
         maxWidth={400}
-        minHeight={computedMinHeight}
-        maxHeight={computedMinHeight}
+        minHeight={dynamicHeight}
+        maxHeight={dynamicHeight}
         dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
@@ -197,7 +204,7 @@ function TaskItem({
         }}
         onResize={(newSize) => {
           const clampedWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
-          const clampedHeight = computedMinHeight; // altura fija por filas visibles
+          const clampedHeight = dynamicHeight; // altura fija por filas visibles + botón + gaps + padding
           onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
@@ -205,6 +212,8 @@ function TaskItem({
         onDrop={(...args) => {
           handleContainerDragEnd(...args);
           flushItemUpdate?.(id);
+          // Al soltar, recién ahí limpiar edición para ocultar "+" si corresponde
+          setEditingInputs(new Set());
         }}
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}

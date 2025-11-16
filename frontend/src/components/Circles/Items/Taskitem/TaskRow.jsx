@@ -223,6 +223,10 @@ export default function TaskRow({
           }
         }}
         onBlur={() => {
+          if (isDragging || wasDraggingRef.current) {
+            if (typeof onInputBlur === 'function') onInputBlur();
+            return;
+          }
           stopEditing(index);
           if (typeof onInputBlur === 'function') onInputBlur();
         }}
