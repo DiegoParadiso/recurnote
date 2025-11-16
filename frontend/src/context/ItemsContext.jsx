@@ -256,7 +256,7 @@ export const ItemsProvider = ({ children }) => {
         y,
         rotation: rotation ?? 0,
         rotation_enabled: rotation_enabled ?? true,
-        item_data: { label, ...itemData },
+        item_data: { label, ...itemData, position_ts: Date.now() },
         label,
         ...itemData,
         _pending: true,
@@ -277,7 +277,7 @@ export const ItemsProvider = ({ children }) => {
         y,
         rotation: rotation ?? 0,
         rotation_enabled: rotation_enabled ?? true,
-        item_data: { label, ...itemData },
+        item_data: { label, ...itemData, position_ts: Date.now() },
       };
 
       try {
@@ -363,14 +363,26 @@ export const ItemsProvider = ({ children }) => {
 
   // Construir payload para API a partir de "changes"
   const buildPayload = (changes) => {
-    const { date, x, y, rotation, rotation_enabled, ...itemData } = changes || {};
+    const { date, x, y, rotation, rotation_enabled, ...rest } = changes || {};
+    const hasGeometry = (
+      x !== undefined || y !== undefined ||
+      rest?.angle !== undefined || rest?.distance !== undefined ||
+      rest?.width !== undefined || rest?.height !== undefined ||
+      rotation !== undefined || rotation_enabled !== undefined
+    );
+
+    const itemDataOut = { ...rest };
+    if (hasGeometry) {
+      itemDataOut.position_ts = Date.now();
+    }
+
     return {
       ...(date !== undefined ? { date } : {}),
       ...(x !== undefined ? { x } : {}),
       ...(y !== undefined ? { y } : {}),
       ...(rotation !== undefined ? { rotation } : {}),
       ...(rotation_enabled !== undefined ? { rotation_enabled } : {}),
-      ...(itemData && Object.keys(itemData).length ? { item_data: { ...itemData } } : {}),
+      ...(Object.keys(itemDataOut).length ? { item_data: itemDataOut } : {}),
     };
   };
 
