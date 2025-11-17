@@ -2,10 +2,12 @@ export function setupFetchTimeout() {
   if (typeof window === 'undefined') return;
   if (window.__fetchTimeoutPatched) return;
   const originalFetch = window.fetch?.bind(window) || fetch;
-  const defaultTimeout = Number(import.meta.env?.VITE_FETCH_TIMEOUT_MS) || 8000;
+  // Deshabilitar timeout global por inactividad. Permitir solo por-request via init.timeout
+  const defaultTimeout = 0;
 
   function redirectTo408() {
     try {
+      if (document?.visibilityState === 'hidden') return;
       if (window.location?.pathname !== '/408') {
         window.location.assign('/408');
       }
@@ -33,9 +35,8 @@ export function setupFetchTimeout() {
       }
       return response;
     } catch (err) {
-      if (controller.signal.aborted && (controller.signal.reason === 'timeout' || err?.name === 'AbortError')) {
-        redirectTo408();
-      }
+      // En timeouts del lado del cliente o AbortError, NO redirigir automáticamente.
+      // Esto evita falsos 408 tras inactividad/OS sleep. Mantener el error para manejo superior/reintentos.
       throw err;
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
