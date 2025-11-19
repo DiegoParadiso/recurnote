@@ -32,8 +32,8 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
     if (!Array.isArray(list) || list.length === 0) return;
     if (sourceId === targetId) return;
 
-    const sourceIndex = list.findIndex(i => i.id === sourceId);
-    const targetIndex = list.findIndex(i => i.id === targetId);
+    const sourceIndex = list.findIndex(i => String(i.id) === String(sourceId));
+    const targetIndex = list.findIndex(i => String(i.id) === String(targetId));
     if (sourceIndex === -1 || targetIndex === -1) return;
 
     const newList = list.slice();
@@ -52,7 +52,6 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         try {
           updateItem(item.id, { list_order: idx });
         } catch {
-          // silencioso: el orden visual ya se actualizó
         }
       }
     });
