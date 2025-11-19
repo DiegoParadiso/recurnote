@@ -38,8 +38,6 @@ function TaskItem({
   const maxTasks = 4;
   const taskHeight = 36; 
   const buttonHeight = 30;
-  const containerGap = 2; // debe coincidir con .taskitem-content { gap }
-  const containerPadding = 4; // debe coincidir con .taskitem-content { padding }
   const visibleTasksCount = Math.min(item.content?.length || 0, maxTasks);
   const {
     isDragging,
@@ -51,15 +49,29 @@ function TaskItem({
   const inputRefsRef = useRef({});
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
+  const frozenHeightRef = useRef(null);
+  const previousIsDraggingRef = useRef(false);
+  // Sizing calculado vía hook dedicado
   const shouldShowButton = (item.content?.length || 0) < maxTasks && editingInputs.size > 0;
-  // Altura dinámica: filas + botón (si aparece) + gaps entre hijos + padding del contenedor
-  const childrenCount = visibleTasksCount + (shouldShowButton ? 1 : 0);
-  const gapsCount = Math.max(childrenCount - 1, 0);
-  const dynamicHeight = Math.min(
-    baseHeight + (visibleTasksCount * taskHeight) + (shouldShowButton ? buttonHeight : 0) + (gapsCount * containerGap) + (containerPadding * 2),
-    400
-  );
-  const computedMinHeight = dynamicHeight;
+  const calculatedMinHeight =
+    visibleTasksCount >= maxTasks || !shouldShowButton
+      ? Math.min(baseHeight + visibleTasksCount * taskHeight, 400)
+      : Math.min(baseHeight + visibleTasksCount * taskHeight + buttonHeight, 400);
+  
+  // Congelar la altura cuando comienza el drag, usar altura congelada durante el drag
+  // Capturar la altura justo cuando isDragging cambia de false a true
+  if (isDragging && !previousIsDraggingRef.current) {
+    // Justo cuando comienza el drag, congelar la altura actual
+    frozenHeightRef.current = calculatedMinHeight;
+  } else if (!isDragging && previousIsDraggingRef.current) {
+    // Justo cuando termina el drag, descongelar la altura
+    frozenHeightRef.current = null;
+  }
+  previousIsDraggingRef.current = isDragging;
+  
+  const computedMinHeight = isDragging && frozenHeightRef.current !== null
+    ? frozenHeightRef.current
+    : calculatedMinHeight;
 
   const { minWidthPx } = useTaskSizing({
     isMobile,
@@ -118,18 +130,12 @@ function TaskItem({
     onUpdate?.(id, currentTasks, currentChecks);
   };
 
-  const handleCheckChange = (index, checked, event) => {
-    // Permitir cambios directos desde el checkbox aunque haya habido drag reciente
-    // (evita bloquear la interacción tras acciones del menú contextual)
-    if (event && event.nativeEvent) {
-      // click directo del usuario: permitir
-    } else {
-      // Si no es un evento directo (p.ej. programático) y justo hubo drag, evitar glitch
-      if (wasDraggingRef.current || isDragging) {
-        return;
-      }
+  const handleCheckChange = (index, checked) => {
+    // No cambiar el checkbox si acabamos de hacer drag
+    if (wasDraggingRef.current || isDragging) {
+      return;
     }
-
+    
     const updatedChecks = [...(item.checked || [])];
     updatedChecks[index] = checked;
     onUpdate?.(id, item.content || [], updatedChecks);
@@ -152,17 +158,26 @@ function TaskItem({
 
   // Ancho mínimo ahora es responsabilidad de useTaskSizing
 
-  // Limpiar inputs cuando se detecta drag desde UnifiedContainer
+  // Desenfocar inputs y congelar altura cuando se detecta drag desde UnifiedContainer
+  // NO limpiar el estado de edición aquí para mantener la altura consistente
   useEffect(() => {
     if (isDragging) {
-      // Desenfocar todos los inputs cuando se inicia drag
+      // Congelar la altura actual cuando comienza el drag (solo una vez)
+      if (frozenHeightRef.current === null) {
+        frozenHeightRef.current = calculatedMinHeight;
+      }
+      // Solo desenfocar todos los inputs cuando se inicia drag
+      // Mantener el estado de edición para que la altura no cambie
       Object.values(inputRefsRef.current).forEach(input => {
         if (input && document.activeElement === input) {
           input.blur();
         }
       });
+    } else {
+      // Cuando termina el drag, descongelar la altura
+      frozenHeightRef.current = null;
     }
-  }, [isDragging]);
+  }, [isDragging]); // Solo depender de isDragging, no de calculatedMinHeight
 
 
 
@@ -188,13 +203,19 @@ function TaskItem({
         y={y}
         rotation={rotationEnabled ? rotation : 0}
         width={Math.max(item.width || 200, minWidthPx)}
-        height={dynamicHeight}
+        height={computedMinHeight}
         minWidth={minWidthPx}
         maxWidth={400}
-        minHeight={dynamicHeight}
-        maxHeight={dynamicHeight}
+        minHeight={computedMinHeight}
+        maxHeight={computedMinHeight}
         dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
+          // Solo desenfocar inputs si están en foco, pero mantener el estado de edición
+          Object.values(inputRefsRef.current).forEach(input => {
+            if (input && document.activeElement === input) {
+              input.blur();
+            }
+          });
           // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
           const { angle, distance } = computePolarFromXY(x, y, cx, cy);
           // Actualizar la posición del item
@@ -204,7 +225,7 @@ function TaskItem({
         }}
         onResize={(newSize) => {
           const clampedWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
-          const clampedHeight = dynamicHeight; // altura fija por filas visibles + botón + gaps + padding
+          const clampedHeight = computedMinHeight; // altura fija por filas visibles
           onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
@@ -212,8 +233,8 @@ function TaskItem({
         onDrop={(...args) => {
           handleContainerDragEnd(...args);
           flushItemUpdate?.(id);
-          // Al soltar, recién ahí limpiar edición para ocultar "+" si corresponde
-          setEditingInputs(new Set());
+          // Limpiar estado de edición al hacer drop
+          setEditingInputsHook(new Set());
         }}
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}
@@ -264,7 +285,18 @@ function TaskItem({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                addTask();
+                e.preventDefault();
+                // Solo agregar tarea si no se está arrastrando
+                if (!isDragging && !wasDraggingRef.current) {
+                  addTask();
+                }
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
               }}
               className="taskitem-addbutton"
               type="button"

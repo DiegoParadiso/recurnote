@@ -5,7 +5,6 @@ export default function useTaskDrag({ id, onActivate, onItemDrop }) {
   const [isDragging, setIsDragging] = useState(false);
   const timeoutRef = useRef(null);
   const wasDraggingRef = useRef(false);
-  const dragTimeoutRef = useRef(null);
   const { markItemAsDragging, unmarkItemAsDragging } = useItems();
 
   const handleContainerDragStart = useCallback(() => {
@@ -29,16 +28,9 @@ export default function useTaskDrag({ id, onActivate, onItemDrop }) {
       timeoutRef.current = null;
     }
     setIsDragging(false);
-    
-    // Desmarcar el item como en drag
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
-    }
-    dragTimeoutRef.current = setTimeout(() => {
-      unmarkItemAsDragging?.(id);
-      dragTimeoutRef.current = null;
-    }, 300);
-    
+    // Desmarcar el item como en drag inmediatamente para no ignorar el update de drop
+    unmarkItemAsDragging?.(id);
+
     if (onItemDrop) onItemDrop(id);
     setTimeout(() => {
       wasDraggingRef.current = false;
@@ -51,10 +43,7 @@ export default function useTaskDrag({ id, onActivate, onItemDrop }) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      if (dragTimeoutRef.current) {
-        clearTimeout(dragTimeoutRef.current);
-        unmarkItemAsDragging?.(id);
-      }
+      unmarkItemAsDragging?.(id);
     };
   }, [id, unmarkItemAsDragging]);
 

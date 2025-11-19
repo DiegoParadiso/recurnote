@@ -24,71 +24,7 @@ export default function TaskRow({
   onInputBlur,
 }) {
   return (
-    <div
-      className="scroll-hidden taskitem-row"
-      style={{ height: taskHeight }}
-      onTouchStart={(e) => {
-        if (
-          isMobile &&
-          !editingInputs.has(index) &&
-          !isDragging &&
-          !wasDraggingRef.current
-        ) {
-          touchStartPosRef.current = {
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY,
-            time: Date.now(),
-            inputIndex: index,
-          };
-          touchIsDragRef.current = false;
-        }
-      }}
-      onTouchMove={(e) => {
-        if (isMobile) {
-          const isEditingThis = editingInputs.has(index);
-          if (!isEditingThis) {
-            e.preventDefault();
-            if (touchStartPosRef.current) {
-              const touch = e.touches[0];
-              const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
-              const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
-              const distance = Math.sqrt(dx * dx + dy * dy);
-              if (distance > 10) {
-                touchIsDragRef.current = true;
-                touchStartPosRef.current = null;
-              }
-            }
-          }
-        }
-      }}
-      onTouchEnd={(e) => {
-        if (
-          isMobile &&
-          touchStartPosRef.current &&
-          !touchIsDragRef.current &&
-          !isDragging &&
-          !wasDraggingRef.current
-        ) {
-          const timeSinceStart = Date.now() - touchStartPosRef.current.time;
-          const inputIndex = touchStartPosRef.current.inputIndex;
-          if (timeSinceStart < 300 && inputIndex === index && !editingInputs.has(index)) {
-            e.stopPropagation();
-            setEditingInputs((prev) => new Set([...prev, index]));
-            requestAnimationFrame(() => {
-              focusEditableInput(index);
-            });
-          }
-        }
-        touchStartPosRef.current = null;
-        touchIsDragRef.current = false;
-      }}
-      onClick={() => {
-        if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
-          startEditing(index);
-          focusEditableInput(index);
-        }
-      }}
-    >
+    <div className="scroll-hidden taskitem-row" style={{ height: taskHeight }}>
       <label
         tabIndex={0}
         className="checkbox-label"
@@ -96,7 +32,7 @@ export default function TaskRow({
           if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
             if (!isDragging && !wasDraggingRef.current) {
-              handleCheckChange(index, !checked, e);
+              handleCheckChange(index, !checked);
             }
           }
         }}
@@ -105,7 +41,7 @@ export default function TaskRow({
           type="checkbox"
           className="checkbox-input"
           checked={checked}
-          onChange={(e) => handleCheckChange(index, e.target.checked, e)}
+          onChange={(e) => handleCheckChange(index, e.target.checked)}
           disabled={isDragging}
         />
         <span className={`checkbox-box ${checked ? 'checked' : ''}`}>
@@ -125,6 +61,12 @@ export default function TaskRow({
         value={task}
         onChange={(e) => handleTaskChange(index, e.target.value)}
         onTouchStart={(e) => {
+          // Bloquear completamente los eventos touch si el contenedor está en drag
+          if (isDragging || wasDraggingRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
             touchStartPosRef.current = {
               x: e.touches[0].clientX,
@@ -136,6 +78,12 @@ export default function TaskRow({
           }
         }}
         onTouchMove={(e) => {
+          // Bloquear completamente los eventos touch si el contenedor está en drag
+          if (isDragging || wasDraggingRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           if (isMobile) {
             // Permitir selección nativa cuando el input está en edición
             const isEditingThis = editingInputs.has(index);
@@ -223,10 +171,6 @@ export default function TaskRow({
           }
         }}
         onBlur={() => {
-          if (isDragging || wasDraggingRef.current) {
-            if (typeof onInputBlur === 'function') onInputBlur();
-            return;
-          }
           stopEditing(index);
           if (typeof onInputBlur === 'function') onInputBlur();
         }}

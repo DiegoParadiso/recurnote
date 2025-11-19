@@ -100,7 +100,7 @@ export default function UnifiedContainer({
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
 
-    if (["input", "textarea", "select", "button", "a"].includes(tag)) return;
+    if (['input', 'textarea', 'select'].includes(tag)) return;
     if (e.target.dataset.resizeHandle) return;
 
     onActivate?.();
@@ -137,16 +137,10 @@ export default function UnifiedContainer({
     const touch = e.touches[0];
     const target = e.target;
     
-    // No iniciar drag si el touch es sobre elementos interactivos que NO deben arrastrarse
+    // No iniciar drag si el touch es sobre un input, textarea o elemento interactivo
     const tag = target.tagName.toLowerCase();
-    // Siempre bloquear botones, links y selects
-    if (['button', 'a', 'select'].includes(tag)) return;
-    // Para inputs/textarea: permitir drag si NO están enfocados (no en edición)
-    if ((tag === 'input' || tag === 'textarea')) {
-      if (document.activeElement === target) return;
-      // Si están dentro de un wrapper editable en foco, también bloquear
-      const focusedEditableParent = target.closest('input:focus, textarea:focus, [contenteditable="true"]:focus');
-      if (focusedEditableParent) return;
+    if (['input', 'textarea', 'select', 'button', 'a'].includes(tag)) {
+      return;
     }
     
     // Verificar si el target es editable o está dentro de un elemento editable
@@ -154,13 +148,29 @@ export default function UnifiedContainer({
       return;
     }
     
-    // Bloquear solo si hay un ancestro editable actualmente enfocado
-    const focusedEditable = target.closest('input:focus, textarea:focus, [contenteditable="true"]:focus');
-    if (focusedEditable) return;
+    // Verificar si está dentro de un contenedor editable (como el data-drag-container que tiene inputs dentro)
+    const editableParent = target.closest('input, textarea, [contenteditable="true"]');
+    if (editableParent) {
+      return;
+    }
     
-    // Registrar posición inicial para detectar drag vs click. No iniciar drag aún.
+    // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
+    
+    // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
+    // Solo registrar la posición inicial
+    isDragging.current = true;
+    dragStartPos.current = {
+      mouseX: touch.clientX,
+      mouseY: touch.clientY,
+      x: pos.x,
+      y: pos.y,
+      containerRotation: -rotation,
+    };
+    
+    // Notificar inmediatamente que el drag comenzó
+    onDrag?.({ x: pos.x, y: pos.y });
   };
 
   const onMouseMoveDrag = (e) => {
@@ -185,18 +195,9 @@ export default function UnifiedContainer({
       const dy = touch.clientY - dragStartRef.current.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
       
-      // Si se movió más de 5px, se considera drag: iniciar drag aquí (no en touchstart)
-      if (distance > 5 && !isDragging.current) {
+      // Si se movió más de 5px, se considera drag
+      if (distance > 5) {
         isDraggingRef.current = true;
-        isDragging.current = true;
-        dragStartPos.current = {
-          mouseX: touch.clientX,
-          mouseY: touch.clientY,
-          x: pos.x,
-          y: pos.y,
-          containerRotation: -rotation,
-        };
-        onDrag?.({ x: pos.x, y: pos.y });
       }
     }
   };
