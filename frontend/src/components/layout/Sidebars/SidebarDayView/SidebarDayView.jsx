@@ -31,18 +31,30 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
     const list = itemsByDate[dateKey] || [];
     if (!Array.isArray(list) || list.length === 0) return;
     if (sourceId === targetId) return;
+
     const sourceIndex = list.findIndex(i => i.id === sourceId);
     const targetIndex = list.findIndex(i => i.id === targetId);
     if (sourceIndex === -1 || targetIndex === -1) return;
+
     const newList = list.slice();
     const [moved] = newList.splice(sourceIndex, 1);
     newList.splice(targetIndex, 0, moved);
+
+    // Actualizar solo el orden visual para todos los items
     setItemsByDate(prev => ({
       ...prev,
       [dateKey]: newList,
     }));
+
+    // Persistir list_order únicamente para items locales (_local)
     newList.forEach((item, idx) => {
-      try { updateItem(item.id, { list_order: idx }); } catch {}
+      if (item?._local) {
+        try {
+          updateItem(item.id, { list_order: idx });
+        } catch {
+          // silencioso: el orden visual ya se actualizó
+        }
+      }
     });
   };
 

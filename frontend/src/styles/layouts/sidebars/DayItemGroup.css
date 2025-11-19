@@ -34,9 +34,6 @@ html.dark .day-header:hover {
   background-color: var(--color-text-secondary);
 }
 
-.item-list.dark {
-  background-color: var(--color-muted);
-}
 
 .sidebar-draggable {
   transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;

@@ -4,6 +4,22 @@ import i18n from '../../../../i18n/index.js';
 import { formatDateKey } from '@utils/formatDateKey';
 import '@styles/layouts/sidebars/DayItemGroup.css';
 
+// Singleton transparente para ocultar el ghost del navegador durante DnD
+let __sidebarTransparentDragImg;
+function getTransparentDragImg() {
+  if (typeof document === 'undefined') return null;
+  if (!__sidebarTransparentDragImg) {
+    const img = document.createElement('img');
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='; // 1x1 transparent gif
+    img.style.position = 'absolute';
+    img.style.left = '-9999px';
+    img.style.top = '-9999px';
+    document.body.appendChild(img);
+    __sidebarTransparentDragImg = img;
+  }
+  return __sidebarTransparentDragImg;
+}
+
 export default function DayItemGroup({ date, items, onDaySelect, renderItem, onReorder }) {
   const key = formatDateKey(date.toObject());
   const [draggingId, setDraggingId] = useState(null);
@@ -13,6 +29,13 @@ export default function DayItemGroup({ date, items, onDaySelect, renderItem, onR
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('sidebar-sourceId', itemId);
     e.dataTransfer.setData('sidebar-dateKey', key);
+    // Usar imagen transparente singleton como drag image
+    try {
+      const img = getTransparentDragImg();
+      if (img && typeof e.dataTransfer.setDragImage === 'function') {
+        e.dataTransfer.setDragImage(img, 0, 0);
+      }
+    } catch {}
     setDraggingId(itemId);
   }, [key]);
 
