@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import DayItemGroup from '@components/layout/Sidebars/SidebarDayView/DayItemGroup';
 import ItemRenderer from '@components/layout/Sidebars/SidebarDayView/ItemRenderer';
 
-export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck }) {
+export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, onReorder }) {
   const { t } = useTranslation();
   const [isDark, setIsDark] = useState(false);
 
@@ -45,6 +45,7 @@ export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskChec
           date={date}
           items={items}
           onDaySelect={setSelectedDay}
+          onReorder={onReorder}
           renderItem={(item, dateKey) => (
             <ItemRenderer
               item={item}

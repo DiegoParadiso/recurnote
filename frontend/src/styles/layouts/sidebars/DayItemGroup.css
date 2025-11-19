@@ -37,3 +37,26 @@ html.dark .day-header:hover {
 .item-list.dark {
   background-color: var(--color-muted);
 }
+
+.sidebar-draggable {
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  will-change: transform, box-shadow;
+  cursor: grab;
+}
+
+.sidebar-draggable.is-dragging {
+  transform: scale(0.98);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+.sidebar-draggable.is-drag-over {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: 2px;
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+html.dark .sidebar-draggable.is-drag-over {
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+}

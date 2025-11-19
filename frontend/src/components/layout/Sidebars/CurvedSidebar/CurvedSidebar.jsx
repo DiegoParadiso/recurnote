@@ -11,6 +11,7 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
     { id: 3, label: 'Evento' },
     { id: 4, label: 'Archivo' },
   ]);
+  const [draggingId, setDraggingId] = useState(null);
 
   // Manejar hover interno
   const handleMouseEnter = () => {
@@ -59,7 +60,10 @@ export default function CurvedSidebar({ showConfigPanel, isMobile = false, onSel
                 e.dataTransfer.setData('text/plain', item.label);
                 e.dataTransfer.setData('label', item.label);
                 e.dataTransfer.setData('source', 'sidebar');
+                setDraggingId(item.id);
               }}
+              onDragEnd={() => setDraggingId(null)}
+              className={`curved-draggable ${draggingId === item.id ? 'is-dragging' : ''}`}
             >
               <SidebarItem
                 item={item}

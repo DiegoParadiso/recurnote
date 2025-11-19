@@ -150,3 +150,17 @@
   height: 450px !important; /* igual al panel */
   background: transparent !important;
 }
+
+/* Visuals de drag para items del CurvedSidebar */
+.curved-draggable {
+  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  will-change: transform, box-shadow;
+  cursor: grab;
+}
+
+.curved-draggable.is-dragging {
+  transform: scale(0.98);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  opacity: 0.9;
+  cursor: grabbing;
+}

@@ -26,6 +26,26 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
     }
   };
 
+  const handleReorder = (dateKey, sourceId, targetId) => {
+    if (!dateKey || !sourceId || !targetId) return;
+    const list = itemsByDate[dateKey] || [];
+    if (!Array.isArray(list) || list.length === 0) return;
+    if (sourceId === targetId) return;
+    const sourceIndex = list.findIndex(i => i.id === sourceId);
+    const targetIndex = list.findIndex(i => i.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+    const newList = list.slice();
+    const [moved] = newList.splice(sourceIndex, 1);
+    newList.splice(targetIndex, 0, moved);
+    setItemsByDate(prev => ({
+      ...prev,
+      [dateKey]: newList,
+    }));
+    newList.forEach((item, idx) => {
+      try { updateItem(item.id, { list_order: idx }); } catch {}
+    });
+  };
+
   const handleMouseLeave = () => {
     if (onHover && !isRightSidebarPinned) {
       onHover(false);
@@ -104,6 +124,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             itemsForDays={itemsForDays}
             setSelectedDay={handleDaySelect}
             toggleTaskCheck={toggleTaskCheck}
+            onReorder={handleReorder}
           />
         </div>
         <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
