@@ -5,6 +5,8 @@ import WithContextMenu from '@components/common/WithContextMenu';
 import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
+import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
+import useTaskDrag from '@components/Circles/Items/Taskitem/hooks/useTaskDrag';
 
 import '@styles/components/circles/items/NoteItem.css';
 
@@ -31,17 +33,15 @@ export default function NoteItem({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const textareaRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const timeoutRef = useRef(null);
-  const wasDraggingRef = useRef(false);
-  const touchStartPosRef = useRef(null);
-  const touchIsDragRef = useRef(false);
+  const lastPosRef = useRef({ x, y });
   const { content = '', width = 240, height = 80 } = item;
   const { duplicateItem } = useItems();
-  const { updateItem } = useItems();
+  const { updateItem, flushItemUpdate } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(120);
   const [minHeightPx, setMinHeightPx] = useState(40);
+  const { isDragging, handleContainerDragStart, handleContainerDragEnd } = useTaskDrag({ id, onActivate, onItemDrop });
 
   const handleDuplicate = async () => {
     try {
@@ -113,62 +113,59 @@ export default function NoteItem({
 
   const computedMinHeight = height;
 
+  const MAX_CONTAINER_HEIGHT = 260; 
+
   const handleTextChange = (e) => {
+    const newValue = e.target.value;
+
     // No cambiar texto si se está arrastrando
-    if (isDragging || wasDraggingRef.current) {
+    if (isDragging) {
       return;
     }
-    onUpdate(id, e.target.value);
-    
-    // Solo ajustar altura del textarea si está en modo edición
-    if (textareaRef.current && isEditing) {
+
+    // Siempre permitir borrar texto aunque se esté al máximo
+    const prevValue = content || '';
+    const isDeletion = newValue.length <= prevValue.length;
+
+    if (!isDeletion && textareaRef.current && isEditing) {
       const textarea = textareaRef.current;
-      textarea.style.height = 'auto';
-      const scrollHeight = textarea.scrollHeight;
-      const availableHeight = height - 16; // Altura disponible menos padding del contenedor (8+8)
-      
-      if (scrollHeight > availableHeight) {
-        textarea.style.height = scrollHeight + 'px';
-      } else {
-        textarea.style.height = availableHeight + 'px';
+      const prevDomValue = textarea.value;
+      const prevHeight = textarea.style.height;
+
+      try {
+        // Medir altura que tendría el nuevo contenido
+        textarea.value = newValue;
+        textarea.style.height = 'auto';
+        const scrollHeight = textarea.scrollHeight;
+
+        // Altura máxima disponible dentro del contenedor
+        const maxAvailableHeight = MAX_CONTAINER_HEIGHT - 16; // padding vertical (8+8)
+        const neededHeight = Math.min(scrollHeight, maxAvailableHeight);
+
+        // Si el texto nuevo necesita más que el máximo, bloquear escritura extra
+        if (scrollHeight > maxAvailableHeight && height >= MAX_CONTAINER_HEIGHT) {
+          // Restaurar estado visual del textarea
+          textarea.value = prevDomValue;
+          textarea.style.height = prevHeight;
+          return;
+        }
+
+        // Ajustar altura del textarea mientras no se supere el máximo
+        textarea.style.height = neededHeight + 'px';
+      } finally {
+        // Restaurar valor; React volverá a poner newValue si lo aceptamos
+        textarea.value = prevDomValue;
       }
-      
     }
-  };
 
-  const handleContainerDragStart = () => {
-    onActivate?.();
-    // Limpiar timeout anterior si existe
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // Pequeño delay para permitir clicks rápidos
-    timeoutRef.current = setTimeout(() => {
-      setIsDragging(true);
-      wasDraggingRef.current = true;
-    }, 100);
-  };
-
-  const handleContainerDragEnd = () => {
-    // Limpiar timeout si existe
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    
-    setIsDragging(false);
-    
-    setTimeout(() => {
-      wasDraggingRef.current = false;
-    }, 200);
-
-    onItemDrop?.(id);
+    // Aplicar el nuevo valor (incluye deletions y casos donde aún hay espacio)
+    onUpdate(id, newValue);
   };
 
   // Funciones para manejar edición
   const startEditing = () => {
     setIsEditing(true);
+    lockBodyScroll();
     // Ajustar altura del textarea al iniciar edición
     setTimeout(() => {
       if (textareaRef.current) {
@@ -213,6 +210,7 @@ export default function NoteItem({
 
   const stopEditing = () => {
     setIsEditing(false);
+    unlockBodyScroll();
     
     // Usar toda la altura disponible del contenedor
     if (textareaRef.current) {
@@ -453,8 +451,12 @@ export default function NoteItem({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      // Asegurar que se libere el scroll lock si el componente se desmonta mientras edita
+      if (isEditing) {
+        unlockBodyScroll();
+      }
     };
-  }, []);
+  }, [isEditing]);
 
   return (
     <WithContextMenu
@@ -496,27 +498,33 @@ export default function NoteItem({
         height={height}
         minWidth={minWidthPx}
         minHeight={minHeightPx}
-        maxWidth={224}
-        maxHeight={200}
+        maxWidth={320}
+        maxHeight={260}
         onMove={({ x, y }) => {
-          // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
-          const dx = x - cx;
-          const dy = y - cy;
-          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          // Actualizar la posición del item
-          onUpdate?.(id, content, null, null, { x, y }, { angle, distance });
+          // Guardar la última posición conocida durante el drag
+          lastPosRef.current = { x, y };
+          // Notificar al padre para lógica de UI en vivo (sin persistir todavía)
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {
-          const newWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
-          const newHeight = Math.max(minHeightPx, Math.min(Math.max(newSize.height, 40), 300));
+          const newWidth = Math.max(minWidthPx, Math.min(newSize.width, 320));
+          const newHeight = Math.max(minHeightPx, Math.min(Math.max(newSize.height, 40), MAX_CONTAINER_HEIGHT));
           onUpdate?.(id, content, null, { width: newWidth, height: newHeight });
           onResize?.({ width: newWidth, height: newHeight });
         }}
         onDrag={handleContainerDragStart}
-        onDrop={handleContainerDragEnd}
+        onDrop={(...args) => {
+          handleContainerDragEnd(...args);
+          // Usar la última posición conocida para persistir una sola vez al soltar
+          const finalPos = lastPosRef.current || { x, y };
+          const dx = finalPos.x - cx;
+          const dy = finalPos.y - cy;
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
+          onUpdate?.(id, content, null, null, { x: finalPos.x, y: finalPos.y }, { angle, distance });
+          flushItemUpdate?.(id);
+        }}
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}
         isSmallScreen={isSmallScreen}
@@ -543,93 +551,9 @@ export default function NoteItem({
             className="noteitem-textarea"
             value={content}
             onChange={handleTextChange}
-            onTouchStart={(e) => {
-              // Bloquear completamente los eventos touch si el contenedor está en drag
-              if (isDragging || wasDraggingRef.current) {
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-              }
-              // En móviles: solo activar edición si NO es un intento de drag
-              if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
-                // Guardar posición inicial para detectar si es drag o click
-                touchStartPosRef.current = {
-                  x: e.touches[0].clientX,
-                  y: e.touches[0].clientY,
-                  time: Date.now()
-                };
-                touchIsDragRef.current = false;
-                // NO hacer stopPropagation aquí - esperar a ver si es drag o focus
-              }
-            }}
-            onTouchMove={(e) => {
-              // Bloquear completamente los eventos touch si el contenedor está en drag
-              if (isDragging || wasDraggingRef.current) {
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-              }
-              if (isMobile && touchStartPosRef.current && textareaRef.current) {
-                const touch = e.touches[0];
-                const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
-                const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Verificar si el textarea tiene scroll disponible
-                const hasScroll = textareaRef.current.scrollHeight > textareaRef.current.clientHeight;
-                
-                // Si el movimiento es principalmente vertical Y hay scroll disponible, permitir scroll
-                if (distance > 10 && hasScroll && dy > dx && dy > 15) {
-                  // Es un intento de scroll, no activar drag
-                  e.stopPropagation();
-                  return;
-                }
-                
-                // Si se movió más de 10px y es principalmente horizontal, es un drag
-                if (distance > 10 && (dx > dy || !hasScroll)) {
-                  touchIsDragRef.current = true;
-                  // Prevenir scroll en el input durante drag
-                  if (textareaRef.current) {
-                    textareaRef.current.style.overflow = 'hidden';
-                    textareaRef.current.style.pointerEvents = 'none';
-                  }
-                  // Permitir que el drag continúe - no interferir
-                  touchStartPosRef.current = null;
-                }
-              }
-            }}
-            onTouchEnd={(e) => {
-              // Restaurar estilos del textarea si se había modificado para drag
-              if (isMobile && textareaRef.current) {
-                textareaRef.current.style.overflow = '';
-                textareaRef.current.style.pointerEvents = '';
-              }
-              
-              // Si fue un touch sin movimiento y no es drag, activar edición
-              if (isMobile && touchStartPosRef.current && !touchIsDragRef.current && !isDragging && !wasDraggingRef.current) {
-                const timeSinceStart = Date.now() - touchStartPosRef.current.time;
-                // Solo activar si fue un touch rápido (< 300ms) sin movimiento
-                if (timeSinceStart < 300) {
-                  e.stopPropagation(); // Prevenir que el contenedor lo capture ahora
-                  setIsEditing(true);
-                  requestAnimationFrame(() => {
-                    const el = textareaRef.current;
-                    if (el) {
-                      el.focus();
-                      const len = (el.value || '').length;
-                      if (typeof el.setSelectionRange === 'function') {
-                        el.setSelectionRange(len, len);
-                      }
-                    }
-                  });
-                }
-              }
-              touchStartPosRef.current = null;
-              touchIsDragRef.current = false;
-            }}
             onClick={() => {
               // En móviles: asegurar que si el touchStart no funcionó, el click sí lo haga
-              if (isMobile && !isEditing && !isDragging && !wasDraggingRef.current) {
+              if (isMobile && !isEditing && !isDragging) {
                 startEditing();
                 focusEditableTextarea();
               }
@@ -638,7 +562,7 @@ export default function NoteItem({
               // En desktop: doble click activa edición
               if (isMobile) return;
               
-              if (!isDragging && !wasDraggingRef.current) {
+              if (!isDragging) {
                 startEditing();
                 focusEditableTextarea();
               }

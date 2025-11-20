@@ -7,13 +7,15 @@ html, body {
   overflow: hidden;
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  transition: var(--transition-colors);
+  /* Sin transición global para cambios de modo */
+  transition: none;
 }
 
 .circle-large-wrapper {
   border-radius: 12px;
   background-color: var(--color-bg);
-  transition: var(--transition-all);
+  /* Evitar animaciones al cambiar entre modo libre y normal */
+  transition: none;
 }
 
 .home-desktop-topbar {
@@ -65,7 +67,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--transition-all);
+  /* Botón sin animación al aparecer/desaparecer entre modos */
+  transition: none;
   z-index: var(--z-mid);
 }
 

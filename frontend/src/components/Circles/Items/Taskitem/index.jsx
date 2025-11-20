@@ -9,6 +9,7 @@ import useTaskEditing from './hooks/useTaskEditing';
 import useTaskSizing from './hooks/useTaskSizing';
 import TaskRow from './TaskRow';
 import { computePolarFromXY } from '@utils/helpers/geometry';
+import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
 
 import '@styles/components/circles/items/TaskItem.css';
 
@@ -49,6 +50,7 @@ function TaskItem({
   const inputRefsRef = useRef({});
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
+  const lastPosRef = useRef({ x, y });
   const frozenHeightRef = useRef(null);
   const previousIsDraggingRef = useRef(false);
   // Sizing calculado vía hook dedicado
@@ -216,11 +218,9 @@ function TaskItem({
               input.blur();
             }
           });
-          // Calcular el ángulo y distancia desde el centro del círculo SIEMPRE
-          const { angle, distance } = computePolarFromXY(x, y, cx, cy);
-          // Actualizar la posición del item
-          // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
-          onUpdate?.(id, item.content || [], item.checked || [], null, { x, y }, { angle, distance, fromDrag: true });
+          // Guardar la última posición conocida durante el drag
+          lastPosRef.current = { x, y };
+          // Notificar al padre para lógica de UI en vivo (sin persistir todavía)
           onItemDrag?.(id, { x, y });
         }}
         onResize={(newSize) => {
@@ -232,6 +232,11 @@ function TaskItem({
         onDrag={handleContainerDragStart}
         onDrop={(...args) => {
           handleContainerDragEnd(...args);
+          // Usar la última posición conocida para persistir una sola vez al soltar
+          const finalPos = lastPosRef.current || { x, y };
+          const { angle, distance } = computePolarFromXY(finalPos.x, finalPos.y, cx, cy);
+          // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
+          onUpdate?.(id, item.content || [], item.checked || [], null, { x: finalPos.x, y: finalPos.y }, { angle, distance });
           flushItemUpdate?.(id);
           // Limpiar estado de edición al hacer drop
           setEditingInputsHook(new Set());
@@ -276,8 +281,14 @@ function TaskItem({
               touchIsDragRef={touchIsDragRef}
               taskHeight={taskHeight}
               placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}
-              onInputFocus={() => { editingGraceUntilRef.current = Date.now() + 200; }}
-              onInputBlur={() => { flushItemUpdate?.(id); }}
+              onInputFocus={() => {
+                editingGraceUntilRef.current = Date.now() + 200;
+                lockBodyScroll();
+              }}
+              onInputBlur={() => {
+                flushItemUpdate?.(id);
+                unlockBodyScroll();
+              }}
             />
           ))}
 

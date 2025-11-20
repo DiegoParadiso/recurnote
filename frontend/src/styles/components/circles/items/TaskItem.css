@@ -1,6 +1,7 @@
 .taskitem-content {
   flex-grow: 1;
-  overflow-y: auto;
+  /* Sin scroll interno: el contenedor controla el tamaño */
+  overflow-y: hidden;
   overflow-x: hidden;
   height: 100%;
   color: var(--color-text-primary);
@@ -13,6 +14,18 @@
   box-sizing: border-box;
   -webkit-overflow-scrolling: auto;
   touch-action: auto;
+  will-change: transform;
+}
+
+/* Ocultar completamente scrollbars internas en el contenedor de tareas */
+.taskitem-content {
+  scrollbar-width: none; /* Firefox */
+}
+
+.taskitem-content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent; /* Safari / Chrome */
 }
 
 /* Disable scroll in mobile/touch devices */

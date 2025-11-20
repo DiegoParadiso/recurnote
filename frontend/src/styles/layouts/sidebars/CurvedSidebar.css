@@ -52,10 +52,6 @@
   scroll-behavior: smooth;
 }
 
-.curved-sidebar-container:hover .curved-sidebar-panel {
-  transform: translate(0, -50%);
-}
-
 /* --- MEDIA QUERY PARA MÓVILES --- */
 @media (max-width: 640px) {
   .curved-sidebar-container {

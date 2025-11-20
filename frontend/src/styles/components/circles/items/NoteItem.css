@@ -31,16 +31,29 @@
   resize: none;
   background-color: var(--color-neutral);
   color: var(--color-text-primary);
-  overflow: auto;
-  max-height: 260px; 
+  /* Sin scroll interno: el contenedor controla la altura máxima */
+  overflow-y: hidden !important;
+  overflow-x: hidden;
   word-break: break-word;
   border: 1px solid transparent;
   box-sizing: border-box;
   line-height: 1.4;
   position: relative;
   height: auto;
+  /* Desactivar inercia/scroll especial en Safari dentro del textarea */
   -webkit-overflow-scrolling: auto;
   touch-action: auto;
+}
+
+/* Ocultar completamente scrollbars del textarea en todos los navegadores compatibles */
+.noteitem-textarea {
+  scrollbar-width: none; /* Firefox */
+}
+
+.noteitem-textarea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent; /* Safari / Chrome */
 }
 
 /* Disable scrolling on mobile/touch devices */

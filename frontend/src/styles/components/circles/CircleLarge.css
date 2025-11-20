@@ -23,8 +23,9 @@
 
 /* Estilos responsivos para CircleLarge */
 .circle-large-container {
-  transition: all 0.3s ease;
-  will-change: width, height;
+  /* Sin transición para cambios instantáneos entre modos */
+  transition: none;
+  will-change: auto;
 }
 
 /* Asegurar que el contenedor principal siempre centre el círculo */
