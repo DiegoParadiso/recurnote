@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
 import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
@@ -13,10 +13,10 @@ export default function NoteItemEditor({
   onUpdate,
   isDragging,
   onHeightChange,
+  textareaRef,
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const textareaRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const startEditing = () => {
@@ -154,6 +154,26 @@ export default function NoteItemEditor({
         }
         if (!isMobile && !isEditing) {
           e.target.blur();
+        }
+      }}
+      onMouseDown={(e) => {
+        // En móviles no delegar drag al contenedor
+        if (isMobile) return;
+
+        // En desktop: si no está editando, delegar el drag al contenedor
+        if (!isEditing) {
+          e.preventDefault();
+          const dragContainer = e.target.closest('[data-drag-container]');
+          if (dragContainer) {
+            const mouseEvent = new MouseEvent('mousedown', {
+              bubbles: true,
+              cancelable: true,
+              clientX: e.clientX,
+              clientY: e.clientY,
+              button: e.button,
+            });
+            dragContainer.dispatchEvent(mouseEvent);
+          }
         }
       }}
       onBlur={() => {

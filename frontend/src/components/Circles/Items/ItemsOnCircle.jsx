@@ -40,33 +40,28 @@ export default function ItemsOnCircle({
         const label = typeof item.label === 'string' ? item.label : null;
         if (!label) return null;
 
-        // En fullboard mode, usar coordenadas absolutas (x, y) directamente
-        // Si no existen x,y (items antiguos), calcularlos desde angle/distance
-        // En modo normal, calcular desde ángulo y distancia
+        // En fullboard mode, usar coordenadas absolutas (x, y) directamente si existen.
+        // Si no existen x,y (items antiguos), calcularlos desde angle/distance y limitar una sola vez.
+        // En modo normal, calcular desde ángulo y distancia (el clamp en tiempo real lo hace UnifiedContainer).
         let x, y;
         if (fullboardMode) {
-          // SIEMPRE limitar las coordenadas en fullboard mode para asegurar que estén dentro de la pantalla
-          let rawX, rawY;
-          
           if (item.x !== undefined && item.y !== undefined) {
-            // Item tiene x, y guardadas
-            rawX = item.x;
-            rawY = item.y;
+            // Item ya tiene x,y guardadas (limitadas en tiempo real por UnifiedContainer)
+            x = item.x;
+            y = item.y;
           } else {
-            // Item antiguo: calcular desde angle/distance
+            // Item antiguo: calcular desde angle/distance y limitar una sola vez con dimensiones reales
             const angleInRadians = (item.angle * Math.PI) / 180;
             const viewportCenterX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
             const viewportCenterY = typeof window !== 'undefined' ? window.innerHeight / 2 : 300;
             const scaledDistance = Math.min(item.distance, Math.min(viewportCenterX, viewportCenterY) * 0.7);
-            rawX = viewportCenterX + scaledDistance * Math.cos(angleInRadians);
-            rawY = viewportCenterY + scaledDistance * Math.sin(angleInRadians);
+            const rawX = viewportCenterX + scaledDistance * Math.cos(angleInRadians);
+            const rawY = viewportCenterY + scaledDistance * Math.sin(angleInRadians);
+            const { width, height } = getItemDimensions(item);
+            const limited = limitPositionInsideScreen(rawX, rawY, width, height);
+            x = limited.x;
+            y = limited.y;
           }
-          
-          // SIEMPRE limitar las coordenadas usando las dimensiones correctas del item
-          const { width, height } = getItemDimensions(item);
-          const limited = limitPositionInsideScreen(rawX, rawY, width, height);
-          x = limited.x;
-          y = limited.y;
         } else {
           const angleInRadians = (item.angle * Math.PI) / 180;
           x = cx + item.distance * Math.cos(angleInRadians);

@@ -100,13 +100,41 @@ export async function updateItem(req, res) {
     }
 
     const updatePayload = { ...rest };
-    if (incomingItemData && typeof incomingItemData === 'object') {
-      updatePayload.item_data = {
-        ...(item.item_data || {}),
-        ...incomingItemData,
-      };
+
+    // Optimistic concurrency for geometry updates using position_ts in item_data
+    const geometryKeys = new Set([
+      'x', 'y', 'angle', 'distance', 'width', 'height', 'rotation', 'rotation_enabled'
+    ]);
+    const hasGeomInRest = Object.keys(rest || {}).some(k => geometryKeys.has(k));
+    const currentItemData = item.item_data || {};
+    const incomingItemDataObj = (incomingItemData && typeof incomingItemData === 'object') ? incomingItemData : {};
+
+    // Determine incoming vs current position_ts
+    const incomingTs = Number(incomingItemDataObj.position_ts || 0);
+    const currentTs = Number(currentItemData.position_ts || 0);
+
+    // If there are geometry fields in request but ts is stale, drop geometry fields
+    if (hasGeomInRest && incomingTs && currentTs && incomingTs < currentTs) {
+      for (const k of Object.keys(updatePayload)) {
+        if (geometryKeys.has(k)) delete updatePayload[k];
+      }
     }
-    
+
+    // Merge item_data, and update stored position_ts only if newer
+    if (incomingItemData && typeof incomingItemData === 'object') {
+      const mergedItemData = {
+        ...currentItemData,
+        ...incomingItemDataObj,
+      };
+      if (incomingTs && (!currentTs || incomingTs >= currentTs)) {
+        mergedItemData.position_ts = incomingTs;
+      } else if (currentTs && incomingTs && incomingTs < currentTs) {
+        // keep current position_ts on stale update
+        mergedItemData.position_ts = currentTs;
+      }
+      updatePayload.item_data = mergedItemData;
+    }
+
     await item.update(updatePayload);
     
     const plain = item.toJSON();

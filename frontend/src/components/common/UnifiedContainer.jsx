@@ -53,15 +53,25 @@ export default function UnifiedContainer({
     prevModeRef.current = { isSmallScreen, fullboardMode };
     
     const positionToCheck = modeChanged ? pos : { x, y };
-    const limited = limitPositionInsideCircle(
-      positionToCheck.x, positionToCheck.y, width, height, 
-      circleCenter, maxRadius, isSmallScreen || fullboardMode
-    );
-    
-    if (modeChanged || limited.x !== pos.x || limited.y !== pos.y) {
-      setPos({ x: limited.x, y: limited.y });
+    let nextPos;
+
+    if (isSmallScreen || fullboardMode) {
+      // En mobile / fullboard, seguir usando limitPositionInsideCircle/Screen
+      const limited = limitPositionInsideCircle(
+        positionToCheck.x, positionToCheck.y, width, height,
+        circleCenter, maxRadius, true
+      );
+      nextPos = { x: limited.x, y: limited.y };
+    } else {
+      // En modo normal (círculo), no re-clampear: confiar en useDragResize
+      // Solo sincronizar estado interno con las props externas x,y
+      nextPos = { x, y };
+    }
+
+    if (modeChanged || nextPos.x !== pos.x || nextPos.y !== pos.y) {
+      setPos(nextPos);
       if (modeChanged && onMove) {
-        onMove({ x: limited.x, y: limited.y });
+        onMove(nextPos);
       }
     }
     
