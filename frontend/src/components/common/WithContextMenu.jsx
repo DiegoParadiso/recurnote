@@ -189,6 +189,13 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
   // Clonar children con los eventos apropiados
   const childrenWithEvents = React.cloneElement(children, {
     onMouseDown: (e) => {
+      // Evitar que el navegador seleccione automáticamente una palabra al hacer clic derecho sobre un textarea
+      if (e.button === 2) {
+        const target = e.target;
+        if (target && target.tagName === 'TEXTAREA') {
+          e.preventDefault();
+        }
+      }
       // Si se inicia un drag/click en el hijo, cerrar el menú para no bloquear el arrastre
       setMenuPos(null);
       if (typeof children.props.onMouseDown === 'function') {

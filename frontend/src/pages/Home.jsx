@@ -554,8 +554,8 @@ export default function Home() {
       {/* Desktop Sidebar Toggles - Pegados a los bordes */}
       {!isMobile && (
         <DesktopSidebarToggles
-          onToggleLeft={() => setIsLeftSidebarPinned(prev => !prev)}
-          onToggleRight={() => setIsRightSidebarPinned(prev => !prev)}
+          onToggleLeft={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}
+          onToggleRight={() => setIsRightSidebarPinned(!isRightSidebarPinned)}
           isLeftSidebarPinned={isLeftSidebarPinned}
           isRightSidebarPinned={isRightSidebarPinned}
           draggedItem={draggedItem}

@@ -52,6 +52,13 @@
   scroll-behavior: smooth;
 }
 
+/* Mostrar el panel al hacer hover SOLO en desktop y cuando no está en modo mobile ni pinned */
+@media (min-width: 641px) {
+  .curved-sidebar-container:not(.mobile):not(.pinned):hover .curved-sidebar-panel {
+    transform: translate(0, -50%);
+  }
+}
+
 /* --- MEDIA QUERY PARA MÓVILES --- */
 @media (max-width: 640px) {
   .curved-sidebar-container {
@@ -135,6 +142,7 @@
   top: auto !important;
   left: auto !important;
   transform: none !important;
+  transition: none !important; /* sin animación al fijar */
 }
 
 /* Cuando está fijado, el contenedor no debe ser fixed para permitir arrastre del wrapper */
