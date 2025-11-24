@@ -37,7 +37,7 @@ export default function NoteItem({
   const { duplicateItem } = useItems();
   const { updateItem, flushItemUpdate } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(120);
-  const [minHeightPx, setMinHeightPx] = useState(40);
+  const [minHeightPx, setMinHeightPx] = useState(60);
 
   const handleDuplicate = async () => {
     try {
@@ -137,15 +137,11 @@ export default function NoteItem({
     // Recalcular si cambia el idioma, el modo móvil o el tamaño de fuente del textarea
   }, [t, isMobile, width, height, id, content, onUpdate]);
 
-  // Calcular altura mínima en función del contenido y el ancho disponible
+  // Calcular altura mínima en función del contenido y ajustar el contenedor
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     try {
-      // Asegurar medición real del contenido
-      const prevHeight = el.style.height;
-      el.style.height = 'auto';
-
       // Paddings del contenedor padre (UnifiedContainer)
       let containerPaddingTop = 8;
       let containerPaddingBottom = 8;
@@ -157,17 +153,24 @@ export default function NoteItem({
         containerPaddingBottom = parseFloat(ccs.paddingBottom || '8') || 8;
       }
 
-      const scrollHeight = el.scrollHeight; // incluye padding del textarea
-      const desiredMinHeight = Math.max(40, Math.ceil(scrollHeight + containerPaddingTop + containerPaddingBottom));
+      // Medir el contenido real con altura automática temporalmente
+      const prevHeight = el.style.height;
+      el.style.height = 'auto';
+      const scrollHeight = el.scrollHeight; // altura real del contenido
+      
+      // Calcular la altura deseada: contenido + paddings del contenedor
+      const desiredMinHeight = Math.max(60, Math.ceil(scrollHeight + containerPaddingTop + containerPaddingBottom));
       setMinHeightPx(desiredMinHeight);
 
-      // Si el alto actual es menor, ajustarlo inmediatamente
-      if (height < desiredMinHeight) {
+      // SIEMPRE actualizar la altura del contenedor para que coincida con el contenido
+      // Esto debe hacerse de forma síncrona para evitar cortes
+      if (height !== desiredMinHeight) {
         onUpdate?.(id, content, null, { width, height: desiredMinHeight });
       }
 
-      // Restaurar altura controlada (se recalculará por otros efectos)
-      el.style.height = prevHeight;
+      // Ajustar el textarea: usar min-height basado en el contenido para que nunca se corte
+      el.style.minHeight = `${scrollHeight}px`;
+      el.style.height = '100%'; // Ocupar todo el contenedor disponible
     } catch (_) {}
   }, [content, width, height, id, onUpdate]);
 
@@ -223,7 +226,7 @@ export default function NoteItem({
         }}
         onSizeChange={({ width: newWidth, height: newHeight }) => {
           const clampedWidth = Math.max(minWidthPx, Math.min(newWidth, 320));
-          const clampedHeight = Math.max(minHeightPx, Math.min(Math.max(newHeight, 40), MAX_CONTAINER_HEIGHT));
+          const clampedHeight = Math.max(minHeightPx, Math.min(Math.max(newHeight, 60), MAX_CONTAINER_HEIGHT));
           onUpdate?.(id, content, null, { width: clampedWidth, height: clampedHeight });
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}

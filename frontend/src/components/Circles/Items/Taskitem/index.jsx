@@ -289,6 +289,21 @@ function TaskItem({
                 flushItemUpdate?.(id);
                 unlockBodyScroll();
               }}
+              onTouchStart={(e) => {
+                if (!editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
+                  const dragContainer = e.target.closest('[data-drag-container]');
+                  if (dragContainer) {
+                    dragContainer.dispatchEvent(new TouchEvent('touchstart', {
+                      bubbles: true,
+                      cancelable: true,
+                      touches: e.touches,
+                      targetTouches: e.targetTouches,
+                      changedTouches: e.changedTouches
+                    }));
+                  }
+                  e.preventDefault(); // Bloquear scroll también aquí
+                }
+              }}
             />
           ))}
 

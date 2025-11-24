@@ -57,6 +57,21 @@ export default function NoteItemEditor({
   const handleTextChange = (e) => {
     const newValue = e.target.value;
     onUpdate?.(id, newValue);
+    
+    // Forzar scrollTop a 0 y permitir que el textarea mida su contenido
+    requestAnimationFrame(() => {
+      const textarea = e.target;
+      if (textarea) {
+        // Temporalmente permitir altura automática para medir
+        const prevHeight = textarea.style.height;
+        textarea.style.height = 'auto';
+        const scrollHeight = textarea.scrollHeight;
+        textarea.style.height = prevHeight;
+        
+        // Forzar scroll a 0
+        textarea.scrollTop = 0;
+      }
+    });
   };
 
   const handleTextareaKeyDown = (e) => {
@@ -93,30 +108,27 @@ export default function NoteItemEditor({
     }
   }, [isDragging]);
 
-  useLayoutEffect(() => {
+  // Mantener el scroll siempre arriba (scrollTop = 0) para evitar que el texto suba
+  useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-
-    textarea.style.height = 'auto';
-    const scrollHeight = textarea.scrollHeight;
-    const maxAvailableHeight = MAX_CONTAINER_HEIGHT - 16;
-    const neededHeight = Math.min(scrollHeight, maxAvailableHeight);
-
-    textarea.style.height = neededHeight + 'px';
-
-    const desiredContainerHeight = Math.max(neededHeight + 16, height);
-    if (desiredContainerHeight !== height) {
-      onHeightChange?.(desiredContainerHeight);
-    }
-  }, [content, height, onHeightChange]);
-
-  useEffect(() => {
-    if (textareaRef.current && !isEditing) {
-      const textarea = textareaRef.current;
-      const availableHeight = height - 16;
-      textarea.style.height = availableHeight + 'px';
-    }
-  }, [height, isEditing]);
+    
+    // Forzar scrollTop a 0 después de cada cambio de contenido
+    textarea.scrollTop = 0;
+    
+    // También prevenir scroll automático durante la edición
+    const handleScroll = (e) => {
+      if (e.target.scrollTop !== 0) {
+        e.target.scrollTop = 0;
+      }
+    };
+    
+    textarea.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      textarea.removeEventListener('scroll', handleScroll);
+    };
+  }, [content]);
 
   useEffect(() => {
     return () => {
@@ -127,71 +139,85 @@ export default function NoteItemEditor({
   }, [isEditing]);
 
   return (
-    <textarea
-      ref={textareaRef}
-      className="noteitem-textarea"
-      value={content}
-      onChange={handleTextChange}
-      onClick={() => {
-        if (isMobile && !isEditing && !isDragging) {
-          startEditing();
-          focusEditableTextarea();
-        }
-      }}
-      onDoubleClick={() => {
-        if (isMobile) return;
-        if (!isDragging) {
-          startEditing();
-          focusEditableTextarea();
-        }
-      }}
-      onFocus={(e) => {
-        if (isMobile && !isEditing) {
-          startEditing();
-          setTimeout(() => {
-            e.target.focus();
-          }, 0);
-        }
-        if (!isMobile && !isEditing) {
-          e.target.blur();
-        }
-      }}
-      onMouseDown={(e) => {
-        // En móviles no delegar drag al contenedor
-        if (isMobile) return;
-
-        // En desktop: si no está editando, delegar el drag al contenedor
-        if (!isEditing) {
-          e.preventDefault();
-          const dragContainer = e.target.closest('[data-drag-container]');
-          if (dragContainer) {
-            const mouseEvent = new MouseEvent('mousedown', {
-              bubbles: true,
-              cancelable: true,
-              clientX: e.clientX,
-              clientY: e.clientY,
-              button: e.button,
-            });
-            dragContainer.dispatchEvent(mouseEvent);
+    <div className="noteitem-textarea-wrapper">
+      <textarea
+        ref={textareaRef}
+        className="noteitem-textarea"
+        value={content}
+        onChange={handleTextChange}
+        onClick={() => {
+          if (isMobile && !isEditing && !isDragging) {
+            startEditing();
+            focusEditableTextarea();
           }
-        }
-      }}
-      onBlur={() => {
-        stopEditing();
-      }}
-      onKeyDown={handleTextareaKeyDown}
-      placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
-      readOnly={isMobile ? false : !isEditing}
-      inputMode="text"
-      enterKeyHint="done"
-      style={{
-        cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
-        opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),
-        pointerEvents: isDragging ? 'none' : 'auto',
-        backgroundColor: isEditing ? 'var(--color-bg-secondary)' : 'transparent',
-        border: isEditing ? '1px solid var(--color-primary)' : '1px solid transparent',
-        resize: 'none',
-      }}
-    />
+        }}
+        onDoubleClick={() => {
+          if (isMobile) return;
+          if (!isDragging) {
+            startEditing();
+            focusEditableTextarea();
+          }
+        }}
+        onFocus={(e) => {
+          if (isMobile && !isEditing) {
+            startEditing();
+            setTimeout(() => {
+              e.target.focus();
+            }, 0);
+          }
+          if (!isMobile && !isEditing) {
+            e.target.blur();
+          }
+        }}
+        onMouseDown={(e) => {
+          if (isMobile) return;
+          if (!isEditing) {
+            e.preventDefault();
+            const dragContainer = e.target.closest('[data-drag-container]');
+            if (dragContainer) {
+              const mouseEvent = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                clientX: e.clientX,
+                clientY: e.clientY,
+                button: e.button,
+              });
+              dragContainer.dispatchEvent(mouseEvent);
+            }
+          }
+        }}
+        onBlur={() => {
+          stopEditing();
+        }}
+        onKeyDown={handleTextareaKeyDown}
+        onTouchStart={(e) => {
+          if (!isEditing && !isDragging) {
+            const dragContainer = e.target.closest('[data-drag-container]');
+            if (dragContainer) {
+              dragContainer.dispatchEvent(new TouchEvent('touchstart', {
+                bubbles: true,
+                cancelable: true,
+                touches: e.touches,
+                targetTouches: e.targetTouches,
+                changedTouches: e.changedTouches
+              }));
+            }
+            e.preventDefault();
+          }
+        }}
+        placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
+        readOnly={isMobile ? false : !isEditing}
+        inputMode="text"
+        enterKeyHint="done"
+        style={{
+          cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
+          opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),
+          pointerEvents: isDragging ? 'none' : 'auto',
+          backgroundColor: isEditing ? 'var(--color-bg-secondary)' : 'transparent',
+          border: isEditing ? '1px solid var(--color-primary)' : '1px solid transparent',
+          resize: 'none',
+        }}
+      />
+    </div>
   );
 }

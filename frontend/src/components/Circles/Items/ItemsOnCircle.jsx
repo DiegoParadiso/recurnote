@@ -186,7 +186,6 @@ export default function ItemsOnCircle({
               transformOrigin: 'center',
               padding: '0.25rem 0.75rem',
               borderRadius: '9999px',
-              fontSize: '0.75rem',
               fontWeight: '600',
               border: '1px solid var(--color-neutral-darker)',
               backgroundColor: 'var(--color-bg)',

@@ -144,6 +144,9 @@ export default function UnifiedContainer({
   const onTouchStartDrag = (e) => {
     if (e.touches.length !== 1) return;
 
+    // SIEMPRE bloquear el scroll nativo en mobile
+    e.preventDefault();
+
     const touch = e.touches[0];
     const target = e.target;
     

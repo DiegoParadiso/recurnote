@@ -19,30 +19,39 @@
 }
 
 .noteitem-textarea {
+  font-size: 11px;
   padding-left: 1.5rem;
   padding-right: 0.5rem;
   padding-top: 0.5rem;
-  padding-bottom: 0.5rem; 
-  font-size: 10px;
-  border-radius: 0.375rem; 
+  padding-bottom: 0.5rem;
+  border-radius: 0.375rem;
   width: 100%;
-  min-height: 50%;
+  height: 100%;
+  max-height: 100%;
   outline: none;
   resize: none;
   background-color: var(--color-neutral);
   color: var(--color-text-primary);
-  /* Sin scroll interno: el contenedor controla la altura máxima */
-  overflow-y: hidden !important;
-  overflow-x: hidden;
+  overflow: hidden;
   word-break: break-word;
   border: 1px solid transparent;
   box-sizing: border-box;
   line-height: 1.4;
   position: relative;
-  height: auto;
-  /* Desactivar inercia/scroll especial en Safari dentro del textarea */
-  -webkit-overflow-scrolling: auto;
-  touch-action: auto;
+}
+
+/* El wrapper debe ocupar exactamente el 100% de altura sin padding ni margin adicional */
+.noteitem-textarea-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 /* Ocultar completamente scrollbars del textarea en todos los navegadores compatibles */

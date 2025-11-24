@@ -103,7 +103,7 @@ export default function CircleSmall({
     color: 'var(--color-text-primary)',
     border: '1px solid var(--circle-border-light)',
     borderRadius: '9999px', // círculo perfecto
-    transition: 'background-color 0.3s ease, color 0.3s ease',
+    transition: 'none', // Sin transición para cambios de tema
     userSelect: isDragging ? 'none' : 'auto',
     WebkitUserSelect: isDragging ? 'none' : 'auto',
     MozUserSelect: isDragging ? 'none' : 'auto',

@@ -34,7 +34,7 @@ function DayButton({
       }}
     >
       <div
-        className={`rounded-full border relative flex items-center justify-center transition duration-200`}
+        className={`rounded-full border relative flex items-center justify-center`}
         style={{
           width: `${buttonSize}px`,
           height: `${buttonSize}px`,
@@ -44,7 +44,7 @@ function DayButton({
           borderColor: isSelected
             ? '#a3a3a3'
             : '#a3a3a3',
-          transition: 'background-color 0.3s ease, border-color 0.3s ease',
+          transition: 'none', // Sin transición para cambios de tema
           cursor: isDragging ? 'grab' : 'pointer',
           opacity: isDragging ? 0.7 : 1,
           pointerEvents: isDragging ? 'none' : 'auto',
@@ -61,7 +61,7 @@ function DayButton({
             color: isSelected
               ? 'var(--color-text-primary)'
               : 'var(--color-text-primary)',
-            transition: 'color 0.3s ease',
+            transition: 'none', // Sin transición para cambios de tema
           }}
         >
           {day}

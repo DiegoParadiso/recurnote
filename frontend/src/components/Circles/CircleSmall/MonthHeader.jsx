@@ -19,7 +19,7 @@ export default function MonthHeader({ date, position, onClick, isDragging = fals
     textTransform: 'uppercase',
     color: 'var(--color-text-primary)',
     fontFamily: 'Roboto Slab, serif',
-    transition: 'all 0.3s ease',
+    transition: 'opacity 0.3s ease, transform 0.3s ease', // Sin transición para color
     cursor: isDragging ? 'grab' : (onClick ? 'pointer' : 'default'),
     pointerEvents: isDragging ? 'none' : (onClick ? 'auto' : 'none'),
   };
