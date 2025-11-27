@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import UnifiedContainer from '@components/common/UnifiedContainer';
-import useTaskDrag from '@components/Circles/Items/Taskitem/hooks/useTaskDrag';
+import useItemDrag from '../hooks/useItemDrag';
 
 export default function NoteItemContainer({
   id,
@@ -29,7 +29,7 @@ export default function NoteItemContainer({
   ...rest
 }) {
   const lastPosRef = useRef({ x, y });
-  const { isDragging, handleContainerDragStart, handleContainerDragEnd } = useTaskDrag({ id, onActivate, onItemDrop });
+  const { isDragging, handleContainerDragStart, handleContainerDragEnd } = useItemDrag({ id, onActivate, onItemDrop });
 
   return (
     <UnifiedContainer

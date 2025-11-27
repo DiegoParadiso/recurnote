@@ -9,6 +9,8 @@ import { useAuth } from '@context/AuthContext';
 import { useItems } from '@context/ItemsContext';
 import { computePolarFromXY } from '@utils/helpers/geometry';
 import { useCallback } from 'react';
+import useItemDrag from '../hooks/useItemDrag';
+import { measureTextWidth } from '@utils/measureTextWidth';
 
 export default function ArchivoItem({
   id,
@@ -34,16 +36,19 @@ export default function ArchivoItem({
   const { t } = useTranslation();
   const fileInputRef = useRef();
   const [isExpanded, setIsExpanded] = useState(!!item.isExpanded);
-  // Notificaciones se delegan a Home mediante onErrorToast
-  const [isDragging, setIsDragging] = useState(false);
+
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-  const timeoutRef = useRef(null);
-  const wasDraggingRef = useRef(false);
   const hasAutoExpandedRef = useRef(false);
   const { user } = useAuth();
-  const { duplicateItem, markItemAsDragging, unmarkItemAsDragging } = useItems();
+  const { duplicateItem } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(110);
-  const dragTimeoutRef = useRef(null);
+
+  const {
+    isDragging,
+    wasDraggingRef,
+    handleContainerDragStart,
+    handleContainerDragEnd,
+  } = useItemDrag({ id, onActivate, onItemDrop });
 
   const isImage =
     item.content?.fileData?.type === 'image/jpeg' ||
@@ -58,7 +63,7 @@ export default function ArchivoItem({
           width: img.naturalWidth,
           height: img.naturalHeight
         });
-        
+
         // Si no hay estado de expansión guardado y no se ha expandido automáticamente antes, expandir por defecto
         if (!hasAutoExpandedRef.current && (item.isExpanded === undefined || item.isExpanded === null)) {
           hasAutoExpandedRef.current = true;
@@ -93,53 +98,11 @@ export default function ArchivoItem({
       e.stopPropagation();
       return;
     }
-    
+
     if (!item.content?.fileData) {
       fileInputRef.current?.click();
     }
   };
-
-  const handleContainerDragStart = useCallback(() => {
-    onActivate?.();
-    
-    // Marcar el item como en drag inmediatamente para bloquear otras actualizaciones
-    markItemAsDragging?.(id);
-    
-    // Pequeño delay para permitir clicks rápidos
-    timeoutRef.current = setTimeout(() => {
-      setIsDragging(true);
-      wasDraggingRef.current = true;
-    }, 100);
-  }, [id, onActivate, markItemAsDragging]);
-
-  const handleContainerDragEnd = useCallback(() => {
-    // Limpiar timeout si existe
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    // Reset drag state inmediatamente al terminar
-    setIsDragging(false);
-
-    // Notificar al padre que el drop ha terminado
-    onItemDrop?.(id);
-
-    // Desmarcar el item como en drag después de un pequeño delay para asegurar que
-    // la última actualización se procese
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
-    }
-    dragTimeoutRef.current = setTimeout(() => {
-      unmarkItemAsDragging?.(id);
-      dragTimeoutRef.current = null;
-    }, 300);
-
-    // Mantener wasDragging por un breve momento para evitar activaciones
-    setTimeout(() => {
-      wasDraggingRef.current = false;
-    }, 200);
-  }, [id, onItemDrop, unmarkItemAsDragging]);
 
   const handleImageDoubleClick = (e) => {
     // No cambiar vista si se está arrastando
@@ -148,11 +111,11 @@ export default function ArchivoItem({
       e.stopPropagation();
       return;
     }
-    
+
     e.stopPropagation();
     const newExpandedState = !isExpanded;
     setIsExpanded(newExpandedState);
-    
+
     // Guardar el estado en la base de datos
     onUpdate?.(
       id,
@@ -164,18 +127,7 @@ export default function ArchivoItem({
     );
   };
 
-  // Limpiar timeouts cuando se desmonte el componente
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (dragTimeoutRef.current) {
-        clearTimeout(dragTimeoutRef.current);
-        unmarkItemAsDragging?.(id);
-      }
-    };
-  }, [id, unmarkItemAsDragging]);
+
 
   const handleDownload = (e) => {
     e.stopPropagation();
@@ -214,20 +166,20 @@ export default function ArchivoItem({
   // Determinar qué opciones mostrar en el menú contextual
   const getContextMenuOptions = () => {
     const options = [];
-    
+
     // Solo mostrar opciones si hay un archivo subido
     if (item.content?.fileData && item.content?.base64) {
       options.push({ label: 'file.rename', onClick: renameFile });
       options.push({ label: 'common.duplicate', onClick: handleDuplicate });
-      
+
       // Solo mostrar opción de imagen si es realmente una imagen
       if (isImage) {
-        options.push({ 
-          label: isExpanded ? 'file.collapseImage' : 'file.expandImage', 
+        options.push({
+          label: isExpanded ? 'file.collapseImage' : 'file.expandImage',
           onClick: () => {
             const newExpandedState = !isExpanded;
             setIsExpanded(newExpandedState);
-            
+
             // Guardar el estado en la base de datos
             onUpdate?.(
               id,
@@ -240,10 +192,10 @@ export default function ArchivoItem({
           }
         });
       }
-      
+
       options.push({ label: 'file.download', onClick: handleDownload });
     }
-    
+
     return options;
   };
 
@@ -261,11 +213,11 @@ export default function ArchivoItem({
         return { width: item.width, height: item.height };
       }
 
-      const maxSize = 300; 
+      const maxSize = 300;
       const aspectRatio = imageDimensions.width / imageDimensions.height;
-      
+
       let finalWidth, finalHeight;
-      
+
       if (aspectRatio > 1) {
         // Imagen horizontal
         finalWidth = Math.min(imageDimensions.width, maxSize);
@@ -275,11 +227,11 @@ export default function ArchivoItem({
         finalHeight = Math.min(imageDimensions.height, maxSize);
         finalWidth = finalHeight * aspectRatio;
       }
-      
+
       // Agregar un pequeño padding para evitar que la imagen toque los bordes
-      return { 
-        width: Math.round(finalWidth + 16), 
-        height: Math.round(finalHeight + 16) 
+      return {
+        width: Math.round(finalWidth + 16),
+        height: Math.round(finalHeight + 16)
       };
     }
 
@@ -322,17 +274,10 @@ export default function ArchivoItem({
         return;
       }
       const name = item.content?.fileData?.name || 'Subir archivo...';
-      // Crear elemento temporal para medir con fuente del contenedor
-      const temp = document.createElement('span');
-      temp.style.visibility = 'hidden';
-      temp.style.position = 'fixed';
-      temp.style.whiteSpace = 'pre';
-      temp.style.font = '10px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-      // Nota: si hay una clase/estilo de fuente específico, podemos copiarlo del contenedor real
-      temp.textContent = name;
-      document.body.appendChild(temp);
-      const textWidth = temp.getBoundingClientRect().width;
-      document.body.removeChild(temp);
+
+      // Usar fuente estándar del sistema para medir
+      const font = '10px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+      const textWidth = measureTextWidth(name, font);
 
       // Aproximar paddings (container + interno)
       const padding = 8 + 8 + 16; // container L/R + extra seguridad
@@ -342,7 +287,7 @@ export default function ArchivoItem({
       const maxAllowed = 300;
       const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
       setMinWidthPx(minW);
-    } catch (_) {}
+    } catch (_) { }
   }, [item.content?.fileData?.name]);
 
   return (

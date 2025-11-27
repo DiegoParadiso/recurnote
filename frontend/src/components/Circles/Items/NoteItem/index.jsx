@@ -3,6 +3,7 @@ import WithContextMenu from '@components/common/WithContextMenu';
 import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
+import { getFontFromComputedStyle, measureTextWidth } from '@utils/measureTextWidth';
 import NoteItemClock from './NoteItemClock';
 import NoteItemEditor from './NoteItemEditor';
 import NoteItemContainer from './NoteItemContainer';
@@ -79,7 +80,7 @@ export default function NoteItem({
     }
   };
 
-  const MAX_CONTAINER_HEIGHT = 260; 
+  const MAX_CONTAINER_HEIGHT = 260;
 
   // Calcular ancho mínimo basado en el placeholder actual y estilos reales
   useLayoutEffect(() => {
@@ -96,15 +97,13 @@ export default function NoteItem({
         containerPaddingLeft = parseFloat(ccs.paddingLeft || '8') || 8;
         containerPaddingRight = parseFloat(ccs.paddingRight || '8') || 8;
       }
-    } catch (_) {}
+    } catch (_) { }
     const placeholderText = isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit');
     try {
       const cs = window.getComputedStyle(el);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const font = cs.font || `${cs.fontStyle} ${cs.fontVariant} ${cs.fontWeight} ${cs.fontSize} / ${cs.lineHeight} ${cs.fontFamily}`;
-      if (ctx) ctx.font = font;
-      const measure = (text) => ctx ? ctx.measureText(text).width : Math.max(100, (text || '').length * 6);
+      const font = getFontFromComputedStyle(cs);
+      const measure = (text) => measureTextWidth(text, font);
+
       const paddingLeft = parseFloat(cs.paddingLeft || '0');
       const paddingRight = parseFloat(cs.paddingRight || '0');
       const borders = 2;
@@ -133,11 +132,11 @@ export default function NoteItem({
       if (width < minW) {
         onUpdate?.(id, content, null, { width: minW, height });
       }
-    } catch (_) {}
+    } catch (_) { }
     // Recalcular si cambia el idioma, el modo móvil o el tamaño de fuente del textarea
   }, [t, isMobile, width, height, id, content, onUpdate]);
 
-  // Calcular altura mínima en función del contenido y ajustar el contenedor
+  // Calcular altura mínima en función del contenido (SOLO para limitar el resize, NO auto-resize)
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -157,22 +156,18 @@ export default function NoteItem({
       const prevHeight = el.style.height;
       el.style.height = 'auto';
       const scrollHeight = el.scrollHeight; // altura real del contenido
-      
+
       // Calcular la altura deseada: contenido + paddings del contenedor
       const desiredMinHeight = Math.max(60, Math.ceil(scrollHeight + containerPaddingTop + containerPaddingBottom));
+
+      // Actualizar el minHeight para que el usuario no pueda achicarlo más que el texto
       setMinHeightPx(desiredMinHeight);
 
-      // SIEMPRE actualizar la altura del contenedor para que coincida con el contenido
-      // Esto debe hacerse de forma síncrona para evitar cortes
-      if (height !== desiredMinHeight) {
-        onUpdate?.(id, content, null, { width, height: desiredMinHeight });
-      }
+      // Restaurar altura
+      el.style.height = prevHeight;
+    } catch (_) { }
+  }, [content, width, height]);
 
-      // Ajustar el textarea: usar min-height basado en el contenido para que nunca se corte
-      el.style.minHeight = `${scrollHeight}px`;
-      el.style.height = '100%'; // Ocupar todo el contenedor disponible
-    } catch (_) {}
-  }, [content, width, height, id, onUpdate]);
 
   return (
     <WithContextMenu
@@ -188,13 +183,15 @@ export default function NoteItem({
         />
       )}
       extraOptions={[
-        { label: assignedTime ? 'note.changeTime' : 'note.assignTime', onClick: async () => {
-          if (assignedTime) {
-            await handleClearTime();
-          } else {
-            await handleAssignTime(timeInput);
-          }
-        }, preventClose: true },
+        {
+          label: assignedTime ? 'note.changeTime' : 'note.assignTime', onClick: async () => {
+            if (assignedTime) {
+              await handleClearTime();
+            } else {
+              await handleAssignTime(timeInput);
+            }
+          }, preventClose: true
+        },
         ...(assignedTime ? [{ label: 'note.clearTime', onClick: handleClearTime }] : []),
         { label: 'common.duplicate', onClick: handleDuplicate },
       ]}
@@ -233,13 +230,17 @@ export default function NoteItem({
         zIndexOverride={item.zIndexOverride}
       >
         {({ isDragging }) => (
-          <div 
+          <div
             data-drag-container="true"
             style={{
               userSelect: isDragging ? 'none' : 'auto',
               WebkitUserSelect: isDragging ? 'none' : 'auto',
               MozUserSelect: isDragging ? 'none' : 'auto',
               msUserSelect: isDragging ? 'none' : 'auto',
+              width: '100%',
+              height: '100%',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
             <div className="noteitem-draghandle">

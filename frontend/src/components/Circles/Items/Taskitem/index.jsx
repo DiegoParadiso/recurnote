@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import UnifiedContainer from '@components/common/UnifiedContainer';
 import WithContextMenu from '@components/common/WithContextMenu';
 import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
-import useTaskDrag from './hooks/useTaskDrag';
+
+import useItemDrag from '../hooks/useItemDrag';
 import useTaskEditing from './hooks/useTaskEditing';
 import useTaskSizing from './hooks/useTaskSizing';
 import TaskRow from './TaskRow';
@@ -35,9 +36,9 @@ function TaskItem({
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const baseHeight = 10; 
+  const baseHeight = 26;
   const maxTasks = 4;
-  const taskHeight = 36; 
+  const taskHeight = 36;
   const buttonHeight = 30;
   const visibleTasksCount = Math.min(item.content?.length || 0, maxTasks);
   const {
@@ -45,7 +46,7 @@ function TaskItem({
     wasDraggingRef,
     handleContainerDragStart,
     handleContainerDragEnd,
-  } = useTaskDrag({ id, onActivate, onItemDrop });
+  } = useItemDrag({ id, onActivate, onItemDrop });
   const [editingInputs, setEditingInputs] = useState(new Set());
   const inputRefsRef = useRef({});
   const touchStartPosRef = useRef(null);
@@ -53,13 +54,12 @@ function TaskItem({
   const lastPosRef = useRef({ x, y });
   const frozenHeightRef = useRef(null);
   const previousIsDraggingRef = useRef(false);
-  // Sizing calculado vía hook dedicado
-  const shouldShowButton = (item.content?.length || 0) < maxTasks && editingInputs.size > 0;
+
   const calculatedMinHeight =
-    visibleTasksCount >= maxTasks || !shouldShowButton
+    visibleTasksCount >= maxTasks || editingInputs.size === 0
       ? Math.min(baseHeight + visibleTasksCount * taskHeight, 400)
       : Math.min(baseHeight + visibleTasksCount * taskHeight + buttonHeight, 400);
-  
+
   // Congelar la altura cuando comienza el drag, usar altura congelada durante el drag
   // Capturar la altura justo cuando isDragging cambia de false a true
   if (isDragging && !previousIsDraggingRef.current) {
@@ -70,10 +70,44 @@ function TaskItem({
     frozenHeightRef.current = null;
   }
   previousIsDraggingRef.current = isDragging;
-  
+
   const computedMinHeight = isDragging && frozenHeightRef.current !== null
     ? frozenHeightRef.current
     : calculatedMinHeight;
+
+  // Estado local para Y para evitar saltos visuales antes de que onUpdate propague el cambio
+  const [localY, setLocalY] = useState(y);
+
+  // Sincronizar localY con props.y, pero solo si no estamos en medio de una compensación local
+  // Usamos un ref para evitar loops o sobreescrituras incorrectas
+  const isCompensatingRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!isCompensatingRef.current) {
+      setLocalY(y);
+    }
+    isCompensatingRef.current = false;
+  }, [y]);
+
+  // Compensar la posición Y cuando cambia la altura para mantener el borde superior fijo
+  const prevHeightRef = useRef(computedMinHeight);
+
+  useLayoutEffect(() => {
+    if (prevHeightRef.current !== computedMinHeight) {
+      const delta = computedMinHeight - prevHeightRef.current;
+      if (delta !== 0) {
+        // Si la altura cambia, ajustar Y localmente de inmediato
+        const newY = localY + delta / 2;
+
+        isCompensatingRef.current = true;
+        setLocalY(newY);
+
+        // Y persistir el cambio
+        onUpdate?.(id, item.content || [], item.checked || [], null, { x, y: newY });
+      }
+      prevHeightRef.current = computedMinHeight;
+    }
+  }, [computedMinHeight, localY, x, id, onUpdate, item.content, item.checked]);
 
   const { minWidthPx } = useTaskSizing({
     isMobile,
@@ -94,10 +128,47 @@ function TaskItem({
     focusEditableInput: focusEditableInputHook,
   } = useTaskEditing({ isMobile, inputRefsRef });
 
+  // Grace period para evitar que el item se encoja inmediatamente al hacer blur (mousedown para drag)
+  const [recentlyEditing, setRecentlyEditing] = useState(false);
+  const recentlyEditingTimeoutRef = useRef(null);
+  const isEnterPressedRef = useRef(false);
+
+  // Limpiar grace period si comienza un drag para evitar saltos al soltar
+  useEffect(() => {
+    if (isDragging) {
+      setRecentlyEditing(false);
+      if (recentlyEditingTimeoutRef.current) {
+        clearTimeout(recentlyEditingTimeoutRef.current);
+      }
+    }
+  }, [isDragging]);
+
+  const stopEditing = (index) => {
+    stopEditingHook(index);
+
+    // Si se presionó Enter, no aplicar grace period (queremos cierre inmediato)
+    if (isEnterPressedRef.current) {
+      setRecentlyEditing(false);
+      if (recentlyEditingTimeoutRef.current) clearTimeout(recentlyEditingTimeoutRef.current);
+      isEnterPressedRef.current = false;
+      return;
+    }
+
+    setRecentlyEditing(true);
+    if (recentlyEditingTimeoutRef.current) clearTimeout(recentlyEditingTimeoutRef.current);
+    recentlyEditingTimeoutRef.current = setTimeout(() => {
+      setRecentlyEditing(false);
+    }, 300);
+  };
+
   // Mantener referencias originales delegando en el hook
   useEffect(() => {
     setEditingInputs(editingInputsHook);
   }, [editingInputsHook]);
+
+  // Sizing calculado vía hook dedicado
+  // Mostrar botón si: hay espacio, Y (se está editando O se editó recientemente) Y NO se está arrastrando
+  const shouldShowButton = (item.content?.length || 0) < maxTasks && (editingInputs.size > 0 || recentlyEditing) && !isDragging;
 
   const { duplicateItem, flushItemUpdate } = useItems();
   const editingGraceUntilRef = useRef(0);
@@ -117,7 +188,7 @@ function TaskItem({
     if (wasDraggingRef.current || isDragging) {
       return;
     }
-    
+
     const updatedTasks = [...(item.content || [])];
     updatedTasks[index] = value;
     onUpdate?.(id, updatedTasks, item.checked || []);
@@ -137,7 +208,7 @@ function TaskItem({
     if (wasDraggingRef.current || isDragging) {
       return;
     }
-    
+
     const updatedChecks = [...(item.checked || [])];
     updatedChecks[index] = checked;
     onUpdate?.(id, item.content || [], updatedChecks);
@@ -150,13 +221,22 @@ function TaskItem({
     onUpdate?.(id, newTasks, newChecks);
   };
 
-  
+
 
   // Funciones para manejar edición de inputs
   const startEditing = (index) => startEditingHook(index);
-  const stopEditing = (index) => stopEditingHook(index);
 
-  const handleInputKeyDown = (e, index) => handleInputKeyDownHook(e, index);
+  const handleInputKeyDown = (e, index) => {
+    if (e.key === 'Enter') {
+      isEnterPressedRef.current = true;
+    }
+    handleInputKeyDownHook(e, index);
+  };
+
+  // Mantener referencias originales delegando en el hook
+  useEffect(() => {
+    setEditingInputs(editingInputsHook);
+  }, [editingInputsHook]);
 
   // Ancho mínimo ahora es responsabilidad de useTaskSizing
 
@@ -183,7 +263,7 @@ function TaskItem({
 
 
 
-  
+
 
   return (
     <WithContextMenu
@@ -202,7 +282,7 @@ function TaskItem({
     >
       <UnifiedContainer
         x={x}
-        y={y}
+        y={localY}
         rotation={rotationEnabled ? rotation : 0}
         width={Math.max(item.width || 200, minWidthPx)}
         height={computedMinHeight}
@@ -249,7 +329,7 @@ function TaskItem({
         onActivate={() => onActivate?.()}
         zIndexOverride={item.zIndexOverride}
       >
-        <div 
+        <div
           className="taskitem-content"
           data-drag-container="true"
           style={{
@@ -311,11 +391,15 @@ function TaskItem({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                e.preventDefault();
-                // Solo agregar tarea si no se está arrastrando
-                if (!isDragging && !wasDraggingRef.current) {
-                  addTask();
-                }
+                // Agregar tarea
+                const newContent = [...(item.content || []), ''];
+                const newChecked = [...(item.checked || []), false];
+                const newIndex = newContent.length - 1;
+                onUpdate?.(id, newContent, newChecked);
+
+                // Iniciar edición del nuevo item
+                startEditingHook(newIndex);
+                focusEditableInputHook(newIndex);
               }}
               onMouseDown={(e) => {
                 e.stopPropagation();

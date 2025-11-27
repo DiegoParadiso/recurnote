@@ -51,49 +51,98 @@ export default function NoteItemEditor({
           });
         });
       }
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleTextChange = (e) => {
     const newValue = e.target.value;
+    const textarea = e.target;
+
+    // Verificar si el nuevo contenido excede la altura del contenedor
+    const prevValue = textarea.value;
+    const prevHeight = textarea.style.height;
+
+    // Medir el nuevo contenido temporalmente
+    textarea.style.height = 'auto';
+    textarea.value = newValue;
+    const scrollHeight = textarea.scrollHeight;
+
+    // Si excede la altura máxima del contenedor, revertir
+    if (scrollHeight > height) {
+      textarea.value = prevValue;
+      textarea.style.height = prevHeight;
+      return; // No actualizar si excede el límite
+    }
+
+    // Si cabe, actualizar
+    textarea.style.height = prevHeight;
     onUpdate?.(id, newValue);
-    
-    // Forzar scrollTop a 0 y permitir que el textarea mida su contenido
+
+    // Forzar scrollTop a 0
     requestAnimationFrame(() => {
-      const textarea = e.target;
       if (textarea) {
-        // Temporalmente permitir altura automática para medir
-        const prevHeight = textarea.style.height;
-        textarea.style.height = 'auto';
-        const scrollHeight = textarea.scrollHeight;
-        textarea.style.height = prevHeight;
-        
-        // Forzar scroll a 0
         textarea.scrollTop = 0;
       }
     });
   };
 
   const handleTextareaKeyDown = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      const el = e.target;
-      const start = el.selectionStart ?? content.length;
-      const end = el.selectionEnd ?? content.length;
-      const newValue = (content || '').slice(0, start) + '\n' + (content || '').slice(end);
-      onUpdate?.(id, newValue);
-      setTimeout(() => {
-        try {
-          el.selectionStart = el.selectionEnd = start + 1;
-        } catch (_) {}
-      }, 0);
-      return;
+    // Check for new line attempts (Enter, Shift+Enter, Ctrl+Enter)
+    if (e.key === 'Enter') {
+      const isModifier = e.ctrlKey || e.metaKey || e.shiftKey;
+
+      // If it's a new line attempt (modifier + Enter)
+      if (isModifier) {
+        const el = e.target;
+
+        // Check if adding a new line would exceed max height
+        // We temporarily add a newline to measure
+        const prevValue = el.value;
+        const start = el.selectionStart ?? content.length;
+        const end = el.selectionEnd ?? content.length;
+        const potentialValue = (content || '').slice(0, start) + '\n' + (content || '').slice(end);
+
+        // Measure potential height
+        const prevHeight = el.style.height;
+        el.style.height = 'auto';
+        el.value = potentialValue;
+        const potentialScrollHeight = el.scrollHeight;
+
+        // Restore
+        el.value = prevValue;
+        el.style.height = prevHeight;
+
+        if (potentialScrollHeight > MAX_CONTAINER_HEIGHT) {
+          e.preventDefault();
+          // Optional: Visual feedback or just ignore
+          return;
+        }
+
+        // If it fits and it was Ctrl/Meta+Enter, we handle the insertion manually
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const newValue = potentialValue;
+          onUpdate?.(id, newValue);
+          setTimeout(() => {
+            try {
+              el.selectionStart = el.selectionEnd = start + 1;
+            } catch (_) { }
+          }, 0);
+          return;
+        }
+        // If it fits and was Shift+Enter, let default behavior happen (or handle manually if needed)
+        // Usually Shift+Enter is default behavior in textarea, but we might want to ensure consistency
+        return;
+      }
+
+      // Enter without Shift/Ctrl/Meta -> Stop editing
+      if (!e.shiftKey) {
+        e.preventDefault();
+        stopEditing();
+        e.target.blur();
+      }
     }
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      stopEditing();
-      e.target.blur();
-    }
+
     if (e.key === 'Escape') {
       e.preventDefault();
       stopEditing();
@@ -112,19 +161,19 @@ export default function NoteItemEditor({
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-    
+
     // Forzar scrollTop a 0 después de cada cambio de contenido
     textarea.scrollTop = 0;
-    
+
     // También prevenir scroll automático durante la edición
     const handleScroll = (e) => {
       if (e.target.scrollTop !== 0) {
         e.target.scrollTop = 0;
       }
     };
-    
+
     textarea.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       textarea.removeEventListener('scroll', handleScroll);
     };
