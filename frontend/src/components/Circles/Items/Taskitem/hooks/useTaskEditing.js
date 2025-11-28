@@ -19,12 +19,10 @@ export default function useTaskEditing({ isMobile, inputRefsRef }) {
     if (e.key === 'Enter') {
       e.preventDefault();
       stopEditing(index);
-      e.target.blur();
     }
     if (e.key === 'Escape') {
       e.preventDefault();
       stopEditing(index);
-      e.target.blur();
     }
   }, [stopEditing]);
 
@@ -50,7 +48,7 @@ export default function useTaskEditing({ isMobile, inputRefsRef }) {
           });
         });
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [inputRefsRef, isMobile]);
 
   return { editingInputs, setEditingInputs, startEditing, stopEditing, handleInputKeyDown, focusEditableInput };

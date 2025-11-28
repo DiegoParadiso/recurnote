@@ -47,13 +47,26 @@ function TaskItem({
     handleContainerDragStart,
     handleContainerDragEnd,
   } = useItemDrag({ id, onActivate, onItemDrop });
-  const [editingInputs, setEditingInputs] = useState(new Set());
+  // Removed local editingInputs state to avoid sync issues
   const inputRefsRef = useRef({});
   const touchStartPosRef = useRef(null);
   const touchIsDragRef = useRef(false);
   const lastPosRef = useRef({ x, y });
   const frozenHeightRef = useRef(null);
   const previousIsDraggingRef = useRef(false);
+  // Ref para trackear si estamos haciendo drag "activamente" (desde el evento onDrag)
+  // Esto es necesario porque isDragging tiene un delay de 100ms, y si hay updates de props
+  // en ese intervalo, el useEffect de sincronización podría sobreescribir lastPosRef
+  const isDragActiveRef = useRef(false);
+
+  const {
+    editingInputs, // Use directly
+    setEditingInputs, // Use directly
+    startEditing: startEditingHook,
+    stopEditing: stopEditingHook,
+    handleInputKeyDown: handleInputKeyDownHook,
+    focusEditableInput: focusEditableInputHook,
+  } = useTaskEditing({ isMobile, inputRefsRef });
 
   const calculatedMinHeight =
     visibleTasksCount >= maxTasks || editingInputs.size === 0
@@ -77,6 +90,8 @@ function TaskItem({
 
   // Estado local para Y para evitar saltos visuales antes de que onUpdate propague el cambio
   const [localY, setLocalY] = useState(y);
+  // Estado local para X para evitar saltos visuales (snap-back) al hacer drop
+  const [localX, setLocalX] = useState(x);
 
   // Sincronizar localY con props.y, pero solo si no estamos en medio de una compensación local
   // Usamos un ref para evitar loops o sobreescrituras incorrectas
@@ -89,6 +104,11 @@ function TaskItem({
     isCompensatingRef.current = false;
   }, [y]);
 
+  // Sincronizar localX con props.x
+  useLayoutEffect(() => {
+    setLocalX(x);
+  }, [x]);
+
   // Compensar la posición Y cuando cambia la altura para mantener el borde superior fijo
   const prevHeightRef = useRef(computedMinHeight);
 
@@ -97,17 +117,28 @@ function TaskItem({
       const delta = computedMinHeight - prevHeightRef.current;
       if (delta !== 0) {
         // Si la altura cambia, ajustar Y localmente de inmediato
+        const currentX = localX;
         const newY = localY + delta / 2;
 
         isCompensatingRef.current = true;
         setLocalY(newY);
+        lastPosRef.current = { x: currentX, y: newY };
 
         // Y persistir el cambio
-        onUpdate?.(id, item.content || [], item.checked || [], null, { x, y: newY });
+        onUpdate?.(id, item.content || [], item.checked || [], null, { x: currentX, y: newY });
       }
       prevHeightRef.current = computedMinHeight;
     }
-  }, [computedMinHeight, localY, x, id, onUpdate, item.content, item.checked]);
+  }, [computedMinHeight, localY, localX, x, id, onUpdate, item.content, item.checked]);
+
+  // Sincronizar lastPosRef con la posición actual (incluyendo compensación local)
+  // para asegurar que si se hace drop sin mover (click) o drag inmediato, se use la posición correcta
+  // IMPORTANTE: No sincronizar si hay un drag activo (incluso si isDragging aún es false por el delay)
+  useEffect(() => {
+    if (!isDragging && !isDragActiveRef.current) {
+      lastPosRef.current = { x: localX, y: localY };
+    }
+  }, [localX, localY, isDragging]);
 
   const { minWidthPx } = useTaskSizing({
     isMobile,
@@ -119,14 +150,7 @@ function TaskItem({
     computedMinHeight,
   });
 
-  const {
-    editingInputs: editingInputsHook,
-    setEditingInputs: setEditingInputsHook,
-    startEditing: startEditingHook,
-    stopEditing: stopEditingHook,
-    handleInputKeyDown: handleInputKeyDownHook,
-    focusEditableInput: focusEditableInputHook,
-  } = useTaskEditing({ isMobile, inputRefsRef });
+
 
   // Grace period para evitar que el item se encoja inmediatamente al hacer blur (mousedown para drag)
   const [recentlyEditing, setRecentlyEditing] = useState(false);
@@ -143,14 +167,26 @@ function TaskItem({
     }
   }, [isDragging]);
 
-  const stopEditing = (index) => {
+  const stopEditing = (index, force = false) => {
     stopEditingHook(index);
 
-    // Si se presionó Enter, no aplicar grace period (queremos cierre inmediato)
-    if (isEnterPressedRef.current) {
+    // Si ya no quedan inputs en edición, limpiar el estado inmediatamente
+    if (editingInputs.size <= 1) {
+      setEditingInputs(new Set());
+    }
+
+    // Si se presionó Enter o se fuerza, no aplicar grace period (queremos cierre inmediato)
+    if (force || isEnterPressedRef.current) {
       setRecentlyEditing(false);
+      // Force clear editing inputs if it's an Enter press to ensure immediate UI update
+      setEditingInputs(new Set());
+
       if (recentlyEditingTimeoutRef.current) clearTimeout(recentlyEditingTimeoutRef.current);
-      isEnterPressedRef.current = false;
+      // Retrasar el reset para asegurar que si hay llamadas consecutivas (ej: blur)
+      // también vean el flag en true
+      setTimeout(() => {
+        isEnterPressedRef.current = false;
+      }, 300);
       return;
     }
 
@@ -161,10 +197,7 @@ function TaskItem({
     }, 300);
   };
 
-  // Mantener referencias originales delegando en el hook
-  useEffect(() => {
-    setEditingInputs(editingInputsHook);
-  }, [editingInputsHook]);
+
 
   // Sizing calculado vía hook dedicado
   // Mostrar botón si: hay espacio, Y (se está editando O se editó recientemente) Y NO se está arrastrando
@@ -228,15 +261,17 @@ function TaskItem({
 
   const handleInputKeyDown = (e, index) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
       isEnterPressedRef.current = true;
+      stopEditing(index, true);
+      e.target.blur();
+      return;
     }
     handleInputKeyDownHook(e, index);
   };
 
-  // Mantener referencias originales delegando en el hook
-  useEffect(() => {
-    setEditingInputs(editingInputsHook);
-  }, [editingInputsHook]);
+
 
   // Ancho mínimo ahora es responsabilidad de useTaskSizing
 
@@ -281,7 +316,7 @@ function TaskItem({
       ]}
     >
       <UnifiedContainer
-        x={x}
+        x={localX}
         y={localY}
         rotation={rotationEnabled ? rotation : 0}
         width={Math.max(item.width || 200, minWidthPx)}
@@ -292,6 +327,7 @@ function TaskItem({
         maxHeight={computedMinHeight}
         dragDisabledUntil={editingGraceUntilRef.current}
         onMove={({ x, y }) => {
+          isDragActiveRef.current = true;
           // Solo desenfocar inputs si están en foco, pero mantener el estado de edición
           Object.values(inputRefsRef.current).forEach(input => {
             if (input && document.activeElement === input) {
@@ -309,17 +345,26 @@ function TaskItem({
           onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
-        onDrag={handleContainerDragStart}
+        onDrag={(e) => {
+          isDragActiveRef.current = true;
+          handleContainerDragStart(e);
+        }}
         onDrop={(...args) => {
+          isDragActiveRef.current = false;
           handleContainerDragEnd(...args);
           // Usar la última posición conocida para persistir una sola vez al soltar
-          const finalPos = lastPosRef.current || { x, y };
+          const finalPos = lastPosRef.current || { x: localX, y: localY };
+
+          // Actualización optimista de la posición local para evitar snap-back
+          setLocalX(finalPos.x);
+          setLocalY(finalPos.y);
+
           const { angle, distance } = computePolarFromXY(finalPos.x, finalPos.y, cx, cy);
           // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
           onUpdate?.(id, item.content || [], item.checked || [], null, { x: finalPos.x, y: finalPos.y }, { angle, distance });
           flushItemUpdate?.(id);
           // Limpiar estado de edición al hacer drop
-          setEditingInputsHook(new Set());
+          setEditingInputs(new Set());
         }}
         circleCenter={{ cx, cy }}
         maxRadius={maxRadius}
