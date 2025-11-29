@@ -1,4 +1,3 @@
-
 /* ITEM BASE */
 .sidebar-item {
   position: relative;
@@ -15,7 +14,7 @@
   touch-action: pan-x;
   -webkit-user-drag: none;
   -webkit-tap-highlight-color: transparent;
-  overflow: hidden;  
+  overflow: hidden;
 }
 
 .sidebar-item:hover {
@@ -219,27 +218,28 @@ html.dark .sidebar-item:hover {
     height: 5px;
     gap: 5px;
   }
-  
+
   .sidebar-item-evento .block {
     width: 12px;
     height: 12px;
   }
-  
+
   .sidebar-item-archivo .tab {
     width: 25px;
     height: 10px;
   }
 
-.sidebar-item-archivo .separator {
-  right: 50%;
-  position: absolute;
-  top: 14px;
-}
+  .sidebar-item-archivo .separator {
+    right: 50%;
+    position: absolute;
+    top: 14px;
+  }
 
 
   .sidebar-item-archivo .top-bar {
     top: 9px;
   }
+
   html.dark .sidebar-item {
     background-color: var(--color-neutral);
     border-color: var(--color-text-secondary);

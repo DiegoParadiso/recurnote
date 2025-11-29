@@ -20,17 +20,16 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck }) {
     // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
     try {
       await deleteItem(item.id);
-            } catch (error) {
-          // Error silencioso al eliminar item
-        }
+    } catch (error) {
+      // Error silencioso al eliminar item
+    }
   };
 
   const renderDeleteButton = () => (
     <button
       onClick={handleDelete}
-      className={`delete-btn text-xs text-gray-400 hover:text-gray-600 transition-colors ${
-        !hasRealContent(item.content) ? 'centered' : ''
-      }`}
+      className={`delete-btn text-xs text-gray-400 hover:text-gray-600 transition-colors ${!hasRealContent(item.content) ? 'centered' : ''
+        }`}
       title={t('sidebar.deleteItem')}
     >
       ×
@@ -52,9 +51,8 @@ export default function ItemRenderer({ item, dateKey, toggleTaskCheck }) {
     <WithContextMenu onDelete={() => deleteItem(item.id)}>
       <div
         key={item.id}
-        className={`w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem] ${
-          !hasRealContent(item.content) ? 'empty-content' : ''
-        }`}
+        className={`w-full rounded item-card border shadow-sm relative min-h-[2.5rem] ${!hasRealContent(item.content) ? 'empty-content' : ''
+          }`}
         title={typeof item.content === 'object' ? JSON.stringify(item.content) : item.content}
       >
         {renderDeleteButton()}

@@ -6,7 +6,7 @@
   border-radius: 0.375rem;
   padding: 0.6rem 1.5rem 0.5rem 0.5rem;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-  font-size: 10px;
+  font-size: 11px;
   position: relative;
   min-height: 2.5rem;
   word-wrap: break-word;
@@ -16,7 +16,7 @@
 }
 
 /* Estilos para el contenido de texto */
-.item-card > *:not(.delete-btn) {
+.item-card>*:not(.delete-btn) {
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -32,7 +32,8 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
-  max-width: calc(100% - 20px); /* Dejar espacio para el checkbox */
+  max-width: calc(100% - 20px);
+  /* Dejar espacio para el checkbox */
 }
 
 /* Contenedor de tareas - centrado vertical cuando hay poco contenido */
@@ -74,7 +75,7 @@
   word-break: break-word;
   max-width: 100%;
   white-space: pre-wrap;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.2;
   margin: 0;
   display: flex;
@@ -102,6 +103,7 @@ html.dark .item-card {
   position: relative;
   flex-shrink: 0;
 }
+
 .checkbox-input {
   position: absolute;
   opacity: 0;
@@ -127,11 +129,13 @@ html.dark .item-card {
   position: relative;
   flex-shrink: 0;
 }
+
 .checkbox-box.checked {
   background-color: var(--color-highlight);
   border-color: var(--color-highlight);
   color: var(--checkbox-check-stroke);
 }
+
 .checkbox-box svg {
   width: 8px;
   height: 8px;
@@ -143,6 +147,7 @@ html.dark .item-card {
   transition: opacity 0.2s ease;
   pointer-events: none;
 }
+
 .checkbox-box.checked svg {
   opacity: 1;
 }
@@ -155,19 +160,20 @@ html.dark .item-card {
 html.dark .checkbox-box {
   background-color: var(--color-neutral-dark);
   border-color: var(--color-neutral-darker);
-  color: black; 
+  color: black;
 }
 
 html.dark .checkbox-box.checked {
   background-color: var(--color-neutral-darker);
   border-color: var(--color-neutral-darker);
-  color: black; 
+  color: black;
 }
+
 .file-download-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-primary);
   text-decoration: underline;
   word-break: break-word;
@@ -197,7 +203,7 @@ html.dark .file-download-link:hover {
   padding: 0;
   cursor: pointer;
   z-index: var(--z-base);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1;
   width: 18px;
@@ -253,9 +259,11 @@ html.dark .file-download-link:hover {
 
 /* Alto contraste: asegurar visibilidad fuerte del botón de eliminar */
 html[data-contrast='high'] .delete-btn {
-  opacity: 1; /* siempre visible en alto contraste */
+  opacity: 1;
+  /* siempre visible en alto contraste */
   color: var(--color-text-primary);
 }
+
 html[data-contrast='high'] .delete-btn:hover,
 html[data-contrast='high'] .delete-btn:focus-visible {
   color: var(--color-bg);
@@ -278,10 +286,13 @@ html[data-contrast='high'] .delete-btn:focus-visible {
 
 /* Estilos mejorados para texto de placeholder y elementos sin contenido */
 .item-card .text-gray-400.italic {
-  color: var(--color-empty-text) !important; /* Usar nueva variable para mejor legibilidad */
+  color: var(--color-empty-text) !important;
+  /* Usar nueva variable para mejor legibilidad */
   font-style: italic;
-  opacity: 1; /* Aumentar opacidad para mejor visibilidad */
-  font-weight: 500; /* Peso de fuente medio para mejor legibilidad */
+  opacity: 1;
+  /* Aumentar opacidad para mejor visibilidad */
+  font-weight: 500;
+  /* Peso de fuente medio para mejor legibilidad */
 }
 
 /* Estilos para elementos sin contenido - Mejor legibilidad */
@@ -300,4 +311,3 @@ html[data-contrast='high'] .delete-btn:focus-visible {
 }
 
 /* (Movido a SidebarItem.css) Reglas de estilo del sidebar eliminadas para evitar solapamiento */
-

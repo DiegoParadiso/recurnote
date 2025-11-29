@@ -6,7 +6,7 @@ export default function TaskPreview({ item, dateKey, toggleTaskCheck, renderDele
   return (
     <div
       key={item.id}
-      className="w-full rounded item-card border shadow-sm text-[10px] relative min-h-[2.5rem]"
+      className="w-full rounded item-card border shadow-sm relative min-h-[2.5rem]"
     >
       {renderDeleteButton ? renderDeleteButton() : null}
       <div className="task-container" style={{ wordBreak: 'break-word', lineHeight: '1.3' }}>
@@ -37,7 +37,7 @@ export default function TaskPreview({ item, dateKey, toggleTaskCheck, renderDele
                 </svg>
               </span>
             </label>
-            <span 
+            <span
               className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'empty-task-text'}`}
               style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
             >

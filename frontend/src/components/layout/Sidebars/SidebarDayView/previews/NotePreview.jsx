@@ -29,14 +29,14 @@ export default function NotePreview({ item }) {
 
   if (typeof item.content === 'object') {
     return (
-      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '9px', lineHeight: '1.2', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
+      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.2', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
         {JSON.stringify(item.content, null, 2)}
       </pre>
     );
   }
 
   return (
-    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '10px', lineHeight: '1.3', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
+    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.3', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
       {item.content}
     </pre>
   );
