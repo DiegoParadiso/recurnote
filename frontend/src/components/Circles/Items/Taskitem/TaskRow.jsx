@@ -24,7 +24,17 @@ export default function TaskRow({
   onInputBlur,
 }) {
   return (
-    <div className="scroll-hidden taskitem-row" style={{ height: taskHeight }}>
+    <div
+      className="scroll-hidden taskitem-row"
+      style={{ height: taskHeight }}
+      onDoubleClick={() => {
+        if (isMobile) return;
+        if (!isDragging && !wasDraggingRef.current) {
+          startEditing(index);
+          focusEditableInput(index);
+        }
+      }}
+    >
       <label
         tabIndex={0}
         className="checkbox-label"
@@ -125,51 +135,7 @@ export default function TaskRow({
           touchStartPosRef.current = null;
           touchIsDragRef.current = false;
         }}
-        onDoubleClick={() => {
-          if (isMobile) return;
-          if (!isDragging && !wasDraggingRef.current) {
-            startEditing(index);
-            focusEditableInput(index);
-          }
-        }}
-        onClick={() => {
-          if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
-            startEditing(index);
-            focusEditableInput(index);
-          }
-        }}
-        onFocus={(e) => {
-          if (typeof onInputFocus === 'function') onInputFocus();
-          if (isMobile) {
-            if (!editingInputs.has(index)) {
-              startEditing(index);
-              setTimeout(() => {
-                e.target.focus();
-              }, 0);
-            }
-            return;
-          }
-          if (!editingInputs.has(index)) {
-            e.target.blur();
-          }
-        }}
-        onMouseDown={(e) => {
-          if (isMobile) return;
-          if (!editingInputs.has(index)) {
-            e.preventDefault();
-            const dragContainer = e.target.closest('[data-drag-container]');
-            if (dragContainer) {
-              const mouseEvent = new MouseEvent('mousedown', {
-                bubbles: true,
-                cancelable: true,
-                clientX: e.clientX,
-                clientY: e.clientY,
-                button: e.button
-              });
-              dragContainer.dispatchEvent(mouseEvent);
-            }
-          }
-        }}
+
         onBlur={() => {
           stopEditing(index);
           if (typeof onInputBlur === 'function') onInputBlur();
@@ -181,9 +147,9 @@ export default function TaskRow({
         inputMode="text"
         enterKeyHint="done"
         style={{
-          cursor: isMobile ? 'text' : (editingInputs.has(index) ? 'text' : 'grab'),
+          cursor: isMobile ? 'text' : (editingInputs.has(index) ? 'text' : 'inherit'),
           opacity: isMobile ? 1 : (editingInputs.has(index) ? 1 : 0.7),
-          pointerEvents: isDragging ? 'none' : 'auto',
+          pointerEvents: isDragging ? 'none' : (isMobile ? 'auto' : (editingInputs.has(index) ? 'auto' : 'none')),
           backgroundColor: editingInputs.has(index) ? 'var(--color-bg-secondary)' : 'transparent',
           border: editingInputs.has(index) ? '1px solid var(--color-primary)' : '1px solid transparent',
         }}
