@@ -32,7 +32,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
       localStorage.setItem('circlePattern', userPattern);
       return userPattern;
     }
-    
+
     const saved = localStorage.getItem('circlePattern') || 'none';
     // Si el pattern guardado es 9 o 10, cambiar a none
     if (saved === 'pattern9' || saved === 'pattern10') {
@@ -53,34 +53,41 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     if (selectedPattern === 'none' || !selectedDay) {
       return {};
     }
-    
+
     const patternUrl = `/assets/${selectedPattern}.png`;
-    const filterStyle = isLightTheme 
+    const filterStyle = isLightTheme
       ? 'grayscale(100%) brightness(1.4) contrast(0.8)' // Gris claro para modo claro
       : 'grayscale(100%) brightness(0.5) contrast(1.1)'; // Gris oscuro para modo oscuro
-    
+
     const opacity = isLightTheme ? '0.2' : '0.5'; // Más visible en modo oscuro
-    
+
     return {
       '--pattern-url': `url(${patternUrl})`,
       '--pattern-filter': filterStyle,
       '--pattern-opacity': opacity,
     };
   };
-  
+
   // Escuchar cambios de pattern desde ConfigPanel
   useEffect(() => {
     const handlePatternChange = (event) => {
       setSelectedPattern(event.detail);
     };
-    
+
     window.addEventListener('patternChanged', handlePatternChange);
     return () => window.removeEventListener('patternChanged', handlePatternChange);
   }, []);
-  
+
   // Usar setItemsByDate del ItemsContext para todo
   const setItemsByDateForDrop = setLocalItemsByDate || contextSetItemsByDate;
-  
+
+  const isSmallScreen = width <= 640;
+  const BORDER_WIDTH = 1;
+  // En fullboard mode, radio muy grande para permitir posicionamiento libre
+  const radius = fullboardMode ? 10000 : ((circleSize / 2) - BORDER_WIDTH);
+  const cx = fullboardMode ? 0 : (circleSize / 2);
+  const cy = fullboardMode ? 0 : (circleSize / 2);
+
   const {
     containerRef,
     rotationAngle,
@@ -98,7 +105,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     handleItemDrop,
     itemsByDate: hookItemsByDate,
     setItemsByDate: hookSetItemsByDate,
-  } = useCircleLargeLogic(selectedDay, onItemDrag);
+  } = useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScreen);
 
   useEffect(() => {
     // Sistema de tamaños responsivos para diferentes dispositivos
@@ -129,20 +136,13 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
 
     const newSize = calculateCircleSize(width);
     setCircleSize(newSize);
-    
+
     // Notificar al componente padre del nuevo tamaño
     onCircleSizeChange?.(newSize);
   }, [width, onCircleSizeChange]);
 
 
   const displayText = useDisplayText(selectedDay, displayOptions);
-
-  const isSmallScreen = width <= 640;
-  const BORDER_WIDTH = 1; 
-  // En fullboard mode, radio muy grande para permitir posicionamiento libre
-  const radius = fullboardMode ? 10000 : ((circleSize / 2) - BORDER_WIDTH); 
-  const cx = fullboardMode ? 0 : (circleSize / 2);
-  const cy = fullboardMode ? 0 : (circleSize / 2);
 
   // Usar items del ItemsContext (que maneja tanto servidor como local)
   const itemsForSelectedDay = selectedDay ? contextItemsByDate[formatDateKey(selectedDay)] || [] : [];

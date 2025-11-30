@@ -20,7 +20,7 @@ export function getAngleFromCenter(x, y, containerRef) {
   const rect = containerRef.current.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  const dx = x - cx;  
+  const dx = x - cx;
   const dy = y - cy;
   let angle = Math.atan2(dy, dx) * (180 / Math.PI);
   if (angle < 0) angle += 360;

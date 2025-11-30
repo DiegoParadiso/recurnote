@@ -2,13 +2,7 @@ import NoteItem from '@components/Circles/Items/NoteItem';
 import TaskItem from '@components/Circles/Items/Taskitem';
 import ArchiveItem from '@components/Circles/Items/ArchiveItem';
 import { limitPositionInsideScreen } from '@utils/helpers/geometry';
-
-// Función auxiliar para obtener dimensiones reales según el tipo de item
-const getItemDimensions = (item) => {
-  const width = item.width || (item.label === 'Tarea' ? 200 : (item.label === 'Nota' ? 169 : 110));
-  const height = item.height || (item.label === 'Tarea' ? 46 : (item.label === 'Nota' ? 100 : 110));
-  return { width, height };
-};
+import { getItemDimensions } from '@utils/helpers/itemHelpers';
 
 export default function ItemsOnCircle({
   items,
