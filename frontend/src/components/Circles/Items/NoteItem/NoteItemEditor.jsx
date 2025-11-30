@@ -59,22 +59,18 @@ export default function NoteItemEditor({
     const textarea = e.target;
 
     // Verificar si el nuevo contenido excede la altura del contenedor
-    const prevValue = textarea.value;
     const prevHeight = textarea.style.height;
 
     // Medir el nuevo contenido temporalmente
     textarea.style.height = 'auto';
-    textarea.value = newValue;
     const scrollHeight = textarea.scrollHeight;
 
-    // Si excede la altura máxima del contenedor, revertir
+    // Si excede la altura actual, solicitar cambio de altura
     if (scrollHeight > height) {
-      textarea.value = prevValue;
-      textarea.style.height = prevHeight;
-      return; // No actualizar si excede el límite
+      onHeightChange?.(scrollHeight);
     }
 
-    // Si cabe, actualizar
+    // Restaurar altura (el componente contenedor manejará el resize real)
     textarea.style.height = prevHeight;
     onUpdate?.(id, newValue);
 
@@ -202,6 +198,7 @@ export default function NoteItemEditor({
         }}
         onDoubleClick={() => {
           if (isMobile) return;
+          if (isEditing) return; // Allow default double-click behavior (select text) if already editing
           if (!isDragging) {
             startEditing();
             focusEditableTextarea();

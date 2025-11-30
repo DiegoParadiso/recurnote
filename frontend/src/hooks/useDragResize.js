@@ -12,7 +12,7 @@ export const useDragResize = ({
   maxHeight,
   circleCenter,
   maxRadius,
-  onMove, 
+  onMove,
   onResize,
   onDrag,
   onDrop,
@@ -90,13 +90,13 @@ export const useDragResize = ({
             { x: -halfW, y: halfH },
             { x: halfW, y: halfH }
           ];
-          return relCorners.map(({x:rx, y:ry}) => ({ x: x + rx, y: y + ry }));
+          return relCorners.map(({ x: rx, y: ry }) => ({ x: x + rx, y: y + ry }));
         }
         function todasAdentro(cx, cy, corners, radius) {
           return corners.every(c => {
             const dx = c.x - cx;
             const dy = c.y - cy;
-            return Math.sqrt(dx*dx + dy*dy) <= radius + 0.05;
+            return Math.sqrt(dx * dx + dy * dy) <= radius + 0.05;
           });
         }
         function limitarCentroByBiseccion(targetX, targetY, cx, cy, w, h, radius) {
@@ -105,7 +105,7 @@ export const useDragResize = ({
             return { x: targetX, y: targetY };
           }
           const vx = targetX - cx, vy = targetY - cy;
-          const dist = Math.sqrt(vx*vx + vy*vy);
+          const dist = Math.sqrt(vx * vx + vy * vy);
           if (dist === 0) return { x: cx, y: cy };
           let lo = 0, hi = dist, best = { x: cx, y: cy };
           for (let i = 0; i < 20; i++) {
@@ -148,13 +148,13 @@ export const useDragResize = ({
           // Determinar qué dimensión está cambiando más (en términos relativos)
           const widthChange = Math.abs(dx / resizeStartPos.current.width);
           const heightChange = Math.abs(dy / resizeStartPos.current.height);
-          
+
           if (widthChange > heightChange) {
             newHeight = newWidth / aspectRatio;
           } else {
             newWidth = newHeight * aspectRatio;
           }
-          
+
           if (newWidth > maxWidth) {
             newWidth = maxWidth;
             newHeight = newWidth / aspectRatio;
@@ -163,7 +163,7 @@ export const useDragResize = ({
             newHeight = maxHeight;
             newWidth = newHeight * aspectRatio;
           }
-          
+
           // Luego verificar límites mínimos
           if (newWidth < minWidth) {
             newWidth = minWidth;
@@ -173,7 +173,7 @@ export const useDragResize = ({
             newHeight = minHeight;
             newWidth = newHeight * aspectRatio;
           }
-          
+
           // Si después de aplicar mínimos, alguna dimensión quedó fuera de rango, ajustar
           if (newWidth > maxWidth) {
             newWidth = maxWidth;
@@ -197,14 +197,14 @@ export const useDragResize = ({
           const screenLimited = limitPositionInsideCircle(
             pos.x, pos.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
           );
-          
+
           // Si la posición cambió, ajustar el tamaño proporcionalmente
           if (screenLimited.x !== pos.x || screenLimited.y !== pos.y) {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
             const maxPossibleWidth = Math.min(newWidth, screenWidth - 16);
             const maxPossibleHeight = Math.min(newHeight, screenHeight - 16);
-            
+
             newWidth = maxPossibleWidth;
             newHeight = maxPossibleHeight;
           }
@@ -214,7 +214,7 @@ export const useDragResize = ({
           const { cx, cy } = circleCenter;
           const halfWidth = newWidth / 2;
           const halfHeight = newHeight / 2;
-          
+
           // Calcular las 4 esquinas del elemento con el nuevo tamaño
           const corners = [
             { x: pos.x - halfWidth, y: pos.y - halfHeight }, // Superior izquierda
@@ -222,7 +222,7 @@ export const useDragResize = ({
             { x: pos.x - halfWidth, y: pos.y + halfHeight }, // Inferior izquierda
             { x: pos.x + halfWidth, y: pos.y + halfHeight }  // Inferior derecha
           ];
-          
+
           // Verificar si alguna esquina está fuera del círculo
           let maxExcess = 0;
           for (const corner of corners) {
@@ -234,14 +234,14 @@ export const useDragResize = ({
               maxExcess = excess;
             }
           }
-          
+
           // Si hay exceso, reducir el tamaño proporcionalmente
           if (maxExcess > 0) {
             // Calcular el factor de escala necesario para que todas las esquinas estén dentro
             const currentMaxCornerDist = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
             const centerDist = Math.sqrt((pos.x - cx) ** 2 + (pos.y - cy) ** 2);
             const maxAllowedCornerDist = maxRadius - centerDist;
-            
+
             if (maxAllowedCornerDist > 0) {
               const scale = Math.min(1, maxAllowedCornerDist / currentMaxCornerDist);
               newWidth = Math.max(minWidth, newWidth * scale);
@@ -265,7 +265,12 @@ export const useDragResize = ({
       }
       if (isResizing.current) {
         // Asegurar que se conserve el último tamaño válido al finalizar
-        onResize?.({ width: sizeState.width, height: sizeState.height });
+        onResize?.({
+          width: sizeState.width,
+          height: sizeState.height,
+          x: pos.x,
+          y: pos.y,
+        });
       }
       isDragging.current = false;
       isResizing.current = false;

@@ -29,6 +29,7 @@ export default function TaskRow({
       style={{ height: taskHeight }}
       onDoubleClick={() => {
         if (isMobile) return;
+        if (editingInputs.has(index)) return; // Allow default double-click behavior (select text) if already editing
         if (!isDragging && !wasDraggingRef.current) {
           startEditing(index);
           focusEditableInput(index);
