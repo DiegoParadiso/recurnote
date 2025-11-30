@@ -18,13 +18,27 @@ export const useDragResize = ({
   onDrop,
   rotation,
   isSmallScreen = false,
-  aspectRatio = null, // Nuevo: relación de aspecto (width/height) para mantener durante resize
+  aspectRatio = null,
   fullboardMode = false,
 }) => {
   const isDragging = useRef(false);
   const isResizing = useRef(false);
   const dragStartPos = useRef({});
   const resizeStartPos = useRef({});
+
+  // Refs to hold latest values without triggering re-renders/effect cleanup
+  const posRef = useRef(pos);
+  const sizeRef = useRef(sizeState);
+  const rafRef = useRef(null);
+
+  // Update refs when props change
+  useEffect(() => {
+    posRef.current = pos;
+  }, [pos]);
+
+  useEffect(() => {
+    sizeRef.current = sizeState;
+  }, [sizeState]);
 
   useEffect(() => {
     const handleMove = (e) => {
@@ -33,7 +47,6 @@ export const useDragResize = ({
       if (e.touches && e.touches.length === 1) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
-        // Solo prevenir el comportamiento por defecto si realmente estamos haciendo drag
         if (isDragging.current || isResizing.current) {
           e.preventDefault();
         }
@@ -52,90 +65,91 @@ export const useDragResize = ({
         const correctedDx = dx * Math.cos(angle) + dy * Math.sin(angle);
         const correctedDy = -dx * Math.sin(angle) + dy * Math.cos(angle);
 
-        // ----- NUEVO: Limitar moviendo en el sistema desrotado -----
         const cx = circleCenter.cx;
         const cy = circleCenter.cy;
         let x0 = dragStartPos.current.x + correctedDx;
         let y0 = dragStartPos.current.y + correctedDy;
+
+        let finalPos;
+
         if (isSmallScreen || fullboardMode) {
-          // MOBILE o FULLBOARD: límite por pantalla, sin ningún círculo
           const limited = limitPositionInsideCircle(
             x0, y0,
-            sizeState.width, sizeState.height,
-            circleCenter, // param, pero limitPositionInsideCircle delega correctamente a limitPositionInsideScreen en mobile/fullboard
+            sizeRef.current.width, sizeRef.current.height,
+            circleCenter,
             maxRadius,
             isSmallScreen || fullboardMode
           );
-          setPos({ x: limited.x, y: limited.y });
-          onMove?.({ x: limited.x, y: limited.y });
-          onDrag?.({ x: limited.x, y: limited.y });
-          return;
-        }
-        // DESKTOP: sistema rotado robusto
-        // 1. Desrota la posición destino (aplica la inversa de la rotación CSS de CircleLarge)
-        const rotRad = (rotation || 0) * Math.PI / 180;
-        const relX = x0 - cx;
-        const relY = y0 - cy;
-        // Aplica la matriz inversa (rotar por -rotRad)
-        const desrotX = relX * Math.cos(-rotRad) - relY * Math.sin(-rotRad);
-        const desrotY = relX * Math.sin(-rotRad) + relY * Math.cos(-rotRad);
-        const posDesrotado = { x: cx + desrotX, y: cy + desrotY };
-        // 2. Limitar en el sistema original (NO rotado): aseguramos que todas las esquinas quedan dentro
-        // Usamos la función binaria robusta para ese sistema
-        function esquinasNoRotadas(cx, cy, x, y, w, h) {
-          const halfW = w / 2, halfH = h / 2;
-          const relCorners = [
-            { x: -halfW, y: -halfH },
-            { x: halfW, y: -halfH },
-            { x: -halfW, y: halfH },
-            { x: halfW, y: halfH }
-          ];
-          return relCorners.map(({ x: rx, y: ry }) => ({ x: x + rx, y: y + ry }));
-        }
-        function todasAdentro(cx, cy, corners, radius) {
-          return corners.every(c => {
-            const dx = c.x - cx;
-            const dy = c.y - cy;
-            return Math.sqrt(dx * dx + dy * dy) <= radius + 0.05;
-          });
-        }
-        function limitarCentroByBiseccion(targetX, targetY, cx, cy, w, h, radius) {
-          let corners = esquinasNoRotadas(cx, cy, targetX, targetY, w, h);
-          if (todasAdentro(cx, cy, corners, radius)) {
-            return { x: targetX, y: targetY };
+          finalPos = { x: limited.x, y: limited.y };
+        } else {
+          const rotRad = (rotation || 0) * Math.PI / 180;
+          const relX = x0 - cx;
+          const relY = y0 - cy;
+          const desrotX = relX * Math.cos(-rotRad) - relY * Math.sin(-rotRad);
+          const desrotY = relX * Math.sin(-rotRad) + relY * Math.cos(-rotRad);
+          const posDesrotado = { x: cx + desrotX, y: cy + desrotY };
+
+          function esquinasNoRotadas(cx, cy, x, y, w, h) {
+            const halfW = w / 2, halfH = h / 2;
+            const relCorners = [
+              { x: -halfW, y: -halfH },
+              { x: halfW, y: -halfH },
+              { x: -halfW, y: halfH },
+              { x: halfW, y: halfH }
+            ];
+            return relCorners.map(({ x: rx, y: ry }) => ({ x: x + rx, y: y + ry }));
           }
-          const vx = targetX - cx, vy = targetY - cy;
-          const dist = Math.sqrt(vx * vx + vy * vy);
-          if (dist === 0) return { x: cx, y: cy };
-          let lo = 0, hi = dist, best = { x: cx, y: cy };
-          for (let i = 0; i < 20; i++) {
-            const m = (lo + hi) / 2;
-            const testX = cx + (vx / dist) * m;
-            const testY = cy + (vy / dist) * m;
-            const cornersTest = esquinasNoRotadas(cx, cy, testX, testY, w, h);
-            if (todasAdentro(cx, cy, cornersTest, radius)) {
-              best = { x: testX, y: testY };
-              lo = m;
-            } else {
-              hi = m;
+          function todasAdentro(cx, cy, corners, radius) {
+            return corners.every(c => {
+              const dx = c.x - cx;
+              const dy = c.y - cy;
+              return Math.sqrt(dx * dx + dy * dy) <= radius + 0.05;
+            });
+          }
+          function limitarCentroByBiseccion(targetX, targetY, cx, cy, w, h, radius) {
+            let corners = esquinasNoRotadas(cx, cy, targetX, targetY, w, h);
+            if (todasAdentro(cx, cy, corners, radius)) {
+              return { x: targetX, y: targetY };
             }
+            const vx = targetX - cx, vy = targetY - cy;
+            const dist = Math.sqrt(vx * vx + vy * vy);
+            if (dist === 0) return { x: cx, y: cy };
+            let lo = 0, hi = dist, best = { x: cx, y: cy };
+            for (let i = 0; i < 20; i++) {
+              const m = (lo + hi) / 2;
+              const testX = cx + (vx / dist) * m;
+              const testY = cy + (vy / dist) * m;
+              const cornersTest = esquinasNoRotadas(cx, cy, testX, testY, w, h);
+              if (todasAdentro(cx, cy, cornersTest, radius)) {
+                best = { x: testX, y: testY };
+                lo = m;
+              } else {
+                hi = m;
+              }
+            }
+            return best;
           }
-          return best;
+          const posLimitOrig = limitarCentroByBiseccion(
+            posDesrotado.x, posDesrotado.y,
+            cx, cy,
+            sizeRef.current.width, sizeRef.current.height,
+            maxRadius
+          );
+
+          const limRelX = posLimitOrig.x - cx;
+          const limRelY = posLimitOrig.y - cy;
+          const xFinal = cx + (limRelX * Math.cos(rotRad) - limRelY * Math.sin(rotRad));
+          const yFinal = cy + (limRelX * Math.sin(rotRad) + limRelY * Math.cos(rotRad));
+          finalPos = { x: xFinal, y: yFinal };
         }
-        const posLimitOrig = limitarCentroByBiseccion(
-          posDesrotado.x, posDesrotado.y,
-          cx, cy,
-          sizeState.width, sizeState.height,
-          maxRadius
-        );
-        // 3. Rota el resultado limitado de vuelta al sistema visual
-        const limRelX = posLimitOrig.x - cx;
-        const limRelY = posLimitOrig.y - cy;
-        const xFinal = cx + (limRelX * Math.cos(rotRad) - limRelY * Math.sin(rotRad));
-        const yFinal = cy + (limRelX * Math.sin(rotRad) + limRelY * Math.cos(rotRad));
-        setPos({ x: xFinal, y: yFinal });
-        onMove?.({ x: xFinal, y: yFinal });
-        onDrag?.({ x: xFinal, y: yFinal });
+
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(() => {
+          setPos(finalPos);
+          onMove?.(finalPos);
+          onDrag?.(finalPos);
+        });
+
       } else if (isResizing.current) {
         const dx = clientX - resizeStartPos.current.mouseX;
         const dy = clientY - resizeStartPos.current.mouseY;
@@ -143,9 +157,7 @@ export const useDragResize = ({
         let newWidth = resizeStartPos.current.width + dx;
         let newHeight = resizeStartPos.current.height + dy;
 
-        // Si hay aspect ratio definido, mantenerlo durante el resize
         if (aspectRatio && aspectRatio > 0) {
-          // Determinar qué dimensión está cambiando más (en términos relativos)
           const widthChange = Math.abs(dx / resizeStartPos.current.width);
           const heightChange = Math.abs(dy / resizeStartPos.current.height);
 
@@ -164,7 +176,6 @@ export const useDragResize = ({
             newWidth = newHeight * aspectRatio;
           }
 
-          // Luego verificar límites mínimos
           if (newWidth < minWidth) {
             newWidth = minWidth;
             newHeight = newWidth / aspectRatio;
@@ -174,7 +185,6 @@ export const useDragResize = ({
             newWidth = newHeight * aspectRatio;
           }
 
-          // Si después de aplicar mínimos, alguna dimensión quedó fuera de rango, ajustar
           if (newWidth > maxWidth) {
             newWidth = maxWidth;
             newHeight = newWidth / aspectRatio;
@@ -184,22 +194,18 @@ export const useDragResize = ({
             newWidth = newHeight * aspectRatio;
           }
         } else {
-          // Sin aspect ratio, aplicar límites directamente
           newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
           newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
         }
 
-        // Detectar si estamos agrandando o achicando
-        const isGrowing = newWidth > sizeState.width || newHeight > sizeState.height;
+        const isGrowing = newWidth > sizeRef.current.width || newHeight > sizeRef.current.height;
 
-        // Para mobile o fullboard, usar límites de pantalla
         if (isSmallScreen || fullboardMode) {
           const screenLimited = limitPositionInsideCircle(
-            pos.x, pos.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
+            posRef.current.x, posRef.current.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
           );
 
-          // Si la posición cambió, ajustar el tamaño proporcionalmente
-          if (screenLimited.x !== pos.x || screenLimited.y !== pos.y) {
+          if (screenLimited.x !== posRef.current.x || screenLimited.y !== posRef.current.y) {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
             const maxPossibleWidth = Math.min(newWidth, screenWidth - 16);
@@ -209,21 +215,17 @@ export const useDragResize = ({
             newHeight = maxPossibleHeight;
           }
         } else if (isGrowing) {
-          // Para desktop, solo verificar límites del círculo cuando estamos AGRANDANDO
-          // Si estamos achicando, permitir siempre (nunca se saldrá del círculo al achicar)
           const { cx, cy } = circleCenter;
           const halfWidth = newWidth / 2;
           const halfHeight = newHeight / 2;
 
-          // Calcular las 4 esquinas del elemento con el nuevo tamaño
           const corners = [
-            { x: pos.x - halfWidth, y: pos.y - halfHeight }, // Superior izquierda
-            { x: pos.x + halfWidth, y: pos.y - halfHeight }, // Superior derecha
-            { x: pos.x - halfWidth, y: pos.y + halfHeight }, // Inferior izquierda
-            { x: pos.x + halfWidth, y: pos.y + halfHeight }  // Inferior derecha
+            { x: posRef.current.x - halfWidth, y: posRef.current.y - halfHeight },
+            { x: posRef.current.x + halfWidth, y: posRef.current.y - halfHeight },
+            { x: posRef.current.x - halfWidth, y: posRef.current.y + halfHeight },
+            { x: posRef.current.x + halfWidth, y: posRef.current.y + halfHeight }
           ];
 
-          // Verificar si alguna esquina está fuera del círculo
           let maxExcess = 0;
           for (const corner of corners) {
             const cornerDx = corner.x - cx;
@@ -235,11 +237,9 @@ export const useDragResize = ({
             }
           }
 
-          // Si hay exceso, reducir el tamaño proporcionalmente
           if (maxExcess > 0) {
-            // Calcular el factor de escala necesario para que todas las esquinas estén dentro
             const currentMaxCornerDist = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
-            const centerDist = Math.sqrt((pos.x - cx) ** 2 + (pos.y - cy) ** 2);
+            const centerDist = Math.sqrt((posRef.current.x - cx) ** 2 + (posRef.current.y - cy) ** 2);
             const maxAllowedCornerDist = maxRadius - centerDist;
 
             if (maxAllowedCornerDist > 0) {
@@ -247,33 +247,35 @@ export const useDragResize = ({
               newWidth = Math.max(minWidth, newWidth * scale);
               newHeight = Math.max(minHeight, newHeight * scale);
             } else {
-              // Si el centro está muy cerca del borde, usar tamaños mínimos
               newWidth = minWidth;
               newHeight = minHeight;
             }
           }
         }
 
-        setSizeState({ width: newWidth, height: newHeight });
-        onResize?.({ width: newWidth, height: newHeight });
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(() => {
+          setSizeState({ width: newWidth, height: newHeight });
+          onResize?.({ width: newWidth, height: newHeight });
+        });
       }
     };
 
     const onEnd = () => {
       if (isDragging.current) {
-        onDrop?.(); // avisar que terminó el drag
+        onDrop?.();
       }
       if (isResizing.current) {
-        // Asegurar que se conserve el último tamaño válido al finalizar
         onResize?.({
-          width: sizeState.width,
-          height: sizeState.height,
-          x: pos.x,
-          y: pos.y,
+          width: sizeRef.current.width,
+          height: sizeRef.current.height,
+          x: posRef.current.x,
+          y: posRef.current.y,
         });
       }
       isDragging.current = false;
       isResizing.current = false;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
 
     window.addEventListener('mousemove', handleMove);
@@ -290,10 +292,10 @@ export const useDragResize = ({
       window.removeEventListener('touchmove', handleMove);
       window.removeEventListener('touchend', onEnd);
       window.removeEventListener('touchcancel', onEnd);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [
-    pos,
-    sizeState,
+    // Removed pos and sizeState from dependencies
     minWidth,
     minHeight,
     maxWidth,
@@ -306,7 +308,8 @@ export const useDragResize = ({
     onDrop,
     isSmallScreen,
     rotation,
-    aspectRatio
+    aspectRatio,
+    fullboardMode
   ]);
 
   return {
