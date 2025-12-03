@@ -27,14 +27,14 @@ export default function MonthHeader({ date, position, onClick, isDragging = fals
   const positionsStyles = {
     previous: {
       top: '40%',
-      opacity: isDragging ? 0.2 : 0.35,
+      opacity: isDragging ? 0.2 : 0.6,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
       transform: 'translateX(-50%)',
     },
     next: {
       top: '55%',
-      opacity: isDragging ? 0.2 : 0.35,
+      opacity: isDragging ? 0.2 : 0.6,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
       transform: 'translateX(-50%)',
@@ -56,9 +56,9 @@ export default function MonthHeader({ date, position, onClick, isDragging = fals
   };
 
   return (
-    <h2 
+    <h2
       className={`month-header ${position}`}
-      style={style} 
+      style={style}
       onClick={(e) => {
         if (!isDragging && onClick) {
           onClick();

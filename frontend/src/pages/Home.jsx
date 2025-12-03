@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { DateTime } from 'luxon';
-import { useTranslation } from 'react-i18next'; 
+import { useTranslation } from 'react-i18next';
 import CircleLarge from '@components/Circles/CircleLarge/CircleLarge';
 import CircleSmall from '@components/Circles/CircleSmall/CircleSmall';
 import SidebarDayView from '@components/layout/Sidebars/SidebarDayView/SidebarDayView';
@@ -15,7 +15,7 @@ import { useHomeLogic } from '@hooks/useHomeLogic';
 import DesktopSidebarToggles from '@components/common/DesktopSidebarToggles';
 import WithContextMenu from '@components/common/WithContextMenu';
 import MobileBottomControls from '@components/common/MobileBottomControls';
-import DragTrashZone from '@components/common/DragTrashZone'; 
+import DragTrashZone from '@components/common/DragTrashZone';
 import RightSidebarOverlay from '@components/common/RightSidebarOverlay';
 import { useItems } from '@context/ItemsContext';
 import { useAuth } from '@context/AuthContext';
@@ -81,7 +81,7 @@ export default function Home() {
     toast,
     draggedItem,
     setDraggedItem,
-    itemsByDate: combinedItemsByDate, 
+    itemsByDate: combinedItemsByDate,
     errorToast,
     setErrorToast,
   } = useHomeLogic();
@@ -100,7 +100,7 @@ export default function Home() {
   } = useSidebarLayout(selectedDay, isMobile);
 
   const dateKey = selectedDay ? DateTime.fromObject(selectedDay).toISODate() : null;
-  
+
   // Definir fullboardMode antes de usarlo en useEffects
   const fullboardMode = displayOptions?.fullboardMode && !isMobile;
 
@@ -256,12 +256,12 @@ export default function Home() {
         activeElement.contentEditable === 'true' ||
         activeElement.isContentEditable
       );
-      
+
       // Si está editando, permitir todas las teclas
       if (isEditable) {
         return;
       }
-      
+
       // Bloquear flechas, space, PageUp/PageDown, Home/End solo cuando NO se está editando
       const keys = [
         'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
@@ -282,34 +282,34 @@ export default function Home() {
       className={`home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
     >
       {isMobile && (
-        <div 
+        <div
           className="fixed top-3 left-0 right-0 sm:hidden flex justify-between items-center px-4"
           style={{
             zIndex: draggedItem ? 'var(--z-base)' : 'var(--z-mid)',
-            pointerEvents: 'none', 
+            pointerEvents: 'none',
             opacity: draggedItem ? 0 : 1,
             transition: 'opacity 0.2s ease'
           }}
         >
-          <div 
-            className="w-10 h-10 flex items-center justify-center" 
+          <div
+            className="w-10 h-10 flex items-center justify-center"
             aria-label="Mostrar configuración móvil"
             style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
           >
             <ConfigButton onToggle={() => setShowConfig(v => !v)} />
           </div>
-          <div 
-            className="w-10 h-10 flex items-center justify-center" 
+          <div
+            className="w-10 h-10 flex items-center justify-center"
             aria-label="Recargar items"
             style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
           >
-            <RefreshButton 
+            <RefreshButton
               onClick={refreshItems}
               loading={syncStatus === 'syncing'}
             />
           </div>
-          <div 
-            className="w-10 h-10 flex items-center justify-center" 
+          <div
+            className="w-10 h-10 flex items-center justify-center"
             aria-label="Toggle tema oscuro móvil"
             style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
           >
@@ -334,14 +334,14 @@ export default function Home() {
           <ThemeToggle />
         </div>
         <div className="w-10 h-10 flex items-center justify-center">
-          <RefreshButton 
+          <RefreshButton
             onClick={refreshItems}
             loading={syncStatus === 'syncing'}
             isDesktop={true}
           />
         </div>
       </div>
-      
+
       {!isMobile && (
         <>
           {isLeftSidebarPinned ? (
@@ -358,16 +358,16 @@ export default function Home() {
                   top: (leftSidebarPos.y ?? (window.innerHeight - 450) / 2),
                 }}
               >
-                <CurvedSidebar 
-                  showConfig={showConfig} 
+                <CurvedSidebar
+                  showConfig={showConfig}
                   onSelectItem={handleSelectItemLocal}
                   isLeftSidebarPinned={true}
                 />
               </div>
             </WithContextMenu>
           ) : (
-            <CurvedSidebar 
-              showConfig={showConfig} 
+            <CurvedSidebar
+              showConfig={showConfig}
               onSelectItem={handleSelectItemLocal}
               onHover={handleLeftSidebarHover}
               isLeftSidebarPinned={false}
@@ -391,7 +391,7 @@ export default function Home() {
 
       {/* Indicador de error para items con reintento automático */}
       {itemsError && (
-        <div 
+        <div
           className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
           style={{
             pointerEvents: draggedItem && isMobile ? 'none' : 'auto'
@@ -412,7 +412,7 @@ export default function Home() {
       )}
 
       {/* Contenido principal */}
-      <div
+      <main
         className={`relative flex items-center justify-center circle-large-wrapper ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
         style={{
           width: (isMobile || displayOptions?.fullboardMode) ? '100vw' : 'auto',
@@ -473,95 +473,103 @@ export default function Home() {
             {showSmall ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         )}
-      </div>
+      </main>
 
       {/* CircleSmall draggable global en Desktop */}
-      {!isMobile && showSmall && circleSmallPos.x != null && circleSmallPos.y != null && (
-        <CircleSmallWithContextMenu
-          onResetPosition={resetCircleSmallToDefault}
-          onHide={() => setShowSmall(false)}
-        >
-          <div
-            className="home-circlesmall-fixed"
-            onMouseDownCapture={onCircleSmallMouseDown}
-            onDoubleClick={onCircleSmallDoubleClick}
-            style={{
-              left: circleSmallPos.x,
-              top: circleSmallPos.y,
-              width: smallSize,
-              height: smallSize,
-            }}
+      {
+        !isMobile && showSmall && circleSmallPos.x != null && circleSmallPos.y != null && (
+          <CircleSmallWithContextMenu
+            onResetPosition={resetCircleSmallToDefault}
+            onHide={() => setShowSmall(false)}
           >
-            <CircleSmall
-              onDayClick={setSelectedDay}
-              isSmallScreen={false}
-              selectedDay={selectedDay}
-              setSelectedDay={setSelectedDay}
-              size={smallSize}
-            />
-          </div>
-        </CircleSmallWithContextMenu>
-      )}
-
-      {!isMobile && (
-        <>
-          {isRightSidebarPinned ? (
-            // Fijado siempre visible lado derecho
-            <WithContextMenu
-              extraOptions={[{ label: (<span>{t('sidebar.hide')}</span>), onClick: () => setIsRightSidebarPinned(false) }]}
+            <div
+              className="home-circlesmall-fixed"
+              onMouseDownCapture={onCircleSmallMouseDown}
+              onDoubleClick={onCircleSmallDoubleClick}
+              style={{
+                left: circleSmallPos.x,
+                top: circleSmallPos.y,
+                width: smallSize,
+                height: smallSize,
+              }}
             >
-              <div className="hidden sm:block home-right-sidebar-panel">
+              <CircleSmall
+                onDayClick={setSelectedDay}
+                isSmallScreen={false}
+                selectedDay={selectedDay}
+                setSelectedDay={setSelectedDay}
+                size={smallSize}
+              />
+            </div>
+          </CircleSmallWithContextMenu>
+        )
+      }
+
+      {
+        !isMobile && (
+          <>
+            {isRightSidebarPinned ? (
+              // Fijado siempre visible lado derecho
+              <WithContextMenu
+                extraOptions={[{ label: (<span>{t('sidebar.hide')}</span>), onClick: () => setIsRightSidebarPinned(false) }]}
+              >
+                <div className="hidden sm:block home-right-sidebar-panel">
+                  <SidebarDayView
+                    selectedDay={selectedDay}
+                    setSelectedDay={setSelectedDay}
+                    showRightSidebar={true}
+                    isRightSidebarPinned={isRightSidebarPinned}
+                  />
+                </div>
+              </WithContextMenu>
+            ) : (
+              // Sidebar derecho con hover nativo (sin menú contextual)
+              <div
+                className="hidden sm:block home-right-sidebar-fixed"
+              >
                 <SidebarDayView
                   selectedDay={selectedDay}
                   setSelectedDay={setSelectedDay}
-                  showRightSidebar={true}
-                  isRightSidebarPinned={isRightSidebarPinned}
+                  showRightSidebar={showRightSidebar}
+                  isRightSidebarPinned={false}
+                  isMobile={isMobile}
+                  onHover={handleRightSidebarHover}
                 />
               </div>
-            </WithContextMenu>
-          ) : (
-            // Sidebar derecho con hover nativo (sin menú contextual)
-            <div
-              className="hidden sm:block home-right-sidebar-fixed"
-            >
-              <SidebarDayView
-                selectedDay={selectedDay}
-                setSelectedDay={setSelectedDay}
-                showRightSidebar={showRightSidebar}
-                isRightSidebarPinned={false}
-                isMobile={isMobile}
-                onHover={handleRightSidebarHover}
-              />
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )
+      }
 
       {/* Sidebar derecho móvil */}
-      {showRightSidebarMobile && isMobile && (
-        <RightSidebarOverlay>
-          <SidebarDayView
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-            showRightSidebar={showRightSidebarMobile}
-            isMobile={true}
-            onClose={() => setShowRightSidebarMobile(false)}
-            setShowSmall={setShowSmall}
-          />
-        </RightSidebarOverlay>
-      )}
+      {
+        showRightSidebarMobile && isMobile && (
+          <RightSidebarOverlay>
+            <SidebarDayView
+              selectedDay={selectedDay}
+              setSelectedDay={setSelectedDay}
+              showRightSidebar={showRightSidebarMobile}
+              isMobile={true}
+              onClose={() => setShowRightSidebarMobile(false)}
+              setShowSmall={setShowSmall}
+            />
+          </RightSidebarOverlay>
+        )
+      }
 
       {/* Desktop Sidebar Toggles - Pegados a los bordes */}
-      {!isMobile && (
-        <DesktopSidebarToggles
-          onToggleLeft={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}
-          onToggleRight={() => setIsRightSidebarPinned(!isRightSidebarPinned)}
-          isLeftSidebarPinned={isLeftSidebarPinned}
-          isRightSidebarPinned={isRightSidebarPinned}
-          draggedItem={draggedItem}
-          fullboardMode={fullboardMode}
-        />
-      )}
+      {
+        !isMobile && (
+          <DesktopSidebarToggles
+            onToggleLeft={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}
+            onToggleRight={() => setIsRightSidebarPinned(!isRightSidebarPinned)}
+            isLeftSidebarPinned={isLeftSidebarPinned}
+            isRightSidebarPinned={isRightSidebarPinned}
+            draggedItem={draggedItem}
+            fullboardMode={fullboardMode}
+          />
+        )
+      }
 
       {/* Panel de configuración */}
       <ConfigPanel
@@ -578,34 +586,36 @@ export default function Home() {
       />
 
       {/* Papelera DragTrashZone SOLO en mobile y si hay draggedItem */}
-      {isMobile && (
-        <DragTrashZone 
-          isActive={!!draggedItem} 
-          isOverTrash={isOverTrash}
-          onItemDrop={async () => {
-            
-            if (draggedItem && isOverTrash) {
-              try {
-                // Si el id es numérico, borrar en backend
-                const numericId = Number(draggedItem.id);
-                if (Number.isFinite(numericId)) {
-                  await deleteItem(numericId);
-                }
-                
-                setToast(t('alerts.itemDeleted'));
-                              } catch (error) {
+      {
+        isMobile && (
+          <DragTrashZone
+            isActive={!!draggedItem}
+            isOverTrash={isOverTrash}
+            onItemDrop={async () => {
+
+              if (draggedItem && isOverTrash) {
+                try {
+                  // Si el id es numérico, borrar en backend
+                  const numericId = Number(draggedItem.id);
+                  if (Number.isFinite(numericId)) {
+                    await deleteItem(numericId);
+                  }
+
+                  setToast(t('alerts.itemDeleted'));
+                } catch (error) {
                   setToast(t('alerts.itemDeleteError'));
                 }
-            } else {
-            }
-            
-            // SIEMPRE limpiar estados cuando se suelta un item
-            setDraggedItem(null);
-            setIsOverTrash(false);
-          }}
-          draggedItem={draggedItem}
-        />
-      )}
+              } else {
+              }
+
+              // SIEMPRE limpiar estados cuando se suelta un item
+              setDraggedItem(null);
+              setIsOverTrash(false);
+            }}
+            draggedItem={draggedItem}
+          />
+        )
+      }
 
       {/* Controles inferiores móviles */}
       <MobileBottomControls
@@ -621,53 +631,55 @@ export default function Home() {
       />
 
       {/* Indicador de usuario local */}
-      <LocalUserIndicator 
+      <LocalUserIndicator
         showAccountIndicator={displayOptions.showAccountIndicator !== false}
         fullboardMode={displayOptions?.fullboardMode}
       />
-      
+
       {/* Handler de migración local */}
       <LocalMigrationHandler />
 
       {/* BottomToast global */}
-        <BottomToast message={toast} onClose={() => setToast('')} />
+      <BottomToast message={toast} onClose={() => setToast('')} />
 
-        {/* BottomToast para errores */}
-        <BottomToast message={errorToast} onClose={() => setErrorToast('')} duration={5000} />
+      {/* BottomToast para errores */}
+      <BottomToast message={errorToast} onClose={() => setErrorToast('')} duration={5000} />
 
       {/* Modal de confirmación para eliminar item en mobile */}
-      {itemToDelete && isMobile && (
-        <div
-          className="fixed inset-0 bg-black/30 flex items-center justify-center z-[10000]"
-          onClick={cancelDeleteItem}
-        >
+      {
+        itemToDelete && isMobile && (
           <div
-            className="bg-[var(--color-bg)] rounded-lg p-6 max-w-md mx-4 border border-[var(--color-text-secondary)]"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-[10000]"
+            onClick={cancelDeleteItem}
           >
-            <h3 className="text-lg font-semibold mb-3 text-[var(--color-text-primary)]">
-              {t('alerts.confirmDelete')}
-            </h3>
-            <p className="text-sm text-[var(--color-muted)] mb-4">
-              {t('alerts.confirmDeleteMessage')}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={cancelDeleteItem}
-                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-2)] transition-colors border border-[var(--color-neutral-dark)]"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={confirmDeleteItem}
-                className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral-darker)] text-white hover:opacity-90 transition-opacity"
-              >
-                {t('common.delete')}
-              </button>
+            <div
+              className="bg-[var(--color-bg)] rounded-lg p-6 max-w-md mx-4 border border-[var(--color-text-secondary)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-3 text-[var(--color-text-primary)]">
+                {t('alerts.confirmDelete')}
+              </h3>
+              <p className="text-sm text-[var(--color-muted)] mb-4">
+                {t('alerts.confirmDeleteMessage')}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelDeleteItem}
+                  className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-2)] transition-colors border border-[var(--color-neutral-dark)]"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={confirmDeleteItem}
+                  className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral-darker)] text-white hover:opacity-90 transition-opacity"
+                >
+                  {t('common.delete')}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      </div>
-    );
+        )
+      }
+    </div >
+  );
 }

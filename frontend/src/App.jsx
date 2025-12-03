@@ -1,15 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from '@pages/Home';
-import Login from '@pages/Auth/Login';
-import ForgotPassword from '@pages/Auth/ForgotPassword';
-import ResetPassword from '@pages/Auth/ResetPassword';
-import Register from '@pages/Auth/Register';
-import VerifyEmail from '@pages/Auth/VerifyEmail';
-import Terms from '@pages/Legal/Terms';
-import Privacy from '@pages/Legal/Privacy';
-import NotFound from '@pages/NotFound';
-import RequestTimeout from '@pages/RequestTimeout';
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { useItems } from '@context/ItemsContext';
 import i18n from './i18n/index.js';
 import { ItemsProvider } from '@context/ItemsContext';
@@ -18,38 +8,52 @@ import { NotesProvider } from '@context/NotesContext';
 import { AuthProvider } from '@context/AuthContext';
 import PrivateRoute from './PrivateRoute';
 
+// Lazy load pages
+const Home = lazy(() => import('@pages/Home'));
+const Login = lazy(() => import('@pages/Auth/Login'));
+const ForgotPassword = lazy(() => import('@pages/Auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('@pages/Auth/ResetPassword'));
+const Register = lazy(() => import('@pages/Auth/Register'));
+const VerifyEmail = lazy(() => import('@pages/Auth/VerifyEmail'));
+const Terms = lazy(() => import('@pages/Legal/Terms'));
+const Privacy = lazy(() => import('@pages/Legal/Privacy'));
+const NotFound = lazy(() => import('@pages/NotFound'));
+const RequestTimeout = lazy(() => import('@pages/RequestTimeout'));
+
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Ruta pública para Home */}
-      <Route path="/" element={<Home />} />
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"></div>}>
+      <Routes>
+        {/* Ruta pública para Home */}
+        <Route path="/" element={<Home />} />
 
-      {/* Rutas de autenticación */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+        {/* Rutas de autenticación */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Rutas legales */}
-      <Route path="/terms" element={<Terms />} />
-      <Route path="/privacy" element={<Privacy />} />
+        {/* Rutas legales */}
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
 
-      {/* Rutas privadas, por ejemplo un dashboard, perfil, etc */}
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-          </PrivateRoute>
-        }
-      />
+        {/* Rutas privadas, por ejemplo un dashboard, perfil, etc */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+            </PrivateRoute>
+          }
+        />
 
-      {/* 408 Request Timeout */}
-      <Route path="/408" element={<RequestTimeout />} />
+        {/* 408 Request Timeout */}
+        <Route path="/408" element={<RequestTimeout />} />
 
-      {/* Ruta catch-all - 404 Not Found */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* Ruta catch-all - 404 Not Found */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 
