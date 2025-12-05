@@ -154,6 +154,11 @@ export const useDragResize = ({
         const dx = clientX - resizeStartPos.current.mouseX;
         const dy = clientY - resizeStartPos.current.mouseY;
 
+        // Calculate rotation constants early
+        const rotRad = ((resizeStartPos.current.rotation || 0) * Math.PI) / 180;
+        const cos = Math.cos(rotRad);
+        const sin = Math.sin(rotRad);
+
         let newWidth = resizeStartPos.current.width + dx;
         let newHeight = resizeStartPos.current.height + dy;
 
@@ -198,14 +203,22 @@ export const useDragResize = ({
           newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
         }
 
+        // Calculate tentative position based on tentative size
+        let deltaW = newWidth - resizeStartPos.current.width;
+        let deltaH = newHeight - resizeStartPos.current.height;
+        let deltaX = (deltaW / 2) * cos - (deltaH / 2) * sin;
+        let deltaY = (deltaW / 2) * sin + (deltaH / 2) * cos;
+        let newX = resizeStartPos.current.x + deltaX;
+        let newY = resizeStartPos.current.y + deltaY;
+
         const isGrowing = newWidth > sizeRef.current.width || newHeight > sizeRef.current.height;
 
         if (isSmallScreen || fullboardMode) {
           const screenLimited = limitPositionInsideCircle(
-            posRef.current.x, posRef.current.y, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
+            newX, newY, newWidth, newHeight, circleCenter, maxRadius, isSmallScreen || fullboardMode
           );
 
-          if (screenLimited.x !== posRef.current.x || screenLimited.y !== posRef.current.y) {
+          if (screenLimited.x !== newX || screenLimited.y !== newY) {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
             const maxPossibleWidth = Math.min(newWidth, screenWidth - 16);
@@ -213,6 +226,14 @@ export const useDragResize = ({
 
             newWidth = maxPossibleWidth;
             newHeight = maxPossibleHeight;
+
+            // Recalculate position for clamped size
+            deltaW = newWidth - resizeStartPos.current.width;
+            deltaH = newHeight - resizeStartPos.current.height;
+            deltaX = (deltaW / 2) * cos - (deltaH / 2) * sin;
+            deltaY = (deltaW / 2) * sin + (deltaH / 2) * cos;
+            newX = resizeStartPos.current.x + deltaX;
+            newY = resizeStartPos.current.y + deltaY;
           }
         } else if (isGrowing) {
           const { cx, cy } = circleCenter;
@@ -220,10 +241,10 @@ export const useDragResize = ({
           const halfHeight = newHeight / 2;
 
           const corners = [
-            { x: posRef.current.x - halfWidth, y: posRef.current.y - halfHeight },
-            { x: posRef.current.x + halfWidth, y: posRef.current.y - halfHeight },
-            { x: posRef.current.x - halfWidth, y: posRef.current.y + halfHeight },
-            { x: posRef.current.x + halfWidth, y: posRef.current.y + halfHeight }
+            { x: newX - halfWidth, y: newY - halfHeight },
+            { x: newX + halfWidth, y: newY - halfHeight },
+            { x: newX - halfWidth, y: newY + halfHeight },
+            { x: newX + halfWidth, y: newY + halfHeight }
           ];
 
           let maxExcess = 0;
@@ -238,25 +259,72 @@ export const useDragResize = ({
           }
 
           if (maxExcess > 0) {
-            const currentMaxCornerDist = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
-            const centerDist = Math.sqrt((posRef.current.x - cx) ** 2 + (posRef.current.y - cy) ** 2);
-            const maxAllowedCornerDist = maxRadius - centerDist;
+            // Binary search for the limit to avoid shrinking
+            // We want to find t in [0, 1] such that start + delta*t is valid
+            let low = 0;
+            let high = 1;
+            let bestT = 0;
 
-            if (maxAllowedCornerDist > 0) {
-              const scale = Math.min(1, maxAllowedCornerDist / currentMaxCornerDist);
-              newWidth = Math.max(minWidth, newWidth * scale);
-              newHeight = Math.max(minHeight, newHeight * scale);
-            } else {
-              newWidth = minWidth;
-              newHeight = minHeight;
+            // 6 iterations gives enough precision
+            for (let i = 0; i < 6; i++) {
+              const t = (low + high) / 2;
+
+              const candW = resizeStartPos.current.width + (newWidth - resizeStartPos.current.width) * t;
+              const candH = resizeStartPos.current.height + (newHeight - resizeStartPos.current.height) * t;
+
+              const candDeltaW = candW - resizeStartPos.current.width;
+              const candDeltaH = candH - resizeStartPos.current.height;
+              const candDeltaX = (candDeltaW / 2) * cos - (candDeltaH / 2) * sin;
+              const candDeltaY = (candDeltaW / 2) * sin + (candDeltaH / 2) * cos;
+
+              const candX = resizeStartPos.current.x + candDeltaX;
+              const candY = resizeStartPos.current.y + candDeltaY;
+
+              const halfW = candW / 2;
+              const halfH = candH / 2;
+              const candCorners = [
+                { x: candX - halfW, y: candY - halfH },
+                { x: candX + halfW, y: candY - halfH },
+                { x: candX - halfW, y: candY + halfH },
+                { x: candX + halfW, y: candY + halfH }
+              ];
+
+              let valid = true;
+              for (const c of candCorners) {
+                if ((c.x - cx) ** 2 + (c.y - cy) ** 2 > maxRadius ** 2) {
+                  valid = false;
+                  break;
+                }
+              }
+
+              if (valid) {
+                bestT = t;
+                low = t;
+              } else {
+                high = t;
+              }
             }
+
+            // Apply bestT
+            newWidth = resizeStartPos.current.width + (newWidth - resizeStartPos.current.width) * bestT;
+            newHeight = resizeStartPos.current.height + (newHeight - resizeStartPos.current.height) * bestT;
+
+            // Recalculate position for clamped size
+            deltaW = newWidth - resizeStartPos.current.width;
+            deltaH = newHeight - resizeStartPos.current.height;
+            deltaX = (deltaW / 2) * cos - (deltaH / 2) * sin;
+            deltaY = (deltaW / 2) * sin + (deltaH / 2) * cos;
+            newX = resizeStartPos.current.x + deltaX;
+            newY = resizeStartPos.current.y + deltaY;
           }
         }
 
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
         rafRef.current = requestAnimationFrame(() => {
+          setPos({ x: newX, y: newY });
           setSizeState({ width: newWidth, height: newHeight });
-          onResize?.({ width: newWidth, height: newHeight });
+          onResize?.({ width: newWidth, height: newHeight, x: newX, y: newY });
+          onMove?.({ x: newX, y: newY });
         });
       }
     };

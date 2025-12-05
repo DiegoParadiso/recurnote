@@ -147,6 +147,12 @@ function TaskItem({
     id,
     onUpdate,
     computedMinHeight,
+    x: localX,
+    y: localY,
+    rotation: rotationEnabled ? rotation : 0,
+    cx,
+    cy,
+    maxRadius,
   });
 
 
@@ -338,10 +344,21 @@ function TaskItem({
           // Notificar al padre para lógica de UI en vivo (sin persistir todavía)
           onItemDrag?.(id, { x, y });
         }}
-        onResize={(newSize) => {
-          const clampedWidth = Math.max(minWidthPx, Math.min(newSize.width, 400));
+        onResize={({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
+          const clampedWidth = Math.max(minWidthPx, Math.min(newWidth, 400));
           const clampedHeight = computedMinHeight; // altura fija por filas visibles
-          onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
+
+          if (newX !== undefined) setLocalX(newX);
+          if (newY !== undefined) setLocalY(newY);
+
+          if (newX !== undefined && newY !== undefined) {
+            lastPosRef.current = { x: newX, y: newY };
+            const { angle, distance } = computePolarFromXY(newX, newY, cx, cy);
+            onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight }, { x: newX, y: newY }, { angle, distance });
+          } else {
+            onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
+          }
+
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
         onDrag={(e) => {

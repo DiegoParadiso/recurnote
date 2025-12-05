@@ -250,20 +250,28 @@ export default function ArchivoItem({
     : null;
 
   // Manejador de resize simplificado - useDragResize ya mantiene el aspect ratio
-  const handleResize = useCallback((newSize) => {
+  const handleResize = useCallback(({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
     if (!isImage || !isExpanded || imageDimensions.width === 0) return;
 
     // Solo guardar el nuevo tamaño, ya viene corregido por useDragResize
     // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
+    const posUpdate = (newX !== undefined && newY !== undefined) ? { x: newX, y: newY } : { x, y };
+
+    let extra = { fromDrag: false };
+    if (posUpdate.x !== undefined && posUpdate.y !== undefined) {
+      const { angle, distance } = computePolarFromXY(posUpdate.x, posUpdate.y, cx, cy);
+      extra = { ...extra, angle, distance };
+    }
+
     onUpdate?.(
       id,
       item.content || {},
       null,
-      { width: Math.round(newSize.width), height: Math.round(newSize.height) },
-      { x, y },
-      { fromDrag: false } // Resize no es drag, pero sí es una operación del usuario
+      { width: Math.round(newWidth), height: Math.round(newHeight) },
+      posUpdate,
+      extra
     );
-  }, [id, isImage, isExpanded, imageDimensions.width, item.content, x, y, onUpdate]);
+  }, [id, isImage, isExpanded, imageDimensions.width, item.content, x, y, onUpdate, cx, cy]);
 
   // Medir ancho mínimo basado en el nombre del archivo (o placeholder)
   useLayoutEffect(() => {

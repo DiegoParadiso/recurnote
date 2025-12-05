@@ -9,6 +9,9 @@ export default function useTaskSizing({
   id,
   onUpdate,
   computedMinHeight,
+  x,
+  y,
+  rotation = 0,
 }) {
   const [minWidthPx, setMinWidthPx] = useState(140);
 
@@ -61,14 +64,26 @@ export default function useTaskSizing({
       setMinWidthPx(minW);
 
       if ((item.width || 200) < minW) {
-        onUpdate?.(id, item.content || [], item.checked || [], { width: minW, height: computedMinHeight });
+        const deltaW = minW - (item.width || 200);
+
+        const rotRad = (rotation * Math.PI) / 180;
+        const cos = Math.cos(rotRad);
+        const sin = Math.sin(rotRad);
+
+        const deltaX = (deltaW / 2) * cos;
+        const deltaY = (deltaW / 2) * sin;
+
+        const newX = x + deltaX;
+        const newY = y + deltaY;
+
+        onUpdate?.(id, item.content || [], item.checked || [], { width: minW, height: computedMinHeight }, { x: newX, y: newY });
       }
 
       if (tempInput) {
         document.body.removeChild(tempInput);
       }
-    } catch (_) {}
-  }, [item.content, item.width, computedMinHeight, id, isMobile, onUpdate, t]);
+    } catch (_) { }
+  }, [item.content, item.width, computedMinHeight, id, isMobile, onUpdate, t, x, y, rotation]);
 
   return { minWidthPx };
 }

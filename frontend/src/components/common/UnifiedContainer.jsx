@@ -30,28 +30,28 @@ export default function UnifiedContainer({
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
   const prevModeRef = useRef({ isSmallScreen, fullboardMode });
-  
+
   const { isDragging, isResizing, dragStartPos, resizeStartPos } = useDragResize({
     pos, setPos, sizeState, setSizeState,
     minWidth, minHeight, maxWidth, maxHeight,
     circleCenter, maxRadius, onMove, onResize,
-    onDrag,  
-    onDrop,  
+    onDrag,
+    onDrop,
     rotation,
     isSmallScreen,
     aspectRatio,
     fullboardMode,
   });
-  
+
   useEffect(() => {
     if (isDragging.current || isResizing.current) return;
-    
-    const modeChanged = 
+
+    const modeChanged =
       prevModeRef.current.isSmallScreen !== isSmallScreen ||
       prevModeRef.current.fullboardMode !== fullboardMode;
-    
+
     prevModeRef.current = { isSmallScreen, fullboardMode };
-    
+
     const positionToCheck = modeChanged ? pos : { x, y };
     let nextPos;
 
@@ -74,39 +74,39 @@ export default function UnifiedContainer({
         onMove(nextPos);
       }
     }
-    
+
     setSizeState({
       width: Math.min(Math.max(width, minWidth), maxWidth),
       height: Math.min(Math.max(height, minHeight), maxHeight),
     });
   }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen, fullboardMode, isDragging, isResizing, pos, onMove]);
-  
+
   const handleMouseUp = (e) => {
     if (isDragging.current) {
       onDrop?.();
       isDragging.current = false;
     }
-    
+
     // Restaurar selección de texto cuando termine el drag
     document.body.style.userSelect = '';
     document.body.style.WebkitUserSelect = '';
     document.body.style.MozUserSelect = '';
     document.body.style.msUserSelect = '';
   };
-  
+
   const handleTouchEnd = (e) => {
     if (isDragging.current) {
       onDrop?.();
       isDragging.current = false;
     }
-    
+
     // Restaurar selección de texto cuando termine el drag
     document.body.style.userSelect = '';
     document.body.style.WebkitUserSelect = '';
     document.body.style.MozUserSelect = '';
     document.body.style.msUserSelect = '';
   };
-  
+
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
 
@@ -117,17 +117,17 @@ export default function UnifiedContainer({
 
     e.stopPropagation();
     e.preventDefault(); // Prevenir selección de texto
-    
+
     // Prevenir selección de texto a nivel global durante drag
     document.body.style.userSelect = 'none';
     document.body.style.WebkitUserSelect = 'none';
     document.body.style.MozUserSelect = 'none';
     document.body.style.msUserSelect = 'none';
-    
+
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = false;
-    
+
     isDragging.current = true;
     dragStartPos.current = {
       mouseX: e.clientX,
@@ -136,7 +136,7 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
-    
+
     // Notificar inmediatamente que el drag comenzó
     onDrag?.({ x: pos.x, y: pos.y });
   };
@@ -149,28 +149,28 @@ export default function UnifiedContainer({
 
     const touch = e.touches[0];
     const target = e.target;
-    
+
     // No iniciar drag si el touch es sobre un input, textarea o elemento interactivo
     const tag = target.tagName.toLowerCase();
     if (['input', 'textarea', 'select', 'button', 'a'].includes(tag)) {
       return;
     }
-    
+
     // Verificar si el target es editable o está dentro de un elemento editable
     if (target.contentEditable === 'true' || target.isContentEditable) {
       return;
     }
-    
+
     // Verificar si está dentro de un contenedor editable (como el data-drag-container que tiene inputs dentro)
     const editableParent = target.closest('input, textarea, [contenteditable="true"]');
     if (editableParent) {
       return;
     }
-    
+
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
-    
+
     // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
     // Solo registrar la posición inicial
     isDragging.current = true;
@@ -181,7 +181,7 @@ export default function UnifiedContainer({
       y: pos.y,
       containerRotation: -rotation,
     };
-    
+
     // Notificar inmediatamente que el drag comenzó
     onDrag?.({ x: pos.x, y: pos.y });
   };
@@ -191,7 +191,7 @@ export default function UnifiedContainer({
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // Si se movió más de 5px, se considera drag
       if (distance > 5) {
         isDraggingRef.current = true;
@@ -202,12 +202,12 @@ export default function UnifiedContainer({
   const onTouchMoveDrag = (e) => {
     if (e.touches.length !== 1) return;
     const touch = e.touches[0];
-    
+
     if (dragStartRef.current) {
       const dx = touch.clientX - dragStartRef.current.x;
       const dy = touch.clientY - dragStartRef.current.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // Si se movió más de 5px, se considera drag
       if (distance > 5) {
         isDraggingRef.current = true;
@@ -225,6 +225,9 @@ export default function UnifiedContainer({
       mouseY: e.clientY,
       width: sizeState.width,
       height: sizeState.height,
+      x: pos.x,
+      y: pos.y,
+      rotation: rotation,
     };
 
     // Bloquear selección de texto durante el resize
@@ -260,6 +263,9 @@ export default function UnifiedContainer({
       mouseY: touch.clientY,
       width: sizeState.width,
       height: sizeState.height,
+      x: pos.x,
+      y: pos.y,
+      rotation: rotation,
     };
 
     // Bloquear selección de texto durante el resize (por si hay mouse+touch híbrido)
@@ -297,7 +303,7 @@ export default function UnifiedContainer({
       onTouchMove={onTouchMoveDrag}
       onMouseUp={handleMouseUp}
       onTouchEnd={handleTouchEnd}
-      
+
       onContextMenu={onContextMenu}
       style={getContainerStyle({
         pos,

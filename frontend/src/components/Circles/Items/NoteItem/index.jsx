@@ -4,6 +4,7 @@ import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
 import { getFontFromComputedStyle, measureTextWidth } from '@utils/measureTextWidth';
+import { computePolarFromXY } from '@utils/helpers/geometry';
 import NoteItemClock from './NoteItemClock';
 import NoteItemEditor from './NoteItemEditor';
 import NoteItemContainer from './NoteItemContainer';
@@ -130,7 +131,40 @@ export default function NoteItem({
       setMinWidthPx(minW);
       // Asegurar que el ancho actual no sea menor al mínimo
       if (width < minW) {
-        onUpdate?.(id, content, null, { width: minW, height });
+        const deltaW = minW - width;
+
+        const rotRad = ((rotation || 0) * Math.PI) / 180;
+        const cos = Math.cos(rotRad);
+        const sin = Math.sin(rotRad);
+
+        // Only width changes (deltaH = 0)
+        const deltaX = (deltaW / 2) * cos;
+        const deltaY = (deltaW / 2) * sin;
+
+        const newX = x + deltaX;
+        const newY = y + deltaY;
+
+        let valid = true;
+        if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+          const halfW = minW / 2;
+          const halfH = height / 2;
+          const corners = [
+            { x: newX - halfW, y: newY - halfH },
+            { x: newX + halfW, y: newY - halfH },
+            { x: newX - halfW, y: newY + halfH },
+            { x: newX + halfW, y: newY + halfH }
+          ];
+          for (const c of corners) {
+            if ((c.x - cx) ** 2 + (c.y - cy) ** 2 > maxRadius ** 2) {
+              valid = false;
+              break;
+            }
+          }
+        }
+
+        if (valid) {
+          onUpdate?.(id, content, null, { width: minW, height }, { x: newX, y: newY });
+        }
       }
     } catch (_) { }
     // Recalcular si cambia el idioma, el modo móvil o el tamaño de fuente del textarea
@@ -221,10 +255,19 @@ export default function NoteItem({
           onUpdate?.(id, content, null, null, { x: newX, y: newY }, { angle, distance });
           flushItemUpdate?.(id);
         }}
-        onSizeChange={({ width: newWidth, height: newHeight }) => {
+        onSizeChange={({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
           const clampedWidth = Math.max(minWidthPx, Math.min(newWidth, 320));
           const clampedHeight = Math.max(minHeightPx, Math.min(Math.max(newHeight, 60), MAX_CONTAINER_HEIGHT));
-          onUpdate?.(id, content, null, { width: clampedWidth, height: clampedHeight });
+
+          const posUpdate = (newX !== undefined && newY !== undefined) ? { x: newX, y: newY } : null;
+          let extra = null;
+
+          if (posUpdate) {
+            const { angle, distance } = computePolarFromXY(posUpdate.x, posUpdate.y, cx, cy);
+            extra = { angle, distance };
+          }
+
+          onUpdate?.(id, content, null, { width: clampedWidth, height: clampedHeight }, posUpdate, extra);
           onResize?.({ width: clampedWidth, height: clampedHeight });
         }}
         zIndexOverride={item.zIndexOverride}
@@ -258,7 +301,42 @@ export default function NoteItem({
               onHeightChange={(newHeight) => {
                 const clamped = Math.max(minHeightPx, Math.min(newHeight, MAX_CONTAINER_HEIGHT));
                 if (clamped !== height) {
-                  onUpdate?.(id, content, null, { width, height: clamped });
+                  const deltaH = clamped - height;
+
+                  const rotRad = ((rotation || 0) * Math.PI) / 180;
+                  const cos = Math.cos(rotRad);
+                  const sin = Math.sin(rotRad);
+
+                  // Only height changes (deltaW = 0)
+                  // deltaX = (0) * cos - (deltaH/2) * sin
+                  // deltaY = (0) * sin + (deltaH/2) * cos
+                  const deltaX = -(deltaH / 2) * sin;
+                  const deltaY = (deltaH / 2) * cos;
+
+                  const newX = x + deltaX;
+                  const newY = y + deltaY;
+
+                  let valid = true;
+                  if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+                    const halfW = width / 2;
+                    const halfH = clamped / 2;
+                    const corners = [
+                      { x: newX - halfW, y: newY - halfH },
+                      { x: newX + halfW, y: newY - halfH },
+                      { x: newX - halfW, y: newY + halfH },
+                      { x: newX + halfW, y: newY + halfH }
+                    ];
+                    for (const c of corners) {
+                      if ((c.x - cx) ** 2 + (c.y - cy) ** 2 > maxRadius ** 2) {
+                        valid = false;
+                        break;
+                      }
+                    }
+                  }
+
+                  if (valid) {
+                    onUpdate?.(id, content, null, { width, height: clamped }, { x: newX, y: newY });
+                  }
                 }
               }}
               textareaRef={textareaRef}
