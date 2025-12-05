@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import MonthHeader from '@components/Circles/CircleSmall/MonthHeader';
 import DaysButtons from '@components/Circles/CircleSmall/DaysButtons';
@@ -13,7 +13,9 @@ export default function CircleSmall({
   const circleSize = size ?? 350;
   const dragStartRef = useRef(null);
   const timeoutRef = useRef(null);
-  
+  const maxDragDistanceRef = useRef(0);
+  const containerRef = useRef(null);
+
   const [currentDate, setCurrentDate] = useState(DateTime.now());
   const [isDragging, setIsDragging] = useState(false);
   const { handleMouseDown, handleMouseUp, handleTouchStart, handleTouchEnd } =
@@ -21,29 +23,44 @@ export default function CircleSmall({
 
   const radius = circleSize / 2 - 25;
   const center = circleSize / 2;
-  
+
   // Hacer buttonSize responsivo para mantener proporción de los círculos
   // En desktop (pantallas más grandes) hacer los botones un poco más grandes
   const isDesktop = window.innerWidth > 768;
-  const buttonSize = isDesktop 
+  const buttonSize = isDesktop
     ? Math.max(28, Math.min(circleSize * 0.077, 36)) // Entre 28px y 36px en desktop
     : Math.max(24, Math.min(circleSize * 0.075, 32)); // Entre 24px y 32px en móvil
-  
+
   const labelDistanceFromCenter = -22;
 
   const prevDate = currentDate.minus({ months: 1 });
   const nextDate = currentDate.plus({ months: 1 });
 
-  const handleContainerMouseDown = (e) => {    
+  const handleContainerMouseDown = (e) => {
     dragStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+    maxDragDistanceRef.current = 0;
     setIsDragging(false);
-    
+
     // Timeout más corto para detectar drag más rápido
     timeoutRef.current = setTimeout(() => {
       setIsDragging(true);
     }, 50);
-    
+
     handleMouseDown(e);
+  };
+
+  const handleContainerTouchStart = (e) => {
+    const touch = e.touches[0];
+    dragStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    maxDragDistanceRef.current = 0;
+    setIsDragging(false);
+
+    // Timeout más corto para detectar drag más rápido
+    timeoutRef.current = setTimeout(() => {
+      setIsDragging(true);
+    }, 50);
+
+    handleTouchStart(e);
   };
 
   const handleContainerMouseMove = (e) => {
@@ -51,7 +68,33 @@ export default function CircleSmall({
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
+
+      if (distance > maxDragDistanceRef.current) {
+        maxDragDistanceRef.current = distance;
+      }
+
+      // Si se movió más de 2px, es un drag
+      if (distance > 2) {
+        setIsDragging(true);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+      }
+    }
+  };
+
+  const handleContainerTouchMove = (e) => {
+    if (dragStartRef.current) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - dragStartRef.current.x;
+      const dy = touch.clientY - dragStartRef.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > maxDragDistanceRef.current) {
+        maxDragDistanceRef.current = distance;
+      }
+
       // Si se movió más de 2px, es un drag
       if (distance > 2) {
         setIsDragging(true);
@@ -65,18 +108,21 @@ export default function CircleSmall({
 
   const handleContainerMouseUp = (e) => {
     const wasDragging = isDragging;
-    
+
     dragStartRef.current = null;
+
     setIsDragging(false);
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     handleMouseUp(e);
     return wasDragging;
   };
+
+
 
   const handleMonthChange = (newDate) => {
     // Solo cambiar mes si no se está arrastrando
@@ -93,6 +139,25 @@ export default function CircleSmall({
       onDayClick?.(newSelected.toObject());
     }
   };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleClickCapture = (e) => {
+      if (maxDragDistanceRef.current > 5) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    };
+
+    container.addEventListener('click', handleClickCapture, { capture: true });
+
+    return () => {
+      container.removeEventListener('click', handleClickCapture, { capture: true });
+    };
+  }, []);
 
   const containerStyle = {
     position: 'relative',
@@ -122,26 +187,28 @@ export default function CircleSmall({
       onMouseMove={handleContainerMouseMove}
       onMouseUp={handleContainerMouseUp}
       onMouseLeave={handleContainerMouseUp}
-      onTouchStart={handleTouchStart}
+      onTouchStart={handleContainerTouchStart}
+      onTouchMove={handleContainerTouchMove}
       onTouchEnd={handleTouchEnd}
       style={containerStyle}
+      ref={containerRef}
     >
-      <MonthHeader 
-        date={prevDate} 
-        position="previous" 
+      <MonthHeader
+        date={prevDate}
+        position="previous"
         onClick={() => {
           handleMonthChange(prevDate);
         }}
         isDragging={isDragging}
       />
-      <MonthHeader 
-        date={currentDate} 
-        position="current" 
+      <MonthHeader
+        date={currentDate}
+        position="current"
         isDragging={isDragging}
       />
-      <MonthHeader 
-        date={nextDate} 
-        position="next" 
+      <MonthHeader
+        date={nextDate}
+        position="next"
         onClick={() => {
           handleMonthChange(nextDate);
         }}

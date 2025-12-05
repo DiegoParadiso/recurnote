@@ -16,7 +16,7 @@ export default function LocalUserIndicator({ showAccountIndicator = true, fullbo
     const interval = setInterval(() => {
       setIsBlinking(prev => !prev);
     }, 1000); // Cambiar cada 1 segundo para un efecto más sutil
-    
+
     return () => clearInterval(interval);
   }, []); // Sin dependencias para que siempre funcione
 
@@ -31,7 +31,7 @@ export default function LocalUserIndicator({ showAccountIndicator = true, fullbo
   if (user && token) {
     // Usuario autenticado
     totalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
-    
+
     if (user.is_vip) {
       // Usuario Premium
       modeInfo = {
@@ -73,7 +73,7 @@ export default function LocalUserIndicator({ showAccountIndicator = true, fullbo
     <div
       className={`fixed bottom-4 left-4 ${fullboardMode ? 'z-max' : 'z-low'} px-3 py-2 rounded-lg text-sm font-medium backdrop-blur-sm local-user-indicator`}
       style={{
-        zIndex: fullboardMode ? 'var(--z-max, 99999)' : 'var(--z-low)',
+        zIndex: fullboardMode ? 'var(--z-fullboard, 12000)' : 'var(--z-low)',
         color: 'var(--color-text-primary)',
         border: '1px solid var(--color-border)', // Borde sutil transparente
         transition: 'var(--transition-colors)',

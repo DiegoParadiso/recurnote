@@ -96,7 +96,7 @@ export default function ConfigPanel({
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const { isOpen: isPremiumOpen, openModal: openPremiumModal, closeModal: closePremiumModal, handleUpgrade } = usePremiumModal();
-  
+
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {
     return localStorage.getItem('circlePattern') || 'none';
@@ -105,32 +105,32 @@ export default function ConfigPanel({
   // Función para cambiar el pattern
   const handlePatternChange = (patternId) => {
     if (patternId === selectedPattern) return;
-    
+
     setSelectedPattern(patternId);
     localStorage.setItem('circlePattern', patternId);
-    
+
     // Actualizar preferencias del usuario si está autenticado
     if (token && user) {
       const prefs = {
         ...user.preferences,
         circlePattern: patternId
       };
-      
+
       // Guardar en el servidor
       fetch(`${API_URL}/api/auth/preferences`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ preferences: prefs })
       });
-      
+
       // Actualizar usuario local
       const updatedUser = { ...user, preferences: prefs };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
-    
+
     // Notificar a otros componentes del cambio
     window.dispatchEvent(new CustomEvent('patternChanged', { detail: patternId }));
   };
@@ -139,12 +139,12 @@ export default function ConfigPanel({
   useEffect(() => {
     if (show && user?.preferences && !pendingRef.current) {
       const prefs = user.preferences;
-      
+
       // Aplicar preferencias de visualización solo si no están ya configuradas
       if (prefs.displayOptions) {
         setDisplayOptions(prev => ({ ...prev, ...prefs.displayOptions }));
       }
-      
+
       // Cargar patrón guardado desde preferencias del usuario
       if (prefs.circlePattern) {
         setSelectedPattern(prefs.circlePattern);
@@ -152,10 +152,10 @@ export default function ConfigPanel({
         // Disparar evento para que CircleLarge se actualice
         window.dispatchEvent(new CustomEvent('patternChanged', { detail: prefs.circlePattern }));
       }
-      
+
       // NO aplicar preferencias de UI automáticamente - dejar que los toggles funcionen
       // Las preferencias de UI se cargan desde useHomeLogic
-      
+
       // NO aplicar preferencias del círculo automáticamente para evitar conflictos
       // El estado de showSmall se maneja desde el componente padre
     }
@@ -164,7 +164,7 @@ export default function ConfigPanel({
   useEffect(() => {
     if (!token) return;
     if (!show) return;
-    
+
     const prefs = {
       displayOptions: {
         ...displayOptions,
@@ -185,20 +185,20 @@ export default function ConfigPanel({
       // NO guardar showSmall en preferencias para evitar conflictos
       // El estado de showSmall se maneja desde el componente padre
     };
-    
+
     // Debounce 500ms
     if (pendingRef.current) clearTimeout(pendingRef.current);
     pendingRef.current = setTimeout(async () => {
       try {
         const response = await fetch(`${API_URL}/api/auth/preferences`, {
           method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            Authorization: `Bearer ${token}` 
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({ preferences: prefs }),
         });
-        
+
         if (response.ok) {
           // Actualizar el usuario local con las nuevas preferencias
           const updatedUser = { ...user, preferences: prefs };
@@ -206,11 +206,11 @@ export default function ConfigPanel({
           // NO refrescar el usuario automáticamente para evitar conflictos
           // await refreshMe();
         }
-              } catch (error) {
-          // Error silencioso al guardar preferencias
-        }
+      } catch (error) {
+        // Error silencioso al guardar preferencias
+      }
     }, 500);
-    
+
     return () => pendingRef.current && clearTimeout(pendingRef.current);
   }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, selectedPattern, show, token, user, refreshMe]);
   if (!show) return null;
@@ -219,8 +219,8 @@ export default function ConfigPanel({
     { key: 'year', label: t('display.year') },
     { key: 'month', label: t('display.month') },
     { key: 'week', label: t('display.week') },
-    { key: 'weekday', label: t('display.weekday') }, 
-    { key: 'day', label: t('display.day') }, 
+    { key: 'weekday', label: t('display.weekday') },
+    { key: 'day', label: t('display.day') },
     { key: 'time', label: t('display.time') },
   ];
 
@@ -237,17 +237,17 @@ export default function ConfigPanel({
             </button>
           </header>
           <section className="pt-5 config-section">
-          <h3 className="flex items-center">
-            {t('common.session')}
-            <HelpIcon text={t('help.session')} />
-          </h3>
+            <h3 className="flex items-center">
+              {t('common.session')}
+              <HelpIcon text={t('help.session')} />
+            </h3>
             <SessionOptions />
           </section>
           <section className="config-section">
-          <h3 className="flex items-center">
-            {t('common.appearance')}
-            <HelpIcon text={t('help.appearance')} />
-          </h3>
+            <h3 className="flex items-center">
+              {t('common.appearance')}
+              <HelpIcon text={t('help.appearance')} />
+            </h3>
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-auto-theme"
@@ -278,21 +278,21 @@ export default function ConfigPanel({
                 </>
               )}
             </div>
-               {!isMobile && (
-                <div className="visualization-header-options">
-                  <PatternSelector
-                    selectedPattern={selectedPattern}
-                    onPatternChange={handlePatternChange}
-                  />
-                </div>
-              )}
+            {!isMobile && (
+              <div className="visualization-header-options">
+                <PatternSelector
+                  selectedPattern={selectedPattern}
+                  onPatternChange={handlePatternChange}
+                />
+              </div>
+            )}
           </section>
           <section className="config-section">
-          <h3 className="flex items-center">
-            {t('common.visualization')}
-            <HelpIcon text={t('help.visualization')} />
-          </h3>
-          {!isMobile && (
+            <h3 className="flex items-center">
+              {t('common.visualization')}
+              <HelpIcon text={t('help.visualization')} />
+            </h3>
+            {!isMobile && (
               <div className="visualization-header-options">
                 <ToggleOption
                   id="toggle-fullboard-mode"
@@ -343,10 +343,10 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-          <h3 className="flex items-center">
-            {t('common.language_region')}
-            <HelpIcon text={t('help.language_region')} />
-          </h3>
+            <h3 className="flex items-center">
+              {t('common.language_region')}
+              <HelpIcon text={t('help.language_region')} />
+            </h3>
             <div className="visualization-header-options">
               <label htmlFor="language-select">{t('language.label')}</label>
               <select
@@ -362,7 +362,7 @@ export default function ConfigPanel({
                   try {
                     const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
                     localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: lang }));
-                  } catch {}
+                  } catch { }
                   // Guardar en backend si hay token
                   try {
                     if (token) {
@@ -377,12 +377,12 @@ export default function ConfigPanel({
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                         body: JSON.stringify({ preferences: prefs }),
-                      }).catch(() => {});
+                      }).catch(() => { });
                       // Actualizar user local
                       const updatedUser = { ...user, preferences: prefs };
                       localStorage.setItem('user', JSON.stringify(updatedUser));
                     }
-                  } catch {}
+                  } catch { }
                   // Ajustar atributo lang del HTML
                   document.documentElement.setAttribute('lang', i18n.language || 'en');
                 }}
@@ -461,10 +461,10 @@ export default function ConfigPanel({
           </section>
 
           <section className="config-section">
-          <h3 className="flex items-center">
-            {t('common.accessibility')}
-            <HelpIcon text={t('help.accessibility')} />
-          </h3>
+            <h3 className="flex items-center">
+              {t('common.accessibility')}
+              <HelpIcon text={t('help.accessibility')} />
+            </h3>
             <div className="visualization-header-options">
               <ToggleOption
                 id="toggle-high-contrast"
@@ -486,14 +486,14 @@ export default function ConfigPanel({
               />
             </div>
           </section>
-          
+
           {/* Secciones ‘coming soon’ eliminadas */}
 
           <section className="config-section">
-          <h3 className="flex items-center">
-            {t('common.data_management')}
-            <HelpIcon text={t('help.data_management')} />
-          </h3>
+            <h3 className="flex items-center">
+              {t('common.data_management')}
+              <HelpIcon text={t('help.data_management')} />
+            </h3>
             <DataManagementOptions />
           </section>
         </main>

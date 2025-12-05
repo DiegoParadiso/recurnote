@@ -71,7 +71,7 @@ export default function ForgotPassword() {
         style={{
           position: 'relative',
           zIndex: 'var(--z-base)',
-          maxWidth: '420px',
+          maxWidth: '450px',
           width: '100%',
           margin: '0 auto'
         }}
@@ -95,7 +95,7 @@ export default function ForgotPassword() {
                 className={submitted && fieldError ? 'error' : ''}
               />
             </div>
-            
+
           </div>
 
           <button
