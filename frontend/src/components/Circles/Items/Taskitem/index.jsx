@@ -49,8 +49,7 @@ function TaskItem({
   } = useItemDrag({ id, onActivate, onItemDrop });
   // Removed local editingInputs state to avoid sync issues
   const inputRefsRef = useRef({});
-  const touchStartPosRef = useRef(null);
-  const touchIsDragRef = useRef(false);
+
   const lastPosRef = useRef({ x, y });
   const frozenHeightRef = useRef(null);
   const previousIsDraggingRef = useRef(false);
@@ -402,8 +401,6 @@ function TaskItem({
               stopEditing={stopEditing}
               handleInputKeyDown={handleInputKeyDown}
               focusEditableInput={focusEditableInput}
-              touchStartPosRef={touchStartPosRef}
-              touchIsDragRef={touchIsDragRef}
               taskHeight={taskHeight}
               placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}
               onInputFocus={() => {
@@ -413,21 +410,6 @@ function TaskItem({
               onInputBlur={() => {
                 flushItemUpdate?.(id);
                 unlockBodyScroll();
-              }}
-              onTouchStart={(e) => {
-                if (!editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
-                  const dragContainer = e.target.closest('[data-drag-container]');
-                  if (dragContainer) {
-                    dragContainer.dispatchEvent(new TouchEvent('touchstart', {
-                      bubbles: true,
-                      cancelable: true,
-                      touches: e.touches,
-                      targetTouches: e.targetTouches,
-                      changedTouches: e.changedTouches
-                    }));
-                  }
-                  e.preventDefault(); // Bloquear scroll también aquí
-                }
               }}
             />
           ))}
