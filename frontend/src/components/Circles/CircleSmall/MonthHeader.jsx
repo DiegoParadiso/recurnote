@@ -26,18 +26,18 @@ export default function MonthHeader({ date, position, onClick, isDragging = fals
 
   const positionsStyles = {
     previous: {
-      top: '40%',
+      top: '43%',
       opacity: isDragging ? 0.2 : 0.6,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
-      transform: 'translateX(-50%)',
+      transform: 'translate(-50%, -50%)',
     },
     next: {
-      top: '55%',
+      top: '57.7%',
       opacity: isDragging ? 0.2 : 0.6,
       fontSize: '0.8rem',
       filter: 'grayscale(80%)',
-      transform: 'translateX(-50%)',
+      transform: 'translate(-50%, -50%)',
     },
     current: {
       top: '50%',
