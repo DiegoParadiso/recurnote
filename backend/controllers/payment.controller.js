@@ -3,10 +3,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 export const createPaymentIntent = async (req, res) => {
     try {
+        if (!stripe) {
+            throw new Error('Stripe API key is not configured');
+        }
+
         const { amount, currency = 'usd' } = req.body;
 
         // Create a PaymentIntent with the order amount and currency
