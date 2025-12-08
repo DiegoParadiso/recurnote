@@ -18,10 +18,10 @@ export default function DataManagementOptions() {
 
   const getItemLimit = () => {
     if (!user) return 5; // Usuario local: límite 5
-    if (user.isPremium) return null; // Usuario premium: sin límite
+    if (user.is_vip) return null; // Usuario premium: sin límite
     return 15; // Usuario registrado normal: límite 15
   };
-  
+
   const itemLimit = getItemLimit();
   const totalItems = Object.values(itemsByDate).reduce((acc, items) => acc + items.length, 0);
   const progressPercentage = itemLimit ? Math.min((totalItems / itemLimit) * 100, 100) : 0;
@@ -45,7 +45,7 @@ export default function DataManagementOptions() {
         acc.count += items.length;
         acc.dates.push({ dateKey, items });
       }
-    } catch {}
+    } catch { }
     return acc;
   }, { count: 0, dates: [] });
 
@@ -54,7 +54,7 @@ export default function DataManagementOptions() {
     setShowConfirmAll(false);
     try {
       if (user && token) {
-        const deletePromises = Object.values(itemsByDate).flat().map(item => 
+        const deletePromises = Object.values(itemsByDate).flat().map(item =>
           deleteItem(item.id).catch(() => null)
         );
         await Promise.all(deletePromises);
@@ -76,7 +76,7 @@ export default function DataManagementOptions() {
     setShowConfirmPast(false);
     try {
       if (user && token) {
-        const deletePromises = pastItems.dates.flatMap(({ items }) => 
+        const deletePromises = pastItems.dates.flatMap(({ items }) =>
           items.map(item => deleteItem(item.id).catch(() => null))
         );
         await Promise.all(deletePromises);
@@ -95,7 +95,7 @@ export default function DataManagementOptions() {
             if (date >= today) updatedLocalItems[dateKey] = items;
           });
           localStorage.setItem('localItems', JSON.stringify(updatedLocalItems));
-        } catch {}
+        } catch { }
         setToastMsg(t('data.pastDeleted', { count: pastItems.count }));
       }
     } catch {
@@ -122,13 +122,13 @@ export default function DataManagementOptions() {
             <span className="stat-value">{t('data.local')}</span>
           </div>
         )}
-        
+
         {itemLimit && (
           <div className="stat-item full-width progress-item">
             <div className="progress-header">
             </div>
             <div className="progress-bar-container">
-              <div 
+              <div
                 className={`progress-bar ${isAtLimit ? 'at-limit' : ''}`}
                 style={{ width: `${progressPercentage}%` }}
               />
@@ -141,8 +141,8 @@ export default function DataManagementOptions() {
             )}
           </div>
         )}
-        
-        {!itemLimit && user?.isPremium && (
+
+        {!itemLimit && user?.is_vip && (
           <div className="stat-item full-width premium-info">
             <span className="stat-label">{t('data.plan')}:</span>
             <span className="stat-value premium-badge">{t('data.premiumUnlimited')}</span>

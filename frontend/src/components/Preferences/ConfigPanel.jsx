@@ -323,7 +323,7 @@ export default function ConfigPanel({
                 <PatternSelector
                   selectedPattern={selectedPattern}
                   onPatternChange={handlePatternChange}
-                  isPremium={user?.isPremium}
+                  isPremium={user?.is_vip}
                   onPremiumClick={openPremiumModal}
                 />
               </div>
@@ -341,12 +341,12 @@ export default function ConfigPanel({
                   label={
                     <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {t('visual.fullboardMode')}
-                      {!user?.isPremium && <Crown size={14} style={{ color: 'var(--color-text-primary)' }} />}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)' }} />}
                     </span>
                   }
                   value={displayOptions.fullboardMode}
                   onChange={(val) => {
-                    if (!user?.isPremium) {
+                    if (!user?.is_vip) {
                       openPremiumModal();
                       return;
                     }
