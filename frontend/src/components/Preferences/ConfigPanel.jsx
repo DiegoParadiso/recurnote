@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Clock, AlertTriangle } from 'lucide-react';
+import { Clock, AlertTriangle, Crown } from 'lucide-react';
 import { useAuth } from '@context/AuthContext';
 import { useTheme } from '@context/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -51,26 +51,66 @@ function ComingSoonOption({ label }) {
   );
 }
 
-function PatternSelector({ selectedPattern, onPatternChange }) {
+function PatternSelector({ selectedPattern, onPatternChange, isPremium, onPremiumClick }) {
   const { t } = useTranslation();
+
+  const isEnabled = selectedPattern !== 'none';
+
+  const handleToggle = (enabled) => {
+    if (!isPremium) {
+      onPremiumClick();
+      return;
+    }
+    if (enabled) {
+      // Default to pattern1 if enabling, or keep current if not none (though it would be none if disabled)
+      onPatternChange('pattern1');
+    } else {
+      onPatternChange('none');
+    }
+  };
+
+  const handleInteraction = (e) => {
+    if (!isPremium) {
+      e.preventDefault();
+      e.stopPropagation();
+      onPremiumClick();
+    }
+  };
+
   return (
     <>
-      <label htmlFor="pattern">{t('pattern.background')}</label>
-      <select
-        id="pattern"
-        value={selectedPattern}
-        onChange={(e) => onPatternChange(e.target.value)}
-      >
-        <option value="none">{t('pattern.none')}</option>
-        <option value="pattern1">{t('pattern.pattern1')}</option>
-        <option value="pattern2">{t('pattern.pattern2')}</option>
-        <option value="pattern3">{t('pattern.pattern3')}</option>
-        <option value="pattern4">{t('pattern.pattern4')}</option>
-        <option value="pattern5">{t('pattern.pattern5')}</option>
-        <option value="pattern6">{t('pattern.pattern6')}</option>
-        <option value="pattern7">{t('pattern.pattern7')}</option>
-        <option value="pattern8">{t('pattern.pattern8')}</option>
-      </select>
+      <ToggleOption
+        id="toggle-circle-background"
+        label={
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {t('pattern.background')}
+            {!isPremium && <Crown size={14} style={{ color: 'var(--color-text-primary)' }} />}
+          </span>
+        }
+        value={isEnabled}
+        onChange={handleToggle}
+      />
+
+      {isEnabled && (
+        <div onClickCapture={handleInteraction} style={{ marginTop: '0.5rem', paddingLeft: '0.5rem' }}>
+          <select
+            id="pattern"
+            value={selectedPattern}
+            onChange={(e) => onPatternChange(e.target.value)}
+            disabled={!isPremium}
+            style={!isPremium ? { opacity: 0.7, cursor: 'pointer' } : {}}
+          >
+            <option value="pattern1">{t('pattern.pattern1')}</option>
+            <option value="pattern2">{t('pattern.pattern2')}</option>
+            <option value="pattern3">{t('pattern.pattern3')}</option>
+            <option value="pattern4">{t('pattern.pattern4')}</option>
+            <option value="pattern5">{t('pattern.pattern5')}</option>
+            <option value="pattern6">{t('pattern.pattern6')}</option>
+            <option value="pattern7">{t('pattern.pattern7')}</option>
+            <option value="pattern8">{t('pattern.pattern8')}</option>
+          </select>
+        </div>
+      )}
     </>
   );
 }
@@ -283,6 +323,8 @@ export default function ConfigPanel({
                 <PatternSelector
                   selectedPattern={selectedPattern}
                   onPatternChange={handlePatternChange}
+                  isPremium={user?.isPremium}
+                  onPremiumClick={openPremiumModal}
                 />
               </div>
             )}
@@ -296,9 +338,20 @@ export default function ConfigPanel({
               <div className="visualization-header-options">
                 <ToggleOption
                   id="toggle-fullboard-mode"
-                  label={t('visual.fullboardMode')}
+                  label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {t('visual.fullboardMode')}
+                      {!user?.isPremium && <Crown size={14} style={{ color: 'var(--color-text-primary)' }} />}
+                    </span>
+                  }
                   value={displayOptions.fullboardMode}
-                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }))}
+                  onChange={(val) => {
+                    if (!user?.isPremium) {
+                      openPremiumModal();
+                      return;
+                    }
+                    setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }));
+                  }}
                 />
               </div>
             )}

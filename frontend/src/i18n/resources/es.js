@@ -184,11 +184,11 @@ const es = {
     privacy: 'política de privacidad',
     loginWithGitHub: 'Iniciar sesión con GitHub',
     loginWithGmail: 'Iniciar sesión con Gmail',
-  loginWithGoogle: 'Iniciar sesión con Google',
-  continueWith: 'O continúa con',
+    loginWithGoogle: 'Iniciar sesión con Google',
+    continueWith: 'O continúa con',
     githubAuthError: 'No se pudo iniciar sesión con GitHub. Intenta de nuevo.',
     gmailAuthError: 'No se pudo iniciar sesión con Gmail. Intenta de nuevo.',
-  googleAuthError: 'No se pudo iniciar sesión con Google. Intenta de nuevo.',
+    googleAuthError: 'No se pudo iniciar sesión con Google. Intenta de nuevo.',
     invalidCredentials: 'Email o contraseña inválidos',
     emailNotVerified: 'Tu email no ha sido verificado. Revisa tu bandeja de entrada para el código o enlace de verificación.',
     pwStrength: {
@@ -397,6 +397,28 @@ const es = {
     backHome: 'Volver al inicio'
   },
   onExitSyncWarn: "Hay datos sin sincronizar. Si sales ahora, se perderán los cambios que no se hayan guardado en la nube. ¿Seguro que deseas salir?",
+  premium: {
+    newBadge: 'NUEVO',
+    unlimitedNotes: 'Notas ilimitadas',
+    unlimitedNotesDesc: 'Crea todas las notas que necesites sin restricciones',
+    exclusiveStyles: 'Estilos exclusivos',
+    exclusiveStylesDesc: 'Accede a patrones de fondo y temas premium',
+    whiteboardMode: 'Modo Fullboard',
+    whiteboardModeDesc: 'Visualización expandida para mayor comodidad',
+    fullHistory: 'Historial completo',
+    fullHistoryDesc: 'Accede a todo tu historial de notas y tareas',
+    upgradeToPremium: 'Mejorar a Premium',
+    unlockFullPotential: 'Desbloquea todo el potencial',
+    upgradeNow: 'Mejorar ahora',
+    freeTrial: 'Prueba gratis por 7 días',
+  },
+  payment: {
+    title: 'Finalizar compra',
+    payNow: 'Pagar ahora',
+    processing: 'Procesando...',
+    success: '¡Pago exitoso!',
+    error: 'Error en el pago',
+  },
 };
 
 export default es;

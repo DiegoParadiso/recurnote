@@ -19,6 +19,7 @@ const Terms = lazy(() => import('@pages/Legal/Terms'));
 const Privacy = lazy(() => import('@pages/Legal/Privacy'));
 const NotFound = lazy(() => import('@pages/NotFound'));
 const RequestTimeout = lazy(() => import('@pages/RequestTimeout'));
+const PaymentPage = lazy(() => import('@pages/Premium/PaymentPage'));
 
 function AppRoutes() {
   return (
@@ -43,6 +44,16 @@ function AppRoutes() {
           path="/dashboard"
           element={
             <PrivateRoute>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Ruta de pago */}
+        <Route
+          path="/payment"
+          element={
+            <PrivateRoute>
+              <PaymentPage />
             </PrivateRoute>
           }
         />

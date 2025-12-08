@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB, sequelize } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import itemRoutes from './routes/item.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
 import passport from 'passport';
 import GitHubStrategy from 'passport-github2';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
@@ -16,7 +17,7 @@ const app = express();
 
 // ==== CORS seguro ====
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // No loguear cuando origin es undefined (peticiones de consola/curl sin origin)
     if (typeof origin !== 'string') origin = undefined;
     if (origin) console.log('CORS origin header:', origin);
@@ -130,12 +131,12 @@ app.get('/auth/github/callback',
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
-      
+
       const nonce = crypto.randomBytes(16).toString('hex');
       const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
-      
+
       res.set('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'; base-uri 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`);
-      
+
       // Attempt to postMessage to configured origin, try www/non-www variants as fallback
       res.send(`<!DOCTYPE html>
 <html>
@@ -188,9 +189,9 @@ try {
 );
 
 // Rutas Google
-app.get('/auth/google', passport.authenticate('google', { 
-  session: false, 
-  scope: ['profile', 'email'] 
+app.get('/auth/google', passport.authenticate('google', {
+  session: false,
+  scope: ['profile', 'email']
 }));
 
 app.get('/auth/google/callback',
@@ -202,12 +203,12 @@ app.get('/auth/google/callback',
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
-      
+
       const nonce = crypto.randomBytes(16).toString('hex');
       const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
-      
+
       res.set('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'; base-uri 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';`);
-      
+
       // Attempt to postMessage to configured origin, try www/non-www variants as fallback
       res.send(`<!DOCTYPE html>
 <html>
@@ -263,6 +264,7 @@ try {
 // Rutas API
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {
@@ -292,7 +294,7 @@ process.on('SIGTERM', () => {
 // Manejo de rutas no encontradas
 app.use((req, res) => {
   console.log('Ruta no encontrada:', req.method, req.path);
-  res.status(404).json({ 
+  res.status(404).json({
     message: 'Ruta no encontrada',
     path: req.path,
     method: req.method

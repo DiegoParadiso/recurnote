@@ -31,7 +31,7 @@ export default function HelpIcon({ text }) {
     try {
       const panelMain = document.querySelector('.config-panel-main');
       setScrollTarget(panelMain || null);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -112,6 +112,7 @@ export default function HelpIcon({ text }) {
               top: position.top,
               left: position.left,
               transform: 'translateY(-50%)',
+              zIndex: 'calc(var(--z-max) + 50)',
               maxWidth: 'calc(100vw - 24px)',
               whiteSpace: 'normal',
               wordBreak: 'break-word'
@@ -119,7 +120,7 @@ export default function HelpIcon({ text }) {
             className="px-2 py-1 text-xs rounded 
                        bg-[var(--color-neutral-dark)] 
                        text-[var(--color-text-primary)] 
-                       shadow-sm z-[105] 
+                       shadow-sm 
                        transition-opacity duration-200"
           >
             {text}

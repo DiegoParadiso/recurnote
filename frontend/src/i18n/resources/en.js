@@ -184,11 +184,11 @@ const en = {
     privacy: 'privacy policy',
     loginWithGitHub: 'Log in with GitHub',
     loginWithGmail: 'Log in with Gmail',
-  loginWithGoogle: 'Log in with Google',
-  continueWith: 'Or continue with',
+    loginWithGoogle: 'Log in with Google',
+    continueWith: 'Or continue with',
     githubAuthError: 'Could not log in with GitHub. Please try again.',
     gmailAuthError: 'Could not log in with Gmail. Please try again.',
-  googleAuthError: 'Could not log in with Google. Please try again.',
+    googleAuthError: 'Could not log in with Google. Please try again.',
     invalidCredentials: 'Invalid email or password',
     emailNotVerified: 'Your account email is not verified. Check your inbox for a verification code or link.',
     pwStrength: {
@@ -397,6 +397,28 @@ const en = {
     backHome: 'Back to Home'
   },
   onExitSyncWarn: "There are unsynchronized changes. Leaving now will lose changes not yet saved to the cloud. Are you sure you want to leave?",
+  premium: {
+    newBadge: 'NEW',
+    unlimitedNotes: 'Unlimited notes',
+    unlimitedNotesDesc: 'Create as many notes as you need without restrictions',
+    exclusiveStyles: 'Exclusive styles',
+    exclusiveStylesDesc: 'Access premium background patterns and themes',
+    whiteboardMode: 'Fullboard Mode',
+    whiteboardModeDesc: 'Expanded view for better comfort',
+    fullHistory: 'Full history',
+    fullHistoryDesc: 'Access your entire history of notes and tasks',
+    upgradeToPremium: 'Upgrade to Premium',
+    unlockFullPotential: 'Unlock full potential',
+    upgradeNow: 'Upgrade now',
+    freeTrial: 'Free 7-day trial',
+  },
+  payment: {
+    title: 'Checkout',
+    payNow: 'Pay now',
+    processing: 'Processing...',
+    success: 'Payment successful!',
+    error: 'Payment error',
+  },
 };
 
 export default en
