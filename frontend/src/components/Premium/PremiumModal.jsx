@@ -34,7 +34,7 @@ const PremiumFeature = ({ icon: Icon, title, description, isPremium = false }) =
         }
         
         .feature-item.premium {
-          background: color-mix(in srgb, var(--color-neutral), transparent 50%);
+          background: color-mix(in srgb, var(--color-bg), transparent 50%);
           border: 1px solid color-mix(in srgb, var(--color-text-secondary), transparent 80%);
           position: relative;
           overflow: hidden;
@@ -126,30 +126,32 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
           <img src={logoRecurNote} alt="" aria-hidden="true" />
         </div>
 
-        <button className="close-button" onClick={handleClose} aria-label="Cerrar">
-          <X size={20} />
-        </button>
-
-        <div className="modal-header">
-        </div>
-
-        <div className="features-list">
-          {features.map((feature, index) => (
-            <PremiumFeature
-              key={index}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
-              isPremium={feature.premium}
-            />
-          ))}
-        </div>
-
-        <div className="modal-footer">
-          <button className="upgrade-button" onClick={handleUpgrade}>
-            {t('premium.upgradeNow')}
+        <div className="modal-scroll-content">
+          <button className="close-button" onClick={handleClose} aria-label="Cerrar">
+            <X size={20} />
           </button>
-          <p className="free-trial">{t('premium.freeTrial')}</p>
+
+          <div className="modal-header">
+          </div>
+
+          <div className="features-list">
+            {features.map((feature, index) => (
+              <PremiumFeature
+                key={index}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                isPremium={feature.premium}
+              />
+            ))}
+          </div>
+
+          <div className="modal-footer">
+            <button className="upgrade-button" onClick={handleUpgrade}>
+              {t('premium.upgradeNow')}
+            </button>
+            <p className="free-trial">{t('premium.freeTrial')}</p>
+          </div>
         </div>
       </div>
 
@@ -174,21 +176,27 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
         }
         
         .modal-content {
-          background: var(--color-bg);
+          background: var(--color-premium-overlay);
           border-radius: 10px;
           width: 100%;
           max-width: 500px;
           max-height: 90vh;
-          overflow-y: auto;
-          overflow-x: hidden;
-          padding: 2.5rem 2rem;
           position: relative;
-          box-shadow: 
-            0 25px 50px -12px rgba(0, 0, 0, 0.25),
-            0 0 0 1px color-mix(in srgb, var(--color-text-primary), transparent 90%);
           transform: translateY(0) scale(1);
           transition: var(--transition-normal);
           border: 1px solid color-mix(in srgb, var(--color-text-primary), transparent 92%);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden; /* Clips the logo */
+        }
+
+        .modal-scroll-content {
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding: 2.5rem 2rem;
+          flex: 1;
+          position: relative;
+          z-index: 1;
         }
         
         .modal-overlay.closing .modal-content {
@@ -197,23 +205,24 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
         
         .modal-background-logo {
           position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 80%;
+          bottom: -15%;
+          right: -15%;
+          top: auto;
+          left: auto;
+          transform: rotate(-15deg);
+          width: 60%;
           pointer-events: none;
           z-index: 0;
-          opacity: 0.03;
-          filter: grayscale(100%);
+          opacity: 0.15; /* Darker for light mode (was 0.05 in theme) */
+          filter: brightness(var(--logo-brightness)) invert(var(--logo-invert)) contrast(var(--logo-contrast));
           display: flex;
           justify-content: center;
           align-items: center;
         }
         
-        /* Dark mode adjustments for logo */
+        /* Dark mode adjustments */
         :global(html.dark) .modal-background-logo {
-          opacity: 0.05;
-          filter: grayscale(100%) invert(1);
+          opacity: var(--logo-opacity); /* Use theme default for dark mode */
         }
         
         .modal-background-logo img {
@@ -287,7 +296,6 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
           cursor: pointer;
           width: 100%;
           transition: var(--transition-all);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .upgrade-button:hover {
