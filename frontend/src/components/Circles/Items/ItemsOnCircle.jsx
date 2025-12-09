@@ -39,8 +39,12 @@ export default function ItemsOnCircle({
         // En modo normal, calcular desde ángulo y distancia (el clamp en tiempo real lo hace UnifiedContainer).
         let x, y;
         if (fullboardMode) {
-          if (item.x !== undefined && item.y !== undefined) {
-            // Item ya tiene x,y guardadas (limitadas en tiempo real por UnifiedContainer)
+          if (item.fullboard_x !== undefined && item.fullboard_x !== null && item.fullboard_y !== undefined && item.fullboard_y !== null) {
+            // Usar coordenadas específicas de fullboard si existen
+            x = parseFloat(item.fullboard_x);
+            y = parseFloat(item.fullboard_y);
+          } else if (item.x !== undefined && item.y !== undefined) {
+            // Fallback: usar x,y si ya fueron calculados/guardados (limitados en tiempo real)
             x = item.x;
             y = item.y;
           } else {

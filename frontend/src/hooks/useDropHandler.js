@@ -26,15 +26,22 @@ export default function useHandleDrop({
       }
 
       const rect = containerRef.current.getBoundingClientRect();
-      
+
       let rotatedX, rotatedY, distance, angle;
-      
+
       if (fullboardMode) {
         // En fullboard mode: coordenadas absolutas desde la esquina superior izquierda
         rotatedX = e.clientX - rect.left;
         rotatedY = e.clientY - rect.top;
-        distance = 0; // No importa en fullboard mode
-        angle = 0; // No importa en fullboard mode
+
+        // Calcular polar coords también en fullboard mode (relativo al centro de la pantalla/contenedor)
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const dx = rotatedX - centerX;
+        const dy = rotatedY - centerY;
+        distance = Math.hypot(dx, dy);
+        angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        angle = (angle + 360) % 360;
       } else {
         // Modo normal: coordenadas relativas al centro del círculo con rotación
         const centerX = rect.left + rect.width / 2;
@@ -79,7 +86,7 @@ export default function useHandleDrop({
         // Dimensiones reales de los items para el cálculo de límites en fullboard mode
         const itemWidth = label === 'Tarea' ? 200 : (label === 'Nota' ? 169 : 110);
         const itemHeight = label === 'Tarea' ? 46 : (label === 'Nota' ? 100 : 110);
-        
+
         // En fullboard mode, limitar las coordenadas dentro de la pantalla visible
         let finalX = rotatedX;
         let finalY = rotatedY;
@@ -88,22 +95,35 @@ export default function useHandleDrop({
           finalX = limited.x;
           finalY = limited.y;
         }
-        
+
         // ItemsContext maneja automáticamente tanto items locales como del servidor
-        addItem({
+        const newItemData = {
           date: dateKey,
-          x: finalX,
-          y: finalY,
           rotation: 0,
           rotation_enabled: true,
           label,
-          angle,
-          distance,
           content: label === 'Tarea' ? [''] : '',
           ...(label === 'Tarea' ? { checked: [false] } : {}),
           width: itemWidth,
           height: itemHeight,
-        }).catch((error) => {
+        };
+
+        if (fullboardMode) {
+          newItemData.fullboard_x = finalX;
+          newItemData.fullboard_y = finalY;
+          // También guardamos x/y como fallback o para consistencia, pero angle/distance pueden ser 0 o calculados
+          newItemData.x = finalX;
+          newItemData.y = finalY;
+          newItemData.angle = 0; // Opcional: calcular si queremos sincronizar
+          newItemData.distance = 0;
+        } else {
+          newItemData.x = finalX;
+          newItemData.y = finalY;
+          newItemData.angle = angle;
+          newItemData.distance = distance;
+        }
+
+        addItem(newItemData).catch((error) => {
           setErrorToast({ key: 'common.error_create_item' });
         });
         return;
@@ -112,12 +132,21 @@ export default function useHandleDrop({
       if (source === 'dropped' && itemId) {
         // Los límites ya fueron aplicados durante el drag en useDragResize
         // Aquí solo guardamos la posición final
-        updateItem(itemId, {
-          x: rotatedX,
-          y: rotatedY,
-          angle,
-          distance,
-        }).catch((error) => {
+        // Los límites ya fueron aplicados durante el drag en useDragResize
+        // Aquí solo guardamos la posición final
+        const updateData = {};
+        if (fullboardMode) {
+          updateData.fullboard_x = rotatedX;
+          updateData.fullboard_y = rotatedY;
+          // No actualizamos angle/distance para mantener la posición en modo normal
+        } else {
+          updateData.x = rotatedX;
+          updateData.y = rotatedY;
+          updateData.angle = angle;
+          updateData.distance = distance;
+        }
+
+        updateItem(itemId, updateData).catch((error) => {
           setErrorToast({ key: 'common.error_update_item' });
         });
         return;

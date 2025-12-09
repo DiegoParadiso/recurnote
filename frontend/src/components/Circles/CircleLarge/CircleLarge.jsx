@@ -16,7 +16,7 @@ import { useTheme } from '@context/ThemeContext';
 import '@styles/components/circles/CircleLarge.css';
 
 export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, onItemDrag, displayOptions, setLocalItemsByDate, onCircleSizeChange, onErrorToast, onInfoToast, fullboardMode = false }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { t } = useTranslation();
   const [circleSize, setCircleSize] = useState(680);
   const [activeItemId, setActiveItemId] = useState(null);
@@ -26,6 +26,11 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const { user, token } = useAuth();
   const { isLightTheme } = useTheme();
   const [selectedPattern, setSelectedPattern] = useState(() => {
+    // Si el usuario NO es VIP, forzar 'none'
+    if (!user?.is_vip) {
+      return 'none';
+    }
+
     // Priorizar preferencias del usuario si existe
     const userPattern = user?.preferences?.circlePattern;
     if (userPattern && userPattern !== 'pattern9' && userPattern !== 'pattern10') {
@@ -50,7 +55,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
 
   // Función para obtener estilos del pattern de fondo
   const getPatternStyles = () => {
-    if (selectedPattern === 'none' || !selectedDay) {
+    // Verificación adicional de VIP aquí para asegurar que no se muestre
+    if (!user?.is_vip || selectedPattern === 'none' || !selectedDay) {
       return {};
     }
 
@@ -85,8 +91,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
   const BORDER_WIDTH = 1;
   // En fullboard mode, radio muy grande para permitir posicionamiento libre
   const radius = fullboardMode ? 10000 : ((circleSize / 2) - BORDER_WIDTH);
-  const cx = fullboardMode ? 0 : (circleSize / 2);
-  const cy = fullboardMode ? 0 : (circleSize / 2);
+  const cx = fullboardMode ? (width / 2) : (circleSize / 2);
+  const cy = fullboardMode ? (height / 2) : (circleSize / 2);
 
   const {
     containerRef,

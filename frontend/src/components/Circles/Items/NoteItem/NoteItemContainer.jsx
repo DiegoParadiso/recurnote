@@ -59,9 +59,9 @@ export default function NoteItemContainer({
           const dy = finalPos.y - cy;
           const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          onPositionChange?.({ x: finalPos.x, y: finalPos.y, angle, distance });
+          onPositionChange?.({ x: finalPos.x, y: finalPos.y, angle, distance, fullboardMode });
         } else {
-          onPositionChange?.({ x: finalPos.x, y: finalPos.y });
+          onPositionChange?.({ x: finalPos.x, y: finalPos.y, fullboardMode });
         }
       }}
       circleCenter={circleCenter}

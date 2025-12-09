@@ -260,7 +260,7 @@ export default function ArchivoItem({
     let extra = { fromDrag: false };
     if (posUpdate.x !== undefined && posUpdate.y !== undefined) {
       const { angle, distance } = computePolarFromXY(posUpdate.x, posUpdate.y, cx, cy);
-      extra = { ...extra, angle, distance };
+      extra = { ...extra, angle, distance, fullboardMode };
     }
 
     onUpdate?.(
@@ -326,7 +326,7 @@ export default function ArchivoItem({
               null,
               { width, height },
               { x: newX, y: newY },
-              { angle, distance, fromDrag: true } // Combinar extra en un solo objeto
+              { angle, distance, fromDrag: true, fullboardMode } // Combinar extra en un solo objeto
             );
             onItemDrag?.(id, { x: newX, y: newY });
           }}

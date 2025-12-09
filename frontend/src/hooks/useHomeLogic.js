@@ -8,7 +8,7 @@ export function useHomeLogic() {
   const { itemsByDate, addItem } = useItems();
   const { user, token } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  
+
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
@@ -20,7 +20,7 @@ export function useHomeLogic() {
   const [errorToast, setErrorToast] = useState('');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const isInitialLoadRef = useRef(true);
-  
+
   const [displayOptions, setDisplayOptions] = useState({
     year: true,
     month: true,
@@ -97,7 +97,7 @@ export function useHomeLogic() {
       const y = rect.top + rect.height / 2 - smallSize / 2; // centrado vertical
       return { x: Math.max(0, x), y: Math.max(0, y) };
     }
-    
+
     // Fallback si no encuentra el CircleLarge: lado derecho de la pantalla
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -109,10 +109,10 @@ export function useHomeLogic() {
   // Inicializar desde preferencias o posición por defecto (sólo desktop)
   useEffect(() => {
     if (window.innerWidth <= 640) return;
-    
+
     // Si no hay preferencias guardadas, usar posición por defecto (derecha del CircleLarge)
     let pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
-    
+
     // Si no hay usuario, buscar en localStorage
     if (!user && !pref) {
       const localPrefs = localStorage.getItem('localUIPreferences');
@@ -121,9 +121,9 @@ export function useHomeLogic() {
         pref = localUI.circleSmallPos;
       }
     }
-    
+
     let initial;
-    
+
     if (pref && typeof pref.x === 'number' && typeof pref.y === 'number') {
       // Usar preferencias guardadas
       initial = { x: pref.x, y: pref.y };
@@ -131,7 +131,7 @@ export function useHomeLogic() {
       // Usar posición por defecto (derecha del CircleLarge)
       initial = computeDefaultSmallPos();
     }
-    
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     initial = {
@@ -148,17 +148,17 @@ export function useHomeLogic() {
   // Efecto adicional para reposicionar cuando el CircleLarge esté listo (solo en carga inicial)
   useEffect(() => {
     if (window.innerWidth <= 640) return;
-    
+
     // No reposicionar si está en fullboard mode (se gestiona desde Home.jsx)
     if (displayOptions?.fullboardMode) return;
-    
+
     const repositionWhenReady = () => {
       // No reposicionar si el usuario ya lo movió manualmente
       if (hasUserMovedCircle) return;
-      
+
       // Verificar si no hay preferencias guardadas
       let pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
-      
+
       // Si no hay usuario, buscar en localStorage
       if (!user && !pref) {
         const localPrefs = localStorage.getItem('localUIPreferences');
@@ -167,15 +167,15 @@ export function useHomeLogic() {
           pref = localUI.circleSmallPos;
         }
       }
-      
+
       if (pref && typeof pref.x === 'number' && typeof pref.y === 'number') {
         return; // Hay preferencias, no reposicionar
       }
-      
+
       // Intentar obtener la posición correcta del CircleLarge
       const circleEl = document.querySelector('.circle-large-container');
       if (!circleEl) return; // No está listo aún
-      
+
       const newPos = computeDefaultSmallPos();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -183,7 +183,7 @@ export function useHomeLogic() {
         x: Math.min(Math.max(0, newPos.x), vw - smallSize),
         y: Math.min(Math.max(0, newPos.y), vh - smallSize),
       };
-      
+
       // Solo actualizar si la nueva posición es diferente y válida
       if (clamped.x !== circleSmallPos.x || clamped.y !== circleSmallPos.y) {
         setCircleSmallPos(clamped);
@@ -215,7 +215,7 @@ export function useHomeLogic() {
         hasRepositioned = true;
       }
     }, 100);
-    
+
     const timeoutId2 = setTimeout(() => {
       if (!hasRepositioned) {
         repositionWhenReady();
@@ -228,13 +228,13 @@ export function useHomeLogic() {
       clearTimeout(timeoutId1);
       clearTimeout(timeoutId2);
     };
-  }, [smallSize, user?.preferences, hasUserMovedCircle, displayOptions?.fullboardMode]); 
+  }, [smallSize, user?.preferences, hasUserMovedCircle, displayOptions?.fullboardMode]);
 
   // Manejar resize de ventana para mantener CircleSmall dentro de los límites (sin reposicionar automáticamente)
   useEffect(() => {
-    if (window.innerWidth <= 640) return;    
+    if (window.innerWidth <= 640) return;
     if (displayOptions?.fullboardMode) return;
-    
+
     const handleResize = () => {
       // Solo ajustar si está fuera de los límites, NO reposicionar automáticamente
       if (circleSmallPos.x != null && circleSmallPos.y != null) {
@@ -262,11 +262,11 @@ export function useHomeLogic() {
     e.stopPropagation();
     const startX = e.clientX;
     const startY = e.clientY;
-    
+
     // Usar la posición actual del estado
     const currentPos = circleSmallPos;
     if (currentPos.x == null || currentPos.y == null) return;
-    
+
     dragOffsetRef.current = {
       dx: startX - currentPos.x,
       dy: startY - currentPos.y,
@@ -276,16 +276,16 @@ export function useHomeLogic() {
     const onMove = (ev) => {
       ev.preventDefault();
       if (!draggingSmallRef.current) return;
-      
+
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const rawX = ev.clientX - dragOffsetRef.current.dx;
       const rawY = ev.clientY - dragOffsetRef.current.dy;
-      
+
       // Calcular nueva posición con límites
       const x = Math.min(Math.max(0, rawX), vw - smallSize);
       const y = Math.min(Math.max(0, rawY), vh - smallSize);
-      
+
       // Actualizar posición en tiempo real
       setCircleSmallPos({ x, y });
     };
@@ -294,20 +294,20 @@ export function useHomeLogic() {
       ev.preventDefault();
       if (!draggingSmallRef.current) return;
       draggingSmallRef.current = false;
-      
+
       // Marcar que el usuario movió el círculo manualmente
       setHasUserMovedCircle(true);
-      
+
       // Guardar la posición final en localStorage si no hay usuario
       if (!token) {
         const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
-        const updatedPrefs = { 
-          ...currentLocalPrefs, 
-          circleSmallPos: { x: circleSmallPos.x, y: circleSmallPos.y } 
+        const updatedPrefs = {
+          ...currentLocalPrefs,
+          circleSmallPos: { x: circleSmallPos.x, y: circleSmallPos.y }
         };
         localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
       }
-      
+
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
@@ -393,9 +393,9 @@ export function useHomeLogic() {
 
   const onCircleSmallDoubleClick = useCallback(() => {
     if (window.innerWidth <= 640) return;
-    
+
     let resetPos;
-    
+
     // Si está en fullboard mode, usar posición centrada
     if (displayOptions?.fullboardMode) {
       const centerX = window.innerWidth / 2 - smallSize / 2;
@@ -405,10 +405,10 @@ export function useHomeLogic() {
       // Modo normal, usar posición por defecto
       resetPos = computeDefaultSmallPos();
     }
-    
+
     setCircleSmallPos(resetPos);
     setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
-    
+
     // Eliminar la posición guardada del localStorage si no hay usuario (para usar posición por defecto)
     if (!token) {
       const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
@@ -420,9 +420,9 @@ export function useHomeLogic() {
   // Función para resetear a la posición original (usada por el menú contextual)
   const resetCircleSmallToDefault = useCallback(() => {
     if (window.innerWidth <= 640) return;
-    
+
     let resetPos;
-    
+
     // Si está en fullboard mode, usar posición centrada
     if (displayOptions?.fullboardMode) {
       const centerX = window.innerWidth / 2 - smallSize / 2;
@@ -432,10 +432,10 @@ export function useHomeLogic() {
       // Modo normal, usar posición por defecto
       resetPos = computeDefaultSmallPos();
     }
-    
+
     setCircleSmallPos(resetPos);
     setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
-    
+
     // SOLO AQUÍ se elimina la posición guardada del localStorage para usar posición por defecto
     if (!token) {
       const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
@@ -448,7 +448,7 @@ export function useHomeLogic() {
 
   const recenterCircleSmall = useCallback(() => {
     if (window.innerWidth <= 640) return;
-    
+
     // Usar posición por defecto
     const pos = computeDefaultSmallPos();
     const vw = window.innerWidth;
@@ -459,7 +459,7 @@ export function useHomeLogic() {
     };
     setCircleSmallPos(clamped);
     setHasUserMovedCircle(false); // Reset del flag para permitir auto-reposicionamiento futuro
-    
+
     // Eliminar la posición guardada del localStorage si no hay usuario (para usar posición por defecto)
     if (!token) {
       const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
@@ -497,10 +497,10 @@ export function useHomeLogic() {
   // Guardar displayOptions automáticamente en el backend cuando cambia
   useEffect(() => {
     if (!token || !user) return;
-    
+
     // No guardar en la carga inicial
     if (isInitialLoadRef.current) return;
-    
+
     // Debounce de 1 segundo para evitar demasiadas llamadas
     const timeoutId = setTimeout(async () => {
       try {
@@ -510,16 +510,16 @@ export function useHomeLogic() {
             ...displayOptions,
           },
         };
-        
+
         const response = await fetch(`${API_URL}/api/auth/preferences`, {
           method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            Authorization: `Bearer ${token}` 
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({ preferences: prefs }),
         });
-        
+
         if (response.ok) {
           // Actualizar localStorage con las nuevas preferencias
           const updatedUser = { ...user, preferences: prefs };
@@ -529,7 +529,7 @@ export function useHomeLogic() {
         console.error('Error saving displayOptions:', error);
       }
     }, 1000);
-    
+
     return () => clearTimeout(timeoutId);
   }, [displayOptions, token, user, API_URL]);
 
@@ -554,7 +554,7 @@ export function useHomeLogic() {
   useEffect(() => {
     if (!preferencesLoaded) {
       let ui = {};
-      
+
       if (user?.preferences?.ui) {
         // Usuario autenticado: usar preferencias del backend
         ui = user.preferences.ui;
@@ -565,7 +565,7 @@ export function useHomeLogic() {
           ui = JSON.parse(localPrefs);
         }
       }
-      
+
       if (ui.leftSidebarPinned !== undefined) {
         setIsLeftSidebarPinned(ui.leftSidebarPinned);
       }
@@ -584,13 +584,13 @@ export function useHomeLogic() {
         await fetch(`${API_URL}/api/auth/preferences`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ 
-            preferences: { 
-              ui: { 
-                ...(user?.preferences?.ui || {}), 
-                ...uiChanges 
-              } 
-            } 
+          body: JSON.stringify({
+            preferences: {
+              ui: {
+                ...(user?.preferences?.ui || {}),
+                ...uiChanges
+              }
+            }
           }),
         });
       } else {
@@ -622,10 +622,10 @@ export function useHomeLogic() {
   function isOverTrashZone(pos) {
     if (!pos) return false;
     // Coordenadas que coinciden con DragTrashZone (left: 25, top: 5)
-    const trashX = 0; 
+    const trashX = 0;
     const trashY = 5;
-    const trashWidth = 50; 
-    const trashHeight = 50; 
+    const trashWidth = 50;
+    const trashHeight = 50;
 
     const isOver = (
       pos.x >= trashX &&
@@ -682,15 +682,29 @@ export function useHomeLogic() {
 
     const newItem = {
       label: item.label,
-      angle,
-      distance,
-      x: distance * Math.cos(rad),
-      y: distance * Math.sin(rad),
       content: item.label === 'Tarea' ? [''] : '',
       ...(item.label === 'Tarea' && { checked: [false] }),
       width: item.label === 'Tarea' ? 200 : 100,
       height: item.label === 'Tarea' ? 46 : 100,
     };
+
+    if (displayOptions?.fullboardMode) {
+      // En fullboard mode, poner en el centro de la pantalla
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      newItem.fullboard_x = centerX;
+      newItem.fullboard_y = centerY;
+      // Valores dummy para normal mode (o calcular algo válido)
+      newItem.angle = 0;
+      newItem.distance = 0;
+      newItem.x = centerX;
+      newItem.y = centerY;
+    } else {
+      newItem.angle = angle;
+      newItem.distance = distance;
+      newItem.x = distance * Math.cos(rad);
+      newItem.y = distance * Math.sin(rad);
+    }
 
     try {
       await addItem({
@@ -702,7 +716,7 @@ export function useHomeLogic() {
     } catch (e) {
       setToast(e?.message || t('alerts.itemCreateError'));
     }
-  }, [addItem, setToast]);
+  }, [addItem, setToast, displayOptions?.fullboardMode]);
 
   useEffect(() => {
     // No hay toast local, por lo que no se necesita este efecto

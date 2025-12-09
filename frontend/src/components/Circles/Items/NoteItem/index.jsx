@@ -252,7 +252,7 @@ export default function NoteItem({
         maxHeight={MAX_CONTAINER_HEIGHT}
         onPositionChange={({ x: newX, y: newY, angle, distance }) => {
           // Persistir posición final y geometría una sola vez al soltar
-          onUpdate?.(id, content, null, null, { x: newX, y: newY }, { angle, distance });
+          onUpdate?.(id, content, null, null, { x: newX, y: newY }, { angle, distance, fullboardMode });
           flushItemUpdate?.(id);
         }}
         onSizeChange={({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
@@ -264,7 +264,7 @@ export default function NoteItem({
 
           if (posUpdate) {
             const { angle, distance } = computePolarFromXY(posUpdate.x, posUpdate.y, cx, cy);
-            extra = { angle, distance };
+            extra = { angle, distance, fullboardMode };
           }
 
           onUpdate?.(id, content, null, { width: clampedWidth, height: clampedHeight }, posUpdate, extra);

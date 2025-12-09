@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../config/db.js'; 
+import { sequelize } from '../config/db.js';
 import { User } from './user.model.js';
 
 export const Item = sequelize.define('Item', {
@@ -28,6 +28,14 @@ export const Item = sequelize.define('Item', {
   y: {
     type: DataTypes.NUMERIC(10, 2),
     allowNull: false,
+  },
+  fullboard_x: {
+    type: DataTypes.NUMERIC(10, 2),
+    allowNull: true,
+  },
+  fullboard_y: {
+    type: DataTypes.NUMERIC(10, 2),
+    allowNull: true,
   },
   rotation: {
     type: DataTypes.NUMERIC(10, 2),

@@ -54,7 +54,7 @@ function ComingSoonOption({ label }) {
 function PatternSelector({ selectedPattern, onPatternChange, isPremium, onPremiumClick }) {
   const { t } = useTranslation();
 
-  const isEnabled = selectedPattern !== 'none';
+  const isEnabled = isPremium && selectedPattern !== 'none';
 
   const handleToggle = (enabled) => {
     if (!isPremium) {
@@ -142,6 +142,7 @@ export default function ConfigPanel({
 
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {
+    if (!user?.is_vip) return 'none';
     return localStorage.getItem('circlePattern') || 'none';
   });
 

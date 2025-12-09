@@ -354,7 +354,7 @@ function TaskItem({
           if (newX !== undefined && newY !== undefined) {
             lastPosRef.current = { x: newX, y: newY };
             const { angle, distance } = computePolarFromXY(newX, newY, cx, cy);
-            onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight }, { x: newX, y: newY }, { angle, distance });
+            onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight }, { x: newX, y: newY }, { angle, distance, fullboardMode });
           } else {
             onUpdate?.(id, item.content || [], item.checked || [], { width: clampedWidth, height: clampedHeight });
           }
@@ -377,7 +377,7 @@ function TaskItem({
 
           const { angle, distance } = computePolarFromXY(finalPos.x, finalPos.y, cx, cy);
           // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
-          onUpdate?.(id, item.content || [], item.checked || [], null, { x: finalPos.x, y: finalPos.y }, { angle, distance });
+          onUpdate?.(id, item.content || [], item.checked || [], null, { x: finalPos.x, y: finalPos.y }, { angle, distance, fullboardMode });
           flushItemUpdate?.(id);
           // Limpiar estado de edición al hacer drop
           setEditingInputs(new Set());

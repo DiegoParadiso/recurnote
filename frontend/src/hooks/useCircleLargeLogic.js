@@ -137,10 +137,24 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
     }
     // Agregar coordenadas x, y cuando newPosition está presente
     if (newPosition?.x !== undefined && newPosition?.y !== undefined) {
-      changes.x = newPosition.x;
-      changes.y = newPosition.y;
+      // Si estamos en fullboard mode (detectado por contexto o flag), deberíamos usar fullboard_x/y
+      // Pero handleNoteUpdate no sabe el modo directamente salvo por props/contexto.
+      // Vamos a asumir que si newPosition viene, es la posición visual actual.
+
+      // Si el componente que llama a onUpdate pasa 'fullboardMode' en opts o extra, podemos decidir.
+      if (extra?.fullboardMode) {
+        changes.fullboard_x = newPosition.x;
+        changes.fullboard_y = newPosition.y;
+        // No tocamos x, y, angle, distance para no afectar el modo normal
+      } else {
+        changes.x = newPosition.x;
+        changes.y = newPosition.y;
+      }
     }
-    if (extra && typeof extra === 'object') Object.assign(changes, extra);
+    if (extra && typeof extra === 'object') {
+      const { fullboardMode, ...restExtra } = extra;
+      Object.assign(changes, restExtra);
+    }
 
     if (Object.keys(changes).length) {
       updateItem(id, changes, opts).catch((error) => {
