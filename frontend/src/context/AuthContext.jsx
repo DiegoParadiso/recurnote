@@ -54,8 +54,8 @@ export function AuthProvider({ children }) {
   // Función para validar token
   const validateToken = async (tokenToValidate) => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, { 
-        headers: { Authorization: `Bearer ${tokenToValidate}` } 
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${tokenToValidate}` }
       });
       return res.ok;
     } catch (error) {
@@ -70,8 +70,8 @@ export function AuthProvider({ children }) {
   async function refreshMe() {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, { 
-        headers: { Authorization: `Bearer ${token}` } 
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) return;
       const me = await res.json();
@@ -86,7 +86,7 @@ export function AuthProvider({ children }) {
           // Guardar también en local para carga rápida
           const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
           localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: preferredLang }));
-        } catch {}
+        } catch { }
       }
       return updatedUser;
     } catch (error) {
@@ -119,7 +119,7 @@ export function AuthProvider({ children }) {
         await i18n.changeLanguage(preferredLang);
         const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
         localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: preferredLang }));
-      } catch {}
+      } catch { }
     }
 
     // Marcar que se debe hacer migración después del login
@@ -140,10 +140,10 @@ export function AuthProvider({ children }) {
       }
 
       const data = await response.json();
-      
+
       // No hacer login automático después del registro
       // El usuario debe verificar su email primero
-      
+
       return data;
     } catch (error) {
       // Usar bottomtoast para mostrar errores
@@ -166,27 +166,37 @@ export function AuthProvider({ children }) {
     setMigrationStatus(status);
   }, []);
 
+  // Función para actualizar el usuario manualmente (sin fetch)
+  const updateUser = useCallback((userData) => {
+    setUser(prev => {
+      const updated = { ...prev, ...userData };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <>
-      <AuthContext.Provider value={{ 
-        user, 
-        token, 
-        login, 
-        logout, 
-        register, 
-        loading, 
+      <AuthContext.Provider value={{
+        user,
+        token,
+        login,
+        logout,
+        register,
+        loading,
         refreshMe,
         migrationStatus,
         markMigrationComplete,
         errorToast,
-        setErrorToast
+        setErrorToast,
+        updateUser
       }}>
         {children}
       </AuthContext.Provider>
-      
-      <BottomToast 
-        message={errorToast} 
-        onClose={() => setErrorToast('')} 
+
+      <BottomToast
+        message={errorToast}
+        onClose={() => setErrorToast('')}
         duration={5000}
       />
     </>

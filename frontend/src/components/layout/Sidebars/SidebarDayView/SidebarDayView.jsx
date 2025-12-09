@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useItems } from '@context/ItemsContext';
 import ItemsList from '@components/layout/Sidebars/SidebarDayView/ItemsList';
+import ConfirmationModal from '@components/common/ConfirmationModal';
 import '@styles/layouts/sidebars/SidebarDayView.css';
 import useItemsForDays from '@hooks/data/useItemsForDays';
 import useAutoScrollOnHover from '@hooks/ui/useAutoScrollOnHover';
@@ -8,11 +9,12 @@ import { useTranslation } from 'react-i18next';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { t, i18n } = useTranslation();
-  const { itemsByDate, setItemsByDate, updateItem } = useItems();
-  
+  const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   // Usar items del ItemsContext (que maneja tanto servidor como local)
   const { itemsForDays } = useItemsForDays(itemsByDate);
-  
+
   const [isHoveringTop, setIsHoveringTop] = useState(false);
   const [isHoveringBottom, setIsHoveringBottom] = useState(false);
 
@@ -72,7 +74,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         const checks = [...(item.checked || [])];
         checks[taskIndex] = !checks[taskIndex];
         // Persistir usando updateItem (que maneja tanto servidor como local)
-        updateItem(item.id, { checked: checks }).catch(() => {});
+        updateItem(item.id, { checked: checks }).catch(() => { });
         return { ...item, checked: checks };
       }
       return item;
@@ -92,8 +94,28 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
     }
   }
 
+
+  const handleDeleteRequest = (itemId) => {
+    setItemToDelete(itemId);
+  };
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      try {
+        await deleteItem(itemToDelete);
+      } catch (error) {
+        // Error silencioso
+      }
+      setItemToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setItemToDelete(null);
+  };
+
   return (
-    <div 
+    <div
       className={`fixed ${isMobile ? 'inset-0 z-50 flex flex-col bg-[var(--color-bg)]' : 'top-0 right-0 h-screen w-[30px] group z-50'}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -113,16 +135,15 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
       {!isMobile && <div className="absolute right-0 top-0 h-full w-[30px] z-10" />}
 
       <div
-        className={`${
-          isMobile
-            ? 'sidebar-mobile'
-            : 'absolute right-0 top-0 cursor-default'
-        } sidebar-container ${!isMobile && (isRightSidebarPinned ? 'sidebar-visible' : 'sidebar-hidden')}`}
+        className={`${isMobile
+          ? 'sidebar-mobile'
+          : 'absolute right-0 top-0 cursor-default'
+          } sidebar-container ${!isMobile && (isRightSidebarPinned ? 'sidebar-visible' : 'sidebar-hidden')}`}
       >
         <div className={`${isMobile ? 'pt-0 pb-6' : 'pt-8 pb-5'} flex-shrink-0`}>
           <h2 className="sidebar-header text-center w-full">{t('sidebar.upcomingDays')}</h2>
         </div>
-      
+
         <div className="border-t mx-4" style={{ borderColor: 'var(--color-border)' }} />
 
         <div
@@ -135,7 +156,9 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             itemsForDays={itemsForDays}
             setSelectedDay={handleDaySelect}
             toggleTaskCheck={toggleTaskCheck}
+
             onReorder={handleReorder}
+            onDeleteRequest={handleDeleteRequest}
           />
         </div>
         <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
@@ -144,6 +167,19 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
           </div>
         </div>
       </div>
-    </div>
+
+
+      <ConfirmationModal
+        isOpen={!!itemToDelete}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={t('sidebar.confirmDeleteItem')}
+        message={t('alerts.confirmDeleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        isDangerous={true}
+      />
+    </div >
   );
 }
+

@@ -25,6 +25,7 @@ import CircleSmallWithContextMenu from '@components/common/CircleSmallWithContex
 import { useNotes } from '@context/NotesContext';
 import LocalUserIndicator from '@components/common/LocalUserIndicator';
 import LocalMigrationHandler from '@components/common/LocalMigrationHandler';
+import ConfirmationModal from '@components/common/ConfirmationModal';
 import '@styles/pages/Home.css';
 
 export default function Home() {
@@ -646,40 +647,17 @@ export default function Home() {
       <BottomToast message={errorToast} onClose={() => setErrorToast('')} duration={5000} />
 
       {/* Modal de confirmación para eliminar item en mobile */}
-      {
-        itemToDelete && isMobile && (
-          <div
-            className="fixed inset-0 bg-black/30 flex items-center justify-center z-[10000]"
-            onClick={cancelDeleteItem}
-          >
-            <div
-              className="bg-[var(--color-bg)] rounded-lg p-6 max-w-md mx-4 border border-[var(--color-text-secondary)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-lg font-semibold mb-3 text-[var(--color-text-primary)]">
-                {t('alerts.confirmDelete')}
-              </h3>
-              <p className="text-sm text-[var(--color-muted)] mb-4">
-                {t('alerts.confirmDeleteMessage')}
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={cancelDeleteItem}
-                  className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-2)] transition-colors border border-[var(--color-neutral-dark)]"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  onClick={confirmDeleteItem}
-                  className="flex-1 px-4 py-2 rounded-md bg-[var(--color-neutral-darker)] text-white hover:opacity-90 transition-opacity"
-                >
-                  {t('common.delete')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      }
+      {/* Modal de confirmación para eliminar item en mobile */}
+      <ConfirmationModal
+        isOpen={!!itemToDelete && isMobile}
+        onClose={cancelDeleteItem}
+        onConfirm={confirmDeleteItem}
+        title={t('alerts.confirmDelete')}
+        message={t('alerts.confirmDeleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        isDangerous={true}
+      />
     </div >
   );
 }

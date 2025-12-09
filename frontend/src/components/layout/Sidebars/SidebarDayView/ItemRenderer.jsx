@@ -7,21 +7,20 @@ import TaskPreview from './previews/TaskPreview';
 import NotePreview from './previews/NotePreview';
 import hasRealContent from '@utils/hasRealContent';
 
-export default function ItemRenderer({ item, dateKey, toggleTaskCheck }) {
+export default function ItemRenderer({ item, dateKey, toggleTaskCheck, onDeleteRequest }) {
   const { t } = useTranslation();
   const { deleteItem } = useItems();
 
   // hasRealContent centralizado en util
 
-  const handleDelete = async (e) => {
+  const handleDelete = (e) => {
     e.preventDefault();
-    if (!window.confirm(t('sidebar.confirmDeleteItem'))) return;
-
-    // Usar deleteItem del ItemsContext para todo (tanto servidor como local)
-    try {
-      await deleteItem(item.id);
-    } catch (error) {
-      // Error silencioso al eliminar item
+    if (onDeleteRequest) {
+      onDeleteRequest(item.id);
+    } else {
+      // Fallback por si no se pasa la prop
+      if (!window.confirm(t('sidebar.confirmDeleteItem'))) return;
+      deleteItem(item.id).catch(() => { });
     }
   };
 

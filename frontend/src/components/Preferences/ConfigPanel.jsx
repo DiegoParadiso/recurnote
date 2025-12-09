@@ -10,6 +10,7 @@ import DataManagementOptions from '@components/Preferences/parts/DataManagementO
 import HelpIcon from '@components/common/HelpIcon';
 import usePremiumModal from '@hooks/usePremiumModal';
 import PremiumModal from '@components/Premium/PremiumModal';
+import CustomSelect from '@components/common/CustomSelect';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -93,22 +94,20 @@ function PatternSelector({ selectedPattern, onPatternChange, isPremium, onPremiu
 
       {isEnabled && (
         <div onClickCapture={handleInteraction} style={{ marginTop: '0.5rem', paddingLeft: '0.5rem' }}>
-          <select
-            id="pattern"
+          <CustomSelect
             value={selectedPattern}
-            onChange={(e) => onPatternChange(e.target.value)}
-            disabled={!isPremium}
-            style={!isPremium ? { opacity: 0.7, cursor: 'pointer' } : {}}
-          >
-            <option value="pattern1">{t('pattern.pattern1')}</option>
-            <option value="pattern2">{t('pattern.pattern2')}</option>
-            <option value="pattern3">{t('pattern.pattern3')}</option>
-            <option value="pattern4">{t('pattern.pattern4')}</option>
-            <option value="pattern5">{t('pattern.pattern5')}</option>
-            <option value="pattern6">{t('pattern.pattern6')}</option>
-            <option value="pattern7">{t('pattern.pattern7')}</option>
-            <option value="pattern8">{t('pattern.pattern8')}</option>
-          </select>
+            onChange={(val) => onPatternChange(val)}
+            options={[
+              { value: 'pattern1', label: t('pattern.pattern1') },
+              { value: 'pattern2', label: t('pattern.pattern2') },
+              { value: 'pattern3', label: t('pattern.pattern3') },
+              { value: 'pattern4', label: t('pattern.pattern4') },
+              { value: 'pattern5', label: t('pattern.pattern5') },
+              { value: 'pattern6', label: t('pattern.pattern6') },
+              { value: 'pattern7', label: t('pattern.pattern7') },
+              { value: 'pattern8', label: t('pattern.pattern8') },
+            ]}
+          />
         </div>
       )}
     </>
@@ -131,7 +130,7 @@ export default function ConfigPanel({
 }) {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const { token, user, refreshMe } = useAuth();
+  const { token, user, refreshMe, updateUser } = useAuth();
   const { isLightTheme, setIsLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme, isHighContrast, setIsHighContrast, textScale, setTextScale, reducedMotion, setReducedMotion } = useTheme();
   const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -172,7 +171,7 @@ export default function ConfigPanel({
 
       // Actualizar usuario local
       const updatedUser = { ...user, preferences: prefs };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      updateUser(updatedUser);
     }
 
     // Notificar a otros componentes del cambio
@@ -246,7 +245,7 @@ export default function ConfigPanel({
         if (response.ok) {
           // Actualizar el usuario local con las nuevas preferencias
           const updatedUser = { ...user, preferences: prefs };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
+          updateUser(updatedUser);
           // NO refrescar el usuario automáticamente para evitar conflictos
           // await refreshMe();
         }
@@ -405,12 +404,10 @@ export default function ConfigPanel({
               <HelpIcon text={t('help.language_region')} />
             </h3>
             <div className="visualization-header-options">
-              <label htmlFor="language-select">{t('language.label')}</label>
-              <select
-                id="language-select"
+              <label htmlFor="language-select" style={{ marginBottom: '8px', display: 'block', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{t('language.label')}</label>
+              <CustomSelect
                 value={displayOptions.language || 'auto'}
-                onChange={(e) => {
-                  const lang = e.target.value;
+                onChange={(lang) => {
                   setDisplayOptions(prev => ({ ...prev, language: lang }));
                   // Cambiar idioma inmediatamente
                   const resolved = lang === 'auto' ? undefined : lang;
@@ -437,83 +434,84 @@ export default function ConfigPanel({
                       }).catch(() => { });
                       // Actualizar user local
                       const updatedUser = { ...user, preferences: prefs };
-                      localStorage.setItem('user', JSON.stringify(updatedUser));
+                      updateUser(updatedUser);
                     }
                   } catch { }
                   // Ajustar atributo lang del HTML
                   document.documentElement.setAttribute('lang', i18n.language || 'en');
                 }}
-              >
-                <option value="auto">{t('language.auto')}</option>
-                <option value="es">{t('language.es')}</option>
-                <option value="en">{t('language.en')}</option>
-              </select>
+                options={[
+                  { value: 'auto', label: t('language.auto') },
+                  { value: 'es', label: t('language.es') },
+                  { value: 'en', label: t('language.en') },
+                ]}
+              />
 
-              <label htmlFor="timezone">{t('timezone.label')}</label>
-              <select
-                id="timezone"
-                value={displayOptions.timeZone}
-                onChange={(e) => setDisplayOptions(prev => ({ ...prev, timeZone: e.target.value }))}
-              >
-                {/* América */}
-                <option value="America/Argentina/Buenos_Aires">Buenos Aires (GMT-3)</option>
-                <option value="America/Sao_Paulo">São Paulo (GMT-3)</option>
-                <option value="America/Montevideo">Montevideo (GMT-3)</option>
-                <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
-                <option value="America/New_York">Nueva York (GMT-5)</option>
-                <option value="America/Chicago">Chicago (GMT-6)</option>
-                <option value="America/Los_Angeles">Los Ángeles (GMT-8)</option>
-                <option value="America/Bogota">Bogotá (GMT-5)</option>
-                <option value="America/Lima">Lima (GMT-5)</option>
-                <option value="America/Santiago">Santiago de Chile (GMT-4)</option>
-                <option value="America/Caracas">Caracas (GMT-4)</option>
-                <option value="America/Toronto">Toronto (GMT-5)</option>
-                <option value="America/Havana">La Habana (GMT-5)</option>
-                <option value="America/Anchorage">Anchorage (GMT-9)</option>
-                <option value="America/Juneau">Juneau (GMT-9)</option>
-                <option value="America/Denver">Denver (GMT-7)</option>
+              <div style={{ marginTop: '16px' }}>
+                <label htmlFor="timezone" style={{ marginBottom: '8px', display: 'block', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{t('timezone.label')}</label>
+                <CustomSelect
+                  value={displayOptions.timeZone}
+                  onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeZone: val }))}
+                  options={[
+                    // América
+                    { value: "America/Argentina/Buenos_Aires", label: "Buenos Aires (GMT-3)" },
+                    { value: "America/Sao_Paulo", label: "São Paulo (GMT-3)" },
+                    { value: "America/Montevideo", label: "Montevideo (GMT-3)" },
+                    { value: "America/Mexico_City", label: "Ciudad de México (GMT-6)" },
+                    { value: "America/New_York", label: "Nueva York (GMT-5)" },
+                    { value: "America/Chicago", label: "Chicago (GMT-6)" },
+                    { value: "America/Los_Angeles", label: "Los Ángeles (GMT-8)" },
+                    { value: "America/Bogota", label: "Bogotá (GMT-5)" },
+                    { value: "America/Lima", label: "Lima (GMT-5)" },
+                    { value: "America/Santiago", label: "Santiago de Chile (GMT-4)" },
+                    { value: "America/Caracas", label: "Caracas (GMT-4)" },
+                    { value: "America/Toronto", label: "Toronto (GMT-5)" },
+                    { value: "America/Havana", label: "La Habana (GMT-5)" },
+                    { value: "America/Anchorage", label: "Anchorage (GMT-9)" },
+                    { value: "America/Juneau", label: "Juneau (GMT-9)" },
+                    { value: "America/Denver", label: "Denver (GMT-7)" },
+                    // Europa
+                    { value: "Europe/Madrid", label: "Madrid (GMT+1)" },
+                    { value: "Europe/London", label: "Londres (GMT+0)" },
+                    { value: "Europe/Berlin", label: "Berlín (GMT+1)" },
+                    { value: "Europe/Paris", label: "París (GMT+1)" },
+                    { value: "Europe/Rome", label: "Roma (GMT+1)" },
+                    { value: "Europe/Moscow", label: "Moscú (GMT+3)" },
+                    { value: "Europe/Amsterdam", label: "Ámsterdam (GMT+1)" },
+                    { value: "Europe/Oslo", label: "Oslo (GMT+1)" },
+                    { value: "Europe/Stockholm", label: "Estocolmo (GMT+1)" },
+                    // Asia
+                    { value: "Asia/Tokyo", label: "Tokio (GMT+9)" },
+                    { value: "Asia/Shanghai", label: "Shanghái (GMT+8)" },
+                    { value: "Asia/Singapore", label: "Singapur (GMT+8)" },
+                    { value: "Asia/Dubai", label: "Dubái (GMT+4)" },
+                    { value: "Asia/Kolkata", label: "India (GMT+5:30)" },
+                    { value: "Asia/Seoul", label: "Seúl (GMT+9)" },
+                    { value: "Asia/Manila", label: "Manila (GMT+8)" },
+                    { value: "Asia/Bangkok", label: "Bangkok (GMT+7)" },
+                    // Oceanía
+                    { value: "Australia/Sydney", label: "Sídney (GMT+10)" },
+                    { value: "Australia/Melbourne", label: "Melbourne (GMT+10)" },
+                    { value: "Pacific/Auckland", label: "Auckland (GMT+12)" },
+                    { value: "Pacific/Honolulu", label: "Honolulu (GMT-10)" },
+                    { value: "Pacific/Fiji", label: "Fiyi (GMT+12)" },
+                    // UTC
+                    { value: "UTC", label: "UTC" },
+                  ]}
+                />
+              </div>
 
-                {/* Europa */}
-                <option value="Europe/Madrid">Madrid (GMT+1)</option>
-                <option value="Europe/London">Londres (GMT+0)</option>
-                <option value="Europe/Berlin">Berlín (GMT+1)</option>
-                <option value="Europe/Paris">París (GMT+1)</option>
-                <option value="Europe/Rome">Roma (GMT+1)</option>
-                <option value="Europe/Moscow">Moscú (GMT+3)</option>
-                <option value="Europe/Amsterdam">Ámsterdam (GMT+1)</option>
-                <option value="Europe/Oslo">Oslo (GMT+1)</option>
-                <option value="Europe/Stockholm">Estocolmo (GMT+1)</option>
-
-                {/* Asia */}
-                <option value="Asia/Tokyo">Tokio (GMT+9)</option>
-                <option value="Asia/Shanghai">Shanghái (GMT+8)</option>
-                <option value="Asia/Singapore">Singapur (GMT+8)</option>
-                <option value="Asia/Dubai">Dubái (GMT+4)</option>
-                <option value="Asia/Kolkata">India (GMT+5:30)</option>
-                <option value="Asia/Seoul">Seúl (GMT+9)</option>
-                <option value="Asia/Manila">Manila (GMT+8)</option>
-                <option value="Asia/Bangkok">Bangkok (GMT+7)</option>
-
-                {/* Oceanía */}
-                <option value="Australia/Sydney">Sídney (GMT+10)</option>
-                <option value="Australia/Melbourne">Melbourne (GMT+10)</option>
-                <option value="Pacific/Auckland">Auckland (GMT+12)</option>
-                <option value="Pacific/Honolulu">Honolulu (GMT-10)</option>
-                <option value="Pacific/Fiji">Fiyi (GMT+12)</option>
-
-                {/* UTC */}
-                <option value="UTC">UTC</option>
-              </select>
-
-              <label htmlFor="timeFormat">{t('timeformat.label')}</label>
-              <select
-                id="timeFormat"
-                value={displayOptions.timeFormat}
-                onChange={(e) => setDisplayOptions(prev => ({ ...prev, timeFormat: e.target.value }))}
-              >
-                <option value="24h">{t('timeformat.h24')}</option>
-                <option value="12h">{t('timeformat.h12')}</option>
-              </select>
+              <div style={{ marginTop: '16px' }}>
+                <label htmlFor="timeFormat" style={{ marginBottom: '8px', display: 'block', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{t('timeformat.label')}</label>
+                <CustomSelect
+                  value={displayOptions.timeFormat}
+                  onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeFormat: val }))}
+                  options={[
+                    { value: '24h', label: t('timeformat.h24') },
+                    { value: '12h', label: t('timeformat.h12') },
+                  ]}
+                />
+              </div>
             </div>
           </section>
 
