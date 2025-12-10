@@ -11,6 +11,12 @@ const draggingItemsRef = { current: new Set() };
 export const ItemsProvider = ({ children }) => {
   const { user, token, loading: authLoading } = useAuth();
   const [itemsByDate, setItemsByDate] = useState({});
+  const itemsRef = useRef(itemsByDate); // Ref para acceder al estado más reciente en callbacks async
+
+  useEffect(() => {
+    itemsRef.current = itemsByDate;
+  }, [itemsByDate]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pendingOperations, setPendingOperations] = useState(new Set());
@@ -40,9 +46,9 @@ export const ItemsProvider = ({ children }) => {
       } else {
         setItemsByDate({});
       }
-          } catch (error) {
-        setItemsByDate({});
-      }
+    } catch (error) {
+      setItemsByDate({});
+    }
   }, []);
 
   // Función para guardar items en localStorage
@@ -61,7 +67,7 @@ export const ItemsProvider = ({ children }) => {
       try { itemData = JSON.parse(itemData); } catch { itemData = {}; }
     }
     const merged = { ...raw, ...(itemData || {}) };
-    
+
     // PRESERVAR las coordenadas x, y originales si existen
     const x = Number(merged.x);
     const y = Number(merged.y);
@@ -69,9 +75,9 @@ export const ItemsProvider = ({ children }) => {
     const distance = Number(merged.distance ?? 120);
     const width = Number(merged.width ?? (merged.label === 'Tarea' ? 200 : 150));
     const height = Number(merged.height ?? (merged.label === 'Tarea' ? 120 : 80));
-    
 
-    
+
+
     const result = {
       ...merged,
       // Solo usar x, y calculados si no existen los originales
@@ -82,9 +88,9 @@ export const ItemsProvider = ({ children }) => {
       width: Number.isFinite(width) ? width : (merged.label === 'Tarea' ? 200 : 150),
       height: Number.isFinite(height) ? height : (merged.label === 'Tarea' ? 120 : 80),
     };
-    
 
-    
+
+
     return result;
   }
 
@@ -102,17 +108,17 @@ export const ItemsProvider = ({ children }) => {
         setLoading(true);
       }
       setError(null);
-      
+
       const response = await fetch(`${API_URL}/api/items`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (!response.ok) {
         throw new Error('Error al cargar items');
       }
-      
+
       const data = await response.json();
-      
+
       const expanded = data
         .map(expandItem)
         .filter(item => item && item.date) // Solo verificar que exista y tenga fecha
@@ -127,15 +133,15 @@ export const ItemsProvider = ({ children }) => {
             }
           }
           return item;
-                });
-  
+        });
+
       const grouped = expanded.reduce((acc, item) => {
         const dateKey = item.date;
         if (!acc[dateKey]) acc[dateKey] = [];
         acc[dateKey].push(item);
         return acc;
       }, {});
-      
+
       // Combinar con items duplicados recientes que no estén en el servidor
       const combined = { ...grouped };
       for (const dateKey in itemsByDate) {
@@ -143,7 +149,7 @@ export const ItemsProvider = ({ children }) => {
           combined[dateKey] = [];
         }
         // Agregar items duplicados recientes Y items que deben mantenerse en el estado
-        const preservedItems = itemsByDate[dateKey].filter(item => 
+        const preservedItems = itemsByDate[dateKey].filter(item =>
           item._skipLoadItems || item._keepInState
         );
         combined[dateKey] = [...combined[dateKey], ...preservedItems];
@@ -153,7 +159,7 @@ export const ItemsProvider = ({ children }) => {
       setIsRetrying(false);
     } catch (err) {
       setError(err.message);
-      
+
       // Solo intentar reintento automático si no es un reintento manual
       if (!isRetry && user && token) {
         scheduleRetry();
@@ -170,14 +176,14 @@ export const ItemsProvider = ({ children }) => {
     }
 
     const maxRetries = 5;
-            if (retryCount >= maxRetries) {
-          setIsRetrying(false);
-          return;
-        }
+    if (retryCount >= maxRetries) {
+      setIsRetrying(false);
+      return;
+    }
 
     setIsRetrying(true);
     const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Delay exponencial, máximo 30 segundos
-    
+
     retryTimeoutRef.current = setTimeout(() => {
       setRetryCount(prev => prev + 1);
       loadItems(true); // Marcar como reintento
@@ -219,21 +225,21 @@ export const ItemsProvider = ({ children }) => {
     if (pendingOperations.size > 0) {
       return 'syncing';
     }
-    
+
     // Si hay items con _pending: true, está sincronizando
-    const hasPendingItems = Object.values(itemsByDate).some(items => 
+    const hasPendingItems = Object.values(itemsByDate).some(items =>
       items.some(item => item._pending === true)
     );
-    
+
     if (hasPendingItems) {
       return 'syncing';
     }
-    
+
     // Si está cargando, está sincronizando
     if (loading) {
       return 'syncing';
     }
-    
+
     // Todo está sincronizado
     return 'synced';
   }, [pendingOperations, itemsByDate, loading]);
@@ -296,39 +302,72 @@ export const ItemsProvider = ({ children }) => {
         const saved = await res.json();
         const expanded = expandItem(saved);
 
+        // VERIFICACIÓN DE RACE CONDITION:
+        // Verificar si el placeholder ha sido movido localmente (drag) mientras se creaba
+        const latestState = itemsRef.current;
+        const latestPlaceholder = latestState[date]?.find(i => i.id === placeholder.id);
+
+        let finalItem = expanded;
+        let shouldSync = false;
+
+        if (latestPlaceholder) {
+          // Si las coordenadas actuales difieren de las iniciales, usar las actuales
+          if (latestPlaceholder.x !== placeholder.x || latestPlaceholder.y !== placeholder.y || latestPlaceholder.rotation !== placeholder.rotation) {
+            finalItem = {
+              ...expanded,
+              x: latestPlaceholder.x,
+              y: latestPlaceholder.y,
+              rotation: latestPlaceholder.rotation
+            };
+            shouldSync = true;
+          }
+        }
+
         setItemsByDate(prev => ({
           ...prev,
-          [date]: (prev[date] || []).map(i => i.id === placeholder.id ? expanded : i)
+          [date]: (prev[date] || []).map(i => i.id === placeholder.id ? finalItem : i)
         }));
-        
+
+        // Si hubo cambios locales, sincronizar la nueva posición con el backend (usando el ID real)
+        if (shouldSync) {
+          // Usar queueItemUpdate directamente o updateItem para asegurar que se guarde
+          // updateItem maneja el debounce y la cola
+          updateItem(finalItem.id, {
+            x: finalItem.x,
+            y: finalItem.y,
+            rotation: finalItem.rotation,
+            date: finalItem.date // Importante para updateItem
+          }, { fromDrag: true });
+        }
+
         // Remover operación pendiente
         setPendingOperations(prev => {
           const newSet = new Set(prev);
           newSet.delete(operationId);
           return newSet;
         });
-        
-        return expanded;
+
+        return finalItem;
       } catch (e) {
         setItemsByDate(prev => ({
           ...prev,
           [date]: (prev[date] || []).filter(i => i.id !== placeholder.id)
         }));
-        
+
         // Remover operación pendiente en caso de error
         setPendingOperations(prev => {
           const newSet = new Set(prev);
           newSet.delete(operationId);
           return newSet;
         });
-        
+
         throw e;
       }
     } else {
       // Usuario no autenticado - verificar límite local
       const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
       const maxLocalItems = 5;
-      
+
       if (totalLocalItems >= maxLocalItems) {
         throw new Error(i18n.t('alerts.localLimitReached', { max: maxLocalItems }));
       }
@@ -390,12 +429,12 @@ export const ItemsProvider = ({ children }) => {
   const queueItemUpdate = useCallback((id, changes, opts = {}) => {
     if (!user || !token) return; // sin backend
     if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) return;
-    
+
     // Si el item está siendo arrastrado por otro proceso, no encolar
     if (opts.isDragging === false && draggingItemsRef.current.has(id)) {
       return; // Ignorar actualizaciones externas mientras se arrastra
     }
-    
+
     const url = `${API_URL}/api/items/${id}`;
     const payload = buildPayload(changes);
     const debounceMs = typeof opts.debounceMs === 'number' ? opts.debounceMs : 1000;
@@ -428,7 +467,7 @@ export const ItemsProvider = ({ children }) => {
     const scheduleSend = () => {
       const entry = updateQueueRef.current.get(id);
       if (!entry) return;
-      
+
       // Control de concurrencia simple
       const send = async () => {
         updateQueueRef.current.delete(id);
@@ -528,7 +567,7 @@ export const ItemsProvider = ({ children }) => {
 
   async function updateItem(id, changes, opts = {}) {
     const { date, x, y, rotation, rotation_enabled, ...itemData } = changes;
-    
+
     // Si el item está siendo arrastrado y la actualización no viene del drag,
     // solo ignorar si intenta modificar geometría. Permitir contenido/checked.
     const isDraggingItem = draggingItemsRef.current.has(id);
@@ -543,7 +582,7 @@ export const ItemsProvider = ({ children }) => {
       }
       // Si no toca geometría (p.ej. content/checked), permitir update
     }
-    
+
     // INTERCEPTAR: Si es un item recién duplicado y se está moviendo, forzar posición original
     if ((x !== undefined || y !== undefined) && !changes._forcePosition) {
       const currentItem = Object.values(itemsByDate).flat().find(i => i.id === id);
@@ -559,7 +598,7 @@ export const ItemsProvider = ({ children }) => {
         return await updateItem(id, forcedChanges, opts);
       }
     }
-    
+
     // Determinar si el cambio es únicamente geométrico (sin width/height) durante drag
     const changedKeys = Object.keys(changes || {});
     const isGeomOnly = changedKeys.length > 0 && changedKeys.every(k => (
@@ -582,12 +621,12 @@ export const ItemsProvider = ({ children }) => {
         return newState;
       });
     }
-    
+
     // Evitar sincronizar con backend si el ID es temporal o local
     if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) {
       return;
     }
-      
+
     if (user && token) {
       const operationId = `update_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
@@ -628,7 +667,7 @@ export const ItemsProvider = ({ children }) => {
       // Encontrar el item a duplicar
       let itemToDuplicate = null;
       let itemDate = null;
-      
+
       for (const date in itemsByDate) {
         const item = itemsByDate[date].find(i => i.id === id);
         if (item) {
@@ -637,22 +676,22 @@ export const ItemsProvider = ({ children }) => {
           break;
         }
       }
-      
+
       if (!itemToDuplicate) {
         throw new Error('Item no encontrado');
       }
-    
+
       // Crear una copia del item con nueva posición - AL LADO del original
       const offsetX = 120; // 120px a la derecha del item original
       const newX = (itemToDuplicate.x || 0) + offsetX;
       const newY = itemToDuplicate.y || 0; // Misma altura
-      
+
       // Calcular el nuevo ángulo y distancia desde el centro del círculo
       const dx = newX;
       const dy = newY;
       const newAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
       const newDistance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // Crear el item duplicado
       const duplicatedItem = {
         ...itemToDuplicate,
@@ -666,7 +705,7 @@ export const ItemsProvider = ({ children }) => {
         _justDuplicated: true,
         createdAt: new Date().toISOString(),
       };
-      
+
       // Si es modo local, agregar al estado visual inmediatamente y guardar
       if (!user || !token) {
         // Re-chequear límite con estado más reciente por seguridad
@@ -685,7 +724,7 @@ export const ItemsProvider = ({ children }) => {
           newState[itemDate] = [...newState[itemDate], duplicatedItem];
           return newState;
         });
-        
+
         // Guardar en localStorage con el estado actualizado
         const newState = { ...itemsByDate };
         if (!newState[itemDate]) {
@@ -693,13 +732,13 @@ export const ItemsProvider = ({ children }) => {
         }
         newState[itemDate] = [...newState[itemDate], duplicatedItem];
         saveLocalItems(newState);
-        
+
         return duplicatedItem;
       }
-      
+
       // Si es modo premium, NO agregar al estado visual hasta completar sincronización
       // Solo crear el item temporal en memoria para la operación
-      
+
       // Si es modo premium, sincronizar con el servidor
       const payload = {
         date: itemDate,
@@ -713,7 +752,7 @@ export const ItemsProvider = ({ children }) => {
           height: itemToDuplicate.height
         }
       };
-      
+
       // Agregar contenido específico según el tipo de item
       if (itemToDuplicate.label === 'Tarea') {
         payload.item_data.content = itemToDuplicate.content || [''];
@@ -725,17 +764,17 @@ export const ItemsProvider = ({ children }) => {
           fileData: itemToDuplicate.content.fileData,
           base64: itemToDuplicate.content.base64
         };
-              }
-        
-        const result = await addItem(payload);
-      
+      }
+
+      const result = await addItem(payload);
+
       // Ahora agregar el item al estado visual con el ID real del servidor
       setItemsByDate(prev => {
         const newState = { ...prev };
         if (!newState[itemDate]) {
           newState[itemDate] = [];
         }
-        
+
         // Crear el item final combinando datos del servidor con los del original
         const itemFinal = {
           ...itemToDuplicate, // Preservar todos los datos del original
@@ -752,11 +791,11 @@ export const ItemsProvider = ({ children }) => {
           _pending: false,
           _justDuplicated: false
         };
-        
+
         newState[itemDate] = [...newState[itemDate], itemFinal];
         return newState;
       });
-      
+
       return result;
     } catch (error) {
       console.error('Error al duplicar item:', error);
@@ -771,36 +810,36 @@ export const ItemsProvider = ({ children }) => {
       for (const date in prev) {
         newState[date] = prev[date].filter(i => i.id !== id);
       }
-      
+
       // Si es modo local, guardar en localStorage
       if (!user || !token) {
         saveLocalItems(newState);
       }
-      
+
       return newState;
     });
-    
+
     if (user && token) {
       // Usuario autenticado - eliminar del servidor
       const operationId = `delete_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
-      
+
       try {
         const response = await fetch(`${API_URL}/api/items/${id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         // Solo lanzar error si hay un problema real de red o servidor
         if (!response.ok) {
-                  // Si el item no existe (404) o ya fue eliminado, no es un error crítico
-        if (response.status === 404) {
-          // Item no encontrado o ya eliminado, no es un error crítico
-        } else {
-          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+          // Si el item no existe (404) o ya fue eliminado, no es un error crítico
+          if (response.status === 404) {
+            // Item no encontrado o ya eliminado, no es un error crítico
+          } else {
+            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+          }
         }
-        }
-        
+
         // Remover operación pendiente
         setPendingOperations(prev => {
           const newSet = new Set(prev);
@@ -814,12 +853,12 @@ export const ItemsProvider = ({ children }) => {
           newSet.delete(operationId);
           return newSet;
         });
-        
+
         // Solo lanzar error si es un problema real de red
         if (error.name === 'TypeError' || error.message.includes('fetch')) {
           throw error;
         }
-        
+
         // Para otros errores, no hacer nada
       }
     }
@@ -828,20 +867,20 @@ export const ItemsProvider = ({ children }) => {
 
   return (
     <>
-      <ItemsContext.Provider value={{ 
-        itemsByDate, 
-        setItemsByDate, 
-        addItem, 
-        updateItem, 
-        deleteItem, 
+      <ItemsContext.Provider value={{
+        itemsByDate,
+        setItemsByDate,
+        addItem,
+        updateItem,
+        deleteItem,
         duplicateItem,
         flushItemUpdate,
         isItemSyncing,
         markItemAsDragging,
         unmarkItemAsDragging,
         isItemDragging,
-        loading, 
-        error, 
+        loading,
+        error,
         refreshItems,
         syncStatus: getSyncStatus(),
         isRetrying,
@@ -851,10 +890,10 @@ export const ItemsProvider = ({ children }) => {
       }}>
         {children}
       </ItemsContext.Provider>
-      
-      <BottomToast 
-        message={errorToast} 
-        onClose={() => setErrorToast('')} 
+
+      <BottomToast
+        message={errorToast}
+        onClose={() => setErrorToast('')}
         duration={5000}
       />
     </>

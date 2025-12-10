@@ -24,12 +24,12 @@ export default function CircleSmall({
   const radius = circleSize / 2 - 25;
   const center = circleSize / 2;
 
-  // Hacer buttonSize responsivo para mantener proporción de los círculos
-  // En desktop (pantallas más grandes) hacer los botones un poco más grandes
+  // buttonSize responsivo 
+  // En desktop: botones un poco más grandes
   const isDesktop = window.innerWidth > 768;
   const buttonSize = isDesktop
-    ? Math.max(28, Math.min(circleSize * 0.077, 36)) // Entre 28px y 36px en desktop
-    : Math.max(24, Math.min(circleSize * 0.075, 32)); // Entre 24px y 32px en móvil
+    ? Math.max(28, Math.min(circleSize * 0.077, 36))
+    : Math.max(24, Math.min(circleSize * 0.075, 32));
 
   const labelDistanceFromCenter = -22;
 

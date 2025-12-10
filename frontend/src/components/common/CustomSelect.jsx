@@ -37,6 +37,17 @@ export default function CustomSelect({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        const handleScroll = () => {
+            if (isOpen) setIsOpen(false);
+        };
+
+        if (isOpen) {
+            window.addEventListener('scroll', handleScroll, { capture: true });
+        }
+        return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+    }, [isOpen]);
+
     const handleSelect = (optionValue) => {
         onChange(optionValue);
         setIsOpen(false);

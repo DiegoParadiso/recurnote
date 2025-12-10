@@ -51,7 +51,7 @@ export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskChec
               item={item}
               dateKey={dateKey}
               toggleTaskCheck={toggleTaskCheck}
-              toggleTaskCheck={toggleTaskCheck}
+
               onDeleteRequest={onDeleteRequest}
               key={item.id}
             />

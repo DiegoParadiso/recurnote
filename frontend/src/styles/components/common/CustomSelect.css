@@ -27,12 +27,11 @@
 
 .custom-select-trigger.is-open {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-alpha, rgba(0, 0, 0, 0.1));
 }
 
 .custom-select-arrow {
     margin-left: 8px;
-    color: var(--color-text-secondary);
+    color: var(--color-muted);
 }
 
 .custom-select-trigger.is-open .custom-select-arrow {
@@ -48,7 +47,6 @@
     background-color: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 10000;
     padding: 4px;
     opacity: 0;
