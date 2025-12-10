@@ -68,27 +68,6 @@ AuthContext → ThemeContext → ItemsContext → NotesContext
 - **Validación de inputs** con express-validator
 - **SSL forzado** en producción
 
-## Testing
-
-### Frontend
-```bash
-cd frontend
-npm run test          # Unit tests
-npm run test:e2e      # End-to-end tests
-npm run lint          # ESLint
-```
-### Backend
-```bash
-cd backend
-npm run test          # API tests
-npm run test:db       # Database tests
-```
-
-### Base de Datos
-- **Neon PostgreSQL** (recomendado)
-- **Supabase** (alternativa)
-- **AWS RDS** (producción enterprise)
-
 
 ### Estructura de Commits
 ```
