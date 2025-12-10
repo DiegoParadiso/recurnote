@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatText } from '@utils/textFormatter';
 import { useTranslation } from 'react-i18next';
 import hasRealContent from '@utils/hasRealContent';
 
@@ -36,8 +37,8 @@ export default function NotePreview({ item }) {
   }
 
   return (
-    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.3', margin: 0, display: 'flex', alignItems: 'center', width: '100%' }}>
-      {item.content}
-    </pre>
+    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.5', margin: 0, display: 'block', width: '100%', fontSize: '11.5px', color: 'var(--color-text-primary)' }}>
+      {formatText(item.content)}
+    </div>
   );
 }

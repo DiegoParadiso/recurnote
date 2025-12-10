@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatText } from '@utils/textFormatter';
 import { useTranslation } from 'react-i18next';
 
 export default function TaskPreview({ item, dateKey, toggleTaskCheck, renderDeleteButton }) {
@@ -39,9 +40,9 @@ export default function TaskPreview({ item, dateKey, toggleTaskCheck, renderDele
             </label>
             <span
               className={`flex-1 ${item.content?.[idx] ? (item.checked?.[idx] ? 'line-through' : '') : 'empty-task-text'}`}
-              style={{ wordBreak: 'break-word', lineHeight: '1.3' }}
+              style={{ wordBreak: 'break-word', lineHeight: '1.5', fontSize: '11.5px', color: 'var(--color-text-primary)' }}
             >
-              {item.content?.[idx] || t('task.empty')}
+              {item.content?.[idx] ? formatText(item.content[idx]) : t('task.empty')}
             </span>
           </div>
         ))}

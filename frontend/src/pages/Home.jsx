@@ -26,6 +26,7 @@ import { useNotes } from '@context/NotesContext';
 import LocalUserIndicator from '@components/common/LocalUserIndicator';
 import LocalMigrationHandler from '@components/common/LocalMigrationHandler';
 import ConfirmationModal from '@components/common/ConfirmationModal';
+import TextSelectionToolbar from '@components/common/TextSelectionToolbar';
 import '@styles/pages/Home.css';
 
 export default function Home() {
@@ -658,6 +659,9 @@ export default function Home() {
         cancelText={t('common.cancel')}
         isDangerous={true}
       />
+
+      {/* Toolbar de selección de texto */}
+      <TextSelectionToolbar />
     </div >
   );
 }

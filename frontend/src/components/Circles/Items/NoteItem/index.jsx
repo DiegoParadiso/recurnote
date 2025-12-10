@@ -4,6 +4,7 @@ import { useItems } from '@context/ItemsContext';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
 import { getFontFromComputedStyle, measureTextWidth } from '@utils/measureTextWidth';
+import { stripMarkdown } from '@utils/markdownConverter';
 import { computePolarFromXY } from '@utils/helpers/geometry';
 import NoteItemClock from './NoteItemClock';
 import NoteItemEditor from './NoteItemEditor';
@@ -115,7 +116,8 @@ export default function NoteItem({
         placeholderWidth + paddingLeft + paddingRight + borders + extraSafety + containerPaddingLeft + containerPaddingRight
       );
       // Medir línea más larga del contenido actual
-      const lines = (content || '').split('\n');
+      const plainContent = stripMarkdown(content || '');
+      const lines = plainContent.split('\n');
       let longest = 0;
       for (const line of lines) {
         longest = Math.max(longest, measure(line));
@@ -256,7 +258,71 @@ export default function NoteItem({
           flushItemUpdate?.(id);
         }}
         onSizeChange={({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
-          const clampedWidth = Math.max(minWidthPx, Math.min(newWidth, 320));
+          // Check if new width causes height overflow
+          // We need to estimate height at newWidth.
+          // This is tricky without a ref to the editor's content or a measurement utility.
+          // But we have textareaRef!
+
+          let validWidth = newWidth;
+
+          if (textareaRef.current) {
+            const el = textareaRef.current;
+            // Temporarily set width to measure height
+            const prevWidth = el.style.width;
+            const prevHeight = el.style.height;
+            const prevWhiteSpace = el.style.whiteSpace;
+
+            // We need to measure the inner content height given the new outer width.
+            // The outer container width is newWidth.
+            // The editor has padding.
+            // Let's try to simulate the width on the element.
+
+            // Note: This might cause layout thrashing.
+            // But it's on resize, which is already heavy.
+
+            // Calculate inner width available for text
+            // We can't easily set width on the element because it's controlled by parent.
+            // But we can clone it or use a hidden div.
+
+            // Simpler approach:
+            // If we are shrinking width, check scrollHeight.
+
+            if (newWidth < width) {
+              el.style.width = `${newWidth}px`;
+              el.style.height = 'auto';
+              const estimatedHeight = el.scrollHeight;
+
+              // Restore
+              el.style.width = prevWidth;
+              el.style.height = prevHeight;
+
+              // Calculate overhead (padding/border of parent container)
+              // height is outer height.
+              // estimatedHeight is inner content height.
+              // We need to compare estimatedHeight + overhead vs MAX_CONTAINER_HEIGHT.
+
+              // Overhead approximation:
+              // We don't know exact overhead here easily without measuring container.
+              // But we know MAX_CONTAINER_HEIGHT is 260.
+              // And we know the current height.
+
+              // Let's assume the editor takes full height minus some small padding if any.
+              // Actually NoteItemEditor takes 100% height.
+              // So estimatedHeight IS the content height.
+              // But the container has a max height.
+
+              // If estimatedHeight > MAX_CONTAINER_HEIGHT, then we can't shrink to this width.
+              if (estimatedHeight > MAX_CONTAINER_HEIGHT) {
+                // Prevent shrink
+                validWidth = width; // Keep old width? Or find min width?
+                // For now, just block the resize if it violates.
+                // Ideally we find the exact width that fits, but that's expensive.
+                // Blocking is safer.
+              }
+            }
+          }
+
+          const clampedWidth = Math.max(minWidthPx, Math.min(validWidth, 320));
           const clampedHeight = Math.max(minHeightPx, Math.min(Math.max(newHeight, 60), MAX_CONTAINER_HEIGHT));
 
           const posUpdate = (newX !== undefined && newY !== undefined) ? { x: newX, y: newY } : null;

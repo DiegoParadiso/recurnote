@@ -115,7 +115,11 @@
   max-height: unset;
   overflow-y: auto;
   overflow-x: hidden;
+  overflow-x: hidden;
   resize: none;
+  resize: none;
+  resize: none;
+  line-height: 1.5;
 }
 
 /* Add button */

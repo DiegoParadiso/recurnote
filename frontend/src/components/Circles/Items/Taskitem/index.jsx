@@ -67,8 +67,23 @@ function TaskItem({
     focusEditableInput: focusEditableInputHook,
   } = useTaskEditing({ isMobile, inputRefsRef });
 
+  // Grace period para evitar que el item se encoja inmediatamente al hacer blur (mousedown para drag)
+  const [recentlyEditing, setRecentlyEditing] = useState(false);
+  const recentlyEditingTimeoutRef = useRef(null);
+  const isEnterPressedRef = useRef(false);
+
+  // Limpiar grace period si comienza un drag para evitar saltos al soltar
+  useEffect(() => {
+    if (isDragging) {
+      setRecentlyEditing(false);
+      if (recentlyEditingTimeoutRef.current) {
+        clearTimeout(recentlyEditingTimeoutRef.current);
+      }
+    }
+  }, [isDragging]);
+
   const calculatedMinHeight =
-    visibleTasksCount >= maxTasks || editingInputs.size === 0
+    visibleTasksCount >= maxTasks || (editingInputs.size === 0 && !recentlyEditing)
       ? Math.min(baseHeight + visibleTasksCount * taskHeight, 400)
       : Math.min(baseHeight + visibleTasksCount * taskHeight + buttonHeight, 400);
 
@@ -157,20 +172,7 @@ function TaskItem({
 
 
 
-  // Grace period para evitar que el item se encoja inmediatamente al hacer blur (mousedown para drag)
-  const [recentlyEditing, setRecentlyEditing] = useState(false);
-  const recentlyEditingTimeoutRef = useRef(null);
-  const isEnterPressedRef = useRef(false);
 
-  // Limpiar grace period si comienza un drag para evitar saltos al soltar
-  useEffect(() => {
-    if (isDragging) {
-      setRecentlyEditing(false);
-      if (recentlyEditingTimeoutRef.current) {
-        clearTimeout(recentlyEditingTimeoutRef.current);
-      }
-    }
-  }, [isDragging]);
 
   const stopEditing = (index, force = false) => {
     stopEditingHook(index);

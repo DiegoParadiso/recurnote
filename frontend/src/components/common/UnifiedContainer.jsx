@@ -111,7 +111,12 @@ export default function UnifiedContainer({
     const tag = e.target.tagName.toLowerCase();
 
     if (['input', 'textarea', 'select'].includes(tag)) return;
+    if (['input', 'textarea', 'select'].includes(tag)) return;
     if (e.target.dataset.resizeHandle) return;
+
+    // Check for contentEditable (including children)
+    if (e.target.isContentEditable || e.target.getAttribute('contenteditable') === 'true') return;
+    if (e.target.closest('[contenteditable="true"]')) return;
 
     onActivate?.();
 

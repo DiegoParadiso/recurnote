@@ -136,8 +136,7 @@ export default function ConfigPanel({
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const { isOpen: isPremiumOpen, openModal: openPremiumModal, closeModal: closePremiumModal, handleUpgrade } = usePremiumModal();
 
-  console.log('ConfigPanel User:', user);
-  console.log('ConfigPanel is_vip:', user?.is_vip);
+
 
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {

@@ -1,4 +1,5 @@
-import React, { useState, useLayoutEffect, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { markdownToHtml, htmlToMarkdown } from '@utils/markdownConverter';
 import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
 import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
@@ -18,6 +19,10 @@ export default function NoteItemEditor({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
+  const lastValidContentRef = useRef(content); // Store last valid HTML content
+
+  // We use textareaRef from props as the main ref for the div
+  // This allows the parent to measure it.
 
   const startEditing = () => {
     setIsEditing(true);
@@ -29,114 +34,121 @@ export default function NoteItemEditor({
     unlockBodyScroll();
   };
 
-  const focusEditableTextarea = () => {
+  const focusEditor = () => {
     const el = textareaRef.current;
     if (!el) return;
+
     const focusOptions = isMobile ? {} : { preventScroll: true };
     try {
-      if (isMobile) {
-        el.focus(focusOptions);
-        const len = (el.value || '').length;
-        if (typeof el.setSelectionRange === 'function') {
-          el.setSelectionRange(len, len);
-        }
-      } else {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            el.focus(focusOptions);
-            const len = (el.value || '').length;
-            if (typeof el.setSelectionRange === 'function') {
-              el.setSelectionRange(len, len);
-            }
-          });
-        });
-      }
+      el.focus(focusOptions);
+      // Move cursor to end
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     } catch (_) { }
   };
 
-  const handleTextChange = (e) => {
-    const newValue = e.target.value;
-    const textarea = e.target;
+  // Sync content from props to innerHTML
+  // Only if we are NOT editing to avoid cursor jumps, OR if it's the first load
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) {
+      // If we are editing, we assume local state is ahead, unless content changed remotely?
+      // For simplicity, we sync if not editing.
+      // Or if the difference is drastic (remote update).
+      // But converting HTML <-> Markdown is lossy or slightly different.
+      // Let's try to sync only when not editing or on mount.
 
-    // Verificar si el nuevo contenido excede la altura del contenedor
-    const prevHeight = textarea.style.height;
+      if (!isEditing) {
+        const initialHtml = markdownToHtml(content || '');
+        el.innerHTML = initialHtml;
+        lastValidContentRef.current = initialHtml;
+      } else {
+        // If editing, check if content prop changed significantly (e.g. undo/redo from outside)
+        // This is hard. Let's assume for now we don't sync while editing.
+      }
 
-    // Medir el nuevo contenido temporalmente
-    textarea.style.height = 'auto';
-    const scrollHeight = textarea.scrollHeight;
+      // Handle placeholder visibility manually if needed, or use CSS :empty::before
+      if (!content && !isEditing) {
+        // el.innerHTML = ''; // Placeholder handled by CSS or separate element?
+        // We'll use a separate placeholder element overlay or CSS.
+      }
+    }
+  }, [content, isEditing]);
 
-    // Si excede la altura actual, solicitar cambio de altura
-    if (scrollHeight > height) {
-      onHeightChange?.(scrollHeight);
+  const handleInput = (e) => {
+    const el = e.currentTarget;
+    const html = el.innerHTML;
+    const markdown = htmlToMarkdown(html);
+
+    // Check height
+    // Calculate overhead (padding/borders of parent)
+    const currentRenderedHeight = el.offsetHeight;
+    const overhead = Math.max(0, height - currentRenderedHeight);
+
+    // Calculate desired height of the editor (content + padding + border)
+    // scrollHeight includes padding but not border.
+    // offsetHeight - clientHeight gives border width (vertical).
+    const borderHeight = el.offsetHeight - el.clientHeight;
+    const contentHeight = el.scrollHeight + borderHeight;
+
+    const totalRequiredHeight = contentHeight + overhead;
+
+    if (totalRequiredHeight > MAX_CONTAINER_HEIGHT) {
+      // Revert content
+      if (lastValidContentRef.current !== undefined) {
+        el.innerHTML = lastValidContentRef.current;
+
+        try {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (_) { }
+      }
+      return; // Stop update
     }
 
-    // Restaurar altura (el componente contenedor manejará el resize real)
-    textarea.style.height = prevHeight;
-    onUpdate?.(id, newValue);
+    // Valid content, update ref
+    lastValidContentRef.current = html;
 
-    // Forzar scrollTop a 0
-    requestAnimationFrame(() => {
-      if (textarea) {
-        textarea.scrollTop = 0;
-      }
-    });
+    // Request resize
+    if (totalRequiredHeight > height) {
+      onHeightChange?.(totalRequiredHeight);
+    }
+
+    onUpdate?.(id, markdown);
   };
 
-  const handleTextareaKeyDown = (e) => {
-    // Check for new line attempts (Enter, Shift+Enter, Ctrl+Enter)
-    if (e.key === 'Enter') {
-      const isModifier = e.ctrlKey || e.metaKey || e.shiftKey;
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      // Prevent default div insertion if we want just BR?
+      // Or let it be.
+      // If we want to stop editing on Enter (without shift):
+      // e.preventDefault();
+      // stopEditing();
+      // el.blur();
 
-      // If it's a new line attempt (modifier + Enter)
-      if (isModifier) {
-        const el = e.target;
+      // But usually notes allow newlines.
+      // If the user wants to exit, maybe Escape?
+      // Or click outside.
+      // The original textarea stopped editing on Enter without Shift.
+      // Let's preserve that behavior.
 
-        // Check if adding a new line would exceed max height
-        // We temporarily add a newline to measure
-        const prevValue = el.value;
-        const start = el.selectionStart ?? content.length;
-        const end = el.selectionEnd ?? content.length;
-        const potentialValue = (content || '').slice(0, start) + '\n' + (content || '').slice(end);
-
-        // Measure potential height
-        const prevHeight = el.style.height;
-        el.style.height = 'auto';
-        el.value = potentialValue;
-        const potentialScrollHeight = el.scrollHeight;
-
-        // Restore
-        el.value = prevValue;
-        el.style.height = prevHeight;
-
-        if (potentialScrollHeight > MAX_CONTAINER_HEIGHT) {
-          e.preventDefault();
-          // Optional: Visual feedback or just ignore
-          return;
-        }
-
-        // If it fits and it was Ctrl/Meta+Enter, we handle the insertion manually
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          const newValue = potentialValue;
-          onUpdate?.(id, newValue);
-          setTimeout(() => {
-            try {
-              el.selectionStart = el.selectionEnd = start + 1;
-            } catch (_) { }
-          }, 0);
-          return;
-        }
-        // If it fits and was Shift+Enter, let default behavior happen (or handle manually if needed)
-        // Usually Shift+Enter is default behavior in textarea, but we might want to ensure consistency
-        return;
-      }
-
-      // Enter without Shift/Ctrl/Meta -> Stop editing
-      if (!e.shiftKey) {
-        e.preventDefault();
-        stopEditing();
-        e.target.blur();
-      }
+      e.preventDefault();
+      stopEditing();
+      e.target.blur();
+    } else if (e.key === 'Enter' && e.shiftKey) {
+      // Allow newline
+      // contentEditable handles this, but sometimes inserts <div>.
+      // We might want to force <br>.
+      // document.execCommand('insertLineBreak');
+      // e.preventDefault();
     }
 
     if (e.key === 'Escape') {
@@ -153,28 +165,6 @@ export default function NoteItemEditor({
     }
   }, [isDragging]);
 
-  // Mantener el scroll siempre arriba (scrollTop = 0) para evitar que el texto suba
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    // Forzar scrollTop a 0 después de cada cambio de contenido
-    textarea.scrollTop = 0;
-
-    // También prevenir scroll automático durante la edición
-    const handleScroll = (e) => {
-      if (e.target.scrollTop !== 0) {
-        e.target.scrollTop = 0;
-      }
-    };
-
-    textarea.addEventListener('scroll', handleScroll);
-
-    return () => {
-      textarea.removeEventListener('scroll', handleScroll);
-    };
-  }, [content]);
-
   useEffect(() => {
     return () => {
       if (isEditing) {
@@ -184,35 +174,31 @@ export default function NoteItemEditor({
   }, [isEditing]);
 
   return (
-    <div className="noteitem-textarea-wrapper">
-      <textarea
+    <div className="noteitem-textarea-wrapper"
+      onClick={() => {
+        if (isMobile && !isEditing && !isDragging) {
+          startEditing();
+          setTimeout(focusEditor, 0);
+        }
+      }}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+    >
+      <div
         ref={textareaRef}
+        contentEditable={isMobile ? true : isEditing}
         className="noteitem-textarea"
-        value={content}
-        onChange={handleTextChange}
-        onClick={() => {
-          if (isMobile && !isEditing && !isDragging) {
-            startEditing();
-            focusEditableTextarea();
-          }
-        }}
-        onDoubleClick={() => {
-          if (isMobile) return;
-          if (isEditing) return; // Allow default double-click behavior (select text) if already editing
-          if (!isDragging) {
-            startEditing();
-            focusEditableTextarea();
-          }
-        }}
+        onInput={handleInput}
+        onKeyDown={handleKeyDown}
+        onBlur={() => stopEditing()}
         onFocus={(e) => {
           if (isMobile && !isEditing) {
             startEditing();
-            setTimeout(() => {
-              e.target.focus();
-            }, 0);
           }
-          if (!isMobile && !isEditing) {
-            e.target.blur();
+        }}
+        onDoubleClick={() => {
+          if (!isMobile && !isEditing && !isDragging) {
+            startEditing();
+            setTimeout(focusEditor, 0);
           }
         }}
         onMouseDown={(e) => {
@@ -230,40 +216,64 @@ export default function NoteItemEditor({
               });
               dragContainer.dispatchEvent(mouseEvent);
             }
+          } else {
+            e.stopPropagation(); // Allow text selection
           }
         }}
-        onBlur={() => {
-          stopEditing();
-        }}
-        onKeyDown={handleTextareaKeyDown}
         onTouchStart={(e) => {
           if (!isEditing && !isDragging) {
-            const dragContainer = e.target.closest('[data-drag-container]');
-            if (dragContainer) {
-              dragContainer.dispatchEvent(new TouchEvent('touchstart', {
-                bubbles: true,
-                cancelable: true,
-                touches: e.touches,
-                targetTouches: e.targetTouches,
-                changedTouches: e.changedTouches
-              }));
-            }
-            e.preventDefault();
+            // Propagate drag
+          } else {
+            e.stopPropagation();
           }
         }}
-        placeholder={isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
-        readOnly={isMobile ? false : !isEditing}
-        inputMode="text"
-        enterKeyHint="done"
         style={{
-          cursor: isMobile ? 'text' : (isEditing ? 'text' : 'grab'),
-          opacity: isMobile ? 1 : (isEditing ? 1 : 0.7),
-          pointerEvents: isDragging ? 'none' : 'auto',
-          backgroundColor: isEditing ? 'var(--color-bg-secondary)' : 'transparent',
-          border: isEditing ? '1px solid var(--color-primary)' : '1px solid transparent',
-          resize: 'none',
+          minHeight: '1.5em',
+          outline: 'none',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          overflowY: 'auto',
+          overflowY: 'auto',
+          // padding: '0', // Removed to respect CSS class padding
+          fontSize: '11.5px',
+          lineHeight: '1.5',
+          color: 'var(--color-text-primary)',
+          fontFamily: 'Inter, sans-serif',
+          width: '100%',
+          height: '100%',
+          cursor: isEditing ? 'text' : 'grab',
+          userSelect: 'text',
+          backgroundColor: 'transparent',
+          border: '1px solid transparent',
+          boxSizing: 'border-box'
         }}
+        suppressContentEditableWarning={true}
       />
+
+      {(!content && !isEditing) && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          pointerEvents: 'none',
+          fontStyle: 'italic',
+          opacity: 0.6,
+          // Match padding of .noteitem-textarea
+          paddingLeft: '1.5rem',
+          paddingRight: '0.5rem',
+          paddingTop: '0.3rem',
+          paddingBottom: '0.5rem',
+          fontSize: '11.5px',
+          lineHeight: '1.5',
+          color: 'var(--color-text-primary)',
+          textTransform: 'none',
+          width: '100%',
+          height: '100%',
+          boxSizing: 'border-box'
+        }}>
+          {isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit')}
+        </div>
+      )}
     </div>
   );
 }

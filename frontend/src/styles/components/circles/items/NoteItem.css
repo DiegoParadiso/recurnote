@@ -35,7 +35,9 @@
   word-break: break-word;
   position: relative;
   box-sizing: border-box;
+  box-sizing: border-box;
   display: block;
+  line-height: 1.5;
 }
 
 .noteitem-textarea-wrapper {
@@ -62,4 +64,10 @@
     overflow: hidden !important;
     touch-action: none !important;
   }
+}
+
+.noteitem-textarea p,
+.noteitem-textarea div {
+  margin: 0;
+  padding: 0;
 }
