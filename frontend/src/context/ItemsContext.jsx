@@ -681,16 +681,59 @@ export const ItemsProvider = ({ children }) => {
         throw new Error('Item no encontrado');
       }
 
-      // Crear una copia del item con nueva posición - AL LADO del original
-      const offsetX = 120; // 120px a la derecha del item original
-      const newX = (itemToDuplicate.x || 0) + offsetX;
-      const newY = itemToDuplicate.y || 0; // Misma altura
+      // Crear una copia del item con nueva posición - ROTADA 20 grados
+      // Esto asegura que se mantenga dentro del círculo (misma distancia al centro)
+      const currentAngle = itemToDuplicate.angle || 0;
+      const currentDistance = itemToDuplicate.distance || 120;
 
-      // Calcular el nuevo ángulo y distancia desde el centro del círculo
-      const dx = newX;
-      const dy = newY;
-      const newAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
-      const newDistance = Math.sqrt(dx * dx + dy * dy);
+      const newAngle = (currentAngle + 20) % 360;
+      const newDistance = currentDistance;
+
+      // Calcular x/y basados en el nuevo ángulo (para el backend/visualización)
+      const angleRad = (newAngle * Math.PI) / 180;
+      // Asumimos que x/y son relativos al centro si distance se usa, 
+      // pero ItemsOnCircle usa cx + distance * cos.
+      // Aquí necesitamos calcular el x/y relativo al origen (0,0) del contenedor o del item?
+      // El item guarda x/y relativos al contenedor.
+      // Necesitamos saber el centro del contenedor para calcular x/y absolutos.
+      // Pero duplicateItem no tiene acceso a cx/cy.
+      // Sin embargo, podemos estimar o simplemente confiar en angle/distance para el renderizado
+      // y calcular un x/y aproximado para el guardado.
+
+      // MEJOR: Usar la lógica inversa de ItemsOnCircle si es posible, o simplemente
+      // actualizar x/y sumando la diferencia.
+      // O más simple: Si ItemsOnCircle usa angle/distance cuando están presentes,
+      // entonces x/y son secundarios para el renderizado visual en el frontend,
+      // pero importantes para el backend.
+
+      // Vamos a calcular x/y asumiendo un centro (0,0) relativo al desplazamiento
+      // O mejor, si tenemos x/y del original, y sabemos su angle/distance,
+      // podemos rotar el vector (x,y) alrededor del centro del círculo.
+      // Pero no sabemos el centro exacto aquí.
+
+      // SOLUCIÓN: Calcular x/y basados en angle/distance asumiendo que el componente
+      // ItemsOnCircle los recalculará visualmente bien.
+      // Para el backend, enviaremos x/y calculados como si el centro fuera 0,0 (offset),
+      // o mejor, no enviamos x/y si angle/distance son los que mandan.
+      // Pero el backend espera x/y.
+
+      // Vamos a usar un delta aproximado.
+      // O simplemente calcular x/y basados en newAngle/newDistance asumiendo un radio arbitrario si no tenemos contexto?
+      // No, itemToDuplicate tiene x,y.
+
+      // Si rotamos 20 grados, la nueva posición es:
+      // x' = cx + r * cos(a + 20)
+      // y' = cy + r * sin(a + 20)
+      // No tenemos cx, cy.
+
+      // Pero: x = cx + r * cos(a) -> cx = x - r * cos(a)
+      // Podemos deducir cx, cy del item original!
+      const oldRad = (currentAngle * Math.PI) / 180;
+      const estimatedCx = itemToDuplicate.x - currentDistance * Math.cos(oldRad);
+      const estimatedCy = itemToDuplicate.y - currentDistance * Math.sin(oldRad);
+
+      const newX = estimatedCx + newDistance * Math.cos(angleRad);
+      const newY = estimatedCy + newDistance * Math.sin(angleRad);
 
       // Crear el item duplicado
       const duplicatedItem = {
@@ -746,6 +789,8 @@ export const ItemsProvider = ({ children }) => {
         y: newY,
         rotation: itemToDuplicate.rotation || 0,
         rotation_enabled: itemToDuplicate.rotation_enabled ?? true,
+        angle: newAngle,
+        distance: newDistance,
         item_data: {
           label: itemToDuplicate.label,
           width: itemToDuplicate.width,

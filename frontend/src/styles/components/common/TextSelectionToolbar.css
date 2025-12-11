@@ -19,16 +19,8 @@
 }
 
 .text-selection-toolbar button {
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    padding: 8px;
+    padding: 7px;
     color: var(--color-text-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
 }
 
 .text-selection-toolbar button:hover {

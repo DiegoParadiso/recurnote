@@ -38,7 +38,7 @@ export default function NoteItemEditor({
     const el = textareaRef.current;
     if (!el) return;
 
-    const focusOptions = isMobile ? {} : { preventScroll: true };
+    const focusOptions = { preventScroll: true };
     try {
       el.focus(focusOptions);
       // Move cursor to end
@@ -51,30 +51,17 @@ export default function NoteItemEditor({
     } catch (_) { }
   };
 
-  // Sync content from props to innerHTML
-  // Only if we are NOT editing to avoid cursor jumps, OR if it's the first load
   useEffect(() => {
     const el = textareaRef.current;
     if (el) {
-      // If we are editing, we assume local state is ahead, unless content changed remotely?
-      // For simplicity, we sync if not editing.
-      // Or if the difference is drastic (remote update).
-      // But converting HTML <-> Markdown is lossy or slightly different.
-      // Let's try to sync only when not editing or on mount.
 
       if (!isEditing) {
         const initialHtml = markdownToHtml(content || '');
         el.innerHTML = initialHtml;
         lastValidContentRef.current = initialHtml;
       } else {
-        // If editing, check if content prop changed significantly (e.g. undo/redo from outside)
-        // This is hard. Let's assume for now we don't sync while editing.
       }
-
-      // Handle placeholder visibility manually if needed, or use CSS :empty::before
       if (!content && !isEditing) {
-        // el.innerHTML = ''; // Placeholder handled by CSS or separate element?
-        // We'll use a separate placeholder element overlay or CSS.
       }
     }
   }, [content, isEditing]);
@@ -227,6 +214,7 @@ export default function NoteItemEditor({
             e.stopPropagation();
           }
         }}
+        autoCapitalize="sentences"
         style={{
           minHeight: '1.5em',
           outline: 'none',
@@ -235,7 +223,7 @@ export default function NoteItemEditor({
           overflowY: 'auto',
           overflowY: 'auto',
           // padding: '0', // Removed to respect CSS class padding
-          fontSize: '11.5px',
+          fontSize: isMobile ? '16px' : '11.5px',
           lineHeight: '1.5',
           color: 'var(--color-text-primary)',
           fontFamily: 'Inter, sans-serif',
@@ -245,7 +233,8 @@ export default function NoteItemEditor({
           userSelect: 'text',
           backgroundColor: 'transparent',
           border: '1px solid transparent',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          textTransform: 'none'
         }}
         suppressContentEditableWarning={true}
       />
