@@ -1,0 +1,105 @@
+.link-input-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.link-input-modal-content {
+    background-color: var(--color-bg);
+    border-radius: 6px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    border: 0.5px solid var(--color-text-secondary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    animation: scaleIn 0.2s ease-out;
+}
+
+.link-input-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--color-text-primary);
+}
+
+.link-input-modal-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 5px;
+    border: 1px solid var(--color-neutral-dark);
+    background-color: var(--color-bg-2);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.link-input-modal-input:focus {
+    border-color: var(--color-primary);
+}
+
+.link-input-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.link-input-modal-btn {
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.link-input-modal-btn.cancel {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1px solid transparent;
+}
+
+.link-input-modal-btn.cancel:hover {
+    background-color: var(--color-bg-2);
+    color: var(--color-text-primary);
+}
+
+.link-input-modal-btn.confirm {
+    background-color: var(--color-muted);
+    color: white;
+}
+
+.link-input-modal-btn.confirm:hover {
+    opacity: 0.9;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

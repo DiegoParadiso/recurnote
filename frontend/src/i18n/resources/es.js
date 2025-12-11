@@ -23,6 +23,7 @@ const es = {
     loading: 'Cargando...',
     comingSoon: 'Próximamente',
     cancel: 'Cancelar',
+    confirm: 'Confirmar',
     delete: 'Eliminar'
   },
   visual: {

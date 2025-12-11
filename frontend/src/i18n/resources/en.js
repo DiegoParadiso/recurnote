@@ -23,6 +23,7 @@ const en = {
     loading: 'Loading...',
     comingSoon: 'Coming Soon',
     cancel: 'Cancel',
+    confirm: 'Confirm',
     delete: 'Delete'
   },
   visual: {

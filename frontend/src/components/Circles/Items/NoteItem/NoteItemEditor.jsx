@@ -172,7 +172,7 @@ export default function NoteItemEditor({
     >
       <div
         ref={textareaRef}
-        contentEditable={isMobile ? true : isEditing}
+        contentEditable={isEditing}
         className="noteitem-textarea"
         onInput={handleInput}
         onKeyDown={handleKeyDown}
@@ -223,14 +223,14 @@ export default function NoteItemEditor({
           overflowY: 'auto',
           overflowY: 'auto',
           // padding: '0', // Removed to respect CSS class padding
-          fontSize: isMobile ? '16px' : '11.5px',
+          fontSize: '11.5px',
           lineHeight: '1.5',
           color: 'var(--color-text-primary)',
           fontFamily: 'Inter, sans-serif',
           width: '100%',
           height: '100%',
           cursor: isEditing ? 'text' : 'grab',
-          userSelect: 'text',
+          userSelect: isEditing ? 'text' : 'none',
           backgroundColor: 'transparent',
           border: '1px solid transparent',
           boxSizing: 'border-box',
