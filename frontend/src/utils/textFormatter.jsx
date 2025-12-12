@@ -17,13 +17,12 @@ const findFirstMatch = (text, rules) => {
 };
 
 const RULES = {
+    bold: /^\*\*([\s\S]+?)\*\*/, // **bold** - Check first to avoid italic capturing
     code: /^`([^`]+)`/, // Code blocks (no nesting)
     link: /^\[([^\]]+)\]\(([^)]+)\)/, // Links [text](url)
     italic: /^\*((?:[^*]|\*\*)+?)\*/, // *italic* (allows ** inside)
-    bold: /^\*\*([\s\S]+?)\*\*/, // **bold**
     underline: /^__([\s\S]+?)__/, // __underline__
     strike: /^~~([\s\S]+?)~~/, // ~~strike~~
-    highlight: /^==([\s\S]+?)==/, // ==highlight==
     newline: /^\n/ // Newline
 };
 
@@ -73,7 +72,7 @@ const parseText = (text, keyPrefix = '0') => {
                     elements.push(<br key={key} />);
                     break;
                 case 'code':
-                    elements.push(<code key={key} style={{ background: 'rgba(150,150,150,0.2)', padding: '2px 4px', borderRadius: '4px', fontFamily: 'monospace' }}>{content}</code>);
+                    elements.push(<code key={key} style={{ background: 'rgba(150,150,150,0.2)', borderRadius: '4px', fontFamily: 'monospace' }}>{content}</code>);
                     break;
                 case 'link':
                     elements.push(
@@ -90,9 +89,6 @@ const parseText = (text, keyPrefix = '0') => {
                     break;
                 case 'strike':
                     elements.push(<s key={key}>{parseText(content, `${key}-s`)}</s>);
-                    break;
-                case 'highlight':
-                    elements.push(<mark key={key} style={{ backgroundColor: '#fef08a', color: 'black', padding: '0 2px', borderRadius: '2px' }}>{parseText(content, `${key}-mark`)}</mark>);
                     break;
                 case 'italic':
                     elements.push(<em key={key}>{parseText(content, `${key}-em`)}</em>);

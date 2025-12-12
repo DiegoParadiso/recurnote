@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Bold, Italic, Strikethrough, Underline, Highlighter, Code, Link, RemoveFormatting } from 'lucide-react';
+import { Bold, Italic, Strikethrough, Underline, Code, Link, RemoveFormatting } from 'lucide-react';
 import '@styles/components/common/TextSelectionToolbar.css';
 import LinkInputModal from './LinkInputModal';
 
@@ -8,13 +8,14 @@ export default function TextSelectionToolbar() {
     const [visible, setVisible] = useState(false);
     const [position, setPosition] = useState({ top: 0, left: 0 });
     const toolbarRef = useRef(null);
+    const isMouseDown = useRef(false);
 
     // modal de link
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const [pendingLinkAction, setPendingLinkAction] = useState(null); // Función para ejecutar con la URL
 
     useEffect(() => {
-        const handleMouseUp = (e) => {
+        const updatePosition = (e) => {
             const activeEl = document.activeElement;
             const isContentEditable = activeEl.isContentEditable;
             const isTextInput = activeEl.tagName === 'TEXTAREA' || (activeEl.tagName === 'INPUT' && activeEl.type === 'text');
@@ -25,12 +26,12 @@ export default function TextSelectionToolbar() {
             }
 
             // If clicking inside the toolbar, do not reposition or hide
-            if (toolbarRef.current && toolbarRef.current.contains(e.target)) {
+            if (e && toolbarRef.current && toolbarRef.current.contains(e.target)) {
                 return;
             }
 
             // If clicking inside the modal, do not hide toolbar (though modal overlay usually blocks this)
-            if (document.querySelector('.link-input-modal-content')?.contains(e.target)) {
+            if (e && document.querySelector('.link-input-modal-content')?.contains(e.target)) {
                 return;
             }
 
@@ -52,12 +53,10 @@ export default function TextSelectionToolbar() {
                     const scrollY = window.scrollY;
                     const scrollX = window.scrollX;
 
-                    // Calculate centered position
+                    // Calcular posición centrada
                     let leftPos = elRect.left + scrollX + (elRect.width / 2);
 
-                    // Clamp to screen edges
-                    // Toolbar width approx 320px (estimated safe max width for mobile toolbar)
-                    // Half width = 160px
+                    // Toolbar width aproximado 320px
                     const toolbarHalfWidth = 160;
                     const margin = 10;
                     const minLeft = toolbarHalfWidth + margin;
@@ -94,10 +93,9 @@ export default function TextSelectionToolbar() {
                     const scrollY = window.scrollY;
                     const scrollX = window.scrollX;
 
-                    // Calculate centered position
                     let leftPos = rect.left + scrollX + (rect.width / 2);
 
-                    // Clamp to screen edges
+                    // Esquinas
                     const toolbarHalfWidth = 160;
                     const margin = 10;
                     const minLeft = toolbarHalfWidth + margin;
@@ -111,15 +109,19 @@ export default function TextSelectionToolbar() {
                     });
                 } else {
                     // Desktop behavior (near cursor)
-                    // Position toolbar above the mouse cursor as an approximation
-                    // Ideally we would use the caret coordinates, but that requires a library or complex logic
-                    // Using clientX/Y from the mouse event is a good "minimalist" heuristic for mouse selection
-
-                    // Ensure it doesn't go off screen
-                    const x = e.clientX;
-                    const y = e.clientY - 10; // 10px offset
-
-                    setPosition({ top: y, left: x });
+                    // If we have a mouse event, use it. Otherwise (keyboard), center on element.
+                    if (e && e.clientX) {
+                        const x = e.clientX;
+                        const y = e.clientY - 10;
+                        setPosition({ top: y, left: x });
+                    } else {
+                        // Fallback for keyboard selection on desktop textarea
+                        const rect = activeEl.getBoundingClientRect();
+                        setPosition({
+                            top: rect.top - 10,
+                            left: rect.left + (rect.width / 2)
+                        });
+                    }
                 }
                 setVisible(true);
             } else {
@@ -127,30 +129,19 @@ export default function TextSelectionToolbar() {
             }
         };
 
+        const handleMouseUp = (e) => {
+            isMouseDown.current = false;
+            updatePosition(e);
+        };
+
         const handleSelectionChange = () => {
-            // If modal is open, don't hide toolbar logic based on selection change
             if (isLinkModalOpen) return;
+            if (isMouseDown.current) return; // Wait for mouseup
 
-            const activeEl = document.activeElement;
-            const isContentEditable = activeEl.isContentEditable;
-            const isTextInput = activeEl.tagName === 'TEXTAREA' || (activeEl.tagName === 'INPUT' && activeEl.type === 'text');
-
-            if (!activeEl || (!isTextInput && !isContentEditable)) {
-                setVisible(false);
-                return;
-            }
-
-            if (isContentEditable) {
-                const selection = window.getSelection();
-                if (!selection || selection.isCollapsed) {
-                    setVisible(false);
-                }
-                return;
-            }
-
-            if (activeEl.selectionStart === activeEl.selectionEnd) {
-                setVisible(false);
-            }
+            // Debounce or just call updatePosition?
+            // selectionchange fires rapidly. But updatePosition is relatively cheap.
+            // Let's call it.
+            updatePosition();
         };
 
         const handleScroll = () => {
@@ -158,11 +149,10 @@ export default function TextSelectionToolbar() {
         };
 
         const handleMouseDown = (e) => {
-            // Don't hide if clicking the toolbar itself
+            isMouseDown.current = true;
             if (toolbarRef.current && toolbarRef.current.contains(e.target)) {
                 return;
             }
-            // Don't hide if clicking inside modal
             if (document.querySelector('.link-input-modal-content')?.contains(e.target)) {
                 return;
             }
@@ -176,7 +166,6 @@ export default function TextSelectionToolbar() {
         };
 
         const handleTouchEnd = (e) => {
-            // Wait a bit for selection to settle after touch end
             setTimeout(() => {
                 handleMouseUp(e);
             }, 100);
@@ -205,34 +194,48 @@ export default function TextSelectionToolbar() {
 
         if (activeEl.isContentEditable) {
             // Rich Text Mode
-            document.execCommand('styleWithCSS', false, false);
 
             switch (type) {
                 case 'bold':
+                    document.execCommand('styleWithCSS', false, false);
+                    // If in code, remove code format first
+                    if (document.queryCommandState('backColor')) { // Check if background color is applied (approx check for code/highlight)
+                        // Ideally we check specific color but execCommand is limited.
+                        // Let's just try to remove format if it looks like code?
+                        // Actually, let's just apply bold. If it was code, it might become <b><code>...</code></b>
+                        // But our converter now handles that by prioritizing code.
+                        // However, user wants "Code should not have bold".
+                        // So we should remove code.
+                        // But we can't easily detect "Code" vs "Highlight" with just queryCommandState('backColor').
+                        // We can check the node.
+                    }
                     document.execCommand('bold');
                     break;
                 case 'italic':
+                    document.execCommand('styleWithCSS', false, false);
                     document.execCommand('italic');
                     break;
                 case 'strikethrough':
+                    document.execCommand('styleWithCSS', false, false);
                     document.execCommand('strikeThrough');
                     break;
                 case 'underline':
+                    document.execCommand('styleWithCSS', false, false);
                     document.execCommand('underline');
                     break;
-                case 'highlight':
-                    document.execCommand('hiliteColor', false, '#fef08a');
-                    break;
                 case 'code':
-                    // Code is tricky in execCommand, usually implies wrapping in <pre> or <code>
-                    // Simple toggle implementation
-                    const selection = window.getSelection();
-                    if (selection.rangeCount > 0) {
-                        const range = selection.getRangeAt(0);
+                    // Code is exclusive. Remove EVERYTHING else.
+                    document.execCommand('removeFormat'); // Removes bold, italic, etc.
+                    document.execCommand('styleWithCSS', false, true);
+                    document.execCommand('hiliteColor', false, 'transparent'); // Ensure highlight is gone
+
+                    // Now apply code
+                    const selCode = window.getSelection();
+                    if (selCode.rangeCount > 0) {
+                        const range = selCode.getRangeAt(0);
                         const parent = range.commonAncestorContainer.parentElement;
-                        if (parent.tagName === 'CODE') {
-                            // Unwrap
-                            // This is complex to do perfectly with vanilla JS without a library
+                        // Toggle off if already code
+                        if (parent.tagName === 'CODE' || (parent.tagName === 'SPAN' && parent.style.background.includes('150'))) {
                             document.execCommand('removeFormat');
                         } else {
                             const span = document.createElement('code');
@@ -245,33 +248,74 @@ export default function TextSelectionToolbar() {
                     }
                     break;
                 case 'link':
-                    // Open Modal instead of prompt
-                    // Save selection range if needed? 
-                    // execCommand operates on current selection, so we must ensure selection is preserved or restored.
-                    // When modal opens, focus is lost. We might need to restore it.
-                    // But for contentEditable, selection might be lost if we focus input.
-
-                    // Strategy: Save range
                     const selectionSaved = window.getSelection().getRangeAt(0).cloneRange();
 
                     setPendingLinkAction(() => (url) => {
-                        // Restore selection
+                        // Restore focus first!
+                        activeEl.focus();
+
                         const sel = window.getSelection();
                         sel.removeAllRanges();
                         sel.addRange(selectionSaved);
 
-                        if (url) document.execCommand('createLink', false, url);
+                        if (url) {
+                            // Use insertHTML to ensure link is created with inner content preserved
+                            const fragment = selectionSaved.cloneContents();
+                            const div = document.createElement('div');
+                            div.appendChild(fragment);
+                            const innerHTML = div.innerHTML;
+
+                            // Add styles to match markdownToHtml output so it looks like a link immediately
+                            const anchor = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); text-decoration: underline;">${innerHTML}</a>`;
+                            document.execCommand('insertHTML', false, anchor);
+
+                            // Trigger input event
+                            const event = new Event('input', { bubbles: true });
+                            activeEl.dispatchEvent(event);
+                        }
                     });
                     setIsLinkModalOpen(true);
-                    return; // Return early, wait for modal
+                    return;
                 case 'clear':
+                    // 1. Remove semantic tags (bold, italic, etc.) - styleWithCSS: false
+                    document.execCommand('styleWithCSS', false, false);
                     document.execCommand('removeFormat');
+
+                    // 2. Remove inline styles (highlight, color) - styleWithCSS: true
+                    document.execCommand('styleWithCSS', false, true);
+                    document.execCommand('removeFormat');
+                    document.execCommand('hiliteColor', false, 'transparent'); // Explicitly clear highlight
+                    document.execCommand('unlink'); // Remove links
+
+                    // 3. Manual cleanup of spans/anchors if execCommand failed (aggressive)
+                    const selClear = window.getSelection();
+                    if (selClear.rangeCount > 0) {
+                        const range = selClear.getRangeAt(0);
+                        let node = range.commonAncestorContainer;
+                        if (node.nodeType === 3) node = node.parentElement;
+
+                        // If we are inside a span/mark/code/anchor, unwrap it
+                        if (['SPAN', 'MARK', 'CODE', 'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'A'].includes(node.tagName)) {
+                            // This is hard to do safely without a library, but execCommand should have handled it.
+                            // If not, we might need to rely on the user clicking again.
+                            // For links specifically, let's try to unwrap if it's an anchor
+                            if (node.tagName === 'A') {
+                                const parent = node.parentNode;
+                                while (node.firstChild) parent.insertBefore(node.firstChild, node);
+                                parent.removeChild(node);
+                            }
+                        }
+                    }
                     break;
             }
+
+            // Trigger input event to ensure React state updates
+            const event = new Event('input', { bubbles: true });
+            activeEl.dispatchEvent(event);
+
             return;
         }
 
-        // Plain Text Mode (Textarea/Input)
         const start = activeEl.selectionStart;
         const end = activeEl.selectionEnd;
         const text = activeEl.value;
@@ -280,30 +324,88 @@ export default function TextSelectionToolbar() {
         let prefix = '';
         let suffix = '';
 
+        const toggleWrapper = (wrapper, conflicts = []) => {
+            let currentText = selectedText;
+            let currentStart = start;
+            let currentEnd = end;
+            let currentVal = text;
+
+            // 1. Check if the SELECTION ITSELF contains the wrapper (e.g. user selected "==text==")
+            if (currentText.startsWith(wrapper) && currentText.endsWith(wrapper)) {
+                // Unwrap
+                const unwrapped = currentText.slice(wrapper.length, -wrapper.length);
+                insertTextAtSelection(activeEl, unwrapped, currentStart, currentEnd);
+                return;
+            }
+
+            // 2. Check if the selection is SURROUNDED by the wrapper (e.g. user selected "text" inside "==text==")
+            const before = currentVal.substring(currentStart - wrapper.length, currentStart);
+            const after = currentVal.substring(currentEnd, currentEnd + wrapper.length);
+
+            if (before === wrapper && after === wrapper) {
+                // Unwrap: Remove wrapper before and after
+                const newVal = currentVal.substring(0, currentStart - wrapper.length) + currentText + currentVal.substring(currentEnd + wrapper.length);
+                activeEl.value = newVal;
+                // Restore selection (it shifts back by wrapper length)
+                activeEl.setSelectionRange(currentStart - wrapper.length, currentEnd - wrapper.length);
+                const event = new Event('input', { bubbles: true });
+                activeEl.dispatchEvent(event);
+                return;
+            }
+
+            // 3. Remove conflicts from selected text (e.g. user selected "**text**" and wants to highlight)
+            conflicts.forEach(conflict => {
+                if (currentText.startsWith(conflict) && currentText.endsWith(conflict)) {
+                    currentText = currentText.slice(conflict.length, -conflict.length);
+                    // Update value
+                    const newVal = currentVal.substring(0, currentStart) + currentText + currentVal.substring(currentEnd);
+                    activeEl.value = newVal;
+                    currentVal = newVal;
+                    currentEnd = currentStart + currentText.length;
+                    activeEl.setSelectionRange(currentStart, currentEnd);
+                }
+            });
+
+            // 4. Remove conflicts from surrounding text
+            conflicts.forEach(conflict => {
+                const cBefore = currentVal.substring(currentStart - conflict.length, currentStart);
+                const cAfter = currentVal.substring(currentEnd, currentEnd + conflict.length);
+                if (cBefore === conflict && cAfter === conflict) {
+                    const newVal = currentVal.substring(0, currentStart - conflict.length) + currentText + currentVal.substring(currentEnd + conflict.length);
+                    activeEl.value = newVal;
+                    currentVal = newVal;
+                    currentStart -= conflict.length;
+                    currentEnd -= conflict.length;
+                    activeEl.setSelectionRange(currentStart, currentEnd);
+                }
+            });
+
+            // Re-read values after conflict removal
+            currentVal = activeEl.value;
+            currentStart = activeEl.selectionStart;
+            currentEnd = activeEl.selectionEnd;
+            currentText = currentVal.substring(currentStart, currentEnd);
+
+            // 5. Apply wrapper
+            const newText = wrapper + currentText + wrapper;
+            insertTextAtSelection(activeEl, newText, currentStart, currentEnd);
+        };
+
         switch (type) {
             case 'bold':
-                prefix = '**';
-                suffix = '**';
+                toggleWrapper('**', ['`']);
                 break;
             case 'italic':
-                prefix = '*';
-                suffix = '*';
+                toggleWrapper('*', ['`']);
                 break;
             case 'strikethrough':
-                prefix = '~~';
-                suffix = '~~';
+                toggleWrapper('~~', ['`']);
                 break;
             case 'underline':
-                prefix = '__';
-                suffix = '__';
-                break;
-            case 'highlight':
-                prefix = '==';
-                suffix = '==';
+                toggleWrapper('__', ['`']);
                 break;
             case 'code':
-                prefix = '`';
-                suffix = '`';
+                toggleWrapper('`', ['**', '*', '~~', '__']);
                 break;
             case 'link':
                 // Open Modal
@@ -318,35 +420,26 @@ export default function TextSelectionToolbar() {
                 setIsLinkModalOpen(true);
                 return; // Wait for modal
             case 'clear':
-                // Strip formatting from selected text
-                // 1. Remove links: [text](url) -> text
                 let cleaned = selectedText.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-                // 2. Remove other markers: **, __, ~~, ==, *, `
-                cleaned = cleaned.replace(/(\*\*|__|~~|==|\*|`)/g, '');
+                cleaned = cleaned.replace(/(\*\*|__|~~|\*|`)/g, '');
 
                 insertTextAtSelection(activeEl, cleaned, start, end);
                 return;
             default:
                 return;
         }
-
-        const newText = prefix + selectedText + suffix;
-        insertTextAtSelection(activeEl, newText, start, end);
     };
 
     const insertTextAtSelection = (activeEl, newText, start, end) => {
         try {
             activeEl.focus();
-            // This is the most robust way to support undo/redo
             const success = document.execCommand('insertText', false, newText);
 
             if (success) {
-                // Restore selection to cover the new text so toolbar stays visible
                 activeEl.setSelectionRange(start, start + newText.length);
             } else {
                 // Fallback
                 activeEl.setRangeText(newText, start, end, 'select');
-                // Manually trigger input event
                 const event = new Event('input', { bubbles: true });
                 activeEl.dispatchEvent(event);
             }
@@ -392,9 +485,6 @@ export default function TextSelectionToolbar() {
                     <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
                     <button onClick={() => applyFormat('underline')} title="Underline">
                         <Underline size={16} />
-                    </button>
-                    <button onClick={() => applyFormat('highlight')} title="Highlight">
-                        <Highlighter size={16} />
                     </button>
                     <button onClick={() => applyFormat('code')} title="Code">
                         <Code size={16} />

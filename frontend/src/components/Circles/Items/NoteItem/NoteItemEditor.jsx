@@ -176,7 +176,20 @@ export default function NoteItemEditor({
         className="noteitem-textarea"
         onInput={handleInput}
         onKeyDown={handleKeyDown}
-        onBlur={() => stopEditing()}
+        onBlur={(e) => {
+          // Use setTimeout to check where focus went (more reliable than relatedTarget)
+          setTimeout(() => {
+            const activeEl = document.activeElement;
+            if (activeEl) {
+              const isToolbar = activeEl.closest('.text-selection-toolbar');
+              const isModal = activeEl.closest('.link-input-modal-content') || activeEl.closest('.link-input-modal-overlay');
+              if (isToolbar || isModal) {
+                return;
+              }
+            }
+            stopEditing();
+          }, 0);
+        }}
         onFocus={(e) => {
           if (isMobile && !isEditing) {
             startEditing();

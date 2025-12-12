@@ -43,11 +43,8 @@ export const markdownToHtml = (markdown) => {
     // Underline (__text__) -> <u>text</u>
     html = html.replace(/__(.*?)__/g, '<u>$1</u>');
 
-    // Highlight (==text==) -> <mark>text</mark>
-    html = html.replace(/==(.*?)==/g, '<mark style="background-color: #fef08a; color: black; padding: 0 2px; border-radius: 2px;">$1</mark>');
-
     // Code (`text`) -> <code>text</code>
-    html = html.replace(/`(.*?)`/g, '<code style="background: rgba(150,150,150,0.2); padding: 2px 4px; border-radius: 4px; font-family: monospace;">$1</code>');
+    html = html.replace(/`(.*?)`/g, '<code style="background: rgba(150,150,150,0.2); border-radius: 4px; font-family: monospace;">$1</code>');
 
     // Link ([text](url)) -> <a href="url">text</a>
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); text-decoration: underline;">$1</a>');
@@ -109,15 +106,46 @@ export const htmlToMarkdown = (html) => {
                     case 'u':
                         text += `__${content}__`;
                         break;
-                    case 'mark':
-                        text += `==${content}==`;
-                        break;
                     case 'code':
                         text += `\`${content}\``;
                         break;
                     case 'a':
                         const href = child.getAttribute('href');
                         text += `[${content}](${href})`;
+                        break;
+                    case 'span':
+                        // Check for highlight style
+                        const bgColor = child.style.backgroundColor || child.style.background;
+
+                        // Check if it's the code background (approximate check)
+                        // If it is code, we prioritize it and ignore other styles (bold, italic, etc.)
+                        // because code blocks should be raw.
+                        if (bgColor && (bgColor.includes('150, 150, 150') || bgColor.includes('150,150,150'))) {
+                            text += `\`${content}\``;
+                            break;
+                        }
+
+                        const fontWeight = child.style.fontWeight;
+                        const fontStyle = child.style.fontStyle;
+                        const textDecoration = child.style.textDecoration;
+
+                        let innerContent = content;
+
+                        // Handle styles inside span (if browser merged them)
+                        if (fontWeight === 'bold' || parseInt(fontWeight) >= 700) {
+                            innerContent = `**${innerContent}**`;
+                        }
+                        if (fontStyle === 'italic') {
+                            innerContent = `*${innerContent}*`;
+                        }
+                        if (textDecoration && textDecoration.includes('underline')) {
+                            innerContent = `__${innerContent}__`;
+                        }
+                        if (textDecoration && textDecoration.includes('line-through')) {
+                            innerContent = `~~${innerContent}~~`;
+                        }
+
+                        text += innerContent;
                         break;
                     default:
                         text += content;
@@ -143,7 +171,7 @@ export const stripMarkdown = (markdown) => {
     if (!markdown) return '';
     // Remove links but keep text: [text](url) -> text
     let text = markdown.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-    // Remove other markers: **, __, ~~, ==, *, `
-    text = text.replace(/(\*\*|__|~~|==|\*|`)/g, '');
+    // Remove other markers: **, __, ~~, *, `
+    text = text.replace(/(\*\*|__|~~|\*|`)/g, '');
     return text;
 };
