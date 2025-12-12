@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { t, i18n } = useTranslation();
-  const { itemsByDate, setItemsByDate, updateItem, deleteItem } = useItems();
+  const { itemsByDate, setItemsByDate, updateItem, deleteItem, loading } = useItems();
   const [itemToDelete, setItemToDelete] = useState(null);
 
   // Usar items del ItemsContext (que maneja tanto servidor como local)
@@ -156,7 +156,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             itemsForDays={itemsForDays}
             setSelectedDay={handleDaySelect}
             toggleTaskCheck={toggleTaskCheck}
-
+            loading={loading}
             onReorder={handleReorder}
             onDeleteRequest={handleDeleteRequest}
           />

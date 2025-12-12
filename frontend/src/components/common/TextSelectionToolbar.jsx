@@ -43,7 +43,22 @@ export default function TextSelectionToolbar() {
                 }
                 const range = selection.getRangeAt(0);
                 const rect = range.getBoundingClientRect();
-                setPosition({ top: rect.top - 10, left: rect.left + (rect.width / 2) });
+
+                const isMobile = window.matchMedia('(max-width: 768px)').matches;
+                if (isMobile) {
+                    // Position below the element (activeEl)
+                    // activeEl is the contentEditable element
+                    const elRect = activeEl.getBoundingClientRect();
+                    const scrollY = window.scrollY;
+                    const scrollX = window.scrollX;
+
+                    setPosition({
+                        top: elRect.bottom + scrollY + 10,
+                        left: elRect.left + scrollX + (elRect.width / 2)
+                    });
+                } else {
+                    setPosition({ top: rect.top - 10, left: rect.left + (rect.width / 2) });
+                }
                 setVisible(true);
                 return;
             }
@@ -54,15 +69,51 @@ export default function TextSelectionToolbar() {
 
             if (start !== end) {
                 // We have a selection
-                // Position toolbar above the mouse cursor as an approximation
-                // Ideally we would use the caret coordinates, but that requires a library or complex logic
-                // Using clientX/Y from the mouse event is a good "minimalist" heuristic for mouse selection
 
-                // Ensure it doesn't go off screen
-                const x = e.clientX;
-                const y = e.clientY - 10; // 10px offset
+                // Check if mobile
+                const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
-                setPosition({ top: y, left: x });
+                if (isMobile) {
+                    // Position below the element
+                    const rect = activeEl.getBoundingClientRect();
+                    // We want it below the element, centered or aligned left?
+                    // Let's center it relative to the element for now, or just some offset
+                    // Actually user said "debajo del item" (below the item).
+                    // The item might be large (textarea), so maybe below the visible part or just fixed at bottom of screen?
+                    // "debajo del item" usually means below the component.
+
+                    // Let's try positioning it relative to the bottom of the element.
+                    // However, if the keyboard is open, the viewport might be small.
+                    // But usually the toolbar should be near the text.
+
+                    // Let's try:
+                    // top: rect.bottom + window.scrollY + 10
+                    // left: rect.left + (rect.width / 2)
+
+                    // Wait, rect.bottom is viewport relative.
+                    // If we use fixed positioning for toolbar it would be easier, but it uses absolute/portal?
+                    // It uses createPortal to document.body.
+                    // So we need absolute coordinates (page coordinates).
+
+                    const scrollY = window.scrollY;
+                    const scrollX = window.scrollX;
+
+                    setPosition({
+                        top: rect.bottom + scrollY + 10,
+                        left: rect.left + scrollX + (rect.width / 2)
+                    });
+                } else {
+                    // Desktop behavior (near cursor)
+                    // Position toolbar above the mouse cursor as an approximation
+                    // Ideally we would use the caret coordinates, but that requires a library or complex logic
+                    // Using clientX/Y from the mouse event is a good "minimalist" heuristic for mouse selection
+
+                    // Ensure it doesn't go off screen
+                    const x = e.clientX;
+                    const y = e.clientY - 10; // 10px offset
+
+                    setPosition({ top: y, left: x });
+                }
                 setVisible(true);
             } else {
                 setVisible(false);

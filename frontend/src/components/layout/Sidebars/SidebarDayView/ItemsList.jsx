@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import DayItemGroup from '@components/layout/Sidebars/SidebarDayView/DayItemGroup';
 import ItemRenderer from '@components/layout/Sidebars/SidebarDayView/ItemRenderer';
 
-export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, onReorder, onDeleteRequest }) {
+export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, onReorder, onDeleteRequest, loading }) {
   const { t } = useTranslation();
   const [isDark, setIsDark] = useState(false);
 
@@ -16,6 +16,11 @@ export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskChec
     if (el) observer.observe(el, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+
+  if (loading && itemsForDays.length === 0) {
+    return null; // Or a spinner if preferred, but null avoids flash
+  }
+
   if (itemsForDays.length === 0) {
     return (
       <>
