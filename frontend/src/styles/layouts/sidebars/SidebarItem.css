@@ -210,7 +210,6 @@ html.dark .sidebar-item:hover {
     height: 60px;
     padding: 0.4rem;
     background-color: var(--color-neutral);
-    border-color: var(--color-text-muted);
   }
 
   .sidebar-item-nota .dot {
@@ -242,6 +241,5 @@ html.dark .sidebar-item:hover {
 
   html.dark .sidebar-item {
     background-color: var(--color-neutral);
-    border-color: var(--color-text-secondary);
   }
 }
