@@ -39,8 +39,8 @@
 
   display: flex;
   flex-direction: column;
-  justify-content: center; 
-  align-items: center; 
+  justify-content: center;
+  align-items: center;
 
   gap: 1.5rem;
   overflow-y: auto;
@@ -67,7 +67,8 @@
   }
 
   .curved-sidebar-panel {
-    position: relative; /* relativo dentro del contenedor */
+    position: relative;
+    /* relativo dentro del contenedor */
     top: auto;
     left: auto;
     transform: none;
@@ -84,65 +85,72 @@
     scroll-behavior: smooth;
   }
 
-  .curved-sidebar-container:hover .curved-sidebar-panel { left: auto; }
+  .curved-sidebar-container:hover .curved-sidebar-panel {
+    left: auto;
+  }
 }
 
 /* Clases para modo móvil vía prop isMobile */
 .curved-sidebar-container.mobile {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: auto !important;
-    bottom: var(--mobile-bottom-offset) !important; 
-    width: 100vw !important;
-    height: var(--mobile-carousel-height) !important;
-    z-index: var(--z-floating);
-    overflow: visible !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    background: transparent !important; /* Fondo transparente en mobile */
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  bottom: var(--mobile-bottom-offset) !important;
+  width: 100vw !important;
+  height: var(--mobile-carousel-height) !important;
+  z-index: var(--z-floating);
+  overflow: visible !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: transparent !important;
+  /* Fondo transparente en mobile */
 }
 
 .curved-sidebar-container.mobile .curved-sidebar-panel {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: center !important;
-    align-items: center !important;
-    overflow: visible !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 1rem !important;
-    gap: 1.5rem !important;
-    border: none !important;
-    border-radius: 0 !important;
-    position: relative !important;
-    margin: 0 !important;
-    background: transparent !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: visible !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 1rem !important;
+  gap: 1.5rem !important;
+  border: none !important;
+  border-radius: 0 !important;
+  position: relative !important;
+  margin: 0 !important;
+  background: transparent !important;
 }
 
 .curved-sidebar-container.mobile .curved-sidebar-panel::-webkit-scrollbar {
-    display: none; /* Chrome, Safari y Opera */
+  display: none;
+  /* Chrome, Safari y Opera */
 }
 
-.curved-sidebar-container.mobile .curved-sidebar-panel > div {
-    flex: 0 0 auto; /* prevent shrinking */
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.5rem;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.curved-sidebar-container.mobile .curved-sidebar-panel>div {
+  flex: 0 0 auto;
+  /* prevent shrinking */
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 
 .curved-sidebar-container.pinned .curved-sidebar-panel {
-  position: static !important; /* para que el wrapper fije la posición exacta */
+  position: static !important;
+  /* para que el wrapper fije la posición exacta */
   top: auto !important;
   left: auto !important;
   transform: none !important;
-  transition: none !important; /* sin animación al fijar */
+  transition: none !important;
+  /* sin animación al fijar */
 }
 
 /* Cuando está fijado, el contenedor no debe ser fixed para permitir arrastre del wrapper */
@@ -150,21 +158,9 @@
   position: relative !important;
   left: auto !important;
   top: auto !important;
-  width: 220px !important; /* igual al panel */
-  height: 450px !important; /* igual al panel */
+  width: 220px !important;
+  /* igual al panel */
+  height: 450px !important;
+  /* igual al panel */
   background: transparent !important;
-}
-
-/* Visuals de drag para items del CurvedSidebar */
-.curved-draggable {
-  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
-  will-change: transform, box-shadow;
-  cursor: grab;
-}
-
-.curved-draggable.is-dragging {
-  transform: scale(0.98);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-  opacity: 0.9;
-  cursor: grabbing;
 }

@@ -52,9 +52,6 @@ export default function LinkInputModal({
                 className="link-input-modal-content"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 className="link-input-modal-title">
-                    {title || t('common.insertLink')}
-                </h3>
 
                 <input
                     ref={inputRef}

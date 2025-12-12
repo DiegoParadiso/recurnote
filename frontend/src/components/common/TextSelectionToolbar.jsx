@@ -46,15 +46,28 @@ export default function TextSelectionToolbar() {
 
                 const isMobile = window.matchMedia('(max-width: 768px)').matches;
                 if (isMobile) {
-                    // Position below the element (activeEl)
-                    // activeEl is the contentEditable element
-                    const elRect = activeEl.getBoundingClientRect();
+                    // Position below the item container to avoid covering text
+                    const container = activeEl.closest('.item-card') || activeEl;
+                    const elRect = container.getBoundingClientRect();
                     const scrollY = window.scrollY;
                     const scrollX = window.scrollX;
 
+                    // Calculate centered position
+                    let leftPos = elRect.left + scrollX + (elRect.width / 2);
+
+                    // Clamp to screen edges
+                    // Toolbar width approx 320px (estimated safe max width for mobile toolbar)
+                    // Half width = 160px
+                    const toolbarHalfWidth = 160;
+                    const margin = 10;
+                    const minLeft = toolbarHalfWidth + margin;
+                    const maxLeft = window.innerWidth - toolbarHalfWidth - margin;
+
+                    leftPos = Math.max(minLeft, Math.min(leftPos, maxLeft));
+
                     setPosition({
                         top: elRect.bottom + scrollY + 10,
-                        left: elRect.left + scrollX + (elRect.width / 2)
+                        left: leftPos
                     });
                 } else {
                     setPosition({ top: rect.top - 10, left: rect.left + (rect.width / 2) });
@@ -74,33 +87,27 @@ export default function TextSelectionToolbar() {
                 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
                 if (isMobile) {
-                    // Position below the element
-                    const rect = activeEl.getBoundingClientRect();
-                    // We want it below the element, centered or aligned left?
-                    // Let's center it relative to the element for now, or just some offset
-                    // Actually user said "debajo del item" (below the item).
-                    // The item might be large (textarea), so maybe below the visible part or just fixed at bottom of screen?
-                    // "debajo del item" usually means below the component.
-
-                    // Let's try positioning it relative to the bottom of the element.
-                    // However, if the keyboard is open, the viewport might be small.
-                    // But usually the toolbar should be near the text.
-
-                    // Let's try:
-                    // top: rect.bottom + window.scrollY + 10
-                    // left: rect.left + (rect.width / 2)
-
-                    // Wait, rect.bottom is viewport relative.
-                    // If we use fixed positioning for toolbar it would be easier, but it uses absolute/portal?
-                    // It uses createPortal to document.body.
-                    // So we need absolute coordinates (page coordinates).
+                    // Position below the item container
+                    const container = activeEl.closest('.item-card') || activeEl;
+                    const rect = container.getBoundingClientRect();
 
                     const scrollY = window.scrollY;
                     const scrollX = window.scrollX;
 
+                    // Calculate centered position
+                    let leftPos = rect.left + scrollX + (rect.width / 2);
+
+                    // Clamp to screen edges
+                    const toolbarHalfWidth = 160;
+                    const margin = 10;
+                    const minLeft = toolbarHalfWidth + margin;
+                    const maxLeft = window.innerWidth - toolbarHalfWidth - margin;
+
+                    leftPos = Math.max(minLeft, Math.min(leftPos, maxLeft));
+
                     setPosition({
                         top: rect.bottom + scrollY + 10,
-                        left: rect.left + scrollX + (rect.width / 2)
+                        left: leftPos
                     });
                 } else {
                     // Desktop behavior (near cursor)
@@ -164,13 +171,28 @@ export default function TextSelectionToolbar() {
             }
         };
 
+        const handleKeyUp = (e) => {
+            handleSelectionChange();
+        };
+
+        const handleTouchEnd = (e) => {
+            // Wait a bit for selection to settle after touch end
+            setTimeout(() => {
+                handleMouseUp(e);
+            }, 100);
+        };
+
         document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('touchend', handleTouchEnd);
+        document.addEventListener('keyup', handleKeyUp);
         document.addEventListener('selectionchange', handleSelectionChange);
         window.addEventListener('scroll', handleScroll, { capture: true });
         document.addEventListener('mousedown', handleMouseDown);
 
         return () => {
             document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('touchend', handleTouchEnd);
+            document.removeEventListener('keyup', handleKeyUp);
             document.removeEventListener('selectionchange', handleSelectionChange);
             window.removeEventListener('scroll', handleScroll, { capture: true });
             document.removeEventListener('mousedown', handleMouseDown);
@@ -338,12 +360,23 @@ export default function TextSelectionToolbar() {
 
     if (!visible && !isLinkModalOpen) return null;
 
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const mobileStyle = isMobile ? {
+        position: 'absolute',
+        transform: 'translateX(-50%)',
+        marginTop: 0
+    } : {};
+
     return createPortal(
         <>
             {visible && (
                 <div
                     className="text-selection-toolbar"
-                    style={{ top: position.top, left: position.left }}
+                    style={{
+                        top: position.top,
+                        left: position.left,
+                        ...mobileStyle
+                    }}
                     ref={toolbarRef}
                     onMouseDown={(e) => e.preventDefault()} // Prevent losing focus
                 >
