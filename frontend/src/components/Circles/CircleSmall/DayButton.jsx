@@ -19,14 +19,14 @@ function DayButton({
   const labelY = centerOffset + labelDistanceFromCenter * Math.sin(angle);
 
   return (
-          <div
-        className="day-button"
-        style={{
-          ...style,
-          position: 'absolute',
-          width: `${buttonSize}px`,
-          height: `${buttonSize}px`,
-        }}
+    <div
+      className="day-button"
+      style={{
+        ...style,
+        position: 'absolute',
+        width: `${buttonSize}px`,
+        height: `${buttonSize}px`,
+      }}
       onClick={(e) => {
         if (!isDragging && onClick) {
           onClick();
@@ -42,7 +42,7 @@ function DayButton({
             ? 'var(--daybutton-selected-bg)'
             : 'var(--daybutton-bg)',
           borderColor: isSelected
-            ? '#a3a3a3'
+            ? 'var(--daybutton--selected-bg)'
             : '#a3a3a3',
           transition: 'none', // Sin transición para cambios de tema
           cursor: isDragging ? 'grab' : 'pointer',

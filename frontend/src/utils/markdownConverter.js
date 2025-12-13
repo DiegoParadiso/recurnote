@@ -47,7 +47,7 @@ export const markdownToHtml = (markdown) => {
     html = html.replace(/`(.*?)`/g, '<code style="background: rgba(150,150,150,0.2); border-radius: 4px; font-family: monospace;">$1</code>');
 
     // Link ([text](url)) -> <a href="url">text</a>
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); text-decoration: underline;">$1</a>');
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">$1</a>');
 
     return html;
 };

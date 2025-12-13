@@ -14,9 +14,14 @@
 .noteitem-dot {
   width: 6px;
   height: 6px;
-  background-color: rgba(156, 163, 175, 0.3);
+  background-color: #b6bcc6;
   border-radius: 50%;
 }
+
+html.dark .noteitem-dot {
+  background-color: var(--color-neutral-darker);
+}
+
 
 .noteitem-textarea {
   font-size: 11.5px;

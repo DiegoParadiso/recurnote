@@ -1,11 +1,22 @@
 .resize-handle-native {
   width: 24px;
   height: 24px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><line x1='10' y1='16' x2='16' y2='10' stroke='%23999' stroke-width='1'/><line x1='12' y1='16' x2='16' y2='12' stroke='%23999' stroke-width='1'/></svg>");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
+  /* Minimalist corner arc using mask for color control */
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21a5 5 0 0 0 5-5'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21a5 5 0 0 0 5-5'/></svg>");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: bottom right;
+  mask-position: bottom right;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  background-color: var(--color-neutral-darker);
   cursor: nwse-resize;
-  opacity: 0.4;
+  opacity: 1;
   user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.resize-handle-native:hover {
+  opacity: 0.8;
 }

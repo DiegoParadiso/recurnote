@@ -162,7 +162,11 @@ export default function NoteItemEditor({
 
   return (
     <div className="noteitem-textarea-wrapper"
-      onClick={() => {
+      onClick={(e) => {
+        // Allow link clicks to propagate
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+          return;
+        }
         if (isMobile && !isEditing && !isDragging) {
           startEditing();
           setTimeout(focusEditor, 0);
