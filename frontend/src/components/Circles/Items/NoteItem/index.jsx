@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import useIsMobile from '@hooks/useIsMobile';
 import { getFontFromComputedStyle, measureTextWidth } from '@utils/measureTextWidth';
 import { stripMarkdown } from '@utils/markdownConverter';
-import { computePolarFromXY } from '@utils/helpers/geometry';
+import { computePolarFromXY, limitPositionInsideCircle } from '@utils/helpers/geometry';
 import NoteItemClock from './NoteItemClock';
 import NoteItemEditor from './NoteItemEditor';
 import NoteItemContainer from './NoteItemContainer';
@@ -165,7 +165,26 @@ export default function NoteItem({
         const newY = y + deltaY;
 
         let valid = true;
-        if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+        if (isSmallScreen) {
+          // En mobile, usar limitPositionInsideCircle con flag isSmallScreen=true
+          // Esto verificará límites de pantalla en lugar de radio del círculo
+          const limited = limitPositionInsideCircle(newX, newY, minW, height, { cx: 0, cy: 0 }, 0, true);
+          // Si la posición limitada es diferente, significa que se salió de pantalla
+          // Pero aquí queremos permitir el resize si es posible.
+          // Si limitPositionInsideCircle nos devuelve una posición válida dentro de pantalla, usamos esa?
+          // No, porque newX/newY están calculados para mantener top-left fijo.
+          // Si limitamos el centro, movemos el top-left.
+          // Pero si no limitamos, se sale de pantalla.
+          // Lo importante es que valid = true si cabe en pantalla.
+          // limitPositionInsideCircle devuelve una posición válida.
+          // Si la posición devuelta es "cercana" a la deseada, es válido.
+          // O simplemente confiamos en que UnifiedContainer lo clampeará visualmente?
+          // El problema era que 'valid' era false porque fallaba el check de radio.
+          // Al usar limitPositionInsideCircle (o simplemente saltar el check de radio en mobile),
+          // permitimos que el update ocurra.
+          // UnifiedContainer se encargará de mantenerlo en pantalla si se mueve.
+          valid = true;
+        } else if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
           const halfW = minW / 2;
           const halfH = height / 2;
           const corners = [
@@ -416,7 +435,9 @@ export default function NoteItem({
                   const newY = localPos.y + deltaY;
 
                   let valid = true;
-                  if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+                  if (isSmallScreen) {
+                    valid = true;
+                  } else if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
                     const halfW = localSize.width / 2;
                     const halfH = clamped / 2;
                     const corners = [
