@@ -42,6 +42,24 @@ export default function NoteItem({
   const [minWidthPx, setMinWidthPx] = useState(120);
   const [minHeightPx, setMinHeightPx] = useState(60);
 
+  // Local state for optimistic updates
+  const [localPos, setLocalPos] = useState({ x, y });
+  const [localSize, setLocalSize] = useState({ width, height });
+  const isResizingRef = useRef(false);
+
+  // Sync local state with props when not resizing/dragging locally
+  useLayoutEffect(() => {
+    if (!isResizingRef.current) {
+      setLocalPos({ x, y });
+    }
+  }, [x, y]);
+
+  useLayoutEffect(() => {
+    if (!isResizingRef.current) {
+      setLocalSize({ width, height });
+    }
+  }, [width, height]);
+
   const handleDuplicate = async () => {
     try {
       await duplicateItem(id);
@@ -234,10 +252,10 @@ export default function NoteItem({
     >
       <NoteItemContainer
         id={id}
-        x={x}
-        y={y}
-        width={width}
-        height={height}
+        x={localPos.x}
+        y={localPos.y}
+        width={localSize.width}
+        height={localSize.height}
         rotation={rotation}
         rotationEnabled={rotationEnabled}
         circleCenter={{ cx, cy }}
@@ -253,11 +271,26 @@ export default function NoteItem({
         maxWidth={320}
         maxHeight={MAX_CONTAINER_HEIGHT}
         onPositionChange={({ x: newX, y: newY, angle, distance }) => {
+          setLocalPos({ x: newX, y: newY });
           // Persistir posición final y geometría una sola vez al soltar
           onUpdate?.(id, content, null, null, { x: newX, y: newY }, { angle, distance, fullboardMode });
           flushItemUpdate?.(id);
         }}
         onSizeChange={({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
+          isResizingRef.current = true;
+          setLocalSize({ width: newWidth, height: newHeight });
+          if (newX !== undefined && newY !== undefined) {
+            setLocalPos({ x: newX, y: newY });
+          }
+
+          // Reset resizing flag after a short delay or allow prop update to take over if needed?
+          // Actually, we want to keep local state authoritative during interaction.
+          // But onSizeChange comes from drag/resize hook which ends when mouse up.
+          // So we can reset isResizingRef on mouse up or just let it be.
+          // Better: set it false in a timeout or rely on the fact that onSizeChange is continuous.
+          // Let's set it to false immediately after update? No, that would cause flicker.
+          // We can use a timeout.
+          setTimeout(() => { isResizingRef.current = false; }, 100);
           // Check if new width causes height overflow
           // We need to estimate height at newWidth.
           // This is tricky without a ref to the editor's content or a measurement utility.
@@ -360,14 +393,14 @@ export default function NoteItem({
             <NoteItemEditor
               id={id}
               content={content}
-              width={width}
-              height={height}
+              width={localSize.width}
+              height={localSize.height}
               onUpdate={onUpdate}
               isDragging={isDragging}
               onHeightChange={(newHeight) => {
                 const clamped = Math.max(minHeightPx, Math.min(newHeight, MAX_CONTAINER_HEIGHT));
-                if (clamped !== height) {
-                  const deltaH = clamped - height;
+                if (clamped !== localSize.height) {
+                  const deltaH = clamped - localSize.height;
 
                   const rotRad = ((rotation || 0) * Math.PI) / 180;
                   const cos = Math.cos(rotRad);
@@ -379,12 +412,12 @@ export default function NoteItem({
                   const deltaX = -(deltaH / 2) * sin;
                   const deltaY = (deltaH / 2) * cos;
 
-                  const newX = x + deltaX;
-                  const newY = y + deltaY;
+                  const newX = localPos.x + deltaX;
+                  const newY = localPos.y + deltaY;
 
                   let valid = true;
                   if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
-                    const halfW = width / 2;
+                    const halfW = localSize.width / 2;
                     const halfH = clamped / 2;
                     const corners = [
                       { x: newX - halfW, y: newY - halfH },
@@ -401,7 +434,13 @@ export default function NoteItem({
                   }
 
                   if (valid) {
-                    onUpdate?.(id, content, null, { width, height: clamped }, { x: newX, y: newY });
+                    isResizingRef.current = true;
+                    setLocalSize(prev => ({ ...prev, height: clamped }));
+                    setLocalPos({ x: newX, y: newY });
+                    onUpdate?.(id, content, null, { width: localSize.width, height: clamped }, { x: newX, y: newY });
+
+                    // Clear resizing flag after delay
+                    setTimeout(() => { isResizingRef.current = false; }, 100);
                   }
                 }
               }}

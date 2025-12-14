@@ -113,10 +113,10 @@ export default function NoteItemEditor({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
       // Prevent default div insertion if we want just BR?
       // Or let it be.
-      // If we want to stop editing on Enter (without shift):
+      // If we want to stop editing on Enter (without shift/ctrl/meta):
       // e.preventDefault();
       // stopEditing();
       // el.blur();
@@ -125,12 +125,12 @@ export default function NoteItemEditor({
       // If the user wants to exit, maybe Escape?
       // Or click outside.
       // The original textarea stopped editing on Enter without Shift.
-      // Let's preserve that behavior.
+      // Let's preserve that behavior but allow Ctrl+Enter / Meta+Enter for newlines too.
 
       e.preventDefault();
       stopEditing();
       e.target.blur();
-    } else if (e.key === 'Enter' && e.shiftKey) {
+    } else if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
       // Allow newline
       // contentEditable handles this, but sometimes inserts <div>.
       // We might want to force <br>.

@@ -1,6 +1,6 @@
 import React from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import { PRIMARY_FONT } from '../../../config/fonts'; 
+import { PRIMARY_FONT } from '../../../config/fonts';
 
 export default function CircleBackgroundText({ circleSize, radius, displayText, fullboardMode = false }) {
   const { width } = useWindowDimensions();
@@ -15,7 +15,7 @@ export default function CircleBackgroundText({ circleSize, radius, displayText, 
       <div
         style={{
           position: 'absolute',
-          top: fullboardMode ? '0' : '9%',
+          top: fullboardMode ? '0' : '5%',
           left: '50%',
           transform: fullboardMode ? 'translateX(-50%)' : 'translate(-50%, 0)',
           pointerEvents: 'none',
@@ -37,8 +37,8 @@ export default function CircleBackgroundText({ circleSize, radius, displayText, 
   }
 
   // Texto arqueado en pantallas grandes
-  const textRadius = radius - 30; 
-  
+  const textRadius = radius - 30;
+
   return (
     <div
       style={{
