@@ -78,6 +78,8 @@
   --sidebar-archivo-dark-tab-bg: #3a3a3a;
   --sidebar-archivo-dark-separator-border: #50555D;
 
+  --color-button-login: var(--color-highlight);
+
   /* Layout móvil */
   --mobile-bottom-offset: 60px;
   --mobile-carousel-height: 96px;
@@ -121,7 +123,6 @@ html.dark {
   --color-neutral: #1e1e1e;
   --color-neutral-dark: #3a3a3a;
   --color-neutral-darker: #50555D;
-
   --color-text-primary: #d3d3d3;
   --color-text-secondary: #50555D;
   --color-highlight: #f5f5f5;
@@ -134,6 +135,7 @@ html.dark {
   --daybutton-selected-border: var(--color-text-secondary);
   --daybutton-selected-text: #e0e0e0;
 
+  --color-button-login: #d4d4d4;
   /* Nuevas variables para colores minimalistas en modo oscuro */
   --color-minimal-primary: #6c757d;
   /* Gris medio oscuro para mejor contraste */
@@ -185,7 +187,7 @@ html.dark {
   --sidebar-archivo-topbar-border: #50555D;
   --sidebar-archivo-tab-bg: #e5e5e5;
   --sidebar-archivo-separator-border: #d4d4d4;
-  --sidebar-archivo-dark-tab-bg: #3a3a3a;
+  --sidebar-archivo-dark-tab-bg: #020101;
   --sidebar-archivo-dark-separator-border: #50555D;
 
   /* Variables para elementos de hover equilibrados */

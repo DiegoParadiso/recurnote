@@ -116,7 +116,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
 
   return (
     <div
-      className={`fixed ${isMobile ? 'inset-0 z-50 flex flex-col bg-[var(--color-bg)]' : 'top-0 right-0 h-screen w-[30px] group z-50'}`}
+      className={`fixed ${isMobile ? ' z-50 flex flex-col bg-[var(--color-bg)]' : 'top-0 right-0 h-screen w-[100px] group z-50'}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

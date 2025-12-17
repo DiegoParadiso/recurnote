@@ -198,7 +198,6 @@ export default function DataManagementOptions() {
         <div className="confirmation-overlay">
           <div className="confirmation-modal">
             <h4>{t('data.confirmTotalDeletion')}</h4>
-            <p>{t('data.confirmAllQuestion', { total: totalItems })}</p>
             <div className="info-container">
               <div className="info-item">{t('data.noUndo')}</div>
               {!user && (<div className="info-item">{t('data.localWarning')}</div>)}

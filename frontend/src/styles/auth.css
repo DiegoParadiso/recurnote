@@ -9,7 +9,7 @@
   align-items: center;
   padding: 2rem;
   position: relative;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .auth-box {
@@ -116,10 +116,13 @@
 .success-message {
   text-align: center;
   padding: 0.75rem;
-  background: rgba(73, 80, 87, 0.1); /* Gris con transparencia */
+  background: rgba(73, 80, 87, 0.1);
+  /* Gris con transparencia */
   border-radius: 4px;
-  border: 1px solid rgba(73, 80, 87, 0.3); /* Gris con transparencia */
-  color: var(--color-minimal-primary); /* Gris oscuro */
+  border: 1px solid rgba(73, 80, 87, 0.3);
+  /* Gris con transparencia */
+  color: var(--color-minimal-primary);
+  /* Gris oscuro */
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
@@ -137,7 +140,8 @@
   font-size: 0.9rem;
   line-height: 1.4;
   position: relative;
-  margin-left: 0; /* Alinear con el borde izquierdo */
+  margin-left: 0;
+  /* Alinear con el borde izquierdo */
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -151,14 +155,16 @@
 .checkbox-text {
   color: var(--color-text-primary);
   flex: 1;
-  padding-left: 26px; /* Espacio para el checkbox */
+  padding-left: 26px;
+  /* Espacio para el checkbox */
   position: relative;
 }
 
 .checkbox-text::before {
   content: '';
   position: absolute;
-  left: 0; /* Alineado con el borde izquierdo del texto */
+  left: 0;
+  /* Alineado con el borde izquierdo del texto */
   top: 0px;
   width: 18px;
   height: 18px;
@@ -171,44 +177,49 @@
 .checkbox-text::after {
   content: '';
   position: absolute;
-  left: 9px; /* Mitad del checkbox (18px / 2) */
-  top: 9px; /* Mitad del checkbox (18px / 2) */
+  left: 9px;
+  /* Mitad del checkbox (18px / 2) */
+  top: 9px;
+  /* Mitad del checkbox (18px / 2) */
   width: 12px;
   height: 12px;
-  color: var(--color-minimal-primary); /* Gris oscuro para el check */
+  color: var(--color-minimal-primary);
+  /* Gris oscuro para el check */
   font-size: 11px;
   font-weight: bold;
   line-height: 12px;
   text-align: center;
   opacity: 0;
   transition: opacity 0.2s ease;
-  transform: translate(-50%, -50%); /* Centrar perfectamente */
+  transform: translate(-50%, -50%);
+  /* Centrar perfectamente */
 }
 
 .checkbox-label:hover .checkbox-text::before {
   border-color: var(--color-minimal-primary);
 }
 
-.checkbox-label input[type="checkbox"]:focus + .checkbox-text::before {
+.checkbox-label input[type="checkbox"]:focus+.checkbox-text::before {
   outline: 2px solid var(--color-minimal-primary);
   outline-offset: 2px;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-text::before {
-  background-color: transparent; /* Sin fondo */
+.checkbox-label input[type="checkbox"]:checked+.checkbox-text::before {
+  background-color: transparent;
+  /* Sin fondo */
   border-color: var(--color-minimal-primary);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-text::after {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-text::after {
   content: '✓';
   opacity: 1;
 }
 
-.checkbox-label input[type="checkbox"].error + .checkbox-text::before {
+.checkbox-label input[type="checkbox"].error+.checkbox-text::before {
   border-color: var(--color-error);
 }
 
-.checkbox-label input[type="checkbox"].error:checked + .checkbox-text::before {
+.checkbox-label input[type="checkbox"].error:checked+.checkbox-text::before {
   background-color: var(--color-error);
   border-color: var(--color-error);
 }
@@ -227,9 +238,9 @@
 .submit-button {
   margin-top: 1rem;
   padding: 0.75rem;
-  color: white;
-  background-color: var(--color-minimal-secondary);
-  font-weight: 500; 
+  color: var(--color-bg);
+  background-color: var(--color-button-login);
+  font-weight: 500;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -238,7 +249,7 @@
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: var(--color-minimal-primary);
+  background-color: var(--color-text-primary);
 }
 
 .submit-button:disabled {
@@ -267,7 +278,7 @@
   justify-content: center;
   gap: 0.5rem;
   margin-bottom: 0.50rem;
-  box-shadow: 0 2px 8px 0 rgba(80,80,80,.05);
+  box-shadow: 0 2px 8px 0 rgba(80, 80, 80, .05);
   transition: background 0.2s, border 0.2s, box-shadow 0.2s;
   z-index: var(--z-base);
 }
@@ -287,7 +298,7 @@
   justify-content: center;
   gap: 0.5rem;
   margin-bottom: 0.50rem;
-  box-shadow: 0 2px 8px 0 rgba(80,80,80,.05);
+  box-shadow: 0 2px 8px 0 rgba(80, 80, 80, .05);
   transition: background 0.2s, border 0.2s, box-shadow 0.2s;
   z-index: var(--z-base);
 }
@@ -295,6 +306,7 @@
 .github-login:active {
   background: var(--color-neutral-dark);
 }
+
 .github-login svg {
   margin-right: 0.5rem;
   flex-shrink: 0;
@@ -383,8 +395,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-spinner p {
@@ -399,15 +416,15 @@
     margin: 1rem;
     padding: 1.5rem;
   }
-  
+
   .auth-container {
     padding: 1rem;
   }
-  
+
   .verification-actions {
     flex-direction: column;
   }
-  
+
   .status-icon {
     width: 60px;
     height: 60px;

@@ -38,7 +38,18 @@ export default function ItemsOnCircle({
         // Si no existen x,y (items antiguos), calcularlos desde angle/distance y limitar una sola vez.
         // En modo normal, calcular desde ángulo y distancia (el clamp en tiempo real lo hace UnifiedContainer).
         let x, y;
-        if (fullboardMode) {
+        if (isSmallScreen) {
+          if (item.mobile_x !== undefined && item.mobile_x !== null && item.mobile_y !== undefined && item.mobile_y !== null) {
+            x = parseFloat(item.mobile_x);
+            y = parseFloat(item.mobile_y);
+          } else {
+            // Fallback para mobile si no hay coordenadas guardadas: usar posición del círculo
+            // pero adaptada a la pantalla (o simplemente centro)
+            const angleInRadians = (item.angle * Math.PI) / 180;
+            x = cx + item.distance * Math.cos(angleInRadians);
+            y = cy + item.distance * Math.sin(angleInRadians);
+          }
+        } else if (fullboardMode) {
           if (item.fullboard_x !== undefined && item.fullboard_x !== null && item.fullboard_y !== undefined && item.fullboard_y !== null) {
             // Usar coordenadas específicas de fullboard si existen
             x = parseFloat(item.fullboard_x);

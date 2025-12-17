@@ -142,7 +142,11 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
       // Vamos a asumir que si newPosition viene, es la posición visual actual.
 
       // Si el componente que llama a onUpdate pasa 'fullboardMode' en opts o extra, podemos decidir.
-      if (extra?.fullboardMode) {
+      if (isSmallScreen) {
+        changes.mobile_x = newPosition.x;
+        changes.mobile_y = newPosition.y;
+        // No tocamos x, y, angle, distance para no afectar el modo normal
+      } else if (extra?.fullboardMode) {
         changes.fullboard_x = newPosition.x;
         changes.fullboard_y = newPosition.y;
         // No tocamos x, y, angle, distance para no afectar el modo normal
@@ -161,7 +165,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
         setErrorToast({ key: 'common.error_update_item' });
       });
     }
-  }, [selectedDay, updateItem]);
+  }, [selectedDay, updateItem, isSmallScreen]);
 
   const handleDeleteItem = useCallback((id) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;

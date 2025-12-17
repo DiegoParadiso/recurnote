@@ -104,17 +104,14 @@ export function isItemInsideCircle(x, y, w, h, circleCenter, maxRadius) {
 export function limitPositionInsideScreen(newX, newY, w, h) {
   const halfWidth = w / 2;
   const halfHeight = h / 2;
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-  const safetyMargin = 3;
-  const marginLeft = 4 + safetyMargin;
-  const marginRight = 4 + safetyMargin;
-  const marginTop = 4 + safetyMargin;
-  const marginBottom = 4 + safetyMargin;
-  const minX = halfWidth + marginLeft;
-  const maxX = screenWidth - halfWidth - marginRight;
-  const minY = halfHeight + marginTop;
-  const maxY = screenHeight - halfHeight - marginBottom;
+  const screenWidth = document.documentElement.clientWidth;
+  const screenHeight = document.documentElement.clientHeight;
+  const screenMargin = 16;
+
+  const minX = halfWidth + screenMargin;
+  const maxX = screenWidth - halfWidth - screenMargin;
+  const minY = halfHeight + screenMargin;
+  const maxY = screenHeight - halfHeight - screenMargin;
   const limitedX = Math.max(minX, Math.min(maxX, newX));
   const limitedY = Math.max(minY, Math.min(maxY, newY));
 
