@@ -3,25 +3,19 @@ import i18n from '../i18n/index.js';
 import { DateTime } from 'luxon';
 import { useItems } from '@context/ItemsContext';
 import { useAuth } from '@context/AuthContext';
+import { usePreferences } from './usePreferences';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export function useHomeLogic() {
   const { itemsByDate, addItem } = useItems();
   const { user, token } = useAuth();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-  const [showConfig, setShowConfig] = useState(false);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
-  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
-  const [draggedItem, setDraggedItem] = useState(null);
-  const [isOverTrash, setIsOverTrash] = useState(false);
-  const [toast, setToast] = useState('');
-  const [errorToast, setErrorToast] = useState('');
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-  const isInitialLoadRef = useRef(true);
+  // Use centralized preference management
+  const { preferences, updatePreference, updatePreferences } = usePreferences();
 
-  const [displayOptions, setDisplayOptions] = useState({
+  // Extract displayOptions for backward compatibility (memoized to prevent unnecessary re-renders)
+  const displayOptions = useMemo(() => preferences.displayOptions || {
     year: true,
     month: true,
     week: false,
@@ -33,14 +27,41 @@ export function useHomeLogic() {
     showAccountIndicator: false,
     language: 'auto',
     fullboardMode: false,
-  });
+  }, [preferences.displayOptions]);
 
-  const combinedItemsByDate = useCallback(() => {
+  // Keep ref to latest displayOptions for setDisplayOptions
+  const displayOptionsRef = useRef(displayOptions);
+  useEffect(() => {
+    displayOptionsRef.current = displayOptions;
+  }, [displayOptions]);
+
+  // Wrapper to update displayOptions via preference manager (stable reference)
+  const setDisplayOptions = useCallback((updater) => {
+    if (typeof updater === 'function') {
+      // Handle functional updates
+      const newDisplayOptions = updater(displayOptionsRef.current);
+      updatePreferences({ displayOptions: newDisplayOptions });
+    } else {
+      // Handle direct updates
+      updatePreferences({ displayOptions: updater });
+    }
+  }, [updatePreferences]);
+
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [showConfig, setShowConfig] = useState(false);
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
+  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [isOverTrash, setIsOverTrash] = useState(false);
+  const [toast, setToast] = useState('');
+  const [errorToast, setErrorToast] = useState('');
+
+  const combinedItemsByDate = useMemo(() => {
     if (user && token) {
       return itemsByDate || {};
-    } else {
-      return {}; // No hay localItemsByDate en este hook
     }
+    return {};
   }, [user, token, itemsByDate]);
 
   // CircleSmall en Desktop - posición y drag global (sobre Home)
@@ -468,72 +489,7 @@ export function useHomeLogic() {
     }
   }, [smallSize, computeDefaultSmallPos, token]);
 
-  // Sincronizar displayOptions con las preferencias del usuario
-  useEffect(() => {
-    if (user?.preferences?.displayOptions) {
-      setDisplayOptions(prev => ({ ...prev, ...user.preferences.displayOptions }));
-      // Marcar como cargado después de sincronizar
-      setTimeout(() => {
-        isInitialLoadRef.current = false;
-      }, 100);
-    } else {
-      // Cargar preferencias locales si no hay usuario
-      try {
-        const localDO = localStorage.getItem('localDisplayOptions');
-        if (localDO) {
-          const parsed = JSON.parse(localDO);
-          setDisplayOptions(prev => ({ ...prev, ...parsed }));
-        }
-      } catch (e) {
-        // noop
-      }
-      // Marcar como cargado
-      setTimeout(() => {
-        isInitialLoadRef.current = false;
-      }, 100);
-    }
-  }, [user?.preferences?.displayOptions]);
-
-  // Guardar displayOptions automáticamente en el backend cuando cambia
-  useEffect(() => {
-    if (!token || !user) return;
-
-    // No guardar en la carga inicial
-    if (isInitialLoadRef.current) return;
-
-    // Debounce de 1 segundo para evitar demasiadas llamadas
-    const timeoutId = setTimeout(async () => {
-      try {
-        const prefs = {
-          ...user.preferences,
-          displayOptions: {
-            ...displayOptions,
-          },
-        };
-
-        const response = await fetch(`${API_URL}/api/auth/preferences`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ preferences: prefs }),
-        });
-
-        if (response.ok) {
-          // Actualizar localStorage con las nuevas preferencias
-          const updatedUser = { ...user, preferences: prefs };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-      } catch (error) {
-        console.error('Error saving displayOptions:', error);
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [displayOptions, token, user, API_URL]);
-
-  // Aplicar idioma global cuando cambia la preferencia
+  // Language preference handling - apply when it changes
   useEffect(() => {
     const langPref = displayOptions?.language;
     if (!langPref || langPref === 'auto') {
@@ -550,74 +506,16 @@ export function useHomeLogic() {
     }
   }, [displayOptions?.language]);
 
-  // Sincronizar estados de UI con las preferencias del usuario o locales (solo al cargar)
-  useEffect(() => {
-    if (!preferencesLoaded) {
-      let ui = {};
-
-      if (user?.preferences?.ui) {
-        // Usuario autenticado: usar preferencias del backend
-        ui = user.preferences.ui;
-      } else {
-        // Modo local: usar preferencias del localStorage
-        const localPrefs = localStorage.getItem('localUIPreferences');
-        if (localPrefs) {
-          ui = JSON.parse(localPrefs);
-        }
-      }
-
-      if (ui.leftSidebarPinned !== undefined) {
-        setIsLeftSidebarPinned(ui.leftSidebarPinned);
-      }
-      if (ui.rightSidebarPinned !== undefined) {
-        setIsRightSidebarPinned(ui.rightSidebarPinned);
-      }
-      setPreferencesLoaded(true);
-    }
-  }, [user?.preferences?.ui, preferencesLoaded]);
-
-  // Función para guardar preferencias de UI
-  const saveUIPreferences = async (uiChanges) => {
-    try {
-      if (token) {
-        // Usuario autenticado: guardar en backend
-        await fetch(`${API_URL}/api/auth/preferences`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            preferences: {
-              ui: {
-                ...(user?.preferences?.ui || {}),
-                ...uiChanges
-              }
-            }
-          }),
-        });
-      } else {
-        // Modo local: guardar en localStorage
-        const currentLocalPrefs = JSON.parse(localStorage.getItem('localUIPreferences') || '{}');
-        const updatedPrefs = { ...currentLocalPrefs, ...uiChanges };
-        localStorage.setItem('localUIPreferences', JSON.stringify(updatedPrefs));
-      }
-    } catch (error) {
-      if (token) {
-        setErrorToast('Error al guardar las preferencias de UI');
-      } else {
-        console.error('Error al guardar preferencias locales:', error);
-      }
-    }
-  };
-
   // Wrappers para los setters que también guardan las preferencias
-  const setLeftSidebarPinnedWithSave = (value) => {
+  const setLeftSidebarPinnedWithSave = useCallback((value) => {
     setIsLeftSidebarPinned(value);
-    saveUIPreferences({ leftSidebarPinned: value });
-  };
+    updatePreference('ui.leftSidebarPinned', value);
+  }, [updatePreference]);
 
-  const setRightSidebarPinnedWithSave = (value) => {
+  const setRightSidebarPinnedWithSave = useCallback((value) => {
     setIsRightSidebarPinned(value);
-    saveUIPreferences({ rightSidebarPinned: value });
-  };
+    updatePreference('ui.rightSidebarPinned', value);
+  }, [updatePreference]);
 
   function isOverTrashZone(pos) {
     if (!pos) return false;

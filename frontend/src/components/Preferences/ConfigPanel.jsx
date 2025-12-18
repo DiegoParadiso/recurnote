@@ -11,6 +11,7 @@ import HelpIcon from '@components/common/HelpIcon';
 import usePremiumModal from '@hooks/usePremiumModal';
 import PremiumModal from '@components/Premium/PremiumModal';
 import CustomSelect from '@components/common/CustomSelect';
+import { usePreferences } from '@hooks/usePreferences';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -130,18 +131,18 @@ export default function ConfigPanel({
 }) {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const { token, user, refreshMe, updateUser } = useAuth();
+  const { token, user } = useAuth();
   const { isLightTheme, setIsLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme, isHighContrast, setIsHighContrast, textScale, setTextScale, reducedMotion, setReducedMotion } = useTheme();
-  const pendingRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const { isOpen: isPremiumOpen, openModal: openPremiumModal, closeModal: closePremiumModal, handleUpgrade } = usePremiumModal();
 
-
+  // Use centralized preference management
+  const { preferences, updatePreference, updatePreferences } = usePreferences();
 
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {
     if (!user?.is_vip) return 'none';
-    return localStorage.getItem('circlePattern') || 'none';
+    return localStorage.getItem('circlePattern') || preferences.circlePattern || 'none';
   });
 
   // Función para cambiar el pattern
@@ -149,112 +150,21 @@ export default function ConfigPanel({
     if (patternId === selectedPattern) return;
 
     setSelectedPattern(patternId);
+    updatePreference('circlePattern', patternId);
     localStorage.setItem('circlePattern', patternId);
-
-    // Actualizar preferencias del usuario si está autenticado
-    if (token && user) {
-      const prefs = {
-        ...user.preferences,
-        circlePattern: patternId
-      };
-
-      // Guardar en el servidor
-      fetch(`${API_URL}/api/auth/preferences`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ preferences: prefs })
-      });
-
-      // Actualizar usuario local
-      const updatedUser = { ...user, preferences: prefs };
-      updateUser(updatedUser);
-    }
 
     // Notificar a otros componentes del cambio
     window.dispatchEvent(new CustomEvent('patternChanged', { detail: patternId }));
   };
 
-  // Cargar preferencias guardadas al abrir el panel (solo la primera vez)
+  // Load pattern from preferences when panel opens
   useEffect(() => {
-    if (show && user?.preferences && !pendingRef.current) {
-      const prefs = user.preferences;
-
-      // Aplicar preferencias de visualización solo si no están ya configuradas
-      if (prefs.displayOptions) {
-        setDisplayOptions(prev => ({ ...prev, ...prefs.displayOptions }));
-      }
-
-      // Cargar patrón guardado desde preferencias del usuario
-      if (prefs.circlePattern) {
-        setSelectedPattern(prefs.circlePattern);
-        localStorage.setItem('circlePattern', prefs.circlePattern);
-        // Disparar evento para que CircleLarge se actualice
-        window.dispatchEvent(new CustomEvent('patternChanged', { detail: prefs.circlePattern }));
-      }
-
-      // NO aplicar preferencias de UI automáticamente - dejar que los toggles funcionen
-      // Las preferencias de UI se cargan desde useHomeLogic
-
-      // NO aplicar preferencias del círculo automáticamente para evitar conflictos
-      // El estado de showSmall se maneja desde el componente padre
+    if (show && preferences.circlePattern) {
+      setSelectedPattern(preferences.circlePattern);
+      localStorage.setItem('circlePattern', preferences.circlePattern);
+      window.dispatchEvent(new CustomEvent('patternChanged', { detail: preferences.circlePattern }));
     }
-  }, [show, user?.preferences, setDisplayOptions]);
-
-  useEffect(() => {
-    if (!token) return;
-    if (!show) return;
-
-    const prefs = {
-      displayOptions: {
-        ...displayOptions,
-        // Persistir idioma 
-        language: displayOptions?.language || 'auto',
-      },
-      ui: {
-        leftSidebarPinned: isLeftSidebarPinned,
-        rightSidebarPinned: isRightSidebarPinned,
-      },
-      // Preferencias de accesibilidad
-      accessibility: {
-        highContrast: isHighContrast,
-        textScale,
-        reducedMotion,
-      },
-      circlePattern: selectedPattern,
-      // NO guardar showSmall en preferencias para evitar conflictos
-      // El estado de showSmall se maneja desde el componente padre
-    };
-
-    // Debounce 500ms
-    if (pendingRef.current) clearTimeout(pendingRef.current);
-    pendingRef.current = setTimeout(async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/auth/preferences`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ preferences: prefs }),
-        });
-
-        if (response.ok) {
-          // Actualizar el usuario local con las nuevas preferencias
-          const updatedUser = { ...user, preferences: prefs };
-          updateUser(updatedUser);
-          // NO refrescar el usuario automáticamente para evitar conflictos
-          // await refreshMe();
-        }
-      } catch (error) {
-        // Error silencioso al guardar preferencias
-      }
-    }, 500);
-
-    return () => pendingRef.current && clearTimeout(pendingRef.current);
-  }, [displayOptions, isLeftSidebarPinned, isRightSidebarPinned, selectedPattern, show, token, user, refreshMe]);
+  }, [show, preferences.circlePattern]);
   if (!show) return null;
 
   const options = [
