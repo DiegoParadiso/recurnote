@@ -1,7 +1,4 @@
-html, body {
-  overflow: hidden !important;
-  height: 100%;
-}
+/* html, body styles moved to index.css and managed via .no-scroll class */
 
 .home-page {
   overflow: hidden;
@@ -20,8 +17,10 @@ html, body {
 
 .home-desktop-topbar {
   position: fixed;
-  top: 0.75rem; /* top-3 */
-  left: 0.75rem; /* left-3 */
+  top: 0.75rem;
+  /* top-3 */
+  left: 0.75rem;
+  /* left-3 */
   z-index: var(--z-modal);
 }
 
@@ -59,7 +58,8 @@ html, body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  padding: 0; /* icon only */
+  padding: 0;
+  /* icon only */
   background: transparent;
   border: none;
   border-radius: 0;

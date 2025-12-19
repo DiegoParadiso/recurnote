@@ -7,7 +7,8 @@
 @import './styles/animations.css';
 @import './styles/utilities.css';
 
-html, body {
+html,
+body {
   margin: 0;
   height: 100%;
   background-color: var(--color-bg);
@@ -16,6 +17,12 @@ html, body {
   /* Mejorar scroll en móviles */
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+}
+
+body.no-scroll {
+  overflow: hidden !important;
+  touch-action: none;
+  /* Prevent pull-to-refresh on mobile home */
 }
 
 #app-container {
@@ -27,14 +34,19 @@ html, body {
 
 /* Ocultar scrollbar para elementos con scroll vertical */
 .scroll-hidden {
-  overflow-y: auto;  /* debe haber scroll para que aparezca */
-  -ms-overflow-style: none;  /* IE y Edge */
-  scrollbar-width: none;     /* Firefox */
-  -webkit-overflow-scrolling: touch; /* iOS */
+  overflow-y: auto;
+  /* debe haber scroll para que aparezca */
+  -ms-overflow-style: none;
+  /* IE y Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  /* iOS */
 }
 
 .scroll-hidden::-webkit-scrollbar {
-  display: none;             /* Chrome, Safari y Opera */
+  display: none;
+  /* Chrome, Safari y Opera */
 }
 
 /* Mejorar scroll en móviles */

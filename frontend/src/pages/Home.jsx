@@ -279,6 +279,14 @@ export default function Home() {
     return () => window.removeEventListener('keydown', blockScrollKeys);
   }, []);
 
+  // Manage body scroll lock
+  useEffect(() => {
+    document.body.classList.add('no-scroll');
+    return () => {
+      document.body.classList.remove('no-scroll');
+    };
+  }, []);
+
   return (
     <div
       className={`home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
