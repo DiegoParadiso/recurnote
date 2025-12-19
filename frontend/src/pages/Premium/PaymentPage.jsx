@@ -10,9 +10,7 @@ const PaymentPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [planId, setPlanId] = useState(null);
-  const [message, setMessage] = useState("");
-  const { user, refreshMe } = useAuth(); // Asumiendo que existe un hook de auth
+  const [paypalConfig, setPaypalConfig] = useState(null);
 
   // Get plan data from navigation state
   const planData = location.state || {
@@ -23,9 +21,23 @@ const PaymentPage = () => {
   };
 
   useEffect(() => {
-    const fetchPlanId = async () => {
+    const fetchConfigAndPlan = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5002'}/api/payment/get-plan`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+        // 1. Fetch PayPal Configuration (Client ID)
+        const configResponse = await fetch(`${apiUrl}/api/payment/config`);
+        const configData = await configResponse.json();
+
+        if (configData.clientId) {
+          setPaypalConfig(configData);
+        } else {
+          setMessage("Could not load payment configuration");
+          return;
+        }
+
+        // 2. Fetch Plan ID
+        const planResponse = await fetch(`${apiUrl}/api/payment/get-plan`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -34,27 +46,32 @@ const PaymentPage = () => {
             currency: planData.currency,
           }),
         });
-        const data = await response.json();
-        if (data.planId) {
-          setPlanId(data.planId);
+        const planDataResponse = await planResponse.json();
+
+        if (planDataResponse.planId) {
+          setPlanId(planDataResponse.planId);
         } else {
           setMessage("Could not load subscription plan");
         }
       } catch (error) {
-        console.error("Error fetching plan:", error);
-        setMessage("Error loading plan details");
+        console.error("Error initializing payment:", error);
+        setMessage("Error loading payment details");
       }
     };
 
-    fetchPlanId();
+    fetchConfigAndPlan();
   }, [planData]);
 
   const initialOptions = {
-    "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,
+    "client-id": paypalConfig?.clientId,
     currency: planData.currency,
     intent: "subscription",
     vault: true
   };
+
+  if (!paypalConfig) {
+    return <div className="payment-page"><div className="loading-plan">{t('common.loading')}</div></div>;
+  }
 
   console.log('PayPal Options:', {
     ...initialOptions,

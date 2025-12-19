@@ -25,7 +25,7 @@ html[data-contrast='high'] .config-panel {
 
 /* Header */
 .config-panel-header {
-  padding: 1.25rem 1.25rem 1.25rem 1.25rem;
+  padding: 1.5rem;
   background-color: var(--color-bg);
   font-size: 1rem;
   display: flex;
@@ -35,33 +35,39 @@ html[data-contrast='high'] .config-panel {
 }
 
 .config-panel-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 18.5px;
+  font-weight: 400;
   font-family: 'Roboto Slab', serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
   user-select: none;
   color: var(--color-text-primary);
-  margin: 0;
+  margin: 10px 0 0 0;
+  width: 100%;
+  text-align: left;
 }
 
 .config-panel-close-btn {
+  display: none;
+  /* Hidden on desktop */
   font-size: 1.5rem;
   line-height: 1;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-muted);
+  color: var(--color-text-primary);
   transition: color 0.3s ease;
   user-select: none;
-  display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: auto;
+  height: auto;
   padding: 0;
+  position: absolute;
+  right: 1.25rem;
 }
 
 .config-panel-close-btn:hover,
@@ -101,58 +107,62 @@ html[data-contrast='high'] .config-panel select:focus-visible {
 }
 
 /* Mejorar scroll en móviles */
+/* Mejorar scroll en móviles */
 @media (max-width: 640px) {
   .config-panel {
     width: 100vw !important;
-    height: 100vh !important;
+    height: 100dvh !important;
+    /* Fix address bar issue */
     top: 0 !important;
     left: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     border-right: none !important;
+    overflow: hidden !important;
+    /* Prevent double scrollbar */
+  }
 
-    overflow-y: auto;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .config-panel-close-btn {
+    display: flex;
+    /* Visible on mobile */
+    z-index: 10001;
+    /* Ensure close button is above everything */
   }
 
   .config-panel-main {
-    overflow-x: auto;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll on main container */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     min-width: 100%;
-    touch-action: pan-x pan-y;
+    touch-action: pan-y;
+    /* Allow vertical scroll only */
     overscroll-behavior: contain;
+    height: 100%;
+    /* Ensure it takes full height */
+    padding-bottom: 2rem;
+    /* Add padding for bottom content */
   }
 
-  /* Permitir scroll horizontal en secciones que lo necesiten */
-  .visualization-header-options {
-    min-width: max-content;
-  }
-
-  /* Asegurar que el contenido tenga el ancho correcto */
+  /* Fix z-index stacking for dropdowns on mobile */
   .config-section {
-    min-width: 100%;
+    position: relative;
+    z-index: 1;
   }
 
-  /* Mejorar scroll horizontal */
-  .config-panel-main::-webkit-scrollbar {
-    height: 4px;
-    background-color: transparent;
-  }
-
-  .config-panel-main::-webkit-scrollbar-thumb {
-    background-color: var(--color-neutral-dark);
-    border-radius: 2px;
+  /* Ensure dropdowns can break out */
+  .visualization-header-options {
+    position: static;
+    /* Allow fixed children to position relative to viewport */
   }
 }
 
 /* Secciones */
 .config-section {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   min-width: 100%;
-  padding: 0 1.25rem;
+  padding: 0 1.5rem;
 }
 
 .config-panel-header+.config-section {
@@ -183,7 +193,7 @@ html[data-contrast='high'] .config-panel select:focus-visible {
 
 .toggle-option {
   font-size: 0.875rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -349,9 +359,9 @@ html[data-contrast='high'] .config-panel select:focus-visible {
 /* Mejorar scroll horizontal en secciones */
 .visualization-header-options {
   background-color: var(--bg-highlight);
-  padding: 1rem;
+  padding: 1.25rem;
   border-radius: 8px;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.5rem;
   /* Asegurar que el contenido sea scrolleable horizontalmente */
   min-width: max-content;
   overflow-x: auto;

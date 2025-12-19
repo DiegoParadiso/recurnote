@@ -41,6 +41,32 @@ export const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: false,
   },
+
+  // Subscription Details
+  subscription_status: {
+    type: DataTypes.STRING, // 'active', 'trial', 'expired', 'cancelled'
+    allowNull: true,
+  },
+  trial_started_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  trial_ends_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  current_period_started_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  current_period_ends_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  auto_renew: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
   preferences: {
     type: DataTypes.JSONB,
     allowNull: false,
@@ -51,7 +77,7 @@ export const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: false,
   },
-  
+
   // Campos para verificación con código
   verification_code: {
     type: DataTypes.STRING(6),

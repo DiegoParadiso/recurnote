@@ -185,7 +185,7 @@ export default function ConfigPanel({
           <header className="config-panel-header">
             <h2>{t('common.config')}</h2>
             <button onClick={onClose} aria-label={t('common.close')} className="config-panel-close-btn">
-              ×
+              ✕
             </button>
           </header>
           <section className="pt-5 config-section">

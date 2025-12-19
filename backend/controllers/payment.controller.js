@@ -5,23 +5,28 @@ import { User } from '../models/user.model.js';
 dotenv.config();
 
 // Configurar entorno de PayPal para SDK (Legacy)
-const environment = process.env.PAYPAL_MODE === 'live'
-    ? new paypal.core.LiveEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_CLIENT_SECRET)
-    : new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_CLIENT_SECRET);
+const isLive = process.env.PAYPAL_MODE === 'live';
+
+const clientId = isLive ? process.env.PAYPAL_LIVE_CLIENT_ID : process.env.PAYPAL_SANDBOX_CLIENT_ID;
+const clientSecret = isLive ? process.env.PAYPAL_LIVE_CLIENT_SECRET : process.env.PAYPAL_SANDBOX_CLIENT_SECRET;
+
+const environment = isLive
+    ? new paypal.core.LiveEnvironment(clientId, clientSecret)
+    : new paypal.core.SandboxEnvironment(clientId, clientSecret);
 const client = new paypal.core.PayPalHttpClient(environment);
 
 // Base URL para API REST de PayPal
-const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
+const PAYPAL_API = isLive
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com';
 
 // Helper para obtener Access Token
 const getAccessToken = async () => {
-    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+    if (!clientId || !clientSecret) {
         throw new Error('Missing PayPal credentials');
     }
 
-    const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
     const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
         method: 'POST',
         body: 'grant_type=client_credentials',
@@ -211,9 +216,30 @@ export const activateSubscription = async (req, res) => {
         const subscription = await response.json();
 
         if (subscription.status === 'ACTIVE' || subscription.status === 'APPROVAL_PENDING') {
-            // Actualizar usuario a VIP
+            // Determine dates based on subscription state
+            const now = new Date();
+            let trialEnd = null;
+
+            // Check if in trial (PayPal doesn't explicitly say "in trial" on the sub object easily, 
+            // but we can infer or set based on plan logic. For now, we'll rely on next_billing_time)
+
+            // Actualizar usuario a VIP con detalles
             await User.update(
-                { is_vip: true },
+                {
+                    is_vip: true,
+                    subscription_status: subscription.status.toLowerCase(), // 'active', 'approval_pending'
+                    // PayPal format is ISO 8601, compatible with JS Date
+                    current_period_started_at: subscription.start_time,
+                    current_period_ends_at: subscription.billing_info?.next_billing_time,
+                    auto_renew: true, // Default to true for active subs
+
+                    // If we want to track trial specifically, we'd need to check the plan or transaction history.
+                    // For this MVP, we'll map start_time as trial_start if it's a new sub.
+                    // Note: This is a simplification.
+                    trial_started_at: subscription.start_time,
+                    // Assuming 7 days trial if it's the first time, but PayPal handles the actual billing.
+                    // We can just store what PayPal gives us for next billing as the end of the current "period" (trial or not).
+                },
                 { where: { id: userId } }
             );
 
@@ -235,4 +261,12 @@ export const createOrder = async (req, res) => {
 
 export const captureOrder = async (req, res) => {
     res.status(410).json({ error: 'Use subscription flow instead' });
+};
+
+export const getPaymentConfig = (req, res) => {
+    res.json({
+        clientId: clientId,
+        currency: 'USD',
+        intent: 'subscription'
+    });
 };
