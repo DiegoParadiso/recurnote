@@ -415,10 +415,28 @@ const es = {
   },
   payment: {
     title: 'Finalizar compra',
+    selectedPlan: 'Plan Seleccionado',
+    freeTrial: 'Prueba Gratis de 7 Días',
+    trialDescription: 'No se te cobrará hasta que finalice tu prueba. Cancela cuando quieras.',
     payNow: 'Pagar ahora',
     processing: 'Procesando...',
     success: '¡Pago exitoso!',
     error: 'Error en el pago',
+  },
+  pricing: {
+    title: 'Elegí tu Plan',
+    subtitle: 'Seleccioná el plan perfecto para tus necesidades. Todos los planes incluyen acceso completo a funciones premium.',
+    monthly: 'Plan Mensual',
+    annual: 'Plan Anual',
+    monthlyDesc: 'Suscripción mensual flexible',
+    annualDesc: 'Mejor valor - ahorrá con facturación anual',
+    month: 'mes',
+    year: 'año',
+    mostPopular: 'Más Popular',
+    selectPlan: 'Seleccionar Plan',
+    save: 'Ahorrá',
+    converted: 'a tipo de cambio actual',
+    specialPricingArgentina: 'Precio especial para Argentina',
   },
 };
 

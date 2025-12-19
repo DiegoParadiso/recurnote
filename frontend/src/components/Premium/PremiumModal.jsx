@@ -48,7 +48,7 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
   const handleUpgrade = () => {
     onUpgrade();
     handleClose();
-    navigate('/payment');
+    navigate('/pricing');
   };
 
   const features = [

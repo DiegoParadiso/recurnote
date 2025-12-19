@@ -415,10 +415,28 @@ const en = {
   },
   payment: {
     title: 'Checkout',
+    selectedPlan: 'Selected Plan',
+    freeTrial: '7-Day Free Trial',
+    trialDescription: 'You will not be charged until your trial ends. Cancel anytime.',
     payNow: 'Pay now',
     processing: 'Processing...',
     success: 'Payment successful!',
     error: 'Payment error',
+  },
+  pricing: {
+    title: 'Choose Your Plan',
+    subtitle: 'Select the perfect plan for your needs. All plans include full access to premium features.',
+    monthly: 'Monthly Plan',
+    annual: 'Annual Plan',
+    monthlyDesc: 'Flexible monthly subscription',
+    annualDesc: 'Best value - save with annual billing',
+    month: 'month',
+    year: 'year',
+    mostPopular: 'Most Popular',
+    selectPlan: 'Select Plan',
+    save: 'Save',
+    converted: 'at current rate',
+    specialPricingArgentina: 'Special pricing for Argentina',
   },
 };
 

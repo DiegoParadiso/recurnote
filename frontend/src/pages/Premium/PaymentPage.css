@@ -6,42 +6,140 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    font-family: inherit;
 }
 
 .payment-header {
     width: 100%;
-    max-width: 800px;
+    max-width: 600px;
     display: flex;
     align-items: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
     position: relative;
 }
 
 .back-button {
     background: none;
     border: none;
-    color: var(--color-text-primary);
+    color: var(--color-text-secondary);
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 50%;
-    transition: background 0.2s;
+    transition: color 0.2s ease, background-color 0.2s ease;
     position: absolute;
     left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .back-button:hover {
-    background: var(--color-bg-2);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-2);
 }
 
 .payment-header h1 {
     flex: 1;
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
+    color: var(--color-text-primary);
 }
 
 .payment-content {
     width: 100%;
     max-width: 500px;
+}
+
+.selected-plan-info {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.selected-plan-info h2 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.plan-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.plan-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.plan-price {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.payment-message {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: var(--color-bg-2);
+    text-align: center;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+}
+
+.trial-info {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+}
+
+.trial-badge {
+    display: inline-block;
+    background-color: var(--color-text-primary);
+    color: var(--color-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.trial-text {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.loading-plan {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
 }

@@ -1,9 +1,9 @@
 import express from 'express';
-import { createOrder, captureOrder } from '../controllers/payment.controller.js';
+import { getSubscriptionPlan, activateSubscription } from '../controllers/payment.controller.js';
 
 const router = express.Router();
 
-router.post('/create-order', createOrder);
-router.post('/capture-order', captureOrder);
+router.post('/get-plan', getSubscriptionPlan);
+router.post('/activate-subscription', activateSubscription);
 
 export default router;

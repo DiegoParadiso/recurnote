@@ -1,0 +1,307 @@
+.pricing-page {
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: inherit;
+}
+
+.pricing-header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-button:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-2);
+}
+
+.pricing-header h1 {
+    flex: 1;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
+}
+
+.pricing-region-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-bg-2);
+    border: 1px solid var(--color-border);
+    border-radius: 2rem;
+    margin-bottom: 2rem;
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.pricing-region-badge svg {
+    color: var(--color-text-secondary);
+}
+
+.pricing-content {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pricing-loading {
+    text-align: center;
+    padding: 4rem;
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+
+.pricing-subtitle {
+    text-align: center;
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 3rem;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+.pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    margin-bottom: 3rem;
+}
+
+.pricing-card {
+    position: relative;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.pricing-card:hover {
+    border-color: var(--color-text-secondary);
+    transform: translateY(-2px);
+}
+
+.pricing-card-popular {
+    border: 1px solid var(--color-text-primary);
+    background-color: var(--color-bg);
+}
+
+.pricing-card-popular:hover {
+    border-color: var(--color-text-primary);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-text-primary);
+    color: var(--color-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-card-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.pricing-card-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.pricing-card-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.03em;
+}
+
+.price-currency {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.price-interval {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.pricing-card-description {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.pricing-conversion {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+.savings-badge {
+    display: inline-block;
+    background-color: var(--color-bg-2);
+    color: var(--color-text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    flex-grow: 1;
+}
+
+.pricing-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.pricing-features li svg {
+    color: var(--color-text-primary);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.pricing-select-button {
+    width: 100%;
+    padding: 0.875rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pricing-select-button:hover {
+    border-color: var(--color-text-primary);
+    background-color: var(--color-bg-2);
+}
+
+.pricing-select-button-popular {
+    background-color: var(--color-text-primary);
+    border-color: var(--color-text-primary);
+    color: var(--color-bg);
+}
+
+.pricing-select-button-popular:hover {
+    background-color: var(--color-highlight);
+    border-color: var(--color-highlight);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-footer-note {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    margin-top: 2rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .pricing-page {
+        padding: 1rem;
+    }
+
+    .pricing-header {
+        margin-bottom: 2rem;
+    }
+
+    .pricing-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .pricing-cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .pricing-card {
+        padding: 1.5rem;
+    }
+
+    .price-amount {
+        font-size: 2rem;
+    }
+}
