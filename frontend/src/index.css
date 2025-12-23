@@ -1,11 +1,10 @@
 @import './styles/themes/theme.css';
+@import './styles/animations.css';
+@import './styles/utilities.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/animations.css';
-@import './styles/utilities.css';
 
 html,
 body {

@@ -210,7 +210,7 @@ function TaskItem({
   // Mostrar botón si: hay espacio, Y (se está editando O se editó recientemente) Y NO se está arrastrando
   const shouldShowButton = (item.content?.length || 0) < maxTasks && (editingInputs.size > 0 || recentlyEditing) && !isDragging;
 
-  const { duplicateItem, flushItemUpdate } = useItems();
+  const { duplicateItem, flushItemUpdate, captureUndoState, commitUndoState } = useItems();
   const editingGraceUntilRef = useRef(0);
 
   const handleDuplicate = async () => {
@@ -389,7 +389,10 @@ function TaskItem({
         isSmallScreen={isSmallScreen}
         fullboardMode={fullboardMode}
         isActive={isActive}
-        onActivate={() => onActivate?.()}
+        onActivate={() => {
+          onActivate?.();
+          captureUndoState?.(id);
+        }}
         zIndexOverride={item.zIndexOverride}
       >
         <div
@@ -423,10 +426,12 @@ function TaskItem({
               taskHeight={taskHeight}
               placeholder={isMobile ? t('task.placeholderMobile') : t('common.doubleClickToEdit')}
               onInputFocus={() => {
+                captureUndoState?.(id);
                 editingGraceUntilRef.current = Date.now() + 200;
                 lockBodyScroll();
               }}
               onInputBlur={() => {
+                commitUndoState?.(id);
                 flushItemUpdate?.(id);
                 unlockBodyScroll();
               }}

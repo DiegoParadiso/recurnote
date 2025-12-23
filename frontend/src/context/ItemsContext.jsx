@@ -31,6 +31,128 @@ export const ItemsProvider = ({ children }) => {
   const PENDING_LIMIT = 3;
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+  // Undo/Redo State
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  const undoStackRef = useRef([]);
+  const redoStackRef = useRef([]);
+  const capturedStateRef = useRef(new Map()); // id -> item state
+
+  // Sync refs
+  useEffect(() => {
+    undoStackRef.current = undoStack;
+  }, [undoStack]);
+
+  useEffect(() => {
+    redoStackRef.current = redoStack;
+  }, [redoStack]);
+
+  const addToHistory = useCallback((action) => {
+    setUndoStack(prev => {
+      const newStack = [...prev, action];
+      if (newStack.length > 50) newStack.shift(); // Limit history
+      return newStack;
+    });
+    setRedoStack([]); // Clear redo on new action
+  }, []);
+
+  const captureUndoState = useCallback((id) => {
+    const item = Object.values(itemsRef.current).flat().find(i => i.id === id);
+    if (item) {
+      // Deep copy to ensure we capture the exact state at this moment
+      capturedStateRef.current.set(id, JSON.parse(JSON.stringify(item)));
+    }
+  }, []);
+
+  const commitUndoState = useCallback((id) => {
+    const prevState = capturedStateRef.current.get(id);
+    const nextState = Object.values(itemsRef.current).flat().find(i => i.id === id);
+
+    if (prevState && nextState) {
+      // Check if meaningful change occurred
+      const hasChanged = JSON.stringify(prevState) !== JSON.stringify(nextState);
+      if (hasChanged) {
+        addToHistory({
+          type: 'UPDATE',
+          id,
+          prev: prevState,
+          next: JSON.parse(JSON.stringify(nextState))
+        });
+      }
+    }
+    capturedStateRef.current.delete(id);
+  }, [addToHistory]);
+
+  const undo = useCallback(async () => {
+    const stack = undoStackRef.current;
+    if (stack.length === 0) return;
+
+    const action = stack[stack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    setRedoStack(prev => [...prev, action]);
+
+    if (action.type === 'UPDATE') {
+      const { id, prev } = action;
+      // Revert to prev state
+      // We need to update both local state and backend
+      // Using updateItem to handle both
+      await updateItem(id, prev, { fromUndo: true });
+    } else if (action.type === 'ADD') {
+      // Undo ADD = Delete
+      await deleteItem(action.id, { fromUndo: true });
+    } else if (action.type === 'DELETE') {
+      // Undo DELETE = Add back (restore)
+      // We need to restore the item exactly as it was
+      await addItem(action.item, { fromUndo: true });
+    }
+  }, []);
+
+  const redo = useCallback(async () => {
+    const stack = redoStackRef.current;
+    if (stack.length === 0) return;
+
+    const action = stack[stack.length - 1];
+    setRedoStack(prev => prev.slice(0, -1));
+    setUndoStack(prev => [...prev, action]);
+
+    if (action.type === 'UPDATE') {
+      const { id, next } = action;
+      await updateItem(id, next, { fromUndo: true });
+    } else if (action.type === 'ADD') {
+      // Redo ADD = Add back
+      await addItem(action.item || action.next, { fromUndo: true });
+    } else if (action.type === 'DELETE') {
+      // Redo DELETE = Delete again
+      await deleteItem(action.id, { fromUndo: true });
+    }
+  }, []);
+
+  // Keyboard listeners for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for Ctrl+Z or Cmd+Z
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          // Redo
+          e.preventDefault();
+          redo();
+        } else {
+          // Undo
+          e.preventDefault();
+          undo();
+        }
+      }
+      // Check for Ctrl+Y or Cmd+Y (Redo alternative)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
+
   // Función para cargar items del localStorage cuando no hay usuario
   const loadLocalItems = useCallback(() => {
     try {
@@ -244,7 +366,8 @@ export const ItemsProvider = ({ children }) => {
     return 'synced';
   }, [pendingOperations, itemsByDate, loading]);
 
-  async function addItem(item) {
+  async function addItem(item, opts = {}) {
+    const { fromUndo } = opts;
     const { date, x, y, rotation, rotation_enabled, label, ...rest } = item;
 
     const itemData = { ...rest };
@@ -347,6 +470,14 @@ export const ItemsProvider = ({ children }) => {
           return newSet;
         });
 
+        if (!fromUndo) {
+          addToHistory({
+            type: 'ADD',
+            id: finalItem.id,
+            item: finalItem
+          });
+        }
+
         return finalItem;
       } catch (e) {
         setItemsByDate(prev => ({
@@ -395,6 +526,14 @@ export const ItemsProvider = ({ children }) => {
         saveLocalItems(newState);
         return newState;
       });
+
+      if (!fromUndo) {
+        addToHistory({
+          type: 'ADD',
+          id: newItem.id,
+          item: newItem
+        });
+      }
 
       return newItem;
     }
@@ -811,7 +950,7 @@ export const ItemsProvider = ({ children }) => {
         };
       }
 
-      const result = await addItem(payload);
+      const result = await addItem(payload, { fromUndo: true });
 
       // Ahora agregar el item al estado visual con el ID real del servidor
       setItemsByDate(prev => {
@@ -837,6 +976,12 @@ export const ItemsProvider = ({ children }) => {
           _justDuplicated: false
         };
 
+        addToHistory({
+          type: 'ADD',
+          id: itemFinal.id,
+          item: itemFinal
+        });
+
         newState[itemDate] = [...newState[itemDate], itemFinal];
         return newState;
       });
@@ -848,7 +993,18 @@ export const ItemsProvider = ({ children }) => {
     }
   }
 
-  async function deleteItem(id) {
+  async function deleteItem(id, opts = {}) {
+    const { fromUndo } = opts;
+
+    // Capture item state before deleting for undo
+    const itemToDelete = Object.values(itemsByDate).flat().find(i => i.id === id);
+    if (!fromUndo && itemToDelete) {
+      addToHistory({
+        type: 'DELETE',
+        id,
+        item: itemToDelete
+      });
+    }
     // Actualizar estado visual inmediatamente para ambos casos
     setItemsByDate(prev => {
       const newState = {};
@@ -931,7 +1087,13 @@ export const ItemsProvider = ({ children }) => {
         isRetrying,
         retryCount,
         errorToast,
-        setErrorToast
+        setErrorToast,
+        undo,
+        redo,
+        captureUndoState,
+        commitUndoState,
+        canUndo: undoStack.length > 0,
+        canRedo: redoStack.length > 0
       }}>
         {children}
       </ItemsContext.Provider>

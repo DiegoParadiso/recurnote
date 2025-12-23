@@ -5,10 +5,13 @@ export default function useItemDrag({ id, onActivate, onItemDrop }) {
     const [isDragging, setIsDragging] = useState(false);
     const timeoutRef = useRef(null);
     const wasDraggingRef = useRef(false);
-    const { markItemAsDragging, unmarkItemAsDragging } = useItems();
+    const { markItemAsDragging, unmarkItemAsDragging, captureUndoState, commitUndoState } = useItems();
 
     const handleContainerDragStart = useCallback(() => {
         if (onActivate) onActivate();
+
+        // Capture state for undo
+        captureUndoState?.(id);
 
         // Marcar el item como en drag inmediatamente
         markItemAsDragging?.(id);
@@ -20,7 +23,7 @@ export default function useItemDrag({ id, onActivate, onItemDrop }) {
             setIsDragging(true);
             wasDraggingRef.current = true;
         }, 100);
-    }, [id, onActivate, markItemAsDragging]);
+    }, [id, onActivate, markItemAsDragging, captureUndoState]);
 
     const handleContainerDragEnd = useCallback(() => {
         if (timeoutRef.current) {
@@ -31,11 +34,14 @@ export default function useItemDrag({ id, onActivate, onItemDrop }) {
         // Desmarcar el item como en drag inmediatamente para no ignorar el update de drop
         unmarkItemAsDragging?.(id);
 
+        // Commit state for undo (check if changed)
+        commitUndoState?.(id);
+
         if (onItemDrop) onItemDrop(id);
         setTimeout(() => {
             wasDraggingRef.current = false;
         }, 200);
-    }, [id, onItemDrop, unmarkItemAsDragging]);
+    }, [id, onItemDrop, unmarkItemAsDragging, commitUndoState]);
 
     // Cleanup al desmontar
     useEffect(() => {

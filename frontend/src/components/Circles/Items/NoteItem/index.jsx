@@ -38,7 +38,7 @@ export default function NoteItem({
   const textareaRef = useRef(null);
   const { content = '', width = 240, height = 80 } = item;
   const { duplicateItem } = useItems();
-  const { updateItem, flushItemUpdate } = useItems();
+  const { updateItem, flushItemUpdate, captureUndoState } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(120);
   const [minHeightPx, setMinHeightPx] = useState(60);
 
@@ -282,7 +282,10 @@ export default function NoteItem({
         isSmallScreen={isSmallScreen}
         fullboardMode={fullboardMode}
         isActive={isActive}
-        onActivate={() => onActivate?.()}
+        onActivate={() => {
+          onActivate?.();
+          captureUndoState?.(id);
+        }}
         onItemDrag={onItemDrag}
         onItemDrop={onItemDrop}
         minWidth={minWidthPx}

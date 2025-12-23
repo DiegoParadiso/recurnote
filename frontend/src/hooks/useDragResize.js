@@ -240,6 +240,20 @@ export const useDragResize = ({
           const halfWidth = newWidth / 2;
           const halfHeight = newHeight / 2;
 
+          // Calculate start excesses to allow existing out-of-bounds (tolerance)
+          const startHalfW = resizeStartPos.current.width / 2;
+          const startHalfH = resizeStartPos.current.height / 2;
+          const startCorners = [
+            { x: resizeStartPos.current.x - startHalfW, y: resizeStartPos.current.y - startHalfH },
+            { x: resizeStartPos.current.x + startHalfW, y: resizeStartPos.current.y - startHalfH },
+            { x: resizeStartPos.current.x - startHalfW, y: resizeStartPos.current.y + startHalfH },
+            { x: resizeStartPos.current.x + startHalfW, y: resizeStartPos.current.y + startHalfH }
+          ];
+          const startExcesses = startCorners.map(c => {
+            const dist = Math.sqrt((c.x - cx) ** 2 + (c.y - cy) ** 2);
+            return Math.max(0, dist - maxRadius);
+          });
+
           const corners = [
             { x: newX - halfWidth, y: newY - halfHeight },
             { x: newX + halfWidth, y: newY - halfHeight },
@@ -247,18 +261,21 @@ export const useDragResize = ({
             { x: newX + halfWidth, y: newY + halfHeight }
           ];
 
-          let maxExcess = 0;
-          for (const corner of corners) {
+          let needsLimit = false;
+          for (let i = 0; i < 4; i++) {
+            const corner = corners[i];
             const cornerDx = corner.x - cx;
             const cornerDy = corner.y - cy;
             const cornerDist = Math.sqrt(cornerDx * cornerDx + cornerDy * cornerDy);
             const excess = cornerDist - maxRadius;
-            if (excess > maxExcess) {
-              maxExcess = excess;
+            // Allow if excess is not significantly worse than start excess (0.1px tolerance)
+            if (excess > 0 && excess > startExcesses[i] + 0.1) {
+              needsLimit = true;
+              break;
             }
           }
 
-          if (maxExcess > 0) {
+          if (needsLimit) {
             // Binary search for the limit to avoid shrinking
             // We want to find t in [0, 1] such that start + delta*t is valid
             let low = 0;
@@ -290,8 +307,11 @@ export const useDragResize = ({
               ];
 
               let valid = true;
-              for (const c of candCorners) {
-                if ((c.x - cx) ** 2 + (c.y - cy) ** 2 > maxRadius ** 2) {
+              for (let j = 0; j < 4; j++) {
+                const c = candCorners[j];
+                const dist = Math.sqrt((c.x - cx) ** 2 + (c.y - cy) ** 2);
+                const excess = dist - maxRadius;
+                if (excess > 0 && excess > startExcesses[j] + 0.1) {
                   valid = false;
                   break;
                 }
@@ -340,6 +360,7 @@ export const useDragResize = ({
           x: posRef.current.x,
           y: posRef.current.y,
         });
+        onDrop?.(); // Commit changes (Undo/Redo)
       }
       isDragging.current = false;
       isResizing.current = false;

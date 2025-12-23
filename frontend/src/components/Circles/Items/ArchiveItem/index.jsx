@@ -40,7 +40,7 @@ export default function ArchivoItem({
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const hasAutoExpandedRef = useRef(false);
   const { user } = useAuth();
-  const { duplicateItem } = useItems();
+  const { duplicateItem, captureUndoState } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(110);
 
   const {
@@ -337,7 +337,10 @@ export default function ArchivoItem({
           isSmallScreen={isSmallScreen}
           fullboardMode={fullboardMode}
           isActive={isActive}
-          onActivate={() => onActivate?.()}
+          onActivate={() => {
+            onActivate?.();
+            captureUndoState?.(id);
+          }}
           zIndexOverride={item.zIndexOverride}
         >
           <div

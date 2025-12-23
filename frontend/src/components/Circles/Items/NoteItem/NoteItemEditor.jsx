@@ -6,6 +6,8 @@ import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
 
 const MAX_CONTAINER_HEIGHT = 260;
 
+import { useItems } from '@context/ItemsContext';
+
 export default function NoteItemEditor({
   id,
   content,
@@ -20,6 +22,7 @@ export default function NoteItemEditor({
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
   const lastValidContentRef = useRef(content); // Store last valid HTML content
+  const { captureUndoState, commitUndoState } = useItems();
 
   // We use textareaRef from props as the main ref for the div
   // This allows the parent to measure it.
@@ -181,6 +184,9 @@ export default function NoteItemEditor({
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onBlur={(e) => {
+          // Commit undo state on blur
+          commitUndoState?.(id);
+
           // Use setTimeout to check where focus went (more reliable than relatedTarget)
           setTimeout(() => {
             const activeEl = document.activeElement;
@@ -195,6 +201,9 @@ export default function NoteItemEditor({
           }, 0);
         }}
         onFocus={(e) => {
+          // Capture undo state on focus
+          captureUndoState?.(id);
+
           if (isMobile && !isEditing) {
             startEditing();
           }
