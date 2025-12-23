@@ -130,6 +130,16 @@ export const ItemsProvider = ({ children }) => {
   // Keyboard listeners for Undo/Redo
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Ignore if focus is on an input, textarea, or contentEditable element
+      const active = document.activeElement;
+      const isInput = active && (
+        active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.isContentEditable ||
+        active.getAttribute('contenteditable') === 'true'
+      );
+
+      if (isInput) return;
       // Check for Ctrl+Z or Cmd+Z
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         if (e.shiftKey) {
