@@ -76,6 +76,9 @@ const es = {
     confirmDeleteItem: '¿Eliminar este ítem?',
     noContent: 'Sin contenido',
     shownFrom: 'Mostrado desde',
+    history: 'Historial',
+    viewHistory: 'Ver historial',
+    viewUpcoming: 'Ver próximos días',
   },
   context: {
     delete: 'Eliminar',

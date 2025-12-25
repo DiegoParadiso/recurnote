@@ -25,7 +25,10 @@ export default function UnifiedContainer({
 }) {
 
   const containerRef = useRef(null);
-  const [pos, setPos] = useState({ x, y });
+  const [pos, setPos] = useState({
+    x: (typeof x === 'number' && !isNaN(x)) ? x : 0,
+    y: (typeof y === 'number' && !isNaN(y)) ? y : 0
+  });
   const [sizeState, setSizeState] = useState({ width, height });
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -57,8 +60,12 @@ export default function UnifiedContainer({
 
     if (isSmallScreen || fullboardMode) {
       // En mobile / fullboard, seguir usando limitPositionInsideCircle/Screen
+      // Ensure inputs are valid numbers before calling limitPositionInsideCircle
+      const safeX = (typeof positionToCheck.x === 'number' && !isNaN(positionToCheck.x)) ? positionToCheck.x : 0;
+      const safeY = (typeof positionToCheck.y === 'number' && !isNaN(positionToCheck.y)) ? positionToCheck.y : 0;
+
       const limited = limitPositionInsideCircle(
-        positionToCheck.x, positionToCheck.y, width, height,
+        safeX, safeY, width, height,
         circleCenter, maxRadius, true
       );
       nextPos = { x: limited.x, y: limited.y };
@@ -69,9 +76,11 @@ export default function UnifiedContainer({
     }
 
     if (modeChanged || nextPos.x !== pos.x || nextPos.y !== pos.y) {
-      setPos(nextPos);
-      if (modeChanged && onMove) {
-        onMove(nextPos);
+      if (typeof nextPos.x === 'number' && !isNaN(nextPos.x) && typeof nextPos.y === 'number' && !isNaN(nextPos.y)) {
+        setPos(nextPos);
+        if (modeChanged && onMove) {
+          onMove(nextPos);
+        }
       }
     }
 
@@ -319,6 +328,7 @@ export default function UnifiedContainer({
         zIndexOverride,
         style: {
           ...style,
+          visibility: ((typeof x !== 'number' || isNaN(x)) || (typeof y !== 'number' || isNaN(y))) ? 'hidden' : (style.visibility || 'visible'),
           backgroundColor: 'var(--color-neutral)',
           color: 'var(--color-text-primary)',
           border: '1px solid var(--color-neutral-darker)',

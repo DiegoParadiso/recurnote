@@ -83,7 +83,7 @@ html.dark .sidebar-footer {
 /* Estilos para móviles */
 .sidebar-mobile {
   width: 100%;
-  height: 100dvh;
+  height: 100%;
   border: none;
   border-radius: 0;
   box-shadow: none;
