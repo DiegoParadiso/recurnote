@@ -47,7 +47,7 @@
     background-color: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    z-index: 10000;
+    z-index: 100000;
     padding: 4px;
     opacity: 0;
     visibility: hidden;

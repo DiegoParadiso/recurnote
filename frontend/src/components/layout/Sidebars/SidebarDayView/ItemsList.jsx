@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import DayItemGroup from '@components/layout/Sidebars/SidebarDayView/DayItemGroup';
 import ItemRenderer from '@components/layout/Sidebars/SidebarDayView/ItemRenderer';
 
-export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, onReorder, onDeleteRequest, loading }) {
+export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskCheck, onReorder, onDeleteRequest, loading, isMobile }) {
   const { t } = useTranslation();
   const [isDark, setIsDark] = useState(false);
 
@@ -34,8 +34,22 @@ export default function ItemsList({ itemsForDays, setSelectedDay, toggleTaskChec
           <p className="text-sm text-[color:var(--color-text-primary)]">
             {t('sidebar.empty')}
           </p>
-          <p className="text-[12px] text-[color:var(--color-muted)]">
-            {t('sidebar.createFromLeft')}
+          <p className="text-[12px] text-[color:var(--color-muted)] flex items-center gap-1">
+            {isMobile ? (
+              <>
+                {t('sidebar.createFrom')}
+                <img
+                  src="/assets/plus.svg"
+                  alt="Plus"
+                  className="w-4 h-4 inline-block"
+                  style={{
+                    filter: isDark ? 'brightness(0) saturate(100%) invert(1)' : 'brightness(0) saturate(100%)'
+                  }}
+                />
+              </>
+            ) : (
+              t('sidebar.createFromLeft')
+            )}
           </p>
         </div>
       </>

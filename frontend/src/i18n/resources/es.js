@@ -72,6 +72,7 @@ const es = {
     upcomingDays: 'próximos días',
     empty: 'No hay ítems para los próximos días',
     createFromLeft: 'Crea nuevos ítems desde el sidebar izquierdo',
+    createFrom: 'Crea nuevos ítems desde',
     deleteItem: 'Eliminar item',
     confirmDeleteItem: '¿Eliminar este ítem?',
     noContent: 'Sin contenido',

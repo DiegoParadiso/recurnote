@@ -183,6 +183,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
                 loading={loading}
                 onReorder={handleReorder}
                 onDeleteRequest={handleDeleteRequest}
+                isMobile={isMobile}
               />
             </>
           )}

@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
 import '@styles/components/common/CustomSelect.css';
 
@@ -15,7 +16,7 @@ export default function CustomSelect({
 
     const selectedOption = options.find(opt => opt.value === value);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (isOpen && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
             setPosition({
@@ -28,7 +29,11 @@ export default function CustomSelect({
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (containerRef.current && !containerRef.current.contains(event.target)) {
+            // Check if click is outside both the trigger and the portal content
+            const isClickInTrigger = containerRef.current && containerRef.current.contains(event.target);
+            const isClickInPortal = event.target.closest('.custom-select-options');
+
+            if (!isClickInTrigger && !isClickInPortal) {
                 setIsOpen(false);
             }
         };
@@ -43,15 +48,47 @@ export default function CustomSelect({
         };
 
         if (isOpen) {
-            window.addEventListener('scroll', handleScroll, { capture: true });
+            // Add a small delay before attaching scroll listener to avoid immediate close
+            // due to layout shifts or momentum scrolling
+            const timeoutId = setTimeout(() => {
+                window.addEventListener('scroll', handleScroll, { capture: true });
+            }, 100);
+
+            return () => {
+                clearTimeout(timeoutId);
+                window.removeEventListener('scroll', handleScroll, { capture: true });
+            };
         }
-        return () => window.removeEventListener('scroll', handleScroll, { capture: true });
     }, [isOpen]);
 
     const handleSelect = (optionValue) => {
         onChange(optionValue);
         setIsOpen(false);
     };
+
+    const dropdownContent = (
+        <div
+            className="custom-select-options is-open"
+            style={{
+                top: position.top,
+                left: position.left,
+                width: position.width
+            }}
+        >
+            {options.map((option) => (
+                <div
+                    key={option.value}
+                    className={`custom-select-option ${option.value === value ? 'selected' : ''}`}
+                    onClick={() => handleSelect(option.value)}
+                    role="option"
+                    aria-selected={option.value === value}
+                >
+                    <span>{option.label}</span>
+                    {option.value === value && <Check size={14} />}
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <div className={`custom-select-container ${className}`} ref={containerRef}>
@@ -73,29 +110,7 @@ export default function CustomSelect({
                 <ChevronDown size={16} className="custom-select-arrow" />
             </div>
 
-            {isOpen && (
-                <div
-                    className="custom-select-options is-open"
-                    style={{
-                        top: position.top,
-                        left: position.left,
-                        width: position.width
-                    }}
-                >
-                    {options.map((option) => (
-                        <div
-                            key={option.value}
-                            className={`custom-select-option ${option.value === value ? 'selected' : ''}`}
-                            onClick={() => handleSelect(option.value)}
-                            role="option"
-                            aria-selected={option.value === value}
-                        >
-                            <span>{option.label}</span>
-                            {option.value === value && <Check size={14} />}
-                        </div>
-                    ))}
-                </div>
-            )}
+            {isOpen && createPortal(dropdownContent, document.body)}
         </div>
     );
 }

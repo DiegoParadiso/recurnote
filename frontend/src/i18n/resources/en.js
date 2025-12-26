@@ -72,6 +72,7 @@ const en = {
     upcomingDays: 'upcoming days',
     empty: 'No items for the next days',
     createFromLeft: 'Create new items from the left sidebar',
+    createFrom: 'Create new items from',
     deleteItem: 'Delete item',
     confirmDeleteItem: 'Delete this item?',
     noContent: 'No content',
