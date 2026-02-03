@@ -741,8 +741,8 @@ export const ItemsProvider = ({ children }) => {
           ...changes,
           x: currentItem._originalX || currentItem.x,
           y: currentItem._originalY || currentItem.y,
-          _forcePosition: true, // Marcar para evitar recursión
-          _justDuplicated: false // Ya no es recién duplicado
+          _forcePosition: true, 
+          _justDuplicated: false 
         };
         return await updateItem(id, forcedChanges, opts);
       }
@@ -783,12 +783,10 @@ export const ItemsProvider = ({ children }) => {
       // Determinar debounce según tipo de cambio y si está en drag
       const hasText = Object.prototype.hasOwnProperty.call(itemData, 'content');
       const hasGeometry = (x !== undefined || y !== undefined || changes?.width !== undefined || changes?.height !== undefined || rotation !== undefined);
-      // Durante drag, usar debounce más largo para agrupar movimientos
       const debounceMs = opts.fromDrag ? 2000 : (hasText ? 1000 : (hasGeometry ? 1500 : 800));
 
       queueItemUpdate(id, changes, { debounceMs, isDragging: opts.fromDrag });
 
-      // Remover operación pendiente cuando el envío ocurra (aprox). Simplificación: timeout extra
       setTimeout(() => {
         setPendingOperations(prev => {
           const newSet = new Set(prev);
@@ -797,7 +795,6 @@ export const ItemsProvider = ({ children }) => {
         });
       }, debounceMs + 2000);
     }
-    // Si es modo local, no hacer nada más - ya se guardó en localStorage
   }
 
   async function duplicateItem(id) {
@@ -830,53 +827,13 @@ export const ItemsProvider = ({ children }) => {
         throw new Error('Item no encontrado');
       }
 
-      // Crear una copia del item con nueva posición - ROTADA 20 grados
-      // Esto asegura que se mantenga dentro del círculo (misma distancia al centro)
       const currentAngle = itemToDuplicate.angle || 0;
       const currentDistance = itemToDuplicate.distance || 120;
 
       const newAngle = (currentAngle + 20) % 360;
       const newDistance = currentDistance;
 
-      // Calcular x/y basados en el nuevo ángulo (para el backend/visualización)
       const angleRad = (newAngle * Math.PI) / 180;
-      // Asumimos que x/y son relativos al centro si distance se usa, 
-      // pero ItemsOnCircle usa cx + distance * cos.
-      // Aquí necesitamos calcular el x/y relativo al origen (0,0) del contenedor o del item?
-      // El item guarda x/y relativos al contenedor.
-      // Necesitamos saber el centro del contenedor para calcular x/y absolutos.
-      // Pero duplicateItem no tiene acceso a cx/cy.
-      // Sin embargo, podemos estimar o simplemente confiar en angle/distance para el renderizado
-      // y calcular un x/y aproximado para el guardado.
-
-      // MEJOR: Usar la lógica inversa de ItemsOnCircle si es posible, o simplemente
-      // actualizar x/y sumando la diferencia.
-      // O más simple: Si ItemsOnCircle usa angle/distance cuando están presentes,
-      // entonces x/y son secundarios para el renderizado visual en el frontend,
-      // pero importantes para el backend.
-
-      // Vamos a calcular x/y asumiendo un centro (0,0) relativo al desplazamiento
-      // O mejor, si tenemos x/y del original, y sabemos su angle/distance,
-      // podemos rotar el vector (x,y) alrededor del centro del círculo.
-      // Pero no sabemos el centro exacto aquí.
-
-      // SOLUCIÓN: Calcular x/y basados en angle/distance asumiendo que el componente
-      // ItemsOnCircle los recalculará visualmente bien.
-      // Para el backend, enviaremos x/y calculados como si el centro fuera 0,0 (offset),
-      // o mejor, no enviamos x/y si angle/distance son los que mandan.
-      // Pero el backend espera x/y.
-
-      // Vamos a usar un delta aproximado.
-      // O simplemente calcular x/y basados en newAngle/newDistance asumiendo un radio arbitrario si no tenemos contexto?
-      // No, itemToDuplicate tiene x,y.
-
-      // Si rotamos 20 grados, la nueva posición es:
-      // x' = cx + r * cos(a + 20)
-      // y' = cy + r * sin(a + 20)
-      // No tenemos cx, cy.
-
-      // Pero: x = cx + r * cos(a) -> cx = x - r * cos(a)
-      // Podemos deducir cx, cy del item original!
       const oldRad = (currentAngle * Math.PI) / 180;
       const estimatedCx = itemToDuplicate.x - currentDistance * Math.cos(oldRad);
       const estimatedCy = itemToDuplicate.y - currentDistance * Math.sin(oldRad);
@@ -971,14 +928,12 @@ export const ItemsProvider = ({ children }) => {
 
         // Crear el item final combinando datos del servidor con los del original
         const itemFinal = {
-          ...itemToDuplicate, // Preservar todos los datos del original
-          ...result, // Sobrescribir con datos del servidor (ID, fechas, etc.)
-          // FORZAR las coordenadas calculadas para evitar teletransporte
+          ...itemToDuplicate,
+          ...result, // Sobrescribir con datos del servidor 
           x: newX,
           y: newY,
           angle: newAngle,
           distance: newDistance,
-          // ASEGURAR que tenga todas las propiedades necesarias para renderizar
           label: itemToDuplicate.label || 'Item duplicado',
           width: itemToDuplicate.width || 150,
           height: itemToDuplicate.height || 100,
@@ -1006,7 +961,6 @@ export const ItemsProvider = ({ children }) => {
   async function deleteItem(id, opts = {}) {
     const { fromUndo } = opts;
 
-    // Capture item state before deleting for undo
     const itemToDelete = Object.values(itemsByDate).flat().find(i => i.id === id);
     if (!fromUndo && itemToDelete) {
       addToHistory({

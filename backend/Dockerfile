@@ -18,3 +18,4 @@ EXPOSE 5001
 
 # Comando para levantar la app en dev
 CMD ["npm", "run", "dev"]
+    

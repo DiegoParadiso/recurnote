@@ -102,114 +102,12 @@ export default function NoteItem({
 
   const MAX_CONTAINER_HEIGHT = 260;
 
-  // Calcular ancho mínimo basado en el placeholder actual y estilos reales
+  // Disable auto-width calculation based on content
   useLayoutEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    // Detectar paddings del contenedor padre (UnifiedContainer)
-    let containerPaddingLeft = 8;
-    let containerPaddingRight = 8;
-    try {
-      const dragWrapper = el.closest('[data-drag-container]');
-      const containerEl = dragWrapper ? dragWrapper.parentElement : null;
-      if (containerEl) {
-        const ccs = window.getComputedStyle(containerEl);
-        containerPaddingLeft = parseFloat(ccs.paddingLeft || '8') || 8;
-        containerPaddingRight = parseFloat(ccs.paddingRight || '8') || 8;
-      }
-    } catch (_) { }
-    const placeholderText = isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit');
-    try {
-      const cs = window.getComputedStyle(el);
-      const font = getFontFromComputedStyle(cs);
-      const measure = (text) => measureTextWidth(text, font);
+    setMinWidthPx(148);
+  }, []);
 
-      const paddingLeft = parseFloat(cs.paddingLeft || '0');
-      const paddingRight = parseFloat(cs.paddingRight || '0');
-      const borders = 2;
-      const extraSafety = 16; // separa visualmente del handle de 3 puntos y margen interior
-      // Medir placeholder
-      const placeholderWidth = measure(placeholderText);
-      const desiredFromPlaceholder = Math.ceil(
-        placeholderWidth + paddingLeft + paddingRight + borders + extraSafety + containerPaddingLeft + containerPaddingRight
-      );
-      // Medir línea más larga del contenido actual
-      const plainContent = stripMarkdown(content || '');
-      const lines = plainContent.split('\n');
-      let longest = 0;
-      for (const line of lines) {
-        longest = Math.max(longest, measure(line));
-      }
-      const desiredFromContent = Math.ceil(
-        longest + paddingLeft + paddingRight + borders + extraSafety + containerPaddingLeft + containerPaddingRight
-      );
-      // Tomar el mayor de ambos
-      const desired = Math.max(desiredFromPlaceholder, desiredFromContent);
-      const baseMin = 148; // base mínima ajustada considerando paddings y handle
-      const maxAllowed = 224; // consistente con maxWidth del contenedor
-      const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
-      setMinWidthPx(minW);
-      // Asegurar que el ancho actual no sea menor al mínimo
-      if (width < minW) {
-        const deltaW = minW - width;
-
-        const rotRad = ((rotation || 0) * Math.PI) / 180;
-        const cos = Math.cos(rotRad);
-        const sin = Math.sin(rotRad);
-
-        // Only width changes (deltaH = 0)
-        const deltaX = (deltaW / 2) * cos;
-        const deltaY = (deltaW / 2) * sin;
-
-        const newX = x + deltaX;
-        const newY = y + deltaY;
-
-        let valid = true;
-        if (isSmallScreen) {
-          // En mobile, usar limitPositionInsideCircle con flag isSmallScreen=true
-          // Esto verificará límites de pantalla en lugar de radio del círculo
-          const limited = limitPositionInsideCircle(newX, newY, minW, height, { cx: 0, cy: 0 }, 0, true);
-          // Si la posición limitada es diferente, significa que se salió de pantalla
-          // Pero aquí queremos permitir el resize si es posible.
-          // Si limitPositionInsideCircle nos devuelve una posición válida dentro de pantalla, usamos esa?
-          // No, porque newX/newY están calculados para mantener top-left fijo.
-          // Si limitamos el centro, movemos el top-left.
-          // Pero si no limitamos, se sale de pantalla.
-          // Lo importante es que valid = true si cabe en pantalla.
-          // limitPositionInsideCircle devuelve una posición válida.
-          // Si la posición devuelta es "cercana" a la deseada, es válido.
-          // O simplemente confiamos en que UnifiedContainer lo clampeará visualmente?
-          // El problema era que 'valid' era false porque fallaba el check de radio.
-          // Al usar limitPositionInsideCircle (o simplemente saltar el check de radio en mobile),
-          // permitimos que el update ocurra.
-          // UnifiedContainer se encargará de mantenerlo en pantalla si se mueve.
-          valid = true;
-        } else if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
-          const halfW = minW / 2;
-          const halfH = height / 2;
-          const corners = [
-            { x: newX - halfW, y: newY - halfH },
-            { x: newX + halfW, y: newY - halfH },
-            { x: newX - halfW, y: newY + halfH },
-            { x: newX + halfW, y: newY + halfH }
-          ];
-          for (const c of corners) {
-            if ((c.x - cx) ** 2 + (c.y - cy) ** 2 > maxRadius ** 2) {
-              valid = false;
-              break;
-            }
-          }
-        }
-
-        if (valid) {
-          onUpdate?.(id, content, null, { width: minW, height }, { x: newX, y: newY });
-        }
-      }
-    } catch (_) { }
-    // Recalcular si cambia el idioma, el modo móvil o el tamaño de fuente del textarea
-  }, [t, isMobile, width, height, id, content, onUpdate]);
-
-  // Calcular altura mínima en función del contenido (SOLO para limitar el resize, NO auto-resize)
+  // Calcular altura mínima en función del contenido para limitar el resize
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;

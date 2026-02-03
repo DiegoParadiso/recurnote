@@ -240,7 +240,6 @@ export const useDragResize = ({
           const halfWidth = newWidth / 2;
           const halfHeight = newHeight / 2;
 
-          // Calculate start excesses to allow existing out-of-bounds (tolerance)
           const startHalfW = resizeStartPos.current.width / 2;
           const startHalfH = resizeStartPos.current.height / 2;
           const startCorners = [
@@ -268,7 +267,6 @@ export const useDragResize = ({
             const cornerDy = corner.y - cy;
             const cornerDist = Math.sqrt(cornerDx * cornerDx + cornerDy * cornerDy);
             const excess = cornerDist - maxRadius;
-            // Allow if excess is not significantly worse than start excess (0.1px tolerance)
             if (excess > 0 && excess > startExcesses[i] + 0.1) {
               needsLimit = true;
               break;

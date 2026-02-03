@@ -349,6 +349,7 @@ export default function UnifiedContainer({
             bottom: 0,
             cursor: 'nwse-resize',
             borderRadius: '2px',
+            zIndex: 100,
           }}
         />
       )}

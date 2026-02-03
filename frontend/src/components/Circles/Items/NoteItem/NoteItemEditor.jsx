@@ -87,32 +87,10 @@ export default function NoteItemEditor({
 
     const totalRequiredHeight = contentHeight + overhead;
 
-    if (totalRequiredHeight > MAX_CONTAINER_HEIGHT) {
-      // Revert content
-      if (lastValidContentRef.current !== undefined) {
-        el.innerHTML = lastValidContentRef.current;
-
-        try {
-          const range = document.createRange();
-          range.selectNodeContents(el);
-          range.collapse(false);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        } catch (_) { }
-      }
-      return; // Stop update
-    }
-
-    // Valid content, update ref
-    lastValidContentRef.current = html;
-
-    // Request resize
+    // Request resize if content needs more space
     if (totalRequiredHeight > height) {
       onHeightChange?.(totalRequiredHeight);
     }
-
-    onUpdate?.(id, markdown);
   };
 
   const handleKeyDown = (e) => {
