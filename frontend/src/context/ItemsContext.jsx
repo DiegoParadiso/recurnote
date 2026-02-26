@@ -442,17 +442,38 @@ export const ItemsProvider = ({ children }) => {
 
         let finalItem = expanded;
         let shouldSync = false;
+        let mergedChangesForSync = {};
 
         if (latestPlaceholder) {
-          // Si las coordenadas actuales difieren de las iniciales, usar las actuales
-          if (latestPlaceholder.x !== placeholder.x || latestPlaceholder.y !== placeholder.y || latestPlaceholder.rotation !== placeholder.rotation) {
+          // Identify any differences between the original placeholder and the latest state
+          const posChanged = latestPlaceholder.x !== placeholder.x || latestPlaceholder.y !== placeholder.y || latestPlaceholder.rotation !== placeholder.rotation;
+
+          // Also check for content/checked/size modifications
+          const contentChanged = latestPlaceholder.content !== placeholder.content;
+          const checkedChanged = JSON.stringify(latestPlaceholder.checked) !== JSON.stringify(placeholder.checked);
+          const sizeChanged = latestPlaceholder.width !== placeholder.width || latestPlaceholder.height !== placeholder.height;
+
+          if (posChanged || contentChanged || checkedChanged || sizeChanged) {
             finalItem = {
               ...expanded,
-              x: latestPlaceholder.x,
-              y: latestPlaceholder.y,
-              rotation: latestPlaceholder.rotation
+              ...latestPlaceholder, // OVERWRITE server's empty item with all current unsaved edits on placeholder
+              id: expanded.id, // but KEEP the new server ID
             };
+
             shouldSync = true;
+            mergedChangesForSync = {
+              ...(posChanged && { x: latestPlaceholder.x, y: latestPlaceholder.y, rotation: latestPlaceholder.rotation }),
+              ...(contentChanged && { content: latestPlaceholder.content }),
+              ...(checkedChanged && { checked: latestPlaceholder.checked }),
+              ...(sizeChanged && { width: latestPlaceholder.width, height: latestPlaceholder.height }),
+              date: finalItem.date
+            };
+          }
+
+          // If the placeholder was being dragged, transfer drag tracking to the new permanent ID immediately
+          if (draggingItemsRef.current.has(placeholder.id)) {
+            draggingItemsRef.current.delete(placeholder.id);
+            draggingItemsRef.current.add(finalItem.id);
           }
         }
 
@@ -461,16 +482,10 @@ export const ItemsProvider = ({ children }) => {
           [date]: (prev[date] || []).map(i => i.id === placeholder.id ? finalItem : i)
         }));
 
-        // Si hubo cambios locales, sincronizar la nueva posición con el backend (usando el ID real)
+        // Si hubo cambios locales (de texto o posición), sincronizar la versión local actualizada con el backend (usando el ID real)
         if (shouldSync) {
-          // Usar queueItemUpdate directamente o updateItem para asegurar que se guarde
-          // updateItem maneja el debounce y la cola
-          updateItem(finalItem.id, {
-            x: finalItem.x,
-            y: finalItem.y,
-            rotation: finalItem.rotation,
-            date: finalItem.date // Importante para updateItem
-          }, { fromDrag: true });
+          // ensure debounce allows this backend save request to go into the queue
+          updateItem(finalItem.id, mergedChangesForSync, { fromDrag: true });
         }
 
         // Remover operación pendiente
@@ -732,21 +747,9 @@ export const ItemsProvider = ({ children }) => {
       // Si no toca geometría (p.ej. content/checked), permitir update
     }
 
-    // INTERCEPTAR: Si es un item recién duplicado y se está moviendo, forzar posición original
-    if ((x !== undefined || y !== undefined) && !changes._forcePosition) {
-      const currentItem = Object.values(itemsByDate).flat().find(i => i.id === id);
-      if (currentItem && currentItem._justDuplicated) {
-        // Forzar la posición original del item duplicado
-        const forcedChanges = {
-          ...changes,
-          x: currentItem._originalX || currentItem.x,
-          y: currentItem._originalY || currentItem.y,
-          _forcePosition: true, 
-          _justDuplicated: false 
-        };
-        return await updateItem(id, forcedChanges, opts);
-      }
-    }
+    // El bloque que interceptaba \`_justDuplicated\` fue removido intencionalmente
+    // para permitir que el usuario pueda arrastrar los items duplicados 
+    // sin que el sistema los devuelva bruscamente a su posición de origen.
 
     // Determinar si el cambio es únicamente geométrico (sin width/height) durante drag
     const changedKeys = Object.keys(changes || {});

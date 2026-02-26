@@ -367,6 +367,7 @@ export default function NoteItem({
                 }
               }}
               textareaRef={textareaRef}
+              onFlush={() => flushItemUpdate?.(id)}
             />
           </div>
         )}

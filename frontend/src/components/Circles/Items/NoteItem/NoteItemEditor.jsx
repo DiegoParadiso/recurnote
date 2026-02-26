@@ -17,6 +17,7 @@ export default function NoteItemEditor({
   isDragging,
   onHeightChange,
   textareaRef,
+  onFlush,
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -91,6 +92,11 @@ export default function NoteItemEditor({
     if (totalRequiredHeight > height) {
       onHeightChange?.(totalRequiredHeight);
     }
+    
+    // Call onUpdate to save content state into React
+    if (markdown !== content) {
+      onUpdate?.(id, markdown);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -109,6 +115,16 @@ export default function NoteItemEditor({
       // Let's preserve that behavior but allow Ctrl+Enter / Meta+Enter for newlines too.
 
       e.preventDefault();
+      
+      const el = e.currentTarget;
+      const html = el.innerHTML;
+      const markdown = htmlToMarkdown(html);
+      
+      if (markdown !== content) {
+        onUpdate?.(id, markdown);
+      }
+      onFlush?.();
+      
       stopEditing();
       e.target.blur();
     } else if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
@@ -175,6 +191,15 @@ export default function NoteItemEditor({
                 return;
               }
             }
+            
+            // Check content and force flush when blurring
+            const html = e.currentTarget.innerHTML;
+            const markdown = htmlToMarkdown(html);
+            if (markdown !== content) {
+              onUpdate?.(id, markdown);
+            }
+            onFlush?.();
+            
             stopEditing();
           }, 0);
         }}
