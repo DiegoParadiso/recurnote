@@ -17,7 +17,7 @@ export default function NotFound() {
   }, []);
 
   return (
-    <div 
+    <div
       className="min-h-screen w-screen flex flex-col items-center justify-center px-4"
       style={{
         backgroundColor: 'var(--color-bg)',
@@ -26,26 +26,26 @@ export default function NotFound() {
     >
       <div className="flex flex-col items-center justify-center text-center gap-4 max-w-md">
         <img
-          src={isDark ? '/assets/image4.png' : '/assets/image3.png'}
+          src={isDark ? '/assets/error-2.png' : '/assets/error.png'}
           alt=""
-          className="h-[20rem] w-auto max-w-full opacity-90"
+          className="h-[30rem] w-auto max-w-full opacity-90"
           aria-hidden
         />
-        
+
         <div className="flex flex-col gap-2">
-          <h1 
-            className="text-4xl pt-10 font-semibold"
+          <h1
+            className="text-4xl font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
             404
           </h1>
-          <h2 
+          <h2
             className="text-xl"
             style={{ color: 'var(--color-text-primary)' }}
           >
             {t('notFound.title', 'Página no encontrada')}
           </h2>
-          <p 
+          <p
             className="text-sm"
             style={{ color: 'var(--color-muted)' }}
           >
