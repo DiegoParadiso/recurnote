@@ -76,7 +76,11 @@ const PaymentPage = () => {
   };
 
   if (!paypalConfig) {
-    return <div className="payment-page"><div className="loading-plan">{t('common.loading')}</div></div>;
+    return (
+      <div className="payment-page">
+        <Loader size={120} fullScreen={true} />
+      </div>
+    );
   }
 
   console.log('PayPal Options:', {
