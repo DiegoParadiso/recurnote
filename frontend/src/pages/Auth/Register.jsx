@@ -6,6 +6,7 @@ import '@styles/auth.css';
 import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import PasswordStrength from '@components/common/PasswordStrength.jsx';
 import BottomToast from '@components/common/BottomToast.jsx';
+import Loader from '@components/common/Loader.jsx';
 import { useTranslation } from 'react-i18next';
 
 export default function Register() {
@@ -95,7 +96,7 @@ export default function Register() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === 'checkbox' ? checked : value;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: fieldValue
@@ -141,7 +142,7 @@ export default function Register() {
   // Manejar envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Marcar que se intentó enviar
     setSubmitted(true);
 
@@ -178,13 +179,13 @@ export default function Register() {
       if (response.ok) {
         // Guardar ID temporal y cambiar a paso de verificación
         setTempUserId(data.userId);
-        
+
         // Si el email se activó automáticamente (modo desarrollo)
         if (data.autoVerified) {
-          navigate('/login', { 
-            state: { 
-              message: 'Cuenta creada y activada automáticamente. Ya puedes iniciar sesión.' 
-            } 
+          navigate('/login', {
+            state: {
+              message: 'Cuenta creada y activada automáticamente. Ya puedes iniciar sesión.'
+            }
           });
         } else {
           // Modo normal: ir a verificación
@@ -246,7 +247,7 @@ export default function Register() {
   const handleCodePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').trim();
-    
+
     if (/^\d{6}$/.test(pastedData)) {
       const newCode = pastedData.split('');
       setCodeDigits(newCode);
@@ -258,7 +259,7 @@ export default function Register() {
   // Verificar código
   const handleVerifyCode = async (e) => {
     e.preventDefault();
-    
+
     if (!verificationCode || verificationCode.length !== 6) {
       setErrors({ verification: 'Ingresa un código válido de 6 dígitos' });
       return;
@@ -283,10 +284,10 @@ export default function Register() {
 
       if (response.ok) {
         // Verificación exitosa
-        navigate('/login', { 
-          state: { 
-            message: 'Cuenta verificada exitosamente. Ya puedes iniciar sesión.' 
-          } 
+        navigate('/login', {
+          state: {
+            message: 'Cuenta verificada exitosamente. Ya puedes iniciar sesión.'
+          }
         });
       } else {
         setErrors({ verification: data.message || 'Código inválido' });
@@ -333,7 +334,7 @@ export default function Register() {
 
   // Verificar si el formulario es válido
   const isFormValid = () => {
-    const fieldsFilled = Object.values(formData).every(value => 
+    const fieldsFilled = Object.values(formData).every(value =>
       typeof value === 'boolean' ? value : value.trim() !== ''
     );
     const noActiveErrors = Object.values(errors).every(error => !error || error === '');
@@ -347,9 +348,11 @@ export default function Register() {
   if (step === 'verification') {
     return (
       <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
+        {loading && <Loader size={120} fullScreen={true} />}
+
         <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-        <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
+        <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '18px' }}>
             <div style={{
@@ -363,17 +366,17 @@ export default function Register() {
               margin: '0 auto 20px',
               transition: 'var(--transition-colors)'
             }}>
-              <svg 
-                style={{ width: '32px', height: '32px', color: 'var(--color-neutral)' }} 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                style={{ width: '32px', height: '32px', color: 'var(--color-neutral)' }}
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                 />
               </svg>
             </div>
@@ -384,11 +387,11 @@ export default function Register() {
           </div>
 
           {/* 6 campos para el código */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '10px', 
-            justifyContent: 'center', 
-            marginBottom: '8px' 
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            justifyContent: 'center',
+            marginBottom: '8px'
           }}>
             {codeDigits.map((digit, index) => (
               <input
@@ -440,8 +443,9 @@ export default function Register() {
             onClick={handleVerifyCode}
             disabled={loading || !isCodeComplete}
             className="submit-button mx-auto block"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
           >
-            {loading ? 'Verificando...' : 'Verificar código'}
+            Verificar código
           </button>
 
           <div className="auth-footer" style={{ marginTop: '20px' }}>
@@ -492,9 +496,9 @@ export default function Register() {
           </div>
         </div>
 
-        <BottomToast 
-          message={errors.general || ''} 
-          onClose={() => setErrors(prev => ({ ...prev, general: '' }))} 
+        <BottomToast
+          message={errors.general || ''}
+          onClose={() => setErrors(prev => ({ ...prev, general: '' }))}
           duration={5000}
           type="error"
         />
@@ -505,118 +509,120 @@ export default function Register() {
   // Vista del formulario de registro
   return (
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
+      {loading && <Loader size={120} fullScreen={true} />}
+
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>  
-        <form onSubmit={handleSubmit}>
-          {/* Nombre */}
-          <div className="form-group">
+      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>         <form onSubmit={handleSubmit}>
+        {/* Nombre */}
+        <div className="form-group">
+          <input
+            type="text"
+            name="name"
+            placeholder={t('auth.namePlaceholder')}
+            value={formData.name}
+            onChange={handleChange}
+            className={submitted && errors.name ? 'error' : ''}
+            required
+          />
+        </div>
+
+        {/* Email */}
+        <div className="form-group">
+          <input
+            type="email"
+            name="email"
+            placeholder={t('auth.emailPlaceholder')}
+            value={formData.email}
+            onChange={handleChange}
+            className={submitted && errors.email ? 'error' : ''}
+            required
+          />
+        </div>
+
+        {/* Contraseña */}
+        <div className="form-group">
+          <div className="password-input-container">
             <input
-              type="text"
-              name="name"
-              placeholder={t('auth.namePlaceholder')}
-              value={formData.name}
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              placeholder={t('auth.passwordPlaceholder')}
+              value={formData.password}
               onChange={handleChange}
-              className={submitted && errors.name ? 'error' : ''}
+              className={submitted && errors.password ? 'error' : ''}
               required
             />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
-          {/* Email */}
-          <div className="form-group">
+
+          {/* Indicador de fortaleza de contraseña */}
+          {formData.password && <PasswordStrength password={formData.password} />}
+        </div>
+
+        {/* Confirmar contraseña */}
+        <div className="form-group">
+          <div className="password-input-container">
             <input
-              type="email"
-              name="email"
-              placeholder={t('auth.emailPlaceholder')}
-              value={formData.email}
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              placeholder={t('auth.confirmPasswordPlaceholder')}
+              value={formData.confirmPassword}
               onChange={handleChange}
-              className={submitted && errors.email ? 'error' : ''}
+              className={submitted && errors.confirmPassword ? 'error' : ''}
               required
             />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
-          {/* Contraseña */}
-          <div className="form-group">
-            <div className="password-input-container">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                placeholder={t('auth.passwordPlaceholder')}
-                value={formData.password}
-                onChange={handleChange}
-                className={submitted && errors.password ? 'error' : ''}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            
-            
-            {/* Indicador de fortaleza de contraseña */}
-            {formData.password && <PasswordStrength password={formData.password} />}
-          </div>
+        </div>
 
-          {/* Confirmar contraseña */}
-          <div className="form-group">
-            <div className="password-input-container">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                name="confirmPassword"
-                placeholder={t('auth.confirmPasswordPlaceholder')}
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={submitted && errors.confirmPassword ? 'error' : ''}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            
-          </div>
+        {/* Términos y condiciones */}
+        <div className="form-group checkbox-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              name="acceptTerms"
+              checked={formData.acceptTerms}
+              onChange={handleChange}
+              className={submitted && errors.acceptTerms ? 'error' : ''}
+            />
+            <span className="checkbox-text">
+              {t('auth.accept')}{' '}
+              <Link to="/terms" className="link-terms">
+                {t('auth.terms')}
+              </Link>
+              {' '}{t('auth.and')}{' '}
+              <Link to="/privacy" className="link-terms">
+                {t('auth.privacy')}
+              </Link>
+            </span>
+          </label>
 
-          {/* Términos y condiciones */}
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="acceptTerms"
-                checked={formData.acceptTerms}
-                onChange={handleChange}
-                className={submitted && errors.acceptTerms ? 'error' : ''}
-              />
-              <span className="checkbox-text">
-                {t('auth.accept')}{' '}
-                <Link to="/terms" className="link-terms">
-                  {t('auth.terms')}
-                </Link>
-                {' '}{t('auth.and')}{' '}
-                <Link to="/privacy" className="link-terms">
-                  {t('auth.privacy')}
-                </Link>
-              </span>
-            </label>
-            
-          </div>
+        </div>
 
-          {/* Botón de envío */}
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="submit-button"
-          >
-            {loading ? t('auth.creating') : t('auth.registerCta')}
-          </button>
-        </form>
+        {/* Botón de envío */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="submit-button"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+        >
+          {t('auth.registerCta')}
+        </button>
+      </form>
 
         <div className="auth-footer">
           <p>
@@ -627,9 +633,9 @@ export default function Register() {
       </div>
 
       {/* Toast para errores */}
-      <BottomToast 
-        message={errors.general || ''} 
-        onClose={() => setErrors(prev => ({ ...prev, general: '' }))} 
+      <BottomToast
+        message={errors.general || ''}
+        onClose={() => setErrors(prev => ({ ...prev, general: '' }))}
         duration={5000}
         type="error"
       />

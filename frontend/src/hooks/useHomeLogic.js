@@ -582,7 +582,7 @@ export function useHomeLogic() {
       label: item.label,
       content: item.label === 'Tarea' ? [''] : '',
       ...(item.label === 'Tarea' && { checked: [false] }),
-      width: item.label === 'Tarea' ? 200 : 100,
+      width: item.label === 'Tarea' ? 200 : (item.label.toLowerCase() === 'nota' ? 200 : 100),
       height: item.label === 'Tarea' ? 46 : 100,
     };
 

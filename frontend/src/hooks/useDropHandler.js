@@ -84,8 +84,9 @@ export default function useHandleDrop({
       // Dentro del círculo
       if (source === 'sidebar') {
         // Dimensiones reales de los items para el cálculo de límites en fullboard mode
-        const itemWidth = label === 'Tarea' ? 200 : (label === 'Nota' ? 169 : 110);
-        const itemHeight = label === 'Tarea' ? 46 : (label === 'Nota' ? 100 : 110);
+        const isNota = label.toLowerCase() === 'nota';
+        const itemWidth = label === 'Tarea' ? 200 : (isNota ? 200 : 110);
+        const itemHeight = label === 'Tarea' ? 46 : (isNota ? 100 : 110);
 
         // En fullboard mode, limitar las coordenadas dentro de la pantalla visible
         let finalX = rotatedX;

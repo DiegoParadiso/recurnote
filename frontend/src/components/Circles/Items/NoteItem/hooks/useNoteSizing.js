@@ -18,7 +18,7 @@ export default function useNoteSizing({ textareaRef, content, width, height, id,
         containerPaddingLeft = parseFloat(ccs.paddingLeft || '8') || 8;
         containerPaddingRight = parseFloat(ccs.paddingRight || '8') || 8;
       }
-    } catch (_) {}
+    } catch (_) { }
     const placeholderText = isMobile ? t('note.placeholderMobile') : t('common.doubleClickToEdit');
     try {
       const cs = window.getComputedStyle(el);
@@ -38,14 +38,14 @@ export default function useNoteSizing({ textareaRef, content, width, height, id,
         longest + paddingLeft + paddingRight + borders + extraSafety + containerPaddingLeft + containerPaddingRight
       );
       const desired = Math.max(desiredFromPlaceholder, desiredFromContent);
-      const baseMin = 148;
-      const maxAllowed = 224;
+      const baseMin = 200;
+      const maxAllowed = 250;
       const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
       setMinWidthPx(minW);
       if (width < minW) {
         onUpdate?.(id, content, null, { width: minW, height });
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [t, isMobile, width, height, id, content, onUpdate, textareaRef]);
 
   useLayoutEffect(() => {
@@ -70,7 +70,7 @@ export default function useNoteSizing({ textareaRef, content, width, height, id,
         onUpdate?.(id, content, null, { width, height: desiredMinHeight });
       }
       el.style.height = prevHeight;
-    } catch (_) {}
+    } catch (_) { }
   }, [content, width, height, id, onUpdate, textareaRef]);
 
   return { minWidthPx, minHeightPx };

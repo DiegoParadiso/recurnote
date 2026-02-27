@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@context/ThemeContext';
+import Loader from '@components/common/Loader';
 import './PricingPage.css';
 
 const PricingPage = () => {
@@ -98,13 +99,14 @@ const PricingPage = () => {
                     </button>
                     <h1>{t('pricing.title')}</h1>
                 </div>
-                <div className="pricing-loading">{t('common.loading')}</div>
+                <div className="pricing-loading"><Loader size={150} /></div>
             </div>
         );
     }
 
     return (
         <div className="pricing-page">
+            <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
             <div className="pricing-header">
                 <button onClick={() => navigate(-1)} className="back-button">
                     <ArrowLeft size={24} />

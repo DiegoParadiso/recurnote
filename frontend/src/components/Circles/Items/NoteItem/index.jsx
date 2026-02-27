@@ -36,7 +36,7 @@ export default function NoteItem({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const textareaRef = useRef(null);
-  const { content = '', width = 240, height = 80 } = item;
+  const { content = '', width = 200, height = 80 } = item;
   const { duplicateItem } = useItems();
   const { updateItem, flushItemUpdate, captureUndoState } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(120);

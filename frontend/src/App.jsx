@@ -7,6 +7,7 @@ import { ThemeProvider } from '@context/ThemeContext';
 import { NotesProvider } from '@context/NotesContext';
 import { AuthProvider } from '@context/AuthContext';
 import PrivateRoute from './PrivateRoute';
+import Loader from '@components/common/Loader';
 
 // Lazy load pages
 const Home = lazy(() => import('@pages/Home'));
@@ -24,7 +25,7 @@ const PricingPage = lazy(() => import('@pages/Premium/PricingPage'));
 
 function AppRoutes() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"></div>}>
+    <Suspense fallback={<Loader className="min-h-screen" />}>
       <Routes>
         {/* Ruta pública para Home */}
         <Route path="/" element={<Home />} />

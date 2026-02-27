@@ -4,13 +4,19 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@context/AuthContext';
+import { useTheme } from '@context/ThemeContext';
+import Loader from '@components/common/Loader';
 import './PaymentPage.css';
 
 const PaymentPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLightTheme } = useTheme();
+  const { user, refreshMe } = useAuth();
   const [paypalConfig, setPaypalConfig] = useState(null);
+  const [message, setMessage] = useState('');
+  const [planId, setPlanId] = useState(null);
 
   // Get plan data from navigation state
   const planData = location.state || {
@@ -113,6 +119,7 @@ const PaymentPage = () => {
 
   return (
     <div className="payment-page">
+      <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
       <div className="payment-header">
         <button onClick={() => navigate(-1)} className="back-button">
           <ArrowLeft size={24} />
@@ -148,7 +155,7 @@ const PaymentPage = () => {
             />
           </PayPalScriptProvider>
         ) : (
-          <div className="loading-plan">{t('common.loading')}</div>
+          <div className="py-8"><Loader size={120} /></div>
         )}
 
         {message && <div className="payment-message">{message}</div>}

@@ -16,6 +16,7 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "@fontsource/roboto-slab": "^5.2.8",
+    "@lottiefiles/dotlottie-react": "^0.18.3",
     "@paypal/react-paypal-js": "^8.9.2",
     "i18next": "^25.5.2",
     "i18next-browser-languagedetector": "^8.2.0",

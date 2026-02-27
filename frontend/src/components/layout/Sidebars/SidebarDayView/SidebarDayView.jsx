@@ -2,15 +2,19 @@ import React, { useState, useRef } from 'react';
 import { useItems } from '@context/ItemsContext';
 import ItemsList from '@components/layout/Sidebars/SidebarDayView/ItemsList';
 import ConfirmationModal from '@components/common/ConfirmationModal';
+import PremiumModal from '@components/Premium/PremiumModal';
+import { Crown } from 'lucide-react';
 import '@styles/layouts/sidebars/SidebarDayView.css';
 import useItemsForDays from '@hooks/data/useItemsForDays';
 import useAutoScrollOnHover from '@hooks/ui/useAutoScrollOnHover';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@context/AuthContext';
 import usePastItems from '@hooks/data/usePastItems';
+import { useNavigate } from 'react-router-dom';
 
 export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setShowSmall, isRightSidebarPinned, onHover }) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { itemsByDate, setItemsByDate, updateItem, deleteItem, loading } = useItems();
   const { user } = useAuth(); // Get user for premium check
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -22,6 +26,7 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
   const [isHoveringTop, setIsHoveringTop] = useState(false);
   const [isHoveringBottom, setIsHoveringBottom] = useState(false);
   const [showHistory, setShowHistory] = useState(false); // State for history view
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const scrollContainerRef = useRef(null);
   useAutoScrollOnHover(scrollContainerRef, isHoveringTop, isHoveringBottom);
@@ -198,14 +203,23 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
             </div>
           )}
 
-          {isPremium && hasHistory && (
+          {hasHistory && (
             <div
               className="px-4 py-3 border-t cursor-pointer hover:bg-[var(--color-bg-secondary)] transition-colors"
               style={{ borderColor: 'var(--color-border)' }}
-              onClick={() => setShowHistory(!showHistory)}
+              onClick={() => {
+                if (isPremium) {
+                  setShowHistory(!showHistory);
+                } else {
+                  setShowPremiumModal(true);
+                }
+              }}
             >
-              <div className="text-center font-medium text-xs text-[var(--color-text-primary)]">
+              <div className="text-center font-medium text-xs text-[var(--color-text-primary)] flex items-center justify-center gap-1">
                 {showHistory ? t('sidebar.viewUpcoming') : t('sidebar.viewHistory')}
+                {!isPremium && !showHistory && (
+                  <Crown size={14} style={{ color: 'var(--color-accent)' }} title={t('premium.upgradeToPremium')} />
+                )}
               </div>
             </div>
           )}
@@ -222,6 +236,12 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         confirmText={t('common.delete')}
         cancelText={t('common.cancel')}
         isDangerous={true}
+      />
+
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onUpgrade={() => navigate('/pricing')}
       />
     </div >
   );

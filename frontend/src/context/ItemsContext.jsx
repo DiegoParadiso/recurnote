@@ -205,7 +205,7 @@ export const ItemsProvider = ({ children }) => {
     const y = Number(merged.y);
     const angle = Number(merged.angle ?? 0);
     const distance = Number(merged.distance ?? 120);
-    const width = Number(merged.width ?? (merged.label === 'Tarea' ? 200 : 150));
+    const width = Number(merged.width ?? (merged.label === 'Tarea' ? 200 : 200));
     const height = Number(merged.height ?? (merged.label === 'Tarea' ? 120 : 80));
 
 
@@ -217,7 +217,7 @@ export const ItemsProvider = ({ children }) => {
       y: Number.isFinite(y) ? y : distance * Math.sin((angle * Math.PI) / 180),
       angle: Number.isFinite(angle) ? angle : 0,
       distance: Number.isFinite(distance) ? distance : 120,
-      width: Number.isFinite(width) ? width : (merged.label === 'Tarea' ? 200 : 150),
+      width: Number.isFinite(width) ? width : (merged.label === 'Tarea' ? 200 : 200),
       height: Number.isFinite(height) ? height : (merged.label === 'Tarea' ? 120 : 80),
     };
 

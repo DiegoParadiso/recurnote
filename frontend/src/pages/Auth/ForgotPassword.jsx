@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import BottomToast from '@components/common/BottomToast.jsx';
 import EmptyLogo from '@components/common/EmptyLogo.jsx';
+import Loader from '@components/common/Loader.jsx';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
 import useIsMobile from '@hooks/useIsMobile';
 
@@ -64,6 +65,8 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
+      {loading && <Loader size={120} fullScreen={true} />}
+
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
       <div
@@ -73,7 +76,10 @@ export default function ForgotPassword() {
           zIndex: 'var(--z-base)',
           maxWidth: '450px',
           width: '100%',
-          margin: '0 auto'
+          margin: '0 auto',
+          filter: loading ? 'blur(4px)' : 'none',
+          pointerEvents: loading ? 'none' : 'auto',
+          transition: 'filter 0.3s ease'
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -104,17 +110,8 @@ export default function ForgotPassword() {
             className="submit-button"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }}
           >
-            {loading ? (
-              <>
-                <span style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                {t('forgot.sending')}
-              </>
-            ) : (
-              <>
-                <Send size={18} />
-                {t('forgot.sendCta')}
-              </>
-            )}
+            <Send size={18} />
+            {t('forgot.sendCta')}
           </button>
         </form>
 
