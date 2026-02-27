@@ -65,7 +65,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
-      {loading && <Loader size={120} fullScreen={true} />}
+      {loading && <Loader size={145} fullScreen={true} />}
 
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 

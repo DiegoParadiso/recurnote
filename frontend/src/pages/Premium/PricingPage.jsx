@@ -90,22 +90,12 @@ const PricingPage = () => {
         return savings;
     };
 
-    if (loading) {
-        return (
-            <div className="pricing-page">
-                <div className="pricing-header">
-                    <button onClick={() => navigate(-1)} className="back-button">
-                        <ArrowLeft size={24} />
-                    </button>
-                    <h1>{t('pricing.title')}</h1>
-                </div>
-                <div className="pricing-loading"><Loader size={150} /></div>
-            </div>
-        );
-    }
+    // Replace early skeleton with an overlay inside the main return
+    // (We simply let it flow into the main return below)
 
     return (
-        <div className="pricing-page">
+        <div className="pricing-page" style={{ position: 'relative', overflow: 'hidden' }}>
+            {loading && <Loader size={120} fullScreen={true} />}
             <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
             <div className="pricing-header">
                 <button onClick={() => navigate(-1)} className="back-button">

@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import '@styles/auth.css';
 import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import BottomToast from '@components/common/BottomToast.jsx';
+import Loader from '@components/common/Loader.jsx';
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
@@ -13,12 +14,12 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
   useEffect(() => {
     const verifyEmail = async () => {
       const token = searchParams.get('token');
-      
+
       if (!token) {
         setStatus('error');
         setMessage('Token de verificación no encontrado');
@@ -55,7 +56,6 @@ export default function VerifyEmail() {
   }, [searchParams]);
 
   const handleResendVerification = async () => {
-    // Implementar reenvío de verificación
     navigate('/resend-verification');
   };
 
@@ -63,27 +63,12 @@ export default function VerifyEmail() {
     navigate('/login');
   };
 
-  if (loading) {
-    return (
-      <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
-        <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-        
-        <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
-          <h2>Verificando email...</h2>
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Verificando tu cuenta...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
+      {loading && <Loader size={145} fullScreen={true} />}
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-      
-      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
+
+      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>
         <div className={`verification-status ${status}`}>
           {status === 'success' ? (
             <>
@@ -93,12 +78,17 @@ export default function VerifyEmail() {
               <p className="status-description">
                 Tu cuenta ha sido activada exitosamente. Ya puedes iniciar sesión y comenzar a usar RecurNote.
               </p>
-              <button 
+              <button
                 onClick={handleGoToLogin}
                 className="submit-button"
               >
                 Ir al login
               </button>
+            </>
+          ) : status === 'verifying' ? (
+            <>
+              <h2>Verificando email...</h2>
+              <p className="status-description">Espera un momento.</p>
             </>
           ) : (
             <>
@@ -106,17 +96,17 @@ export default function VerifyEmail() {
               <h2>Error en la verificación</h2>
               <p className="status-message">{message}</p>
               <p className="status-description">
-                El enlace de verificación no es válido o ha expirado. 
+                El enlace de verificación no es válido o ha expirado.
                 Puedes solicitar un nuevo enlace de verificación.
               </p>
               <div className="verification-actions">
-                <button 
+                <button
                   onClick={handleResendVerification}
                   className="submit-button secondary"
                 >
                   Reenviar verificación
                 </button>
-                <button 
+                <button
                   onClick={handleGoToLogin}
                   className="submit-button"
                 >
@@ -128,10 +118,9 @@ export default function VerifyEmail() {
         </div>
       </div>
 
-      {/* Toast para mensajes */}
-      <BottomToast 
-        message={message} 
-        onClose={() => setMessage('')} 
+      <BottomToast
+        message={message}
+        onClose={() => setMessage('')}
         duration={5000}
         type={status === 'success' ? 'success' : 'error'}
       />

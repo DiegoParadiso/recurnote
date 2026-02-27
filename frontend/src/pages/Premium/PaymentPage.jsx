@@ -115,7 +115,8 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className="payment-page">
+    <div className="payment-page" style={{ position: 'relative', overflow: 'hidden' }}>
+      {(!paypalConfig || !planId) && <Loader size={145} fullScreen={true} />}
       <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
       <div className="payment-header">
         <button onClick={() => navigate(-1)} className="back-button">
@@ -143,9 +144,7 @@ const PaymentPage = () => {
           </div>
         </div>
 
-        {!paypalConfig ? (
-          <div className="py-8"><Loader size={120} /></div>
-        ) : planId ? (
+        {!paypalConfig || !planId ? null : (
           <PayPalScriptProvider options={initialOptions}>
             <PayPalButtons
               style={{ layout: "vertical", label: "subscribe" }}
@@ -153,8 +152,6 @@ const PaymentPage = () => {
               onApprove={onApprove}
             />
           </PayPalScriptProvider>
-        ) : (
-          <div className="py-8"><Loader size={120} /></div>
         )}
 
         {message && <div className="payment-message">{message}</div>}

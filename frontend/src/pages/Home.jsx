@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { useTranslation } from 'react-i18next';
 import CircleLarge from '@components/Circles/CircleLarge/CircleLarge';
 import CircleSmall from '@components/Circles/CircleSmall/CircleSmall';
+import Loader from '@components/common/Loader';
 import SidebarDayView from '@components/layout/Sidebars/SidebarDayView/SidebarDayView';
 import CurvedSidebar from '@components/layout/Sidebars/CurvedSidebar/CurvedSidebar';
 import ConfigButton from '@components/Preferences/ConfigButton';
@@ -291,6 +292,7 @@ export default function Home() {
     <div
       className={`home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
     >
+      {(itemsLoading || authLoading) && <Loader size={145} fullScreen={true} />}
       {isMobile && (
         <div
           className="fixed top-3 left-0 right-0 sm:hidden flex justify-between items-center px-4"
