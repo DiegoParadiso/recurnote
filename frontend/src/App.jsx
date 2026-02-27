@@ -25,7 +25,7 @@ const PricingPage = lazy(() => import('@pages/Premium/PricingPage'));
 
 function AppRoutes() {
   return (
-    <Suspense fallback={<Loader className="min-h-screen" />}>
+    <Suspense fallback={<Loader fullScreen={true} />}>
       <Routes>
         {/* Ruta pública para Home */}
         <Route path="/" element={<Home />} />

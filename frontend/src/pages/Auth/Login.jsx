@@ -116,6 +116,7 @@ export default function Login() {
   // Login con GitHub
   const handleGitHubLogin = () => {
     try {
+      setLoading(true);
       const backendUrl = getBackendUrl();
       const authUrl = `${backendUrl}/auth/github`;
 
@@ -128,12 +129,21 @@ export default function Login() {
       );
 
       if (!githubLoginWindow.current) {
+        setLoading(false);
         setErrors({ general: t('auth.popupBlocked') || 'Permitir ventanas emergentes' });
         return;
       }
 
+      const checkPopupClosed = setInterval(() => {
+        if (githubLoginWindow.current?.closed) {
+          clearInterval(checkPopupClosed);
+          setLoading(false);
+        }
+      }, 500);
+
       window.addEventListener('message', handleGitHubToken, false);
     } catch (err) {
+      setLoading(false);
       console.error('Error abriendo GitHub OAuth:', err);
       setErrors({ general: t('auth.githubAuthError') || 'Error al iniciar sesión con GitHub' });
     }
@@ -142,6 +152,7 @@ export default function Login() {
   // Login con Google
   const handleGoogleLogin = () => {
     try {
+      setLoading(true);
       const backendUrl = getBackendUrl();
       const authUrl = `${backendUrl}/auth/google`;
 
@@ -154,12 +165,21 @@ export default function Login() {
       );
 
       if (!googleLoginWindow.current) {
+        setLoading(false);
         setErrors({ general: t('auth.popupBlocked') || 'Permitir ventanas emergentes' });
         return;
       }
 
+      const checkPopupClosed = setInterval(() => {
+        if (googleLoginWindow.current?.closed) {
+          clearInterval(checkPopupClosed);
+          setLoading(false);
+        }
+      }, 500);
+
       window.addEventListener('message', handleGoogleToken, false);
     } catch (err) {
+      setLoading(false);
       console.error('Error abriendo Google OAuth:', err);
       setErrors({ general: t('auth.googleAuthError') || 'Error al iniciar sesión con Google' });
     }
