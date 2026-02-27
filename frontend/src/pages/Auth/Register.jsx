@@ -351,7 +351,6 @@ export default function Register() {
         {loading && <Loader size={120} fullScreen={true} />}
 
         <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-
         <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '18px' }}>

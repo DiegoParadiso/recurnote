@@ -81,84 +81,86 @@ const PaymentPage = () => {
     ...initialOptions,
     "client-id": initialOptions["client-id"] ? `${initialOptions["client-id"].substring(0, 5)}...` : 'MISSING'
   });
-  return actions.subscription.create({
-    'plan_id': planId
-  });
-};
 
-const onApprove = async (data, actions) => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5002'}/api/payment/activate-subscription`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        subscriptionId: data.subscriptionID,
-        userId: user?.id
-      }),
+  const createSubscription = (data, actions) => {
+    return actions.subscription.create({
+      'plan_id': planId
     });
+  };
 
-    const result = await response.json();
+  const onApprove = async (data, actions) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5002'}/api/payment/activate-subscription`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriptionId: data.subscriptionID,
+          userId: user?.id
+        }),
+      });
 
-    if (result.success) {
-      setMessage("Subscription active! Redirecting...");
-      await refreshMe();
-      setTimeout(() => navigate('/'), 2000);
-    } else {
-      throw new Error(result.error || 'Activation failed');
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage("Subscription active! Redirecting...");
+        await refreshMe();
+        setTimeout(() => navigate('/'), 2000);
+      } else {
+        throw new Error(result.error || 'Activation failed');
+      }
+    } catch (error) {
+      console.error("Error activating subscription:", error);
+      setMessage(`Activation failed: ${error.message}`);
     }
-  } catch (error) {
-    console.error("Error activating subscription:", error);
-    setMessage(`Activation failed: ${error.message}`);
-  }
-};
+  };
 
-return (
-  <div className="payment-page">
-    <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
-    <div className="payment-header">
-      <button onClick={() => navigate(-1)} className="back-button">
-        <ArrowLeft size={24} />
-      </button>
-      <h1>{t('payment.title')}</h1>
-    </div>
-
-    <div className="payment-content">
-      <div className="selected-plan-info">
-        <h2>{t('payment.selectedPlan')}</h2>
-        <div className="plan-details">
-          <p className="plan-name">
-            {planData.planType === 'monthly' ? t('pricing.monthly') : t('pricing.annual')}
-          </p>
-          <p className="plan-price">
-            {planData.currency === 'ARS' ? planData.price : `$${planData.price}`} {planData.currency}
-            {' '}/{' '}
-            {planData.planType === 'monthly' ? t('pricing.month') : t('pricing.year')}
-          </p>
-        </div>
-        <div className="trial-info">
-          <span className="trial-badge">{t('payment.freeTrial')}</span>
-          <p className="trial-text">{t('payment.trialDescription')}</p>
-        </div>
+  return (
+    <div className="payment-page">
+      <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
+      <div className="payment-header">
+        <button onClick={() => navigate(-1)} className="back-button">
+          <ArrowLeft size={24} />
+        </button>
+        <h1>{t('payment.title')}</h1>
       </div>
 
-      {!paypalConfig ? (
-        <div className="py-8"><Loader size={120} /></div>
-      ) : planId ? (
-        <PayPalScriptProvider options={initialOptions}>
-          <PayPalButtons
-            style={{ layout: "vertical", label: "subscribe" }}
-            createSubscription={createSubscription}
-            onApprove={onApprove}
-          />
-        </PayPalScriptProvider>
-      ) : (
-        <div className="py-8"><Loader size={120} /></div>
-      )}
+      <div className="payment-content">
+        <div className="selected-plan-info">
+          <h2>{t('payment.selectedPlan')}</h2>
+          <div className="plan-details">
+            <p className="plan-name">
+              {planData.planType === 'monthly' ? t('pricing.monthly') : t('pricing.annual')}
+            </p>
+            <p className="plan-price">
+              {planData.currency === 'ARS' ? planData.price : `$${planData.price}`} {planData.currency}
+              {' '}/{' '}
+              {planData.planType === 'monthly' ? t('pricing.month') : t('pricing.year')}
+            </p>
+          </div>
+          <div className="trial-info">
+            <span className="trial-badge">{t('payment.freeTrial')}</span>
+            <p className="trial-text">{t('payment.trialDescription')}</p>
+          </div>
+        </div>
 
-      {message && <div className="payment-message">{message}</div>}
+        {!paypalConfig ? (
+          <div className="py-8"><Loader size={120} /></div>
+        ) : planId ? (
+          <PayPalScriptProvider options={initialOptions}>
+            <PayPalButtons
+              style={{ layout: "vertical", label: "subscribe" }}
+              createSubscription={createSubscription}
+              onApprove={onApprove}
+            />
+          </PayPalScriptProvider>
+        ) : (
+          <div className="py-8"><Loader size={120} /></div>
+        )}
+
+        {message && <div className="payment-message">{message}</div>}
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default PaymentPage;

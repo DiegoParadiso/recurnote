@@ -1,7 +1,7 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-const Loader = ({ className = '', size = 200, fullScreen = false }) => {
+const Loader = ({ className = '', size = 150, fullScreen = false }) => {
     const loaderContent = (
         <div
             className={`opacity-70 dark:invert dark:opacity-90 transition-all duration-300 ${!fullScreen && className}`}
@@ -18,7 +18,7 @@ const Loader = ({ className = '', size = 200, fullScreen = false }) => {
 
     if (fullScreen) {
         return (
-            <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--color-bg)]/60 backdrop-blur-md ${className}`}>
+            <div className={`fixed inset-0 z-[2147483647] flex items-center justify-center bg-[var(--color-bg)]/60 backdrop-blur-md ${className}`}>
                 {loaderContent}
             </div>
         );
