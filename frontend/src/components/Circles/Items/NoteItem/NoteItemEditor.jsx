@@ -92,7 +92,7 @@ export default function NoteItemEditor({
     if (totalRequiredHeight > height) {
       onHeightChange?.(totalRequiredHeight);
     }
-    
+
     // Call onUpdate to save content state into React
     if (markdown !== content) {
       onUpdate?.(id, markdown);
@@ -100,41 +100,27 @@ export default function NoteItemEditor({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-      // Prevent default div insertion if we want just BR?
-      // Or let it be.
-      // If we want to stop editing on Enter (without shift/ctrl/meta):
-      // e.preventDefault();
-      // stopEditing();
-      // el.blur();
-
-      // But usually notes allow newlines.
-      // If the user wants to exit, maybe Escape?
-      // Or click outside.
-      // The original textarea stopped editing on Enter without Shift.
-      // Let's preserve that behavior but allow Ctrl+Enter / Meta+Enter for newlines too.
-
+    // Si no es mobile, el Enter (sin modif) finaliza la edición
+    if (!isMobile && e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      
+
       const el = e.currentTarget;
       const html = el.innerHTML;
       const markdown = htmlToMarkdown(html);
-      
+
       if (markdown !== content) {
         onUpdate?.(id, markdown);
       }
       onFlush?.();
-      
+
       stopEditing();
       e.target.blur();
-    } else if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
-      // Allow newline
-      // contentEditable handles this, but sometimes inserts <div>.
-      // We might want to force <br>.
-      // document.execCommand('insertLineBreak');
-      // e.preventDefault();
     }
+    // Si es teclado físico mac/pc con Shift/Ctrl/Meta + Enter, igual permite línea nueva nativamente.
+    // Si es Mobile y toca Enter nativo del teclado, dejamos que haga el salto de línea por defecto.
+    // No prevenimos el default en mobile con Enter para que \n funcione.
 
+    // Escape siempre sale y cancela foco
     if (e.key === 'Escape') {
       e.preventDefault();
       stopEditing();
@@ -191,7 +177,7 @@ export default function NoteItemEditor({
                 return;
               }
             }
-            
+
             // Check content and force flush when blurring
             const html = e.currentTarget.innerHTML;
             const markdown = htmlToMarkdown(html);
@@ -199,7 +185,7 @@ export default function NoteItemEditor({
               onUpdate?.(id, markdown);
             }
             onFlush?.();
-            
+
             stopEditing();
           }, 0);
         }}

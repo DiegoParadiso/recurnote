@@ -4,7 +4,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 const Loader = ({ className = '', size = 200, fullScreen = false }) => {
     const loaderContent = (
         <div
-            className={`opacity-50 invert dark:invert-0 dark:opacity-60 transition-all duration-300 ${!fullScreen && className}`}
+            className={`opacity-50 invert dark:invert-0 dark:opacity-90 transition-all duration-300 ${!fullScreen && className}`}
             style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
             <DotLottieReact
