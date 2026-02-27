@@ -181,12 +181,13 @@ export default function ConfigPanel({
       <div className="config-panel-backdrop" onClick={onClose} aria-hidden="true" />
 
       <aside role="dialog" aria-modal="true" aria-label="Panel de configuración" className="config-panel">
+        {/* Botón de cierre flotante — solo visible en mobile (header oculto en mobile) */}
+        <button onClick={onClose} aria-label={t('common.close')} className="config-panel-close-btn">
+          ✕
+        </button>
         <main className="config-panel-main">
           <header className="config-panel-header">
             <h2>{t('common.config')}</h2>
-            <button onClick={onClose} aria-label={t('common.close')} className="config-panel-close-btn">
-              ✕
-            </button>
           </header>
           <section className="pt-5 config-section">
             <h3 className="flex items-center">

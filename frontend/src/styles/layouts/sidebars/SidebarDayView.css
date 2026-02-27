@@ -90,3 +90,11 @@ html.dark .sidebar-footer {
   box-shadow: none;
   flex-grow: 1;
 }
+
+@media (max-width: 640px) {
+  .sidebar-header {
+    font-size: 14.5px;
+    /* Scaled down for elegance on mobile */
+    letter-spacing: 0.12em;
+  }
+}

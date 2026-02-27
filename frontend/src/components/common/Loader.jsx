@@ -1,14 +1,18 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useTheme } from '@context/ThemeContext';
+import useIsMobile from '@hooks/useIsMobile';
 
 const Loader = ({ className = '', size = 180, fullScreen = false }) => {
     const { isLightTheme } = useTheme();
+    const isMobile = useIsMobile();
+
+    const effectiveSize = isMobile ? Math.round(size * 0.6) : size;
 
     const loaderContent = (
         <div
             className={`opacity-70 transition-all duration-300 ${!fullScreen && className}`}
-            style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: effectiveSize, height: effectiveSize, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
             <DotLottieReact
                 src={isLightTheme ? "/assets/loading-light.lottie" : "/assets/loading-dark.lottie"}

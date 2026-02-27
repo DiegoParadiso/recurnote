@@ -29,7 +29,8 @@ html[data-contrast='high'] .config-panel {
   padding: 1.5rem;
   background-color: var(--color-bg);
   font-size: 1rem;
-  display: flex;
+  display: none;
+  /* Hidden on all breakpoints */
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--color-border);
@@ -125,37 +126,143 @@ html[data-contrast='high'] .config-panel select:focus-visible {
 
   .config-panel-close-btn {
     display: flex;
-    /* Visible on mobile */
     z-index: 10001;
-    /* Ensure close button is above everything */
+    top: 1rem;
+    /* breathing room from the top edge */
   }
 
   .config-panel-main {
     overflow-x: hidden;
-    /* Prevent horizontal scroll on main container */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     min-width: 100%;
     touch-action: pan-y;
-    /* Allow vertical scroll only */
     overscroll-behavior: contain;
     height: 100%;
-    /* Ensure it takes full height */
+    padding-top: 2rem;
+    /* espacio para el botón ✕ flotante */
     padding-bottom: 2rem;
-    /* Add padding for bottom content */
   }
 
   /* Fix z-index stacking for dropdowns on mobile */
   .config-section {
     position: relative;
     z-index: 1;
+    padding: 0 1.25rem;
+    margin-bottom: 2rem;
+    /* Reducir espacio entre secciones en mobile */
+  }
+
+  /* Header oculto en mobile — aparece solo en desktop */
+  .config-panel-header {
+    display: none;
+  }
+
+  /* Typography Refinements for Mobile */
+  .config-section h3 {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    opacity: 0.65;
+  }
+
+  .config-section p {
+    font-size: 10px;
+    line-height: 1.4;
+    opacity: 0.8;
+  }
+
+  /* Session info row (Hola, Diego) */
+  .session-info {
+    font-size: 11.5px;
+    font-weight: 400;
+    /* Menos pesado */
+    margin-bottom: 0.35rem;
+  }
+
+  .session-info svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* Mobile: logout icon justo al lado del nombre, no del lado derecho */
+  .session-info {
+    width: fit-content;
+  }
+
+  .session-info-name {
+    flex: none;
+  }
+
+  .toggle-option {
+    font-size: 12px;
+    gap: 0.55rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .toggle-label {
+    font-size: 12px;
+  }
+
+  .toggle-switch {
+    width: 2rem;
+    height: 1.1rem;
+  }
+
+  .toggle-thumb {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .toggle-switch.checked .toggle-thumb {
+    transform: translateX(0.875rem);
+  }
+
+  /* Selects más compactos */
+  .config-panel select,
+  .visualization-header-options select,
+  .visualization-header-options>select {
+    font-size: 12px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  /* Labels de selects */
+  .visualization-header-options>label {
+    font-size: 11px;
+  }
+
+  /* Session buttons más compactos */
+  .session-button {
+    font-size: 11.5px;
+    padding: 0.45rem 0.75rem;
+  }
+
+  /* Stat values más pequeños */
+  .stat-value {
+    font-size: 1rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+
+  /* Danger buttons */
+  .danger-button {
+    font-size: 11px;
+    padding: 0.4rem 0.6rem;
+  }
+
+  /* Coming soon */
+  .coming-soon {
+    font-size: 11px;
   }
 
   /* Ensure dropdowns can break out */
   .visualization-header-options {
     position: static;
-    /* Allow fixed children to position relative to viewport */
+    padding: 0.75rem;
+    margin-bottom: 0.35rem;
   }
 }
 
@@ -172,16 +279,14 @@ html[data-contrast='high'] .config-panel select:focus-visible {
 }
 
 .config-section h3 {
-  font-weight: 600;
-  font-size: 0.9rem;
-  font-family: 'Roboto Slab', serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 1rem;
   color: var(--color-text-primary);
   user-select: none;
+  opacity: 0.7;
 }
 
 /* Texto secundario */
@@ -338,13 +443,48 @@ html[data-contrast='high'] .config-panel select:focus-visible {
   gap: 0.5rem;
 }
 
+
 .session-info {
   display: flex;
   align-items: center;
-  font-weight: 600;
+  gap: 0;
+  font-weight: 400;
   color: var(--color-text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
+
+.session-info-name {
+  flex: 1;
+  /* desktop: empuja logout al lado derecho */
+  font-size: 0.925rem;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-logout-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted);
+  padding: 0.2rem;
+  border-radius: 3px;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.75;
+  margin-left: 0.5rem;
+}
+
+.session-logout-icon:hover {
+  color: var(--color-text-primary);
+  opacity: 1;
+}
+
 
 .session-button.register {
   background-color: var(--color-highlight);
@@ -572,14 +712,11 @@ html.dark .limit-warning svg {
 .danger-zone h4 {
   color: var(--color-text-primary);
   margin: 0 0 0.75rem 0;
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: 'Roboto Slab', serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  letter-spacing: 0.07em;
+  opacity: 0.7;
 }
 
 .warning-text {
@@ -712,14 +849,11 @@ html[data-contrast='high'] .danger-button:disabled {
 .confirmation-modal h4 {
   margin: 0 0 0.5rem 0;
   color: var(--color-text-primary);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: 'Roboto Slab', serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  letter-spacing: 0.07em;
+  opacity: 0.7;
 }
 
 .confirmation-modal p {

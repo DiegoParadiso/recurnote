@@ -14,16 +14,20 @@ export default function SessionOptions() {
       {user ? (
         <>
           <div className="session-info">
-            <User size={16} style={{ marginRight: 8 }} />
-            <span>
+            <User size={22} style={{ marginRight: 8, flexShrink: 0 }} />
+            <span className="session-info-name">
               {t('session.greet')}{' '}
               {user.name || user.email || t('session.user')}
             </span>
+            <button
+              className="session-logout-icon"
+              onClick={() => logout()}
+              title={t('session.logout')}
+              aria-label={t('session.logout')}
+            >
+              <LogOut size={20} />
+            </button>
           </div>
-          <button className="session-button logout" onClick={() => logout()}>
-            <LogOut size={16} style={{ marginRight: 6 }} />
-            {t('session.logout')}
-          </button>
         </>
       ) : (
         <>
