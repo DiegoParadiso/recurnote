@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useItems } from '@context/ItemsContext';
 import ItemsList from '@components/layout/Sidebars/SidebarDayView/ItemsList';
 import ConfirmationModal from '@components/common/ConfirmationModal';
@@ -27,6 +27,13 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
   const [isHoveringBottom, setIsHoveringBottom] = useState(false);
   const [showHistory, setShowHistory] = useState(false); // State for history view
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+
+  // Auto-switch back to upcoming days if history becomes empty
+  useEffect(() => {
+    if (showHistory && !hasHistory) {
+      setShowHistory(false);
+    }
+  }, [hasHistory, showHistory]);
 
   const scrollContainerRef = useRef(null);
   useAutoScrollOnHover(scrollContainerRef, isHoveringTop, isHoveringBottom);
@@ -195,18 +202,9 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
         </div>
 
         <div className="flex flex-col border-t" style={{ borderColor: 'var(--color-border)', paddingBottom: isMobile ? 'calc(1rem + env(safe-area-inset-bottom))' : 0 }}>
-          {!showHistory && (
-            <div className="px-4 py-3">
-              <div className="text-center" style={{ fontSize: '10px', color: 'var(--color-muted)' }}>
-                {t('sidebar.shownFrom')} <strong>{new Date().toLocaleDateString(i18n.language || 'en')}</strong>
-              </div>
-            </div>
-          )}
-
           {hasHistory && (
             <div
-              className="px-4 py-3 border-t cursor-pointer hover:bg-[var(--color-bg-secondary)] transition-colors"
-              style={{ borderColor: 'var(--color-border)' }}
+              className="px-4 py-3 cursor-pointer hover:bg-[var(--color-bg-secondary)] transition-colors"
               onClick={() => {
                 if (isPremium) {
                   setShowHistory(!showHistory);
@@ -220,6 +218,14 @@ export default function SidebarDayView({ setSelectedDay, isMobile, onClose, setS
                 {!isPremium && !showHistory && (
                   <Crown size={14} style={{ color: 'var(--color-accent)' }} title={t('premium.upgradeToPremium')} />
                 )}
+              </div>
+            </div>
+          )}
+
+          {!showHistory && (
+            <div className={`px-4 py-3 ${hasHistory ? 'border-t' : ''}`} style={{ borderColor: 'var(--color-border)' }}>
+              <div className="text-center" style={{ fontSize: '10px', color: 'var(--color-muted)' }}>
+                {t('sidebar.shownFrom')} <strong>{new Date().toLocaleDateString(i18n.language || 'en')}</strong>
               </div>
             </div>
           )}

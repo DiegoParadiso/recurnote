@@ -416,6 +416,7 @@ const es = {
     unlockFullPotential: 'Desbloquea todo el potencial',
     upgradeNow: 'Mejorar ahora',
     freeTrial: 'Prueba gratis por 7 días',
+    modalTitle: 'Actualizá tu experiencia',
   },
   payment: {
     title: 'Finalizar compra',

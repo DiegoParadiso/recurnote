@@ -258,6 +258,12 @@ export default function Login() {
       {loading && <Loader size={145} fullScreen={true} />}
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
       <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>
+        {/* Header */}
+        <div className="auth-title-area">
+          <p className="auth-eyebrow">RecurNote</p>
+          <h2>{t('auth.loginTitle')}</h2>
+        </div>
+
         {/* Botón de Google */}
         <button
           type="button"

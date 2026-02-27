@@ -416,6 +416,7 @@ const en = {
     unlockFullPotential: 'Unlock full potential',
     upgradeNow: 'Upgrade now',
     freeTrial: 'Free 7-day trial',
+    modalTitle: 'Upgrade your experience',
   },
   payment: {
     title: 'Checkout',

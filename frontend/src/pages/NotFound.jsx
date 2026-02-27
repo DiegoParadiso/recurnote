@@ -18,57 +18,70 @@ export default function NotFound() {
 
   return (
     <div
-      className="min-h-screen w-screen flex flex-col items-center justify-center px-4"
+      className="min-h-screen w-screen flex flex-col items-center justify-center p-6"
       style={{
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text-primary)',
+        overflow: 'hidden'
       }}
     >
-      <div className="flex flex-col items-center justify-center text-center gap-4 max-w-md">
+      <div className="flex flex-col items-center justify-center text-center max-w-md w-full"
+        style={{
+          background: 'var(--color-bg)',
+          padding: '2.5rem 2rem',
+          borderRadius: '20px',
+          border: '1px solid color-mix(in oklab, var(--color-text-primary) 10%, transparent)',
+          boxShadow: '0 20px 48px rgba(0, 0, 0, 0.07), 0 4px 12px rgba(0, 0, 0, 0.04)',
+          position: 'relative',
+          zIndex: 'var(--z-base)'
+        }}>
         <img
           src={isDark ? '/assets/error-2.png' : '/assets/error.png'}
-          alt=""
-          className="h-[30rem] w-auto max-w-full opacity-90"
+          alt="404 Error"
+          className="h-[14rem] object-contain mb-6 opacity-90"
           aria-hidden
         />
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3 mb-6 w-full">
+          <p style={{
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'var(--color-highlight)',
+            margin: '0 0 0.2rem'
+          }}>
+            Error 404
+          </p>
           <h1
-            className="text-4xl font-semibold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            404
-          </h1>
-          <h2
-            className="text-xl"
-            style={{ color: 'var(--color-text-primary)' }}
+            style={{
+              fontSize: '1.75rem',
+              fontWeight: 700,
+              fontFamily: "'Roboto Slab', serif",
+              lineHeight: 1.2,
+              letterSpacing: '-0.02em',
+              color: 'var(--color-text-primary)',
+              margin: 0
+            }}
           >
             {t('notFound.title', 'Página no encontrada')}
-          </h2>
+          </h1>
           <p
-            className="text-sm"
-            style={{ color: 'var(--color-muted)' }}
+            style={{
+              fontSize: '0.85rem',
+              color: 'color-mix(in oklab, var(--color-text-primary) 55%, transparent)',
+              lineHeight: 1.5,
+              margin: '0.25rem 0 0'
+            }}
           >
-            {t('notFound.message', 'Lo sentimos, la página que buscas no existe')}
+            {t('notFound.message', 'Lo sentimos, la página que buscas no existe o ha sido movida.')}
           </p>
         </div>
 
         <button
           onClick={() => navigate('/')}
-          className="px-6 py-3 mt-4 rounded-md transition-colors"
-          style={{
-            backgroundColor: 'var(--color-neutral)',
-            border: '1px solid var(--color-border)',
-            color: 'var(--color-text-primary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-bg-2)';
-            e.currentTarget.style.borderColor = 'var(--color-text-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-neutral)';
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-          }}
+          className="submit-button"
+          style={{ width: '100%', marginTop: '0.5rem' }}
         >
           {t('notFound.backHome', 'Volver al inicio')}
         </button>

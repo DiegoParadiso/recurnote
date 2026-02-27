@@ -266,21 +266,12 @@ export default function ConfigPanel({
                     setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }));
                   }}
                 />
-              </div>
-            )}
-
-            {!isMobile && (
-              <div className="visualization-header-options">
                 <ToggleOption
                   id="toggle-account-indicator"
                   label={t('visual.accountIndicator')}
                   value={displayOptions.showAccountIndicator}
                   onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
                 />
-              </div>
-            )}
-            {!isMobile && (
-              <div className="visualization-header-options">
                 <ToggleOption
                   id="toggle-sidebar-left-pinned"
                   label={t('visual.pinLeftSidebar')}

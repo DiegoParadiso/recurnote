@@ -82,8 +82,10 @@ export default function ForgotPassword() {
           transition: 'filter 0.3s ease'
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <p style={{ color: 'var(--color-muted)', marginTop: '8px', fontSize: '14px' }}>{t('forgot.subtitle')}</p>
+        <div className="auth-title-area">
+          <p className="auth-eyebrow">RecurNote</p>
+          <h2>{t('forgot.title')}</h2>
+          <p className="auth-subtitle">{t('forgot.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit}>

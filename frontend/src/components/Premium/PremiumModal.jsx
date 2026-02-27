@@ -91,6 +91,8 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
           </button>
 
           <div className="modal-header">
+            <p className="modal-eyebrow">Premium</p>
+            <h2 className="modal-title">{t('premium.modalTitle')}</h2>
           </div>
 
           <div className="features-list">

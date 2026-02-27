@@ -1,115 +1,54 @@
-.feature-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    border-radius: 5px;
-    background: var(--color-bg-2);
-    margin-bottom: 1rem;
-    transition: var(--transition-all);
-    border: 1px solid transparent;
-}
-
-.feature-item.premium {
-    background: color-mix(in srgb, var(--color-bg), transparent 50%);
-    border: 1px solid color-mix(in srgb, var(--color-text-secondary), transparent 80%);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(5px);
-}
-
-.feature-icon {
-    color: var(--color-minimal-primary);
-}
-
-.feature-content {
-    flex: 1;
-}
-
-.feature-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-text-primary);
-}
-
-.feature-description {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--color-minimal-secondary);
-    line-height: 1.5;
-}
-
+/* ── Overlay ───────────────────────────────────────────── */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: calc(var(--z-max) + 10);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .modal-overlay.closing {
     opacity: 0;
 }
 
+/* ── Panel ─────────────────────────────────────────────── */
 .modal-content {
-    background: var(--color-premium-overlay);
-    border-radius: 10px;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
+    background: var(--color-bg);
+    border-radius: 20px;
+    width: calc(100% - 2.5rem);
+    max-width: 420px;
+    max-height: 92dvh;
     position: relative;
-    transform: translateY(0) scale(1);
-    transition: var(--transition-normal);
-    border: 1px solid color-mix(in srgb, var(--color-text-primary), transparent 92%);
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--color-text-primary) 10%, transparent);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    /* Clips the logo */
-}
-
-.modal-scroll-content {
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 2.5rem 2rem;
-    flex: 1;
-    position: relative;
-    z-index: 1;
+    transform: translateY(0) scale(1);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.14), 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .modal-overlay.closing .modal-content {
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(16px) scale(0.97);
+    opacity: 0;
 }
 
+/* ── Background logo watermark ─────────────────────────── */
 .modal-background-logo {
     position: absolute;
-    bottom: -15%;
-    right: -15%;
-    top: auto;
-    left: auto;
-    transform: rotate(-15deg);
-    width: 60%;
+    bottom: -10%;
+    right: -12%;
+    width: 55%;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.15;
-    /* Darker for light mode (was 0.05 in theme) */
-    filter: brightness(var(--logo-brightness)) invert(var(--logo-invert)) contrast(var(--logo-contrast));
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Dark mode adjustments */
-:global(html.dark) .modal-background-logo {
-    opacity: var(--logo-opacity);
-    /* Use theme default for dark mode */
+    opacity: 0.07;
+    filter: brightness(var(--logo-brightness, 0)) invert(var(--logo-invert, 0)) contrast(var(--logo-contrast, 1));
 }
 
 .modal-background-logo img {
@@ -118,56 +57,125 @@
     object-fit: contain;
 }
 
+/* ── Scroll wrapper ────────────────────────────────────── */
+.modal-scroll-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2rem 1.75rem 1.75rem;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Close button ──────────────────────────────────────── */
 .close-button {
     position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
+    top: 1rem;
+    right: 1rem;
     background: none;
     border: none;
-    color: var(--color-minimal-secondary);
+    color: color-mix(in oklab, var(--color-text-primary) 55%, transparent);
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 0.4rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: var(--transition-all);
+    transition: color 0.2s ease, background 0.2s ease;
     z-index: 2;
+    opacity: 0.6;
 }
 
+.close-button:hover {
+    opacity: 1;
+    background: color-mix(in oklab, var(--color-text-primary) 8%, transparent);
+}
+
+/* ── Header ────────────────────────────────────────────── */
 .modal-header {
     text-align: center;
-    margin-bottom: 2rem;
-    padding: 0 1rem;
-    position: relative;
-    z-index: 1;
+    margin-bottom: 1.75rem;
+    padding-top: 0.5rem;
+}
+
+.modal-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-highlight);
+    margin: 0 0 0.6rem;
 }
 
 .modal-title {
-    font-size: 1.85rem;
-    font-weight: 800;
-    margin: 0 0 0.75rem 0;
+    font-size: 1.45rem;
+    font-weight: 700;
     color: var(--color-text-primary);
-    letter-spacing: -0.02em;
-}
-
-.modal-subtitle {
-    color: var(--color-text-secondary);
     margin: 0;
-    font-size: 1.05rem;
-    line-height: 1.5;
-    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    font-family: 'Roboto Slab', serif;
+    -webkit-font-smoothing: antialiased;
 }
 
+/* ── Feature list ──────────────────────────────────────── */
 .features-list {
-    margin-bottom: 2.5rem;
-    position: relative;
-    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.75rem;
 }
 
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-text-primary) 7%, transparent);
+}
+
+.feature-item:first-child {
+    border-top: 1px solid color-mix(in oklab, var(--color-text-primary) 7%, transparent);
+}
+
+.feature-item.premium {
+    background: none;
+    border-left: none;
+}
+
+.feature-icon {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-text-primary);
+    opacity: 0.55;
+}
+
+.feature-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.feature-title {
+    margin: 0 0 0.15rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+}
+
+.feature-description {
+    margin: 0;
+    font-size: 0.78rem;
+    color: color-mix(in oklab, var(--color-text-primary) 55%, transparent);
+    line-height: 1.45;
+}
+
+/* ── Footer ────────────────────────────────────────────── */
 .modal-footer {
     text-align: center;
-    padding: 0 1rem;
     position: relative;
     z-index: 1;
 }
@@ -176,17 +184,18 @@
     background: var(--color-text-primary);
     color: var(--color-bg);
     border: none;
-    border-radius: 8px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
+    border-radius: 12px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     width: 100%;
-    transition: var(--transition-all);
+    letter-spacing: 0.01em;
+    transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
 .upgrade-button:hover {
-    letter-spacing: 0.5px;
+    opacity: 0.88;
 }
 
 .upgrade-button:active {
@@ -194,20 +203,19 @@
 }
 
 .free-trial {
-    color: var(--color-minimal-secondary);
-    font-size: 0.9rem;
-    margin: 1.25rem 0 0 0;
-    font-weight: 500;
+    color: color-mix(in oklab, var(--color-text-primary) 50%, transparent);
+    font-size: 0.78rem;
+    margin: 0.9rem 0 0;
 }
 
+/* ── Mobile ────────────────────────────────────────────── */
 @media (max-width: 480px) {
     .modal-content {
-        width: 95%;
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
+        width: calc(100% - 1.5rem);
+        border-radius: 18px;
     }
 
-    .modal-title {
-        font-size: 1.6rem;
+    .modal-scroll-content {
+        padding: 1.75rem 1.25rem 1.5rem;
     }
 }

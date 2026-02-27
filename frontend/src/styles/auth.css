@@ -1,37 +1,67 @@
-/* src/styles/auth.css */
+/* ═══════════════════════════════════════════════
+   auth.css – RecurNote Auth Pages
+   ═══════════════════════════════════════════════ */
 
+/* ── Container ─────────────────────────────────── */
 .auth-container {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 2rem;
   position: relative;
   overflow: hidden;
+  gap: 1.5rem;
 }
 
+/* ── Brand label above the box ─────────────────── */
+.auth-title-area {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.auth-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-highlight);
+  margin: 0 0 0.55rem;
+}
+
+/* ── Card ──────────────────────────────────────── */
 .auth-box {
-  background-color: var(--color-neutral);
-  padding: 2rem;
-  border-radius: 4px;
-  box-shadow: none;
+  background-color: var(--color-bg);
+  padding: 2.25rem 2rem;
+  border-radius: 20px;
   width: 100%;
-  max-width: 465px;
-  border: 1px solid var(--color-neutral-dark);
+  max-width: 440px;
+  border: 1px solid color-mix(in oklab, var(--color-text-primary) 10%, transparent);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.07), 0 4px 12px rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: var(--z-base);
 }
 
 .auth-box h2 {
-  margin-bottom: 2rem;
-  font-size: 1.25rem;
-  font-weight: 500;
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
   text-align: center;
   color: var(--color-text-primary);
   font-family: 'Roboto Slab', serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.auth-subtitle {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  color: color-mix(in oklab, var(--color-text-primary) 50%, transparent);
+  text-align: center;
+  line-height: 1.5;
 }
 
 .auth-box form {
@@ -40,23 +70,24 @@
   gap: 1rem;
 }
 
-/* Grupos de formulario */
+/* ── Form groups ───────────────────────────────── */
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-/* Inputs */
+/* ── Inputs ────────────────────────────────────── */
 .auth-box input {
   padding: 0.6rem 0.9rem;
   border: none;
-  border-bottom: 1px solid var(--color-neutral-darker);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-text-primary) 15%, transparent);
   background-color: transparent;
   color: var(--color-text-primary);
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
 
 .auth-box input:focus {
@@ -64,14 +95,14 @@
 }
 
 .auth-box input::placeholder {
-  color: var(--color-muted);
+  color: color-mix(in oklab, var(--color-text-primary) 35%, transparent);
 }
 
 .auth-box input.error {
   border-bottom: 1px solid var(--color-error);
 }
 
-/* Contenedor de contraseña con toggle */
+/* ── Password toggle ───────────────────────────── */
 .password-input-container {
   position: relative;
   display: flex;
@@ -84,8 +115,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--color-muted);
+  color: color-mix(in oklab, var(--color-text-primary) 35%, transparent);
   padding: 0.25rem;
   transition: color 0.2s;
   display: flex;
@@ -97,39 +127,37 @@
   color: var(--color-text-primary);
 }
 
-/* Mensajes de error */
+/* ── Errors ────────────────────────────────────── */
 .error-message {
   color: var(--color-error);
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  margin-top: 0.2rem;
 }
 
 .general-error {
   text-align: center;
-  padding: 0.5rem;
-  background: color-mix(in srgb, var(--color-error) 10%, transparent);
-  border-radius: 4px;
-  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in oklab, var(--color-error) 8%, transparent);
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklab, var(--color-error) 25%, transparent);
+  font-size: 0.82rem;
 }
 
-/* Mensaje de éxito */
+/* ── Success ───────────────────────────────────── */
 .success-message {
   text-align: center;
-  padding: 0.75rem;
-  background: rgba(73, 80, 87, 0.1);
-  /* Gris con transparencia */
-  border-radius: 4px;
-  border: 1px solid rgba(73, 80, 87, 0.3);
-  /* Gris con transparencia */
-  color: var(--color-minimal-primary);
-  /* Gris oscuro */
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in oklab, var(--color-text-primary) 6%, transparent);
+  border-radius: 10px;
+  border: 1px solid color-mix(in oklab, var(--color-text-primary) 12%, transparent);
+  color: var(--color-text-primary);
+  font-size: 0.88rem;
+  margin-bottom: 1.25rem;
 }
 
-/* Checkbox personalizado */
+/* ── Checkbox ──────────────────────────────────── */
 .checkbox-group {
-  margin: 1rem 0;
+  margin: 0.75rem 0;
 }
 
 .checkbox-label {
@@ -137,11 +165,9 @@
   align-items: flex-start;
   gap: 0.75rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.4;
   position: relative;
-  margin-left: 0;
-  /* Alinear con el borde izquierdo */
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -156,7 +182,6 @@
   color: var(--color-text-primary);
   flex: 1;
   padding-left: 26px;
-  /* Espacio para el checkbox */
   position: relative;
 }
 
@@ -164,12 +189,11 @@
   content: '';
   position: absolute;
   left: 0;
-  /* Alineado con el borde izquierdo del texto */
   top: 0px;
   width: 18px;
   height: 18px;
-  border: 2px solid var(--color-minimal-secondary);
-  border-radius: 4px;
+  border: 1.5px solid color-mix(in oklab, var(--color-text-primary) 30%, transparent);
+  border-radius: 5px;
   background-color: transparent;
   transition: all 0.2s ease;
 }
@@ -178,13 +202,10 @@
   content: '';
   position: absolute;
   left: 9px;
-  /* Mitad del checkbox (18px / 2) */
   top: 9px;
-  /* Mitad del checkbox (18px / 2) */
   width: 12px;
   height: 12px;
-  color: var(--color-minimal-primary);
-  /* Gris oscuro para el check */
+  color: var(--color-text-primary);
   font-size: 11px;
   font-weight: bold;
   line-height: 12px;
@@ -192,22 +213,20 @@
   opacity: 0;
   transition: opacity 0.2s ease;
   transform: translate(-50%, -50%);
-  /* Centrar perfectamente */
 }
 
 .checkbox-label:hover .checkbox-text::before {
-  border-color: var(--color-minimal-primary);
+  border-color: var(--color-text-primary);
 }
 
 .checkbox-label input[type="checkbox"]:focus+.checkbox-text::before {
-  outline: 2px solid var(--color-minimal-primary);
+  outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-text::before {
   background-color: transparent;
-  /* Sin fondo */
-  border-color: var(--color-minimal-primary);
+  border-color: var(--color-text-primary);
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-text::after {
@@ -219,129 +238,105 @@
   border-color: var(--color-error);
 }
 
-.checkbox-label input[type="checkbox"].error:checked+.checkbox-text::before {
-  background-color: var(--color-error);
-  border-color: var(--color-error);
-}
-
 .link-terms {
-  color: var(--color-minimal-primary);
+  color: var(--color-text-primary);
   text-decoration: underline;
-  transition: color 0.2s;
+  text-underline-offset: 2px;
+  transition: opacity 0.2s;
 }
 
 .link-terms:hover {
-  color: var(--color-minimal-accent);
+  opacity: 0.7;
 }
 
-/* Botón de envío */
+/* ── Submit button ─────────────────────────────── */
 .submit-button {
-  margin-top: 1rem;
-  padding: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
   color: var(--color-bg);
-  background-color: var(--color-button-login);
-  font-weight: 500;
+  background-color: var(--color-text-primary);
+  font-weight: 600;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: var(--color-text-primary);
+  opacity: 0.85;
+}
+
+.submit-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .submit-button:disabled {
-  color: var(--color-neutral-dark);
-  background-color: var(--color-muted);
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-
-.submit-button.secondary:hover {
-  background-color: var(--color-neutral-darker);
-}
-
-.github-login {
-  padding: 0.75rem;
-  width: 100%;
-  background: var(--color-neutral);
-  color: var(--color-text-primary);
-  font-weight: 600;
-  font-size: 1rem;
-  border: 1px solid var(--color-neutral-dark);
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.50rem;
-  box-shadow: 0 2px 8px 0 rgba(80, 80, 80, .05);
-  transition: background 0.2s, border 0.2s, box-shadow 0.2s;
-  z-index: var(--z-base);
-}
-
+/* ── Social login buttons (CSS baseline) ───────── */
+.github-login,
 .gmail-login {
-  padding: 0.75rem;
+  padding: 0.7rem;
   width: 100%;
-  background: var(--color-neutral);
+  background: color-mix(in oklab, var(--color-text-primary) 4%, transparent);
   color: var(--color-text-primary);
-  font-weight: 600;
-  font-size: 1rem;
-  border: 1px solid var(--color-neutral-dark);
-  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.92rem;
+  border: 1px solid color-mix(in oklab, var(--color-text-primary) 12%, transparent);
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 0.50rem;
-  box-shadow: 0 2px 8px 0 rgba(80, 80, 80, .05);
-  transition: background 0.2s, border 0.2s, box-shadow 0.2s;
-  z-index: var(--z-base);
+  margin-bottom: 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
-.github-login:active {
-  background: var(--color-neutral-dark);
+.github-login:hover,
+.gmail-login:hover {
+  border-color: color-mix(in oklab, var(--color-text-primary) 28%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.github-login svg {
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-  color: var(--color-text-primary);
+.github-login:active,
+.gmail-login:active {
+  transform: translateY(0);
 }
 
-/* Footer de autenticación */
+/* ── Auth footer ───────────────────────────────── */
 .auth-footer {
-  margin-top: 2rem;
+  margin-top: 1.75rem;
   text-align: center;
-  font-size: 0.85rem;
-  color: var(--color-muted);
+  font-size: 0.83rem;
 }
 
 .auth-footer a {
   color: var(--color-text-primary);
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
+  transition: opacity 0.2s;
 }
 
 .auth-footer a:hover {
-  text-decoration: underline;
+  opacity: 0.65;
 }
 
-/* Estados de verificación */
+/* ── Verification states ───────────────────────── */
 .verification-status {
   text-align: center;
 }
 
 .status-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 3rem;
   border-radius: 50%;
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -349,25 +344,25 @@
 }
 
 .status-icon.success {
-  background-color: rgba(73, 80, 87, 0.2);
-  color: var(--color-minimal-primary);
+  background: color-mix(in oklab, var(--color-text-primary) 8%, transparent);
+  color: var(--color-text-primary);
 }
 
 .status-icon.error {
-  background-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
   color: var(--color-error);
 }
 
 .status-message {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
   color: var(--color-text-primary);
 }
 
 .status-description {
-  font-size: 0.9rem;
-  color: var(--color-muted);
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--color-text-primary) 55%, transparent);
   line-height: 1.5;
   margin-bottom: 2rem;
 }
@@ -375,59 +370,46 @@
 .verification-actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-/* Spinner de carga */
+/* ── Loader ────────────────────────────────────── */
 .loading-spinner {
   text-align: center;
   padding: 2rem 0;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--color-neutral-darker);
-  border-top: 4px solid var(--color-minimal-primary);
+  width: 36px;
+  height: 36px;
+  border: 3px solid color-mix(in oklab, var(--color-text-primary) 12%, transparent);
+  border-top: 3px solid var(--color-text-primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.9s linear infinite;
   margin: 0 auto 1rem;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
+  to {
     transform: rotate(360deg);
   }
 }
 
 .loading-spinner p {
-  color: var(--color-muted);
-  font-size: 0.9rem;
+  color: color-mix(in oklab, var(--color-text-primary) 50%, transparent);
+  font-size: 0.85rem;
 }
 
-/* Responsive */
+/* ── Responsive ────────────────────────────────── */
 @media (max-width: 768px) {
   .auth-box {
     max-width: 100%;
-    margin: 1rem;
-    padding: 1.5rem;
+    border-radius: 18px;
+    padding: 1.75rem 1.25rem;
   }
 
   .auth-container {
     padding: 1rem;
-  }
-
-  .verification-actions {
-    flex-direction: column;
-  }
-
-  .status-icon {
-    width: 60px;
-    height: 60px;
-    font-size: 3rem;
+    gap: 1rem;
   }
 }

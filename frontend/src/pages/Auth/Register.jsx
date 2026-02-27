@@ -516,116 +516,122 @@ export default function Register() {
 
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>         <form onSubmit={handleSubmit}>
-        {/* Nombre */}
-        <div className="form-group">
-          <input
-            type="text"
-            name="name"
-            placeholder={t('auth.namePlaceholder')}
-            value={formData.name}
-            onChange={handleChange}
-            className={submitted && errors.name ? 'error' : ''}
-            required
-          />
+      <div className="auth-box" style={{ position: 'relative', zIndex: 'var(--z-base)', filter: loading ? 'blur(4px)' : 'none', pointerEvents: loading ? 'none' : 'auto', transition: 'filter 0.3s ease' }}>
+        {/* Header */}
+        <div className="auth-title-area">
+          <p className="auth-eyebrow">RecurNote</p>
+          <h2>{t('auth.registerTitle')}</h2>
         </div>
-
-        {/* Email */}
-        <div className="form-group">
-          <input
-            type="email"
-            name="email"
-            placeholder={t('auth.emailPlaceholder')}
-            value={formData.email}
-            onChange={handleChange}
-            className={submitted && errors.email ? 'error' : ''}
-            required
-          />
-        </div>
-
-        {/* Contraseña */}
-        <div className="form-group">
-          <div className="password-input-container">
+        <form onSubmit={handleSubmit}>
+          {/* Nombre */}
+          <div className="form-group">
             <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              placeholder={t('auth.passwordPlaceholder')}
-              value={formData.password}
+              type="text"
+              name="name"
+              placeholder={t('auth.namePlaceholder')}
+              value={formData.name}
               onChange={handleChange}
-              className={submitted && errors.password ? 'error' : ''}
+              className={submitted && errors.name ? 'error' : ''}
               required
             />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
           </div>
 
-
-          {/* Indicador de fortaleza de contraseña */}
-          {formData.password && <PasswordStrength password={formData.password} />}
-        </div>
-
-        {/* Confirmar contraseña */}
-        <div className="form-group">
-          <div className="password-input-container">
+          {/* Email */}
+          <div className="form-group">
             <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              name="confirmPassword"
-              placeholder={t('auth.confirmPasswordPlaceholder')}
-              value={formData.confirmPassword}
+              type="email"
+              name="email"
+              placeholder={t('auth.emailPlaceholder')}
+              value={formData.email}
               onChange={handleChange}
-              className={submitted && errors.confirmPassword ? 'error' : ''}
+              className={submitted && errors.email ? 'error' : ''}
               required
             />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
           </div>
 
-        </div>
+          {/* Contraseña */}
+          <div className="form-group">
+            <div className="password-input-container">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder={t('auth.passwordPlaceholder')}
+                value={formData.password}
+                onChange={handleChange}
+                className={submitted && errors.password ? 'error' : ''}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
 
-        {/* Términos y condiciones */}
-        <div className="form-group checkbox-group">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="acceptTerms"
-              checked={formData.acceptTerms}
-              onChange={handleChange}
-              className={submitted && errors.acceptTerms ? 'error' : ''}
-            />
-            <span className="checkbox-text">
-              {t('auth.accept')}{' '}
-              <Link to="/terms" className="link-terms">
-                {t('auth.terms')}
-              </Link>
-              {' '}{t('auth.and')}{' '}
-              <Link to="/privacy" className="link-terms">
-                {t('auth.privacy')}
-              </Link>
-            </span>
-          </label>
 
-        </div>
+            {/* Indicador de fortaleza de contraseña */}
+            {formData.password && <PasswordStrength password={formData.password} />}
+          </div>
 
-        {/* Botón de envío */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="submit-button"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-        >
-          {t('auth.registerCta')}
-        </button>
-      </form>
+          {/* Confirmar contraseña */}
+          <div className="form-group">
+            <div className="password-input-container">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={submitted && errors.confirmPassword ? 'error' : ''}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
+          </div>
+
+          {/* Términos y condiciones */}
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="acceptTerms"
+                checked={formData.acceptTerms}
+                onChange={handleChange}
+                className={submitted && errors.acceptTerms ? 'error' : ''}
+              />
+              <span className="checkbox-text">
+                {t('auth.accept')}{' '}
+                <Link to="/terms" className="link-terms">
+                  {t('auth.terms')}
+                </Link>
+                {' '}{t('auth.and')}{' '}
+                <Link to="/privacy" className="link-terms">
+                  {t('auth.privacy')}
+                </Link>
+              </span>
+            </label>
+
+          </div>
+
+          {/* Botón de envío */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="submit-button"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            {t('auth.registerCta')}
+          </button>
+        </form>
 
         <div className="auth-footer">
           <p>
