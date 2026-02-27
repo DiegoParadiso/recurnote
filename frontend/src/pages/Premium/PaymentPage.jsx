@@ -17,6 +17,7 @@ const PaymentPage = () => {
   const [paypalConfig, setPaypalConfig] = useState(null);
   const [message, setMessage] = useState('');
   const [planId, setPlanId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Get plan data from navigation state
   const planData = location.state || {
@@ -27,9 +28,15 @@ const PaymentPage = () => {
   };
 
   useEffect(() => {
+    let timeoutId;
     const fetchConfigAndPlan = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+        // Hard fail-safe: if the API doesn't resolve in 10s, kill the loader anyway.
+        timeoutId = setTimeout(() => {
+          setLoading(false);
+        }, 10000);
 
         // 1. Fetch PayPal Configuration (Client ID)
         const configResponse = await fetch(`${apiUrl}/api/payment/config`);
@@ -62,10 +69,15 @@ const PaymentPage = () => {
       } catch (error) {
         console.error("Error initializing payment:", error);
         setMessage("Error loading payment details");
+      } finally {
+        clearTimeout(timeoutId);
+        setLoading(false);
       }
     };
 
     fetchConfigAndPlan();
+
+    return () => clearTimeout(timeoutId);
   }, [planData]);
 
   const initialOptions = {
@@ -116,7 +128,7 @@ const PaymentPage = () => {
 
   return (
     <div className="payment-page" style={{ position: 'relative', overflow: 'hidden' }}>
-      {(!paypalConfig || !planId) && <Loader size={145} fullScreen={true} />}
+      {loading && <Loader size={145} fullScreen={true} />}
       <img src={isLightTheme ? "/assets/carrito.png" : "/assets/carrito2.png"} className="bg-illustration" alt="" aria-hidden="true" />
       <div className="payment-header">
         <button onClick={() => navigate(-1)} className="back-button">

@@ -18,22 +18,49 @@ const PricingPage = () => {
         // Detect user location and get exchange rate
         const detectLocationAndRate = async () => {
             try {
-                // Detect country using ipapi.co (free, no key required)
-                const locationResponse = await fetch('https://ipapi.co/json/');
-                const locationData = await locationResponse.json();
-                const isFromArgentina = locationData.country_code === 'AR';
+                let isFromArgentina = false;
+
+                // Primary: ipapi.co (Can hit 429 rate limit)
+                try {
+                    const locationResponse = await fetch('https://ipapi.co/json/');
+                    if (locationResponse.ok) {
+                        const locationData = await locationResponse.json();
+                        isFromArgentina = locationData.country_code === 'AR';
+                    } else {
+                        throw new Error('ipapi limit reached');
+                    }
+                } catch (e) {
+                    // Fallback: country.is (Simple, no keys)
+                    try {
+                        const fallbackResponse = await fetch('https://api.country.is/');
+                        if (fallbackResponse.ok) {
+                            const fallbackData = await fallbackResponse.json();
+                            isFromArgentina = fallbackData.country === 'AR';
+                        }
+                    } catch (err) {
+                        // Ultimate fallback: Browser timezone guess
+                        isFromArgentina = Intl.DateTimeFormat().resolvedOptions().timeZone.includes('Buenos_Aires');
+                    }
+                }
+
                 setIsArgentina(isFromArgentina);
 
                 // Get exchange rate if from Argentina
                 if (isFromArgentina) {
-                    const rateResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-                    const rateData = await rateResponse.json();
-                    setExchangeRate(rateData.rates.ARS);
+                    try {
+                        const rateResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                        if (rateResponse.ok) {
+                            const rateData = await rateResponse.json();
+                            setExchangeRate(rateData.rates.ARS);
+                        }
+                    } catch (e) {
+                        console.error('Failed to grab exchange rates', e);
+                    }
                 }
             } catch (error) {
-                console.error('Error detecting location or exchange rate:', error);
+                console.error('Critical error in pricing loading sequence:', error);
             } finally {
-                setLoading(false);
+                setLoading(false); // ALWAYS release the loader
             }
         };
 
