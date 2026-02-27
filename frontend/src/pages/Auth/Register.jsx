@@ -203,6 +203,10 @@ export default function Register() {
             else if (errorMsg.includes('términos')) serverErrors.acceptTerms = errorMsg;
             else serverErrors.general = errorMsg;
           });
+          // Siempre mostrar algo en el toast aunque el error sea de un campo específico
+          if (!serverErrors.general) {
+            serverErrors.general = data.message || Object.values(serverErrors)[0] || t('auth.registerError');
+          }
           setErrors(serverErrors);
         } else {
           setErrors({ general: data.message || t('auth.registerError') });
