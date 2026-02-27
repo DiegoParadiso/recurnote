@@ -17,9 +17,6 @@
   <!-- Manifest -->
   <link rel="manifest" href="/assets/site.webmanifest" />
 
-  <!-- Preload Critical Loading Animation -->
-  <link rel="preload" href="/assets/loading-light.lottie" as="fetch" type="application/json" crossorigin="anonymous" />
-
   <title>Recurnote – Notes by Date</title>
 
   <!-- Open Graph / Facebook -->
@@ -53,7 +50,48 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <style>
+      #initial-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-bg, #ffffff);
+        z-index: 2147483647;
+      }
+
+      #initial-loader dotlottie-player {
+        opacity: 0.7;
+        transition: all 0.3s;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #initial-loader {
+          background-color: var(--color-bg, #1a1a1a);
+        }
+
+        #initial-loader dotlottie-player {
+          opacity: 0.9;
+        }
+      }
+    </style>
+    <div id="initial-loader">
+      <script type="module"
+        src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"></script>
+      <script>
+        // Check local storage theme explicitly or fallback to system preference
+        const savedTheme = localStorage.getItem('theme');
+        const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const lottieUrl = isDark ? '/assets/loading-dark.lottie' : '/assets/loading-light.lottie';
+        document.write(`<dotlottie-player src="${lottieUrl}" background="transparent" speed="1" style="width: 180px; height: 180px;" loop autoplay></dotlottie-player>`);
+      </script>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

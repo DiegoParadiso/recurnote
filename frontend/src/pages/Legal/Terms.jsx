@@ -14,23 +14,13 @@ export default function Terms() {
   return (
     <div className="legal-container" style={{ position: 'relative', overflow: 'hidden' }}>
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-      
+
       <div className="legal-content" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
         <div className="legal-header">
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'var(--color-highlight)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 20px',
-            transition: 'var(--transition-colors)'
-          }}>
-            <FileText style={{ width: '32px', height: '32px', color: 'var(--color-neutral)' }} />
+          <div className="legal-header-icon">
+            <FileText size={22} />
           </div>
-          
+
           <h1>{t('legal.terms.title')}</h1>
           <p className="legal-date">{t('legal.terms.lastUpdated')}: {dateStr}</p>
         </div>
@@ -99,8 +89,8 @@ export default function Terms() {
         </div>
 
         <div className="legal-footer">
-          <Link 
-            to="/register" 
+          <Link
+            to="/register"
             className="back-button"
             style={{
               display: 'inline-flex',

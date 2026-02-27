@@ -14,24 +14,14 @@ export default function Privacy() {
   return (
     <div className="legal-container" style={{ position: 'relative', overflow: 'hidden' }}>
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-      
+
       <div className="legal-content" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
         <div className="legal-header">
           {/* Icono de escudo */}
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'var(--color-highlight)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 20px',
-            transition: 'var(--transition-colors)'
-          }}>
-            <Shield style={{ width: '32px', height: '32px', color: 'var(--color-neutral)' }} />
+          <div className="legal-header-icon">
+            <Shield size={22} />
           </div>
-          
+
           <h1>{t('legal.privacy.title')}</h1>
           <p className="legal-date">{t('legal.privacy.lastUpdated')}: {dateStr}</p>
         </div>
@@ -132,8 +122,8 @@ export default function Privacy() {
         </div>
 
         <div className="legal-footer">
-          <Link 
-            to="/register" 
+          <Link
+            to="/register"
             className="back-button"
             style={{
               display: 'inline-flex',
