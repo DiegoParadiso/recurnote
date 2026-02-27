@@ -106,14 +106,24 @@ export function limitPositionInsideScreen(newX, newY, w, h) {
   const halfHeight = h / 2;
   const screenWidth = document.documentElement.clientWidth;
   const screenHeight = document.documentElement.clientHeight;
-  const screenMargin = 16;
 
-  const minX = halfWidth + screenMargin;
-  const maxX = screenWidth - halfWidth - screenMargin;
-  const minY = halfHeight + screenMargin;
-  const maxY = screenHeight - halfHeight - screenMargin;
-  const limitedX = Math.max(minX, Math.min(maxX, newX));
-  const limitedY = Math.max(minY, Math.min(maxY, newY));
+  // The mobile circle container in Home.jsx has paddingLeft/Right: 4px,
+  // making it start at viewport x=4 with width=screenWidth-8.
+  // Item coords are LOCAL to the container (0 = viewport x=4).
+  // To get symmetric 16px viewport margins on both sides:
+  //   viewport left margin:  4 + (local center - halfWidth) = 16  → local minX = halfWidth + 12
+  //   viewport right margin: screenWidth - 4 - (local center + halfWidth) = 16 → local maxX = screenWidth - halfWidth - 20
+  const minX = halfWidth + 12;
+  const maxX = screenWidth - halfWidth - 20;
 
-  return { x: limitedX, y: limitedY };
+  // Reserve top area for the date text display (≈ 12% of screen height)
+  const topOffset = screenHeight * 0.12;
+
+  const minY = Math.max(halfHeight + 16, topOffset + halfHeight);
+  const maxY = screenHeight - halfHeight - 64; // clear the MobileBottomControls (bottom: 1rem + 2rem buttons ≈ 48px + buffer)
+
+  return {
+    x: Math.max(minX, Math.min(maxX, newX)),
+    y: Math.max(minY, Math.min(maxY, newY)),
+  };
 }

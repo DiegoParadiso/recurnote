@@ -318,14 +318,8 @@ export default function Home() {
             <RefreshButton
               onClick={refreshItems}
               loading={syncStatus === 'syncing'}
+              isDesktop={true}
             />
-          </div>
-          <div
-            className="w-10 h-10 flex items-center justify-center"
-            aria-label="Toggle tema oscuro móvil"
-            style={{ pointerEvents: 'auto' }} // Solo este botón captura eventos
-          >
-            <ThemeToggle />
           </div>
         </div>
       )}
