@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, AlertTriangle, Crown } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import BottomToast from '@components/common/BottomToast';
 import { useAuth } from '@context/AuthContext';
 import { useItems } from '@context/ItemsContext';
@@ -142,15 +142,7 @@ export default function DataManagementOptions() {
           </div>
         )}
 
-        {!itemLimit && user?.is_vip && (
-          <div className="stat-item full-width premium-info">
-            <span className="stat-label">{t('data.plan')}:</span>
-            <div className="premium-badge-container" title={t('data.premiumUnlimited')}>
-              <Crown size={16} className="premium-icon" />
-              <span className="premium-badge">{t('data.premiumUnlimited')}</span>
-            </div>
-          </div>
-        )}
+
       </div>
 
       <div className="danger-zone">
