@@ -335,35 +335,19 @@ export default function NoteItem({
                   const newX = localPos.x + deltaX;
                   const newY = localPos.y + deltaY;
 
-                  let valid = true;
-                  if (isSmallScreen) {
-                    valid = true;
-                  } else if (cx !== undefined && cy !== undefined && maxRadius !== undefined) {
-                    const halfW = localSize.width / 2;
-                    const halfH = clamped / 2;
-                    const corners = [
-                      { x: newX - halfW, y: newY - halfH },
-                      { x: newX + halfW, y: newY - halfH },
-                      { x: newX - halfW, y: newY + halfH },
-                      { x: newX + halfW, y: newY + halfH }
-                    ];
-                    for (const c of corners) {
-                      if ((c.x - cx) ** 2 + (c.y - cy) ** 2 > maxRadius ** 2) {
-                        valid = false;
-                        break;
-                      }
-                    }
+                  if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+                    const limited = limitPositionInsideCircle(newX, newY, localSize.width, clamped, { cx, cy }, maxRadius, false, rotation || 0);
+                    newX = limited.x;
+                    newY = limited.y;
                   }
 
-                  if (valid) {
-                    isResizingRef.current = true;
-                    setLocalSize(prev => ({ ...prev, height: clamped }));
-                    setLocalPos({ x: newX, y: newY });
-                    onUpdate?.(id, content, null, { width: localSize.width, height: clamped }, { x: newX, y: newY });
+                  isResizingRef.current = true;
+                  setLocalSize(prev => ({ ...prev, height: clamped }));
+                  setLocalPos({ x: newX, y: newY });
+                  onUpdate?.(id, content, null, { width: localSize.width, height: clamped }, { x: newX, y: newY });
 
-                    // Clear resizing flag after delay
-                    setTimeout(() => { isResizingRef.current = false; }, 100);
-                  }
+                  // Clear resizing flag after delay
+                  setTimeout(() => { isResizingRef.current = false; }, 100);
                 }
               }}
               textareaRef={textareaRef}

@@ -160,6 +160,7 @@ export default function NoteItemEditor({
       <div
         ref={textareaRef}
         contentEditable={isEditing}
+        spellCheck={false}
         className="noteitem-textarea"
         onInput={handleInput}
         onKeyDown={handleKeyDown}

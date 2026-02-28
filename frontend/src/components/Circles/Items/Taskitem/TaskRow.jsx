@@ -98,6 +98,7 @@ export default function TaskRow({
         }}
         contentEditable={!isDragging && (isMobile || editingInputs.has(index))}
         suppressContentEditableWarning={true}
+        spellCheck={false}
         className="taskitem-input" // Reuse class for basic styling
         onInput={(e) => {
           const el = e.currentTarget;
@@ -185,7 +186,7 @@ export default function TaskRow({
         style={{
           flex: 1,
           cursor: isMobile ? 'text' : (editingInputs.has(index) ? 'text' : 'inherit'),
-          opacity: isMobile ? 1 : (editingInputs.has(index) ? 1 : 0.7),
+          opacity: 1, // Changed from isMobile ? 1 : (editingInputs.has(index) ? 1 : 0.7) to always 1
           pointerEvents: isDragging ? 'none' : 'auto',
           backgroundColor: editingInputs.has(index) ? 'var(--color-bg-secondary)' : 'transparent',
           border: editingInputs.has(index) ? '1px solid var(--color-primary)' : '1px solid transparent',

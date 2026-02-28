@@ -9,7 +9,7 @@ import useItemDrag from '../hooks/useItemDrag';
 import useTaskEditing from './hooks/useTaskEditing';
 import useTaskSizing from './hooks/useTaskSizing';
 import TaskRow from './TaskRow';
-import { computePolarFromXY } from '@utils/helpers/geometry';
+import { computePolarFromXY, limitPositionInsideCircle } from '@utils/helpers/geometry';
 import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
 
 import '@styles/components/circles/items/TaskItem.css';
@@ -108,42 +108,80 @@ function TaskItem({
   const [localX, setLocalX] = useState(x);
 
   // Sincronizar localY con props.y, pero solo si no estamos en medio de una compensación local
-  // Usamos un ref para evitar loops o sobreescrituras incorrectas
-  const isCompensatingRef = useRef(false);
+  const isCompensatingYRef = useRef(false);
+  const isCompensatingXRef = useRef(false);
 
   useLayoutEffect(() => {
-    if (!isCompensatingRef.current) {
+    if (!isCompensatingYRef.current) {
       setLocalY(y);
     }
-    isCompensatingRef.current = false;
+    isCompensatingYRef.current = false;
   }, [y]);
 
-  // Sincronizar localX con props.x
   useLayoutEffect(() => {
-    setLocalX(x);
+    if (!isCompensatingXRef.current) {
+      setLocalX(x);
+    }
+    isCompensatingXRef.current = false;
   }, [x]);
 
-  // Compensar la posición Y cuando cambia la altura para mantener el borde superior fijo
-  const prevHeightRef = useRef(computedMinHeight);
+  const { minWidthPx } = useTaskSizing({
+    isMobile,
+    t,
+    inputRefsRef,
+    item,
+    id,
+    computedMinHeight,
+  });
+
+  const computedWidth = Math.max(item.width || 200, minWidthPx);
+
+  // Compensar la posición X e Y cuando cambia el tamaño para mantener el borde superior izquierdo fijo
+  const prevSizeRef = useRef({ width: computedWidth, height: computedMinHeight });
 
   useLayoutEffect(() => {
-    if (prevHeightRef.current !== computedMinHeight) {
-      const delta = computedMinHeight - prevHeightRef.current;
-      if (delta !== 0) {
-        // Si la altura cambia, ajustar Y localmente de inmediato
-        const currentX = localX;
-        const newY = localY + delta / 2;
+    const prevW = prevSizeRef.current.width;
+    const prevH = prevSizeRef.current.height;
 
-        isCompensatingRef.current = true;
+    if (prevW !== computedWidth || prevH !== computedMinHeight) {
+      const deltaW = computedWidth - prevW;
+      const deltaH = computedMinHeight - prevH;
+
+      if (deltaW !== 0 || deltaH !== 0) {
+        const rotRad = (rotationEnabled ? rotation : 0) * (Math.PI / 180);
+        const cos = Math.cos(rotRad);
+        const sin = Math.sin(rotRad);
+
+        // Desplazamiento local necesario para anclar la esquina superior izquierda
+        // Si el ancho crece, el centro se mueve a la derecha relativo al angulo
+        // Si el alto crece, el centro se mueve hacia abajo relativo al angulo
+        const localDx = (deltaW / 2) * cos - (deltaH / 2) * sin;
+        const localDy = (deltaW / 2) * sin + (deltaH / 2) * cos;
+
+        let newX = localX + localDx;
+        let newY = localY + localDy;
+
+        if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+          const limited = limitPositionInsideCircle(newX, newY, computedWidth, computedMinHeight, { cx, cy }, maxRadius, false, rotationEnabled ? rotation : 0);
+          newX = limited.x;
+          newY = limited.y;
+        }
+
+        isCompensatingXRef.current = true;
+        isCompensatingYRef.current = true;
+        setLocalX(newX);
         setLocalY(newY);
-        lastPosRef.current = { x: currentX, y: newY };
+        lastPosRef.current = { x: newX, y: newY };
 
-        // Y persistir el cambio
-        onUpdate?.(id, item.content || [], item.checked || [], null, { x: currentX, y: newY });
+        // Persistir el cambio de tamaño y posición
+        onUpdate?.(id, item.content || [], item.checked || [],
+          { width: computedWidth, height: computedMinHeight },
+          { x: newX, y: newY }
+        );
       }
-      prevHeightRef.current = computedMinHeight;
+      prevSizeRef.current = { width: computedWidth, height: computedMinHeight };
     }
-  }, [computedMinHeight, localY, localX, x, id, onUpdate, item.content, item.checked]);
+  }, [computedWidth, computedMinHeight, localX, localY, rotation, rotationEnabled, id, onUpdate, item.content, item.checked]);
 
   // Sincronizar lastPosRef con la posición actual (incluyendo compensación local)
   // para asegurar que si se hace drop sin mover (click) o drag inmediato, se use la posición correcta
@@ -153,26 +191,6 @@ function TaskItem({
       lastPosRef.current = { x: localX, y: localY };
     }
   }, [localX, localY, isDragging]);
-
-  const { minWidthPx } = useTaskSizing({
-    isMobile,
-    t,
-    inputRefsRef,
-    item,
-    id,
-    onUpdate,
-    computedMinHeight,
-    x: localX,
-    y: localY,
-    rotation: rotationEnabled ? rotation : 0,
-    cx,
-    cy,
-    maxRadius,
-  });
-
-
-
-
 
   const stopEditing = (index, force = false) => {
     stopEditingHook(index);

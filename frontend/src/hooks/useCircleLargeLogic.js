@@ -88,7 +88,8 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
             height,
             circleCenter,
             radius,
-            isSmallScreen
+            isSmallScreen,
+            newAngle
           );
 
           // Si la posición fue limitada, recalculamos la distancia

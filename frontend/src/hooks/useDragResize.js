@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { limitPositionInsideCircle } from '@utils/helpers/geometry';
+import { limitPositionInsideCircle, getRotatedCorners } from '@utils/helpers/geometry';
 
 export const useDragResize = ({
   pos,
@@ -72,76 +72,15 @@ export const useDragResize = ({
 
         let finalPos;
 
-        if (isSmallScreen || fullboardMode) {
-          const limited = limitPositionInsideCircle(
-            x0, y0,
-            sizeRef.current.width, sizeRef.current.height,
-            circleCenter,
-            maxRadius,
-            isSmallScreen || fullboardMode
-          );
-          finalPos = { x: limited.x, y: limited.y };
-        } else {
-          const rotRad = (rotation || 0) * Math.PI / 180;
-          const relX = x0 - cx;
-          const relY = y0 - cy;
-          const desrotX = relX * Math.cos(-rotRad) - relY * Math.sin(-rotRad);
-          const desrotY = relX * Math.sin(-rotRad) + relY * Math.cos(-rotRad);
-          const posDesrotado = { x: cx + desrotX, y: cy + desrotY };
-
-          function esquinasNoRotadas(cx, cy, x, y, w, h) {
-            const halfW = w / 2, halfH = h / 2;
-            const relCorners = [
-              { x: -halfW, y: -halfH },
-              { x: halfW, y: -halfH },
-              { x: -halfW, y: halfH },
-              { x: halfW, y: halfH }
-            ];
-            return relCorners.map(({ x: rx, y: ry }) => ({ x: x + rx, y: y + ry }));
-          }
-          function todasAdentro(cx, cy, corners, radius) {
-            return corners.every(c => {
-              const dx = c.x - cx;
-              const dy = c.y - cy;
-              return Math.sqrt(dx * dx + dy * dy) <= radius + 0.05;
-            });
-          }
-          function limitarCentroByBiseccion(targetX, targetY, cx, cy, w, h, radius) {
-            let corners = esquinasNoRotadas(cx, cy, targetX, targetY, w, h);
-            if (todasAdentro(cx, cy, corners, radius)) {
-              return { x: targetX, y: targetY };
-            }
-            const vx = targetX - cx, vy = targetY - cy;
-            const dist = Math.sqrt(vx * vx + vy * vy);
-            if (dist === 0) return { x: cx, y: cy };
-            let lo = 0, hi = dist, best = { x: cx, y: cy };
-            for (let i = 0; i < 20; i++) {
-              const m = (lo + hi) / 2;
-              const testX = cx + (vx / dist) * m;
-              const testY = cy + (vy / dist) * m;
-              const cornersTest = esquinasNoRotadas(cx, cy, testX, testY, w, h);
-              if (todasAdentro(cx, cy, cornersTest, radius)) {
-                best = { x: testX, y: testY };
-                lo = m;
-              } else {
-                hi = m;
-              }
-            }
-            return best;
-          }
-          const posLimitOrig = limitarCentroByBiseccion(
-            posDesrotado.x, posDesrotado.y,
-            cx, cy,
-            sizeRef.current.width, sizeRef.current.height,
-            maxRadius
-          );
-
-          const limRelX = posLimitOrig.x - cx;
-          const limRelY = posLimitOrig.y - cy;
-          const xFinal = cx + (limRelX * Math.cos(rotRad) - limRelY * Math.sin(rotRad));
-          const yFinal = cy + (limRelX * Math.sin(rotRad) + limRelY * Math.cos(rotRad));
-          finalPos = { x: xFinal, y: yFinal };
-        }
+        const limited = limitPositionInsideCircle(
+          x0, y0,
+          sizeRef.current.width, sizeRef.current.height,
+          circleCenter,
+          maxRadius,
+          isSmallScreen || fullboardMode,
+          rotation
+        );
+        finalPos = { x: limited.x, y: limited.y };
 
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
         rafRef.current = requestAnimationFrame(() => {
@@ -241,24 +180,13 @@ export const useDragResize = ({
           const halfHeight = newHeight / 2;
 
           const startHalfW = resizeStartPos.current.width / 2;
-          const startHalfH = resizeStartPos.current.height / 2;
-          const startCorners = [
-            { x: resizeStartPos.current.x - startHalfW, y: resizeStartPos.current.y - startHalfH },
-            { x: resizeStartPos.current.x + startHalfW, y: resizeStartPos.current.y - startHalfH },
-            { x: resizeStartPos.current.x - startHalfW, y: resizeStartPos.current.y + startHalfH },
-            { x: resizeStartPos.current.x + startHalfW, y: resizeStartPos.current.y + startHalfH }
-          ];
+          const startCorners = getRotatedCorners(resizeStartPos.current.x, resizeStartPos.current.y, resizeStartPos.current.width, resizeStartPos.current.height, rotation);
           const startExcesses = startCorners.map(c => {
             const dist = Math.sqrt((c.x - cx) ** 2 + (c.y - cy) ** 2);
             return Math.max(0, dist - maxRadius);
           });
 
-          const corners = [
-            { x: newX - halfWidth, y: newY - halfHeight },
-            { x: newX + halfWidth, y: newY - halfHeight },
-            { x: newX - halfWidth, y: newY + halfHeight },
-            { x: newX + halfWidth, y: newY + halfHeight }
-          ];
+          const corners = getRotatedCorners(newX, newY, newWidth, newHeight, rotation);
 
           let needsLimit = false;
           for (let i = 0; i < 4; i++) {
@@ -295,14 +223,7 @@ export const useDragResize = ({
               const candX = resizeStartPos.current.x + candDeltaX;
               const candY = resizeStartPos.current.y + candDeltaY;
 
-              const halfW = candW / 2;
-              const halfH = candH / 2;
-              const candCorners = [
-                { x: candX - halfW, y: candY - halfH },
-                { x: candX + halfW, y: candY - halfH },
-                { x: candX - halfW, y: candY + halfH },
-                { x: candX + halfW, y: candY + halfH }
-              ];
+              const candCorners = getRotatedCorners(candX, candY, candW, candH, rotation);
 
               let valid = true;
               for (let j = 0; j < 4; j++) {

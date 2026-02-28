@@ -27,73 +27,75 @@ export function getAngleFromCenter(x, y, containerRef) {
   return angle;
 }
 
-export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false) {
+export function getRotatedCorners(x, y, w, h, rotation = 0) {
+  const halfW = w / 2;
+  const halfH = h / 2;
+  const rotRad = (rotation * Math.PI) / 180;
+  const cos = Math.cos(rotRad);
+  const sin = Math.sin(rotRad);
+
+  const corners = [
+    { dx: -halfW, dy: -halfH },
+    { dx: halfW, dy: -halfH },
+    { dx: -halfW, dy: halfH },
+    { dx: halfW, dy: halfH }
+  ];
+
+  return corners.map(c => ({
+    x: x + c.dx * cos - c.dy * sin,
+    y: y + c.dx * sin + c.dy * cos
+  }));
+}
+
+export function limitPositionInsideCircle(newX, newY, w, h, circleCenter, maxRadius, isSmallScreen = false, rotation = 0) {
   if (isSmallScreen) {
-    return limitPositionInsideScreen(newX, newY, w, h);
+    return limitPositionInsideScreen(newX, newY, w, h, rotation);
   }
 
   const { cx, cy } = circleCenter;
-  const halfWidth = w / 2;
-  const halfHeight = h / 2;
   const safetyMargin = 3;
+  const safeRadius = maxRadius - safetyMargin;
 
-  if (isItemInsideCircle(newX, newY, w, h, circleCenter, maxRadius - safetyMargin)) {
+  // Si ya está adentro, devolver la misma posición
+  if (isItemInsideCircle(newX, newY, w, h, circleCenter, safeRadius, rotation)) {
     return { x: newX, y: newY };
   }
 
-  const dx = newX - cx;
-  const dy = newY - cy;
-  const angle = Math.atan2(dy, dx);
+  // Búsqueda binaria sobre la línea que une el centro con (newX, newY)
+  const vx = newX - cx;
+  const vy = newY - cy;
+  const dist = Math.sqrt(vx * vx + vy * vy);
 
-  const corners = [
-    { x: newX - halfWidth, y: newY - halfHeight },
-    { x: newX + halfWidth, y: newY - halfHeight },
-    { x: newX - halfWidth, y: newY + halfHeight },
-    { x: newX + halfWidth, y: newY + halfHeight },
-  ];
+  if (dist === 0) return { x: cx, y: cy };
 
-  let maxExcess = 0;
+  let lo = 0;
+  let hi = dist;
+  let best = { x: cx, y: cy };
 
-  for (const corner of corners) {
-    const cornerDx = corner.x - cx;
-    const cornerDy = corner.y - cy;
-    const cornerDist = Math.sqrt(cornerDx * cornerDx + cornerDy * cornerDy);
-    const excess = cornerDist - (maxRadius - safetyMargin);
-    if (excess > maxExcess) {
-      maxExcess = excess;
+  for (let i = 0; i < 15; i++) {
+    const m = (lo + hi) / 2;
+    const testX = cx + (vx / dist) * m;
+    const testY = cy + (vy / dist) * m;
+    if (isItemInsideCircle(testX, testY, w, h, circleCenter, safeRadius, rotation)) {
+      best = { x: testX, y: testY };
+      lo = m;
+    } else {
+      hi = m;
     }
   }
 
-  if (maxExcess <= 0) {
-    return { x: newX, y: newY };
-  }
-
-  const currentDist = Math.sqrt(dx * dx + dy * dy);
-  const adjustedDist = Math.max(0, currentDist - maxExcess);
-
-  return {
-    x: cx + adjustedDist * Math.cos(angle),
-    y: cy + adjustedDist * Math.sin(angle),
-  };
+  return best;
 }
 
-export function isItemInsideCircle(x, y, w, h, circleCenter, maxRadius) {
+export function isItemInsideCircle(x, y, w, h, circleCenter, maxRadius, rotation = 0) {
   const { cx, cy } = circleCenter;
-  const halfWidth = w / 2;
-  const halfHeight = h / 2;
-
-  const corners = [
-    { x: x - halfWidth, y: y - halfHeight },
-    { x: x + halfWidth, y: y - halfHeight },
-    { x: x - halfWidth, y: y + halfHeight },
-    { x: x + halfWidth, y: y + halfHeight },
-  ];
+  const corners = getRotatedCorners(x, y, w, h, rotation);
 
   for (const corner of corners) {
     const dx = corner.x - cx;
     const dy = corner.y - cy;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance > maxRadius) {
+    if (distance > maxRadius + 0.05) {
       return false;
     }
   }
@@ -101,26 +103,26 @@ export function isItemInsideCircle(x, y, w, h, circleCenter, maxRadius) {
   return true;
 }
 
-export function limitPositionInsideScreen(newX, newY, w, h) {
-  const halfWidth = w / 2;
-  const halfHeight = h / 2;
+export function limitPositionInsideScreen(newX, newY, w, h, rotation = 0) {
+  const corners = getRotatedCorners(newX, newY, w, h, rotation);
+  const minCx = Math.min(...corners.map(c => c.x));
+  const maxCx = Math.max(...corners.map(c => c.x));
+  const minCy = Math.min(...corners.map(c => c.y));
+  const maxCy = Math.max(...corners.map(c => c.y));
+
+  const boxHalfWidth = Math.max(Math.abs(minCx - newX), Math.abs(maxCx - newX));
+  const boxHalfHeight = Math.max(Math.abs(minCy - newY), Math.abs(maxCy - newY));
+
   const screenWidth = document.documentElement.clientWidth;
   const screenHeight = document.documentElement.clientHeight;
 
-  // The mobile circle container in Home.jsx has paddingLeft/Right: 4px,
-  // making it start at viewport x=4 with width=screenWidth-8.
-  // Item coords are LOCAL to the container (0 = viewport x=4).
-  // To get symmetric 16px viewport margins on both sides:
-  //   viewport left margin:  4 + (local center - halfWidth) = 16  → local minX = halfWidth + 12
-  //   viewport right margin: screenWidth - 4 - (local center + halfWidth) = 16 → local maxX = screenWidth - halfWidth - 20
-  const minX = halfWidth + 12;
-  const maxX = screenWidth - halfWidth - 20;
+  const minX = boxHalfWidth + 12;
+  const maxX = screenWidth - boxHalfWidth - 20;
 
-  // Reserve top area for the date text display (≈ 12% of screen height)
   const topOffset = screenHeight * 0.12;
 
-  const minY = Math.max(halfHeight + 16, topOffset + halfHeight);
-  const maxY = screenHeight - halfHeight - 64; // clear the MobileBottomControls (bottom: 1rem + 2rem buttons ≈ 48px + buffer)
+  const minY = Math.max(boxHalfHeight + 16, topOffset + boxHalfHeight);
+  const maxY = screenHeight - boxHalfHeight - 64;
 
   return {
     x: Math.max(minX, Math.min(maxX, newX)),

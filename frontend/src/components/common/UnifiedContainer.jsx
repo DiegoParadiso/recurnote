@@ -66,7 +66,7 @@ export default function UnifiedContainer({
 
       const limited = limitPositionInsideCircle(
         safeX, safeY, width, height,
-        circleCenter, maxRadius, true
+        circleCenter, maxRadius, true, rotation
       );
       nextPos = { x: limited.x, y: limited.y };
     } else {
@@ -329,9 +329,11 @@ export default function UnifiedContainer({
         style: {
           ...style,
           visibility: ((typeof x !== 'number' || isNaN(x)) || (typeof y !== 'number' || isNaN(y))) ? 'hidden' : (style.visibility || 'visible'),
-          backgroundColor: 'var(--color-neutral)',
+          backgroundColor: 'var(--circle-item-bg, var(--color-neutral))',
+          backdropFilter: 'var(--circle-item-backdrop, none)',
+          WebkitBackdropFilter: 'var(--circle-item-backdrop, none)',
           color: 'var(--color-text-primary)',
-          border: '1px solid var(--color-neutral-darker)',
+          border: 'var(--circle-item-border, 1px solid var(--color-neutral-darker))',
         }
       })}
       data-is-dragging={isCurrentlyDragging()}

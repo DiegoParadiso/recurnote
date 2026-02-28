@@ -109,6 +109,11 @@
   /* Elementos decorativos detrás de todo (ej.: backgrounds) */
   --z-toast: 9999;
 
+  /* Variables para items (notas, tareas, etc.) */
+  --circle-item-bg: var(--color-neutral);
+  --circle-item-backdrop: none;
+  --circle-item-border: 1px solid var(--circle-border-light);
+
   /* Transitions */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
@@ -207,6 +212,11 @@ html.dark {
   /* Color para placeholders */
   --color-empty-text: #b0b0b0;
   /* Texto para elementos sin contenido */
+
+  /* Variables para items (notas, tareas, etc.) */
+  --circle-item-bg: color-mix(in oklab, var(--color-text-primary) 3%, transparent);
+  --circle-item-backdrop: blur(10px);
+  --circle-item-border: 1px solid var(--circle-border-dark);
 
   /* Transitions */
   --transition-fast: 0.2s ease;
