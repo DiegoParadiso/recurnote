@@ -900,60 +900,28 @@ export const ItemsProvider = ({ children }) => {
         rotation_enabled: itemToDuplicate.rotation_enabled ?? true,
         angle: newAngle,
         distance: newDistance,
-        item_data: {
-          label: itemToDuplicate.label,
-          width: itemToDuplicate.width,
-          height: itemToDuplicate.height
-        }
+        label: itemToDuplicate.label,
+        width: itemToDuplicate.width,
+        height: itemToDuplicate.height
       };
 
       // Agregar contenido específico según el tipo de item
       if (itemToDuplicate.label === 'Tarea') {
-        payload.item_data.content = itemToDuplicate.content || [''];
-        payload.item_data.checked = itemToDuplicate.checked || [false];
+        payload.content = itemToDuplicate.content || [''];
+        payload.checked = itemToDuplicate.checked || [false];
       } else if (itemToDuplicate.label === 'Nota') {
-        payload.item_data.content = itemToDuplicate.content || '';
+        payload.content = itemToDuplicate.content || '';
       } else if (itemToDuplicate.label === 'Archivo' && itemToDuplicate.content?.fileData) {
-        payload.item_data.content = {
+        payload.content = {
           fileData: itemToDuplicate.content.fileData,
           base64: itemToDuplicate.content.base64
         };
       }
 
+      // El `addItem` ya se encargó de subirlo al servidor y añadir el placeholder o estado final a itemsByDate.
+      // Por ende, devolver el result de addItem es suficiente, no debemos meterlo al estado "A MANO" otra vez
+      // para evitar doble renderizado fantasma de duplicados.
       const result = await addItem(payload, { fromUndo: true });
-
-      // Ahora agregar el item al estado visual con el ID real del servidor
-      setItemsByDate(prev => {
-        const newState = { ...prev };
-        if (!newState[itemDate]) {
-          newState[itemDate] = [];
-        }
-
-        // Crear el item final combinando datos del servidor con los del original
-        const itemFinal = {
-          ...itemToDuplicate,
-          ...result, // Sobrescribir con datos del servidor 
-          x: newX,
-          y: newY,
-          angle: newAngle,
-          distance: newDistance,
-          label: itemToDuplicate.label || 'Item duplicado',
-          width: itemToDuplicate.width || 150,
-          height: itemToDuplicate.height || 100,
-          _pending: false,
-          _justDuplicated: false
-        };
-
-        addToHistory({
-          type: 'ADD',
-          id: itemFinal.id,
-          item: itemFinal
-        });
-
-        newState[itemDate] = [...newState[itemDate], itemFinal];
-        return newState;
-      });
-
       return result;
     } catch (error) {
       console.error('Error al duplicar item:', error);

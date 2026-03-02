@@ -170,7 +170,6 @@ export default function ArchivoItem({
     // Solo mostrar opciones si hay un archivo subido
     if (item.content?.fileData && item.content?.base64) {
       options.push({ label: 'file.rename', onClick: renameFile });
-      options.push({ label: 'common.duplicate', onClick: handleDuplicate });
 
       // Solo mostrar opción de imagen si es realmente una imagen
       if (isImage) {
