@@ -5,10 +5,15 @@ export default function useRotationControls({
   rotationAngle,
   setRotationAngle,
   rotationSpeed = 2,
+  checkCollision = null,
 }) {
   const isDragging = useRef(false);
   const lastMouseAngle = useRef(null);
-  const prevRotationRef = useRef(rotationAngle);
+  const latestRotationRef = useRef(rotationAngle);
+
+  useEffect(() => {
+    latestRotationRef.current = rotationAngle;
+  }, [rotationAngle]);
 
   // Calcular el ángulo desde el centro del container hacia el mouse
   const getAngleFromCenter = (x, y) => {
@@ -38,10 +43,10 @@ export default function useRotationControls({
     e.preventDefault();
     isDragging.current = true;
     lastMouseAngle.current = getAngleFromCenter(e.clientX, e.clientY);
-    
+
     // Evitar que el evento genere scroll o selección de texto
-    document.body.style.userSelect = 'none'; 
-    document.body.style.touchAction = 'none'; 
+    document.body.style.userSelect = 'none';
+    document.body.style.touchAction = 'none';
   };
 
   // Al mover el mouse durante el arrastre
@@ -58,7 +63,13 @@ export default function useRotationControls({
       if (diff > 180) diff -= 360;
       if (diff < -180) diff += 360;
 
-      setRotationAngle((prev) => Math.round((prev + diff + 360) % 360));
+      const prev = latestRotationRef.current;
+      const newAngle = Math.round((prev + diff + 360) % 360);
+
+      if (!checkCollision || !checkCollision(newAngle)) {
+        latestRotationRef.current = newAngle;
+        setRotationAngle(newAngle);
+      }
     }
 
     lastMouseAngle.current = currentAngle;
@@ -83,18 +94,23 @@ export default function useRotationControls({
     let currentKey = null;
 
     const rotate = () => {
-      setRotationAngle((prev) => {
-        let newAngle = prev;
-        if (isRotating) {
-          if (currentKey === 'ArrowUp' || currentKey === 'ArrowRight') {
-            newAngle = (prev + rotationSpeed) % 360;
-          } else if (currentKey === 'ArrowDown' || currentKey === 'ArrowLeft') {
-            newAngle = (prev - rotationSpeed + 360) % 360;
-          }
-          prevRotationRef.current = newAngle;
-        }
-        return newAngle;
-      });
+      if (!isRotating) return;
+
+      const prev = latestRotationRef.current;
+      let newAngle = prev;
+
+      if (currentKey === 'ArrowUp' || currentKey === 'ArrowRight') {
+        newAngle = (prev + rotationSpeed) % 360;
+      } else if (currentKey === 'ArrowDown' || currentKey === 'ArrowLeft') {
+        newAngle = (prev - rotationSpeed + 360) % 360;
+      }
+
+      if (checkCollision && checkCollision(newAngle)) {
+        isRotating = false;
+      } else {
+        latestRotationRef.current = newAngle;
+        setRotationAngle(newAngle);
+      }
 
       if (isRotating) {
         animationFrameId = requestAnimationFrame(rotate);
@@ -138,14 +154,14 @@ export default function useRotationControls({
       window.removeEventListener('keyup', handleKeyUp);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [rotationSpeed, setRotationAngle]);
+  }, [rotationSpeed, setRotationAngle, checkCollision]);
 
   // Devolver los handlers de mouse para usar en el componente
   return {
     onMouseDown,
     onMouseMove,
     onMouseUp,
-    prevRotationRef,
+    prevRotationRef: latestRotationRef,
     isDragging,
     lastMouseAngle,
     getAngleFromCenter,

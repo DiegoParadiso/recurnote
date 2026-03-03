@@ -3,7 +3,7 @@ import { useItems } from '@context/ItemsContext';
 import { useAuth } from '@context/AuthContext';
 import useRotationControls from '@hooks/useRotationControls';
 import { formatDateKey } from '@utils/formatDateKey';
-import { limitPositionInsideCircle } from '@utils/helpers/geometry';
+import { limitPositionInsideCircle, isItemInsideCircle } from '@utils/helpers/geometry';
 import { getItemDimensions } from '@utils/helpers/itemHelpers';
 
 export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScreen) {
@@ -15,16 +15,41 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
   const [toastMessage, setToastMessage] = useState('');
   const [errorToast, setErrorToast] = useState('');
 
+  // Asegurar que itemsByDate siempre sea un objeto seguro para lecturas
+  const safeCombinedItemsByDate = itemsByDate || {};
+
+  const checkCollision = useCallback((newRotationAngle) => {
+    if (isSmallScreen) return false;
+    if (!selectedDay) return false;
+
+    const dateKey = formatDateKey(selectedDay);
+    const items = safeCombinedItemsByDate[dateKey] || [];
+    if (!items.length) return false;
+
+    const circleCenter = { cx: radius, cy: radius };
+    const safeRadius = radius - 3;
+
+    for (const item of items) {
+      const angleRad = (item.angle * Math.PI) / 180;
+      const itemX = radius + item.distance * Math.cos(angleRad);
+      const itemY = radius + item.distance * Math.sin(angleRad);
+      const { width, height } = getItemDimensions(item);
+
+      if (!isItemInsideCircle(itemX, itemY, width, height, circleCenter, safeRadius, -newRotationAngle)) {
+        return true;
+      }
+    }
+    return false;
+  }, [isSmallScreen, selectedDay, radius, safeCombinedItemsByDate]);
+
   const rotationSpeed = 2;
   const { onMouseDown, onMouseMove, onMouseUp, prevRotationRef } = useRotationControls({
     containerRef,
     rotationAngle,
     setRotationAngle,
     rotationSpeed,
+    checkCollision,
   });
-
-  // Asegurar que itemsByDate siempre sea un objeto seguro para lecturas
-  const safeCombinedItemsByDate = itemsByDate || {};
 
   // Usar refs para evitar recreación de funciones
   const setItemsByDateRef = useRef(setItemsByDate);
@@ -41,80 +66,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
 
 
 
-  useEffect(() => {
-    const delta = (rotationAngle - prevRotationRef.current + 360) % 360;
-    if (delta !== 0 && selectedDay) {
-      const dateKey = formatDateKey(selectedDay);
 
-      // Actualizar el estado visual inmediatamente para todos los items
-      setItemsByDateRef.current((prev) => {
-        const currentItems = prev[dateKey] || [];
-        if (!currentItems.length) return prev;
-
-        const updatedItems = currentItems.map((item) => {
-          const newAngle = (item.angle + delta) % 360;
-
-          // Calcular posición tentativa con el nuevo ángulo
-          // Nota: cx y cy son relativos al centro del círculo para el cálculo de limitPositionInsideCircle
-          // Asumimos que el centro es (radius, radius) si no se pasa explícitamente,
-          // pero limitPositionInsideCircle espera coordenadas absolutas si se usa en contexto de pantalla completa,
-          // o relativas al contenedor si es un círculo.
-          // En este caso, ItemsOnCircle calcula x/y basado en cx/cy del contenedor.
-          // Para simplificar, simulamos un centro en (0,0) para la lógica de "dentro del círculo"
-          // o mejor, usamos la distancia directamente.
-
-          // Sin embargo, limitPositionInsideCircle verifica las esquinas del item (rectangular).
-          // Necesitamos convertir polar -> cartesiano, verificar, y si cambia, actualizar distancia.
-
-          // El radio del círculo visual es 'radius'.
-          // El centro del círculo visual es (radius, radius) aproximadamente (ignorando bordes).
-          // Vamos a usar un centro ficticio grande para evitar problemas de bordes negativos si fuera necesario,
-          // pero lo más correcto es usar el radio que nos pasan.
-
-          const circleCenter = { cx: radius, cy: radius };
-          const angleRad = (newAngle * Math.PI) / 180;
-
-          // Posición tentativa relativa al centro del círculo
-          const tentativeX = radius + item.distance * Math.cos(angleRad);
-          const tentativeY = radius + item.distance * Math.sin(angleRad);
-
-          const { width, height } = getItemDimensions(item);
-
-          // Verificar y limitar
-          const limited = limitPositionInsideCircle(
-            tentativeX,
-            tentativeY,
-            width,
-            height,
-            circleCenter,
-            radius,
-            isSmallScreen,
-            newAngle
-          );
-
-          // Si la posición fue limitada, recalculamos la distancia
-          let newDistance = item.distance;
-          if (limited.x !== tentativeX || limited.y !== tentativeY) {
-            const dx = limited.x - radius;
-            const dy = limited.y - radius;
-            newDistance = Math.sqrt(dx * dx + dy * dy);
-          }
-
-          return {
-            ...item,
-            angle: newAngle,
-            distance: newDistance,
-          };
-        });
-
-        return {
-          ...prev,
-          [dateKey]: updatedItems,
-        };
-      });
-    }
-    prevRotationRef.current = rotationAngle;
-  }, [rotationAngle, selectedDay, radius, isSmallScreen]);
 
   const handleNoteDragStart = (e, itemId) => {
     if (e.dataTransfer) {
