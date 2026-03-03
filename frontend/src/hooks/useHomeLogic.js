@@ -25,6 +25,7 @@ export function useHomeLogic() {
     timeZone: 'America/Argentina/Buenos_Aires',
     timeFormat: '24h',
     showAccountIndicator: false,
+    showLogo: true,
     language: 'auto',
     fullboardMode: false,
   }, [preferences.displayOptions]);

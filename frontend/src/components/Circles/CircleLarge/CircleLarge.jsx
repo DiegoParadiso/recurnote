@@ -219,6 +219,32 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         </div>
       )}
 
+      {/* Non-rotating background wrapper for the logo */}
+      {displayOptions?.showLogo !== false && (
+        <div
+          className={`pointer-events-none ${isSmallScreen
+            ? 'absolute inset-0 z-[0]'
+            : fullboardMode
+              ? 'fixed inset-0'
+              : 'absolute rounded-full overflow-hidden'
+            }`}
+          style={{
+            width: isSmallScreen ? '100%' : (fullboardMode ? '100vw' : circleSize),
+            height: isSmallScreen ? '100dvh' : (fullboardMode ? '100vh' : circleSize),
+            top: 0,
+            left: (isSmallScreen || fullboardMode) ? 0 : '50%',
+            transform: (isSmallScreen || fullboardMode) ? 'none' : 'translateX(-50%)',
+            zIndex: fullboardMode ? 'calc(var(--z-mid) - 1)' : 0,
+          }}
+        >
+          <EmptyLogo
+            circleSize={isSmallScreen ? circleSize * 3 : circleSize * 0.5}
+            isSmallScreen={isSmallScreen}
+            isFullboardMode={fullboardMode}
+          />
+        </div>
+      )}
+
       <div
         ref={containerRef}
         onDragOver={(e) => e.preventDefault()}
@@ -252,14 +278,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           ...((isSmallScreen || fullboardMode) ? {} : getPatternStyles()),
         }}
       >
-        {!selectedDay && (
-          <EmptyLogo
-            circleSize={isSmallScreen ? circleSize * 3 : circleSize * 0.5}
-            isSmallScreen={isSmallScreen}
-            isFullboardMode={fullboardMode}
-          />
-        )}
-
         {selectedDay && (
           <div style={{ transform: (isSmallScreen || fullboardMode) ? 'none' : `rotate(${-rotationAngle}deg)` }}>
             <NotesArea dayInfo={selectedDay} />

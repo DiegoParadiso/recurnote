@@ -31,6 +31,7 @@ const es = {
     pinRightSidebar: 'Fijar sidebar derecho',
     accountIndicator: 'Indicador de cuenta',
     fullboardMode: 'Modo Libre',
+    showLogo: 'Mostrar Logo',
   },
   language: {
     label: 'Idioma',

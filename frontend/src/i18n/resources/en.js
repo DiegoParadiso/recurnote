@@ -31,6 +31,7 @@ const en = {
     pinRightSidebar: 'Pin right sidebar',
     accountIndicator: 'Account indicator',
     fullboardMode: 'Fullboard Mode',
+    showLogo: 'Show Logo',
   },
   language: {
     label: 'Language',

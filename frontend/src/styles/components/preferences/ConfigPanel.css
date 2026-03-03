@@ -448,7 +448,6 @@ html[data-contrast='high'] .config-panel select:focus-visible {
   gap: 0;
   font-weight: 400;
   color: var(--color-text-primary);
-  margin-bottom: 0.25rem;
 }
 
 .session-info-name {

@@ -115,8 +115,6 @@ function PatternSelector({ selectedPattern, onPatternChange, isPremium, onPremiu
   );
 }
 
-// Eliminado: SessionOptions y DataManagementOptions ahora están separados en ./parts
-
 export default function ConfigPanel({
   show,
   onClose,
@@ -264,6 +262,23 @@ export default function ConfigPanel({
                       return;
                     }
                     setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }));
+                  }}
+                />
+                <ToggleOption
+                  id="toggle-show-logo"
+                  label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {t('visual.showLogo')}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)' }} />}
+                    </span>
+                  }
+                  value={displayOptions.showLogo !== false}
+                  onChange={(val) => {
+                    if (!user?.is_vip) {
+                      openPremiumModal();
+                      return;
+                    }
+                    setDisplayOptions((prev) => ({ ...prev, showLogo: val }));
                   }}
                 />
                 <ToggleOption

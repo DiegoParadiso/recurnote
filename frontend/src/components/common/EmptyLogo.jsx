@@ -4,17 +4,17 @@ import logo from '../../assets/logorecurnote.png';
 export default function EmptyLogo({ circleSize, isSmallScreen, isFullboardMode = false }) {
   const fullboardStyles = isFullboardMode
     ? {
-        top: '70%',
-        left: '50%',
-        width: 'min(55vw, 55vh)', 
-        transform: 'translate(-200%, -50%) rotate(45deg)'
-      }
+      top: '70%',
+      left: '50%',
+      width: 'min(55vw, 55vh)',
+      transform: `translate(-200%, -50%) rotate(45deg)`
+    }
     : {
-        top: isSmallScreen ? '30%' : '26%',
-        left: isSmallScreen ? -60 : -30,
-        width: circleSize,
-        transform: 'translate(-20%, -20%) rotate(35deg)'
-      };
+      top: isSmallScreen ? '30%' : '26%',
+      left: isSmallScreen ? -60 : -30,
+      width: circleSize,
+      transform: `translate(-20%, -20%) rotate(35deg)`
+    };
 
   return (
     <img
