@@ -53,67 +53,7 @@ function ComingSoonOption({ label }) {
   );
 }
 
-function PatternSelector({ selectedPattern, onPatternChange, isPremium, onPremiumClick }) {
-  const { t } = useTranslation();
 
-  const isEnabled = isPremium && selectedPattern !== 'none';
-
-  const handleToggle = (enabled) => {
-    if (!isPremium) {
-      onPremiumClick();
-      return;
-    }
-    if (enabled) {
-      // Default to pattern1 if enabling, or keep current if not none (though it would be none if disabled)
-      onPatternChange('pattern1');
-    } else {
-      onPatternChange('none');
-    }
-  };
-
-  const handleInteraction = (e) => {
-    if (!isPremium) {
-      e.preventDefault();
-      e.stopPropagation();
-      onPremiumClick();
-    }
-  };
-
-  return (
-    <>
-      <ToggleOption
-        id="toggle-circle-background"
-        label={
-          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {t('pattern.background')}
-            {!isPremium && <Crown size={14} style={{ color: 'var(--color-text-primary)' }} />}
-          </span>
-        }
-        value={isEnabled}
-        onChange={handleToggle}
-      />
-
-      {isEnabled && (
-        <div onClickCapture={handleInteraction} style={{ marginTop: '0.5rem', paddingLeft: '0.5rem' }}>
-          <CustomSelect
-            value={selectedPattern}
-            onChange={(val) => onPatternChange(val)}
-            options={[
-              { value: 'pattern1', label: t('pattern.pattern1') },
-              { value: 'pattern2', label: t('pattern.pattern2') },
-              { value: 'pattern3', label: t('pattern.pattern3') },
-              { value: 'pattern4', label: t('pattern.pattern4') },
-              { value: 'pattern5', label: t('pattern.pattern5') },
-              { value: 'pattern6', label: t('pattern.pattern6') },
-              { value: 'pattern7', label: t('pattern.pattern7') },
-              { value: 'pattern8', label: t('pattern.pattern8') },
-            ]}
-          />
-        </div>
-      )}
-    </>
-  );
-}
 
 export default function ConfigPanel({
   show,
@@ -230,14 +170,66 @@ export default function ConfigPanel({
               )}
             </div>
             {!isMobile && (
-              <div className="visualization-header-options">
-                <PatternSelector
-                  selectedPattern={selectedPattern}
-                  onPatternChange={handlePatternChange}
-                  isPremium={user?.is_vip}
-                  onPremiumClick={openPremiumModal}
-                />
-              </div>
+              <>
+                <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%' }}>
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>
+                      {t('itemBg.label')}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', marginLeft: '8px', verticalAlign: 'middle' }} />}
+                    </label>
+                    <div style={{ minWidth: '200px' }} onClickCapture={(e) => {
+                      if (!user?.is_vip) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openPremiumModal();
+                      }
+                    }}>
+                      <CustomSelect
+                        value={preferences.itemBackground || 'normal'}
+                        onChange={(val) => {
+                          updatePreference('itemBackground', val);
+                          document.documentElement.setAttribute('data-item-bg', val);
+                        }}
+                        options={[
+                          { value: 'normal', label: t('itemBg.normal') },
+                          { value: 'blur', label: t('itemBg.blur') },
+                          { value: 'liquid', label: t('itemBg.liquid') },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%' }}>
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>
+                      {t('pattern.background')}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', marginLeft: '8px', verticalAlign: 'middle' }} />}
+                    </label>
+                    <div style={{ minWidth: '200px' }} onClickCapture={(e) => {
+                      if (!user?.is_vip) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openPremiumModal();
+                      }
+                    }}>
+                      <CustomSelect
+                        value={selectedPattern || 'none'}
+                        onChange={(val) => handlePatternChange(val)}
+                        options={[
+                          { value: 'none', label: t('pattern.none') },
+                          { value: 'pattern1', label: t('pattern.pattern1') },
+                          { value: 'pattern2', label: t('pattern.pattern2') },
+                          { value: 'pattern3', label: t('pattern.pattern3') },
+                          { value: 'pattern4', label: t('pattern.pattern4') },
+                          { value: 'pattern5', label: t('pattern.pattern5') },
+                          { value: 'pattern6', label: t('pattern.pattern6') },
+                          { value: 'pattern7', label: t('pattern.pattern7') },
+                          { value: 'pattern8', label: t('pattern.pattern8') },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </section>
           <section className="config-section">
@@ -319,114 +311,122 @@ export default function ConfigPanel({
               {t('common.language_region')}
               <HelpIcon text={t('help.language_region')} />
             </h3>
-            <div className="visualization-header-options">
-              <label htmlFor="language-select" style={{ marginBottom: '8px', display: 'block', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{t('language.label')}</label>
-              <CustomSelect
-                value={displayOptions.language || 'auto'}
-                onChange={(lang) => {
-                  setDisplayOptions(prev => ({ ...prev, language: lang }));
-                  // Cambiar idioma inmediatamente
-                  const resolved = lang === 'auto' ? undefined : lang;
-                  i18n.changeLanguage(resolved);
-                  // Persistencia local para modo sin usuario
-                  try {
-                    const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
-                    localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: lang }));
-                  } catch { }
-                  // Guardar en backend si hay token
-                  try {
-                    if (token) {
-                      const prefs = {
-                        ...(user?.preferences || {}),
-                        displayOptions: {
-                          ...(user?.preferences?.displayOptions || {}),
-                          language: lang,
-                        },
-                      };
-                      fetch(`${API_URL}/api/auth/preferences`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ preferences: prefs }),
-                      }).catch(() => { });
-                      // Actualizar user local
-                      const updatedUser = { ...user, preferences: prefs };
-                      updateUser(updatedUser);
-                    }
-                  } catch { }
-                  // Ajustar atributo lang del HTML
-                  document.documentElement.setAttribute('lang', i18n.language || 'en');
-                }}
-                options={[
-                  { value: 'auto', label: t('language.auto') },
-                  { value: 'es', label: t('language.es') },
-                  { value: 'en', label: t('language.en') },
-                ]}
-              />
-
-              <div style={{ marginTop: '16px' }}>
-                <label htmlFor="timezone" style={{ marginBottom: '8px', display: 'block', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{t('timezone.label')}</label>
-                <CustomSelect
-                  value={displayOptions.timeZone}
-                  onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeZone: val }))}
-                  options={[
-                    // América
-                    { value: "America/Argentina/Buenos_Aires", label: "Buenos Aires (GMT-3)" },
-                    { value: "America/Sao_Paulo", label: "São Paulo (GMT-3)" },
-                    { value: "America/Montevideo", label: "Montevideo (GMT-3)" },
-                    { value: "America/Mexico_City", label: "Ciudad de México (GMT-6)" },
-                    { value: "America/New_York", label: "Nueva York (GMT-5)" },
-                    { value: "America/Chicago", label: "Chicago (GMT-6)" },
-                    { value: "America/Los_Angeles", label: "Los Ángeles (GMT-8)" },
-                    { value: "America/Bogota", label: "Bogotá (GMT-5)" },
-                    { value: "America/Lima", label: "Lima (GMT-5)" },
-                    { value: "America/Santiago", label: "Santiago de Chile (GMT-4)" },
-                    { value: "America/Caracas", label: "Caracas (GMT-4)" },
-                    { value: "America/Toronto", label: "Toronto (GMT-5)" },
-                    { value: "America/Havana", label: "La Habana (GMT-5)" },
-                    { value: "America/Anchorage", label: "Anchorage (GMT-9)" },
-                    { value: "America/Juneau", label: "Juneau (GMT-9)" },
-                    { value: "America/Denver", label: "Denver (GMT-7)" },
-                    // Europa
-                    { value: "Europe/Madrid", label: "Madrid (GMT+1)" },
-                    { value: "Europe/London", label: "Londres (GMT+0)" },
-                    { value: "Europe/Berlin", label: "Berlín (GMT+1)" },
-                    { value: "Europe/Paris", label: "París (GMT+1)" },
-                    { value: "Europe/Rome", label: "Roma (GMT+1)" },
-                    { value: "Europe/Moscow", label: "Moscú (GMT+3)" },
-                    { value: "Europe/Amsterdam", label: "Ámsterdam (GMT+1)" },
-                    { value: "Europe/Oslo", label: "Oslo (GMT+1)" },
-                    { value: "Europe/Stockholm", label: "Estocolmo (GMT+1)" },
-                    // Asia
-                    { value: "Asia/Tokyo", label: "Tokio (GMT+9)" },
-                    { value: "Asia/Shanghai", label: "Shanghái (GMT+8)" },
-                    { value: "Asia/Singapore", label: "Singapur (GMT+8)" },
-                    { value: "Asia/Dubai", label: "Dubái (GMT+4)" },
-                    { value: "Asia/Kolkata", label: "India (GMT+5:30)" },
-                    { value: "Asia/Seoul", label: "Seúl (GMT+9)" },
-                    { value: "Asia/Manila", label: "Manila (GMT+8)" },
-                    { value: "Asia/Bangkok", label: "Bangkok (GMT+7)" },
-                    // Oceanía
-                    { value: "Australia/Sydney", label: "Sídney (GMT+10)" },
-                    { value: "Australia/Melbourne", label: "Melbourne (GMT+10)" },
-                    { value: "Pacific/Auckland", label: "Auckland (GMT+12)" },
-                    { value: "Pacific/Honolulu", label: "Honolulu (GMT-10)" },
-                    { value: "Pacific/Fiji", label: "Fiyi (GMT+12)" },
-                    // UTC
-                    { value: "UTC", label: "UTC" },
-                  ]}
-                />
+            <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%' }}>
+                <label htmlFor="language-select" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{t('language.label')}</label>
+                <div style={{ minWidth: '200px' }}>
+                  <CustomSelect
+                    value={displayOptions.language || 'auto'}
+                    onChange={(lang) => {
+                      setDisplayOptions(prev => ({ ...prev, language: lang }));
+                      // Cambiar idioma inmediatamente
+                      const resolved = lang === 'auto' ? undefined : lang;
+                      i18n.changeLanguage(resolved);
+                      // Persistencia local para modo sin usuario
+                      try {
+                        const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
+                        localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: lang }));
+                      } catch { }
+                      // Guardar en backend si hay token
+                      try {
+                        if (token) {
+                          const prefs = {
+                            ...(user?.preferences || {}),
+                            displayOptions: {
+                              ...(user?.preferences?.displayOptions || {}),
+                              language: lang,
+                            },
+                          };
+                          fetch(`${API_URL}/api/auth/preferences`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ preferences: prefs }),
+                          }).catch(() => { });
+                          // Actualizar user local
+                          const updatedUser = { ...user, preferences: prefs };
+                          updateUser(updatedUser);
+                        }
+                      } catch { }
+                      // Ajustar atributo lang del HTML
+                      document.documentElement.setAttribute('lang', i18n.language || 'en');
+                    }}
+                    options={[
+                      { value: 'auto', label: t('language.auto') },
+                      { value: 'es', label: t('language.es') },
+                      { value: 'en', label: t('language.en') },
+                    ]}
+                  />
+                </div>
               </div>
 
-              <div style={{ marginTop: '16px' }}>
-                <label htmlFor="timeFormat" style={{ marginBottom: '8px', display: 'block', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{t('timeformat.label')}</label>
-                <CustomSelect
-                  value={displayOptions.timeFormat}
-                  onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeFormat: val }))}
-                  options={[
-                    { value: '24h', label: t('timeformat.h24') },
-                    { value: '12h', label: t('timeformat.h12') },
-                  ]}
-                />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%' }}>
+                <label htmlFor="timezone" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{t('timezone.label')}</label>
+                <div style={{ minWidth: '200px' }}>
+                  <CustomSelect
+                    value={displayOptions.timeZone}
+                    onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeZone: val }))}
+                    options={[
+                      // América
+                      { value: "America/Argentina/Buenos_Aires", label: "Buenos Aires (GMT-3)" },
+                      { value: "America/Sao_Paulo", label: "São Paulo (GMT-3)" },
+                      { value: "America/Montevideo", label: "Montevideo (GMT-3)" },
+                      { value: "America/Mexico_City", label: "Ciudad de México (GMT-6)" },
+                      { value: "America/New_York", label: "Nueva York (GMT-5)" },
+                      { value: "America/Chicago", label: "Chicago (GMT-6)" },
+                      { value: "America/Los_Angeles", label: "Los Ángeles (GMT-8)" },
+                      { value: "America/Bogota", label: "Bogotá (GMT-5)" },
+                      { value: "America/Lima", label: "Lima (GMT-5)" },
+                      { value: "America/Santiago", label: "Santiago de Chile (GMT-4)" },
+                      { value: "America/Caracas", label: "Caracas (GMT-4)" },
+                      { value: "America/Toronto", label: "Toronto (GMT-5)" },
+                      { value: "America/Havana", label: "La Habana (GMT-5)" },
+                      { value: "America/Anchorage", label: "Anchorage (GMT-9)" },
+                      { value: "America/Juneau", label: "Juneau (GMT-9)" },
+                      { value: "America/Denver", label: "Denver (GMT-7)" },
+                      // Europa
+                      { value: "Europe/Madrid", label: "Madrid (GMT+1)" },
+                      { value: "Europe/London", label: "Londres (GMT+0)" },
+                      { value: "Europe/Berlin", label: "Berlín (GMT+1)" },
+                      { value: "Europe/Paris", label: "París (GMT+1)" },
+                      { value: "Europe/Rome", label: "Roma (GMT+1)" },
+                      { value: "Europe/Moscow", label: "Moscú (GMT+3)" },
+                      { value: "Europe/Amsterdam", label: "Ámsterdam (GMT+1)" },
+                      { value: "Europe/Oslo", label: "Oslo (GMT+1)" },
+                      { value: "Europe/Stockholm", label: "Estocolmo (GMT+1)" },
+                      // Asia
+                      { value: "Asia/Tokyo", label: "Tokio (GMT+9)" },
+                      { value: "Asia/Shanghai", label: "Shanghái (GMT+8)" },
+                      { value: "Asia/Singapore", label: "Singapur (GMT+8)" },
+                      { value: "Asia/Dubai", label: "Dubái (GMT+4)" },
+                      { value: "Asia/Kolkata", label: "India (GMT+5:30)" },
+                      { value: "Asia/Seoul", label: "Seúl (GMT+9)" },
+                      { value: "Asia/Manila", label: "Manila (GMT+8)" },
+                      { value: "Asia/Bangkok", label: "Bangkok (GMT+7)" },
+                      // Oceanía
+                      { value: "Australia/Sydney", label: "Sídney (GMT+10)" },
+                      { value: "Australia/Melbourne", label: "Melbourne (GMT+10)" },
+                      { value: "Pacific/Auckland", label: "Auckland (GMT+12)" },
+                      { value: "Pacific/Honolulu", label: "Honolulu (GMT-10)" },
+                      { value: "Pacific/Fiji", label: "Fiyi (GMT+12)" },
+                      // UTC
+                      { value: "UTC", label: "UTC" },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%' }}>
+                <label htmlFor="timeFormat" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{t('timeformat.label')}</label>
+                <div style={{ minWidth: '200px' }}>
+                  <CustomSelect
+                    value={displayOptions.timeFormat}
+                    onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeFormat: val }))}
+                    options={[
+                      { value: '24h', label: t('timeformat.h24') },
+                      { value: '12h', label: t('timeformat.h12') },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           </section>

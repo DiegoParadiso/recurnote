@@ -178,6 +178,8 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
     }
   }, [toastMessage, onInfoToast, setToastMessage]);
 
+  const isPatternVisible = !isSmallScreen && !fullboardMode && selectedPattern !== 'none' && selectedDay;
+
   return (
     <div
       className="relative select-none uppercase circle-large-container"
@@ -185,6 +187,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         width: '100%',
         height: isSmallScreen ? '100dvh' : (fullboardMode ? '100vh' : circleSize),
         margin: '0 auto',
+        isolation: 'isolate',
       }}
     >
       <CircleBackgroundText
@@ -219,8 +222,24 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
         </div>
       )}
 
+      {/* Background Pattern Layer */}
+      {isPatternVisible && (
+        <div
+          className="absolute inset-0 rounded-full pointer-events-none circle-with-pattern-manual"
+          style={{
+            ...getPatternStyles(),
+            width: circleSize,
+            height: circleSize,
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: -2,
+          }}
+        />
+      )}
+
       {/* Non-rotating background wrapper for the logo */}
-      {displayOptions?.showLogo !== false && (
+      {displayOptions?.showLogo !== false && !isPatternVisible && (
         <div
           className={`pointer-events-none ${isSmallScreen
             ? 'absolute inset-0 z-[0]'
@@ -234,7 +253,7 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
             top: 0,
             left: (isSmallScreen || fullboardMode) ? 0 : '50%',
             transform: (isSmallScreen || fullboardMode) ? 'none' : 'translateX(-50%)',
-            zIndex: fullboardMode ? 'calc(var(--z-mid) - 1)' : 0,
+            zIndex: fullboardMode ? 'calc(var(--z-mid) - 1)' : -1,
           }}
         >
           <EmptyLogo
@@ -261,7 +280,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
               ? 'absolute inset-0 flex items-start justify-center'
               : 'rounded-full border flex items-center justify-center overflow-hidden'
           }
-          ${!isSmallScreen && !fullboardMode && selectedPattern !== 'none' && selectedDay ? 'circle-with-pattern' : ''}
         `}
         style={{
           width: isSmallScreen ? '100%' : (fullboardMode ? '100vw' : circleSize),
@@ -275,7 +293,6 @@ export default function CircleLarge({ showSmall, selectedDay, setSelectedDay, on
           left: fullboardMode ? 0 : undefined,
           overflow: fullboardMode ? 'visible' : undefined,
           zIndex: fullboardMode ? 'var(--z-mid)' : undefined,
-          ...((isSmallScreen || fullboardMode) ? {} : getPatternStyles()),
         }}
       >
         {selectedDay && (

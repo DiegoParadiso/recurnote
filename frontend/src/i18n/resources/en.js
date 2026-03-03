@@ -67,6 +67,12 @@ const en = {
     pattern7: 'Pattern 7',
     pattern8: 'Pattern 8',
   },
+  itemBg: {
+    label: 'Item Background',
+    normal: 'Normal',
+    blur: 'Glassmorphism',
+    liquid: 'Liquid Glass',
+  },
   sidebar: {
     close: 'Close sidebar',
     hide: 'Hide Sidebar',

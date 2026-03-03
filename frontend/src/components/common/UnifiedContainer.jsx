@@ -338,6 +338,7 @@ export default function UnifiedContainer({
           WebkitBackdropFilter: 'var(--circle-item-backdrop, none)',
           color: 'var(--color-text-primary)',
           border: 'var(--circle-item-border, 1px solid var(--color-neutral-darker))',
+          boxShadow: 'var(--circle-item-shadow, none)',
         }
       })}
       data-is-dragging={isCurrentlyDragging()}

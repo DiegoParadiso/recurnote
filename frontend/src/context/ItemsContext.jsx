@@ -331,12 +331,12 @@ export const ItemsProvider = ({ children }) => {
     };
   }, []);
 
-  // Cargar items cuando cambie la autenticación
+  // Cargar items cuando cambie la autenticación (ej. login/logout), no al cambiar preferencias
   useEffect(() => {
     if (!authLoading) {
       loadItems();
     }
-  }, [user, token, authLoading]);
+  }, [user?.id, token, authLoading]);
 
   // Función para recargar items manualmente
   const refreshItems = () => {

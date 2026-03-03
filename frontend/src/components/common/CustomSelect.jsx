@@ -43,8 +43,14 @@ export default function CustomSelect({
     }, []);
 
     useEffect(() => {
-        const handleScroll = () => {
-            if (isOpen) setIsOpen(false);
+        const handleScroll = (event) => {
+            // If the scroll event originated from the dropdown itself, don't close it
+            const target = event.target;
+            const isDropdownScroll = target && target.classList && target.classList.contains('custom-select-options');
+
+            if (isOpen && !isDropdownScroll) {
+                setIsOpen(false);
+            }
         };
 
         if (isOpen) {

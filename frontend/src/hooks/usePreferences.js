@@ -56,8 +56,16 @@ export function usePreferences() {
                 reducedMotion: false,
             },
             circlePattern: 'none',
+            itemBackground: 'normal',
         };
     });
+
+    // Handle initial global attribute for itemBackground
+    useEffect(() => {
+        if (preferences && preferences.itemBackground) {
+            document.documentElement.setAttribute('data-item-bg', preferences.itemBackground);
+        }
+    }, [preferences?.itemBackground]);
 
     // Last successfully saved preferences (for rollback)
     const lastGoodPreferences = useRef(preferences);

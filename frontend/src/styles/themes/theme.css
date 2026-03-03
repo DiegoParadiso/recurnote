@@ -213,9 +213,9 @@ html.dark {
   --color-empty-text: #b0b0b0;
   /* Texto para elementos sin contenido */
 
-  /* Variables para items (notas, tareas, etc.) */
-  --circle-item-bg: color-mix(in oklab, var(--color-text-primary) 3%, transparent);
-  --circle-item-backdrop: blur(10px);
+  /* Variables para items (notas, tareas, etc.) - DEFAULT MUDO (Normal) */
+  --circle-item-bg: var(--color-neutral);
+  --circle-item-backdrop: none;
   --circle-item-border: 1px solid var(--circle-border-dark);
 
   /* Transitions */
@@ -224,6 +224,34 @@ html.dark {
   --transition-slow: 0.7s ease;
   --transition-all: all 0.3s ease;
   --transition-colors: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Modo Blur en Light Theme */
+html[data-item-bg='blur'] {
+  --circle-item-bg: rgba(255, 255, 255, 0.15);
+  --circle-item-backdrop: blur(10px);
+}
+
+/* Modo Blur en Dark Theme */
+html.dark[data-item-bg='blur'] {
+  --circle-item-bg: color-mix(in oklab, var(--color-text-primary) 3%, transparent);
+  --circle-item-backdrop: blur(10px);
+}
+
+/* Modo Liquid Glass en Light Theme */
+html[data-item-bg='liquid'] {
+  --circle-item-bg: rgba(255, 255, 255, 0.08);
+  --circle-item-backdrop: url(#frosted);
+  --circle-item-border: 2px solid transparent;
+  --circle-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Modo Liquid Glass en Dark Theme */
+html.dark[data-item-bg='liquid'] {
+  --circle-item-bg: rgba(255, 255, 255, 0.05);
+  --circle-item-backdrop: url(#frosted);
+  --circle-item-border: 2px solid transparent;
+  --circle-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* (bloque movido abajo para evitar conflictos de cascada) */

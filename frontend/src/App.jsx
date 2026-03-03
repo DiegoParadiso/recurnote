@@ -104,6 +104,16 @@ function App() {
         <ItemsProvider>
           <NotesProvider>
             <GlobalSyncExitListener />
+            {/* Global SVG filter for Liquid Glass backdrop-filter */}
+            <svg style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
+              <defs>
+                <filter id="frosted" primitiveUnits="objectBoundingBox">
+                  <feImage href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAABiMSURBVHgB7Z1bkBXVnca/c87p091Nd3NtGoEGBBEQJIiggCBGRCWOUYlGTarmIdGajJlkzEsmyUMqySSTSh6S2spMMpVM1ZiqSapSk9RkMpOMmozjJS9GUBQFBBqQq1waugU53X1O96kLp3f/vu6/z6W7T5/Tl3P6/6te0bv36tVnn3W+tda/1l4LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAT+D/ARZLBglzgr0AAAAASUVORK5CYII=" x="0" y="0" width="1" height="1" result="map" />
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="0.02" result="blur" />
+                  <feDisplacementMap in="blur" in2="map" scale="1.2" xChannelSelector="R" yChannelSelector="G" />
+                </filter>
+              </defs>
+            </svg>
             <AppRoutes />
           </NotesProvider>
         </ItemsProvider>

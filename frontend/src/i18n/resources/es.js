@@ -67,6 +67,12 @@ const es = {
     pattern7: 'Patrón 7',
     pattern8: 'Patrón 8',
   },
+  itemBg: {
+    label: 'Fondo de Items',
+    normal: 'Normal',
+    blur: 'Glassmorphism',
+    liquid: 'Liquid Glass',
+  },
   sidebar: {
     close: 'Cerrar sidebar',
     hide: 'Ocultar Sidebar',
