@@ -154,7 +154,7 @@ export default function TaskRow({
           e.stopPropagation();
         }}
         onClick={(e) => {
-          if (isMobile && !editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
+          if (!editingInputs.has(index) && !isDragging && !wasDraggingRef.current) {
             startEditing(index);
             focusEditableInput(index);
           }

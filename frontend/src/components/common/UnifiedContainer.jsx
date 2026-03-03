@@ -164,22 +164,26 @@ export default function UnifiedContainer({
     const touch = e.touches[0];
     const target = e.target;
 
-    // No iniciar drag si el touch es sobre un input, textarea o elemento interactivo
     const tag = target.tagName.toLowerCase();
-    if (['input', 'textarea', 'select', 'button', 'a'].includes(tag)) {
-      return;
-    }
 
-    // Verificar si el target es editable o está dentro de un elemento editable
+    // Si el elemento o sus padres explicitamente YA están en isContentEditable === true o contenteditable="true"
+    // ENTONCES denegamos el drag para permitir que el texto interno ruede/seleccione.
     if (target.contentEditable === 'true' || target.isContentEditable) {
       return;
     }
-
-    // Verificar si está dentro de un contenedor editable (como el data-drag-container que tiene inputs dentro)
-    const editableParent = target.closest('input, textarea, [contenteditable="true"]');
+    const editableParent = target.closest('[contenteditable="true"]');
     if (editableParent) {
       return;
     }
+
+    // SI el elemento es un botón explícito no se hace drag.
+    if (['button', 'a'].includes(tag)) {
+      return;
+    }
+
+    // A diferencia de desktop, los inputs y textareas en Recurnote entran en modo edición en click/tap
+    // Para que puedan arrastrarse por el NoteItem vacío, ignoramos su tagname en mobile y solo cortamos 
+    // el inicio si YA es editable.
 
     // Registrar posición inicial para detectar drag vs click
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };

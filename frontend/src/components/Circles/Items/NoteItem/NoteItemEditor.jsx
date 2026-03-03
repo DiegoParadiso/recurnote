@@ -193,13 +193,11 @@ export default function NoteItemEditor({
         onFocus={(e) => {
           // Capture undo state on focus
           captureUndoState?.(id);
-
-          if (isMobile && !isEditing) {
-            startEditing();
-          }
+          // On mobile we don't force startEditing just by touching/focusing.
+          // Let the click event do it instead!
         }}
         onDoubleClick={() => {
-          if (!isMobile && !isEditing && !isDragging) {
+          if (!isEditing && !isDragging) {
             startEditing();
             setTimeout(focusEditor, 0);
           }
