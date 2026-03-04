@@ -57,6 +57,7 @@ export function usePreferences() {
             },
             circlePattern: 'none',
             itemBackground: 'normal',
+            circleSmallBackground: 'normal',
         };
     });
 
@@ -66,6 +67,16 @@ export function usePreferences() {
             document.documentElement.setAttribute('data-item-bg', preferences.itemBackground);
         }
     }, [preferences?.itemBackground]);
+
+    // Handle initial global attribute for circleSmallBackground
+    useEffect(() => {
+        const val = preferences?.circleSmallBackground;
+        if (val && val !== 'normal') {
+            document.documentElement.setAttribute('data-circle-small-bg', val);
+        } else {
+            document.documentElement.removeAttribute('data-circle-small-bg');
+        }
+    }, [preferences?.circleSmallBackground]);
 
     // Last successfully saved preferences (for rollback)
     const lastGoodPreferences = useRef(preferences);

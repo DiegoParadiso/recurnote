@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { useTranslation } from 'react-i18next';
@@ -186,25 +186,35 @@ export default function Home() {
     }
   }, [isMobile, showSmall, circleSmallPos.x, circleSmallPos.y, recenterCircleSmall, fullboardMode, smallSize, setCircleSmallPos]);
 
-  // Reposicionar CircleSmall en el centro cuando se activa fullboard mode
-  // Nota: no dependemos de circleSmallPos para no interferir con el drag
+  // Reposicionar CircleSmall según el modo (fullboard <-> normal)
+  // Se ejecuta cada vez que fullboardMode cambia de valor.
+  const prevFullboardRef = useRef(null);
   useEffect(() => {
-    if (!isMobile && showSmall && fullboardMode) {
+    if (isMobile || !showSmall) return;
+
+    const entering = fullboardMode && prevFullboardRef.current === false;
+    const exiting = !fullboardMode && prevFullboardRef.current === true;
+    prevFullboardRef.current = fullboardMode;
+
+    if (entering) {
+      // Al entrar en fullboard: centrar en pantalla
       const centerX = window.innerWidth / 2 - smallSize / 2;
       const posY = 120; // Debajo del texto de la fecha
-
       setCircleSmallPos({ x: centerX, y: posY });
 
-      // Listener para mantener centrado al redimensionar ventana
+      // Mantenerse centrado al redimensionar mientras esté en fullboard
       const handleResize = () => {
-        const newCenterX = window.innerWidth / 2 - smallSize / 2;
-        setCircleSmallPos({ x: newCenterX, y: posY });
+        setCircleSmallPos({ x: window.innerWidth / 2 - smallSize / 2, y: posY });
       };
-
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
-  }, [fullboardMode, isMobile, showSmall, smallSize, setCircleSmallPos]);
+
+    if (exiting) {
+      // Al salir de fullboard: volver a la posición normal (borde derecho del CircleLarge)
+      recenterCircleSmall();
+    }
+  }, [fullboardMode, isMobile, showSmall, smallSize, setCircleSmallPos, recenterCircleSmall]);
 
   // Memoizar handler de selección de item
   const handleSelectItemLocal = useCallback(async (item) => {

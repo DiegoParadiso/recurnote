@@ -132,6 +132,9 @@ export function useHomeLogic() {
   useEffect(() => {
     if (window.innerWidth <= 640) return;
 
+    // En fullboard mode, la posición la gestiona Home.jsx — no sobrescribir
+    if (displayOptions?.fullboardMode) return;
+
     // Si no hay preferencias guardadas, usar posición por defecto (derecha del CircleLarge)
     let pref = user?.preferences?.ui?.circleSmallPos || user?.preferences?.circle?.smallPosition;
 
@@ -162,7 +165,7 @@ export function useHomeLogic() {
     };
     setCircleSmallPos(initial);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.preferences]);
+  }, [user?.preferences, displayOptions?.fullboardMode]);
 
   // Estado para rastrear si el usuario ya movió el CircleSmall manualmente
   const [hasUserMovedCircle, setHasUserMovedCircle] = useState(false);

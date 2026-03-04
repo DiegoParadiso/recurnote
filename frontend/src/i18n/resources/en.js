@@ -73,6 +73,12 @@ const en = {
     blur: 'Glassmorphism',
     liquid: 'Liquid Glass',
   },
+  circleSmallBg: {
+    label: 'Calendar Background',
+    normal: 'Normal',
+    blur: 'Glassmorphism',
+    liquid: 'Liquid Glass',
+  },
   sidebar: {
     close: 'Close sidebar',
     hide: 'Hide Sidebar',

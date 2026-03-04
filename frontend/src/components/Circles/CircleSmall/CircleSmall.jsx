@@ -164,9 +164,12 @@ export default function CircleSmall({
     width: `${circleSize}px`,
     height: `${circleSize}px`,
     margin: '0 auto',
-    backgroundColor: 'var(--color-bg)',
+    backgroundColor: 'var(--circle-small-bg, var(--color-bg))',
+    backdropFilter: 'var(--circle-small-backdrop, none)',
+    WebkitBackdropFilter: 'var(--circle-small-backdrop, none)',
+    boxShadow: 'var(--circle-small-shadow, none)',
     color: 'var(--color-text-primary)',
-    border: '1px solid var(--circle-border-light)',
+    border: 'var(--circle-small-border, 1px solid var(--circle-border-light))',
     borderRadius: '9999px', // círculo perfecto
     transition: 'none', // Sin transición para cambios de tema
     userSelect: isDragging ? 'none' : 'auto',

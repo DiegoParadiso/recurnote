@@ -110,18 +110,40 @@ export default function useHandleDrop({
         };
 
         if (fullboardMode) {
+          // Primario: fullboard coords
           newItemData.fullboard_x = finalX;
           newItemData.fullboard_y = finalY;
-          // También guardamos x/y como fallback o para consistencia, pero angle/distance pueden ser 0 o calculados
-          newItemData.x = finalX;
-          newItemData.y = finalY;
-          newItemData.angle = 0; // Opcional: calcular si queremos sincronizar
-          newItemData.distance = 0;
+
+          // Cross-save: calcular angle/distance para modo normal
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const dx = finalX - centerX;
+          const dy = finalY - centerY;
+          const dist = Math.hypot(dx, dy);
+          const ang = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
+          const safeRadius = radius < 10000 ? radius * 0.75 : Math.min(centerX, centerY) * 0.65;
+          newItemData.angle = ang;
+          newItemData.distance = Math.min(dist, safeRadius);
+          const angleRad = (ang * Math.PI) / 180;
+          newItemData.x = centerX + newItemData.distance * Math.cos(angleRad);
+          newItemData.y = centerY + newItemData.distance * Math.sin(angleRad);
         } else {
+          // Primario: angle/distance + x/y para modo normal
           newItemData.x = finalX;
           newItemData.y = finalY;
           newItemData.angle = angle;
           newItemData.distance = distance;
+
+          // Cross-save: mapear a pantalla para fullboard
+          const screenCenterX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
+          const screenCenterY = typeof window !== 'undefined' ? window.innerHeight / 2 : 300;
+          const offsetX = finalX - rect.width / 2;
+          const offsetY = finalY - rect.height / 2;
+          const maxSafeOffset = Math.min(screenCenterX, screenCenterY) * 0.7;
+          const norm = Math.hypot(offsetX, offsetY) + 1;
+          const scale = Math.min(1, maxSafeOffset / norm);
+          newItemData.fullboard_x = screenCenterX + offsetX * scale;
+          newItemData.fullboard_y = screenCenterY + offsetY * scale;
         }
 
         addItem(newItemData).catch((error) => {
@@ -132,19 +154,46 @@ export default function useHandleDrop({
 
       if (source === 'dropped' && itemId) {
         // Los límites ya fueron aplicados durante el drag en useDragResize
-        // Aquí solo guardamos la posición final
-        // Los límites ya fueron aplicados durante el drag en useDragResize
-        // Aquí solo guardamos la posición final
+        // Guardar posición final + cross-save para que ambos modos queden sincronizados.
         const updateData = {};
         if (fullboardMode) {
+          // Primario: fullboard coords
           updateData.fullboard_x = rotatedX;
           updateData.fullboard_y = rotatedY;
-          // No actualizamos angle/distance para mantener la posición en modo normal
+
+          // Cross-save: calcular angle/distance desde el centro del contenedor para modo normal
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const dx = rotatedX - centerX;
+          const dy = rotatedY - centerY;
+          const dist = Math.hypot(dx, dy);
+          const ang = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
+          // Limitar distancia al 75% del radio disponible en modo normal
+          const safeRadius = radius < 10000 ? radius * 0.75 : Math.min(centerX, centerY) * 0.65;
+          updateData.angle = ang;
+          updateData.distance = Math.min(dist, safeRadius);
+          const angleRad = (ang * Math.PI) / 180;
+          updateData.x = centerX + updateData.distance * Math.cos(angleRad);
+          updateData.y = centerY + updateData.distance * Math.sin(angleRad);
         } else {
+          // Primario: angle/distance + x/y para modo normal
           updateData.x = rotatedX;
           updateData.y = rotatedY;
           updateData.angle = angle;
           updateData.distance = distance;
+
+          // Cross-save: mapear posición normal a coords de pantalla para fullboard
+          const screenCenterX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
+          const screenCenterY = typeof window !== 'undefined' ? window.innerHeight / 2 : 300;
+          const circleCenterX = rect.left + rect.width / 2;
+          const circleCenterY = rect.top + rect.height / 2;
+          const offsetX = rotatedX - rect.width / 2;
+          const offsetY = rotatedY - rect.height / 2;
+          const maxSafeOffset = Math.min(screenCenterX, screenCenterY) * 0.7;
+          const norm = Math.hypot(offsetX, offsetY) + 1;
+          const scale = Math.min(1, maxSafeOffset / norm);
+          updateData.fullboard_x = screenCenterX + offsetX * scale;
+          updateData.fullboard_y = screenCenterY + offsetY * scale;
         }
 
         updateItem(itemId, updateData).catch((error) => {

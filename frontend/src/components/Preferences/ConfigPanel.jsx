@@ -12,6 +12,8 @@ import usePremiumModal from '@hooks/usePremiumModal';
 import PremiumModal from '@components/Premium/PremiumModal';
 import CustomSelect from '@components/common/CustomSelect';
 import { usePreferences } from '@hooks/usePreferences';
+import useLoadingOverlay from '@hooks/useLoadingOverlay';
+import Loader from '@components/common/Loader';
 
 function ToggleOption({ id, label, value, onChange }) {
   return (
@@ -76,6 +78,9 @@ export default function ConfigPanel({
 
   // Use centralized preference management
   const { preferences, updatePreference, updatePreferences } = usePreferences();
+
+  // Loading overlay for heavy actions (anti-bounce: 80ms debounce + 600ms min visible)
+  const { isLoading, withLoading } = useLoadingOverlay();
 
   // Estado para el pattern seleccionado
   const [selectedPattern, setSelectedPattern] = useState(() => {
@@ -172,12 +177,12 @@ export default function ConfigPanel({
             {!isMobile && (
               <>
                 <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%' }}>
-                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%', gap: '1rem' }}>
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       {t('itemBg.label')}
-                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', marginLeft: '8px', verticalAlign: 'middle' }} />}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', flexShrink: 0 }} />}
                     </label>
-                    <div style={{ minWidth: '200px' }} onClickCapture={(e) => {
+                    <div style={{ flex: '0 1 180px' }} onClickCapture={(e) => {
                       if (!user?.is_vip) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -186,10 +191,10 @@ export default function ConfigPanel({
                     }}>
                       <CustomSelect
                         value={preferences.itemBackground || 'normal'}
-                        onChange={(val) => {
+                        onChange={(val) => withLoading(async () => {
                           updatePreference('itemBackground', val);
                           document.documentElement.setAttribute('data-item-bg', val);
-                        }}
+                        })}
                         options={[
                           { value: 'normal', label: t('itemBg.normal') },
                           { value: 'blur', label: t('itemBg.blur') },
@@ -199,12 +204,42 @@ export default function ConfigPanel({
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%' }}>
-                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>
-                      {t('pattern.background')}
-                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', marginLeft: '8px', verticalAlign: 'middle' }} />}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%', gap: '1rem' }}>
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      {t('circleSmallBg.label')}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', flexShrink: 0 }} />}
                     </label>
-                    <div style={{ minWidth: '200px' }} onClickCapture={(e) => {
+                    <div style={{ flex: '0 1 180px' }} onClickCapture={(e) => {
+                      if (!user?.is_vip) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openPremiumModal();
+                      }
+                    }}>
+                      <CustomSelect
+                        value={preferences.circleSmallBackground || 'normal'}
+                        onChange={(val) => withLoading(async () => {
+                          updatePreference('circleSmallBackground', val);
+                          if (val === 'normal') {
+                            document.documentElement.removeAttribute('data-circle-small-bg');
+                          } else {
+                            document.documentElement.setAttribute('data-circle-small-bg', val);
+                          }
+                        }, { immediate: true })}
+                        options={[
+                          { value: 'normal', label: t('circleSmallBg.normal') },
+                          { value: 'blur', label: t('circleSmallBg.blur') },
+                          { value: 'liquid', label: t('circleSmallBg.liquid') },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%', gap: '1rem' }}>
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      {t('pattern.background')}
+                      {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', flexShrink: 0 }} />}
+                    </label>
+                    <div style={{ flex: '0 1 180px' }} onClickCapture={(e) => {
                       if (!user?.is_vip) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -213,7 +248,7 @@ export default function ConfigPanel({
                     }}>
                       <CustomSelect
                         value={selectedPattern || 'none'}
-                        onChange={(val) => handlePatternChange(val)}
+                        onChange={(val) => withLoading(async () => handlePatternChange(val))}
                         options={[
                           { value: 'none', label: t('pattern.none') },
                           { value: 'pattern1', label: t('pattern.pattern1') },
@@ -253,7 +288,7 @@ export default function ConfigPanel({
                       openPremiumModal();
                       return;
                     }
-                    setDisplayOptions((prev) => ({ ...prev, fullboardMode: val }));
+                    withLoading(async () => setDisplayOptions((prev) => ({ ...prev, fullboardMode: val })), { immediate: true });
                   }}
                 />
                 <ToggleOption
@@ -317,11 +352,11 @@ export default function ConfigPanel({
                 <div style={{ minWidth: '200px' }}>
                   <CustomSelect
                     value={displayOptions.language || 'auto'}
-                    onChange={(lang) => {
+                    onChange={(lang) => withLoading(async () => {
                       setDisplayOptions(prev => ({ ...prev, language: lang }));
                       // Cambiar idioma inmediatamente
                       const resolved = lang === 'auto' ? undefined : lang;
-                      i18n.changeLanguage(resolved);
+                      await i18n.changeLanguage(resolved);
                       // Persistencia local para modo sin usuario
                       try {
                         const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
@@ -349,7 +384,7 @@ export default function ConfigPanel({
                       } catch { }
                       // Ajustar atributo lang del HTML
                       document.documentElement.setAttribute('lang', i18n.language || 'en');
-                    }}
+                    })}
                     options={[
                       { value: 'auto', label: t('language.auto') },
                       { value: 'es', label: t('language.es') },
@@ -470,6 +505,7 @@ export default function ConfigPanel({
         </main>
       </aside>
       <PremiumModal isOpen={isPremiumOpen} onClose={closePremiumModal} onUpgrade={handleUpgrade} />
+      {isLoading && <Loader fullScreen />}
     </>
   );
 }

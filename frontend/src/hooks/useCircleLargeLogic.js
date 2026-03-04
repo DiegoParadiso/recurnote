@@ -88,26 +88,61 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
       changes.width = maybeSize.width;
       changes.height = maybeSize.height;
     }
-    // Agregar coordenadas x, y cuando newPosition está presente
-    if (newPosition?.x !== undefined && newPosition?.y !== undefined) {
-      // Si estamos en fullboard mode (detectado por contexto o flag), deberíamos usar fullboard_x/y
-      // Pero handleNoteUpdate no sabe el modo directamente salvo por props/contexto.
-      // Vamos a asumir que si newPosition viene, es la posición visual actual.
 
-      // Si el componente que llama a onUpdate pasa 'fullboardMode' en opts o extra, podemos decidir.
+    // Guardar posición cruzada: cada modo guarda AMBOS conjuntos de coordenadas
+    // para que al cambiar de modo el item aparezca en una posición razonable.
+    if (newPosition?.x !== undefined && newPosition?.y !== undefined) {
+      const px = newPosition.x;
+      const py = newPosition.y;
+
       if (isSmallScreen) {
-        changes.mobile_x = newPosition.x;
-        changes.mobile_y = newPosition.y;
-        // No tocamos x, y, angle, distance para no afectar el modo normal
+        // Mobile: solo actualiza mobile coords
+        changes.mobile_x = px;
+        changes.mobile_y = py;
+
       } else if (extra?.fullboardMode) {
-        changes.fullboard_x = newPosition.x;
-        changes.fullboard_y = newPosition.y;
-        // No tocamos x, y, angle, distance para no afectar el modo normal
+        // Fullboard mode: guardar fullboard_x/y
+        changes.fullboard_x = px;
+        changes.fullboard_y = py;
+
+        // Cross-save: calcular angle/distance equivalentes desde el centro del viewport
+        // para que normal mode pueda posicionar el item si se sale de fullboard
+        if (typeof cx === 'number' && typeof cy === 'number') {
+          const dx = px - cx;
+          const dy = py - cy;
+          const dist = Math.hypot(dx, dy);
+          const ang = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
+          // Limitar distancia para que quede dentro del círculo en modo normal
+          const safeRadius = typeof radius === 'number' ? radius * 0.75 : dist;
+          changes.angle = ang;
+          changes.distance = Math.min(dist, safeRadius);
+          // También guardar x/y absolutos para consistencia
+          const angleRad = (ang * Math.PI) / 180;
+          changes.x = cx + changes.distance * Math.cos(angleRad);
+          changes.y = cy + changes.distance * Math.sin(angleRad);
+        }
+
       } else {
-        changes.x = newPosition.x;
-        changes.y = newPosition.y;
+        // Normal mode: guardar x/y + angle/distance
+        changes.x = px;
+        changes.y = py;
+
+        // Cross-save: calcular fullboard_x/y mapeando desde coordenadas del círculo a pantalla
+        if (typeof cx === 'number' && typeof cy === 'number') {
+          // cx/cy son el centro del círculo en coordenadas locales.
+          // Para fullboard, el centro de la pantalla es window.innerWidth/2, window.innerHeight/2.
+          const screenCenterX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
+          const screenCenterY = typeof window !== 'undefined' ? window.innerHeight / 2 : 300;
+          const offsetX = px - cx;
+          const offsetY = py - cy;
+          // Escalar para que quede visible en la pantalla
+          const scale = Math.min(1, Math.min(screenCenterX, screenCenterY) / (Math.hypot(offsetX, offsetY) + 1));
+          changes.fullboard_x = screenCenterX + offsetX * scale;
+          changes.fullboard_y = screenCenterY + offsetY * scale;
+        }
       }
     }
+
     if (extra && typeof extra === 'object') {
       const { fullboardMode, ...restExtra } = extra;
       Object.assign(changes, restExtra);
@@ -118,7 +153,7 @@ export function useCircleLargeLogic(selectedDay, onItemDrag, radius, isSmallScre
         setErrorToast({ key: 'common.error_update_item' });
       });
     }
-  }, [selectedDay, updateItem, isSmallScreen]);
+  }, [selectedDay, updateItem, isSmallScreen, radius]);
 
   const handleDeleteItem = useCallback((id) => {
     const dateKey = selectedDay ? formatDateKey(selectedDay) : null;

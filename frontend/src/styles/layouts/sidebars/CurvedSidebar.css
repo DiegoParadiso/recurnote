@@ -52,6 +52,10 @@
   scroll-behavior: smooth;
 }
 
+html.dark .curved-sidebar-panel {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
 /* Mostrar el panel al hacer hover SOLO en desktop y cuando no está en modo mobile ni pinned */
 @media (min-width: 641px) {
   .curved-sidebar-container:not(.mobile):not(.pinned):hover .curved-sidebar-panel {

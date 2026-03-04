@@ -254,6 +254,101 @@ html.dark[data-item-bg='liquid'] {
   --circle-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
+/* ===== CircleSmall Background Modes ===== */
+
+/* Default (Normal) — light */
+:root {
+  --circle-small-bg: var(--color-bg);
+  --circle-small-backdrop: none;
+  --circle-small-border: 1px solid var(--circle-border-light);
+  --circle-small-shadow: none;
+}
+
+/* Default (Normal) — dark */
+html.dark {
+  --circle-small-bg: var(--color-bg);
+  --circle-small-backdrop: none;
+  --circle-small-border: 1px solid var(--circle-border-light);
+  --circle-small-shadow: none;
+
+  /* DayButton normal */
+  --daybutton-selected-bg: rgba(255, 255, 255, 0.25);
+  --daybutton-selected-border: rgba(255, 255, 255, 0.5);
+}
+
+/* Glassmorphism — light */
+html[data-circle-small-bg='blur'] {
+  --circle-small-bg: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  --circle-small-backdrop: blur(12px);
+  /* Menos exagerado */
+
+  /* DayButton glass */
+  --daybutton-bg: transparent;
+  --daybutton-border: var(--circle-border-light);
+  /* Visible en modo claro */
+  --daybutton-backdrop: blur(2px);
+
+  /* MonthHeader glass */
+  --monthheader-color: rgba(41, 37, 36, 0.8);
+  /* a bit translucent */
+}
+
+/* Glassmorphism — dark */
+html.dark[data-circle-small-bg='blur'] {
+  --circle-small-bg: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  --circle-small-backdrop: blur(8px);
+  /* Menos exagerado */
+
+  /* DayButton glass */
+  --daybutton-bg: transparent;
+  --daybutton-border: var(--circle-border-dark);
+  /* Borde sutil */
+  --daybutton-backdrop: blur(2px);
+  --daybutton-selected-bg: rgba(255, 255, 255, 0.25);
+  --daybutton-selected-border: rgba(255, 255, 255, 0.5);
+
+  /* MonthHeader glass */
+  --monthheader-color: rgba(211, 211, 211, 0.8);
+}
+
+/* Liquid Glass — light */
+html[data-circle-small-bg='liquid'] {
+  --circle-small-bg: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  --circle-small-backdrop: url(#frosted);
+  --circle-small-border: 1px solid rgba(0, 0, 0, 0.05);
+  /* Borde líquido */
+  --circle-small-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+
+  /* DayButton liquid */
+  --daybutton-bg: transparent;
+  --daybutton-border: var(--circle-border-light);
+  /* Visible en modo claro */
+  --daybutton-backdrop: none;
+  /* Liquid glass usa url(#frosted) interrumpiendo blur */
+
+  /* MonthHeader liquid */
+  --monthheader-color: rgba(41, 37, 36, 0.9);
+}
+
+/* Liquid Glass — dark */
+html.dark[data-circle-small-bg='liquid'] {
+  --circle-small-bg: color-mix(in srgb, var(--color-bg) 50%, transparent);
+  --circle-small-backdrop: url(#frosted);
+  --circle-small-border: 1px solid rgba(255, 255, 255, 0.04);
+  --circle-small-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* DayButton liquid */
+  --daybutton-bg: transparent;
+  --daybutton-border: var(--circle-border-dark);
+  --daybutton-backdrop: none;
+  --daybutton-selected-bg: rgba(255, 255, 255, 0.25);
+  --daybutton-selected-border: rgba(255, 255, 255, 0.5);
+
+  /* MonthHeader liquid */
+  --monthheader-color: rgba(211, 211, 211, 0.9);
+}
+
+
 /* (bloque movido abajo para evitar conflictos de cascada) */
 
 /* ===== Accesibilidad ===== */

@@ -42,8 +42,10 @@ function DayButton({
             ? 'var(--daybutton-selected-bg)'
             : 'var(--daybutton-bg)',
           borderColor: isSelected
-            ? 'var(--daybutton--selected-bg)'
-            : '#a3a3a3',
+            ? 'var(--daybutton-selected-border, var(--color-text-primary))'
+            : 'var(--daybutton-border)',
+          backdropFilter: 'var(--daybutton-backdrop, none)',
+          WebkitBackdropFilter: 'var(--daybutton-backdrop, none)',
           transition: 'none', // Sin transición para cambios de tema
           cursor: isDragging ? 'grab' : 'pointer',
           opacity: isDragging ? 0.7 : 1,
