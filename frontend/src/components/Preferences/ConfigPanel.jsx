@@ -176,13 +176,13 @@ export default function ConfigPanel({
             </div>
             {!isMobile && (
               <>
-                <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem' }}>
+                <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem', minWidth: '100%', boxSizing: 'border-box' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%', gap: '1rem' }}>
-                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                      {t('itemBg.label')}
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('itemBg.label')}</span>
                       {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', flexShrink: 0 }} />}
                     </label>
-                    <div style={{ flex: '0 1 180px' }} onClickCapture={(e) => {
+                    <div style={{ flex: '0 0 200px', minWidth: 0 }} onClickCapture={(e) => {
                       if (!user?.is_vip) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -205,11 +205,11 @@ export default function ConfigPanel({
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%', gap: '1rem' }}>
-                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                      {t('circleSmallBg.label')}
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('circleSmallBg.label')}</span>
                       {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', flexShrink: 0 }} />}
                     </label>
-                    <div style={{ flex: '0 1 180px' }} onClickCapture={(e) => {
+                    <div style={{ flex: '0 0 200px', minWidth: 0 }} onClickCapture={(e) => {
                       if (!user?.is_vip) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -235,11 +235,11 @@ export default function ConfigPanel({
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%', gap: '1rem' }}>
-                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                      {t('pattern.background')}
+                    <label style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('pattern.background')}</span>
                       {!user?.is_vip && <Crown size={14} style={{ color: 'var(--color-text-primary)', flexShrink: 0 }} />}
                     </label>
-                    <div style={{ flex: '0 1 180px' }} onClickCapture={(e) => {
+                    <div style={{ flex: '0 0 200px', minWidth: 0 }} onClickCapture={(e) => {
                       if (!user?.is_vip) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -346,10 +346,10 @@ export default function ConfigPanel({
               {t('common.language_region')}
               <HelpIcon text={t('help.language_region')} />
             </h3>
-            <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%' }}>
-                <label htmlFor="language-select" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{t('language.label')}</label>
-                <div style={{ minWidth: '200px' }}>
+            <div className="visualization-header-options" style={{ padding: '0.75rem 1.25rem', marginTop: 0, marginBottom: '0.5rem', minWidth: '100%', boxSizing: 'border-box' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%', gap: '1rem' }}>
+                <label htmlFor="language-select" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('language.label')}</label>
+                <div style={{ flex: '0 0 200px', minWidth: 0 }}>
                   <CustomSelect
                     value={displayOptions.language || 'auto'}
                     onChange={(lang) => withLoading(async () => {
@@ -394,9 +394,9 @@ export default function ConfigPanel({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%' }}>
-                <label htmlFor="timezone" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{t('timezone.label')}</label>
-                <div style={{ minWidth: '200px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', width: '100%', gap: '1rem' }}>
+                <label htmlFor="timezone" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('timezone.label')}</label>
+                <div style={{ flex: '0 0 200px', minWidth: 0 }}>
                   <CustomSelect
                     value={displayOptions.timeZone}
                     onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeZone: val }))}
@@ -450,9 +450,9 @@ export default function ConfigPanel({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%' }}>
-                <label htmlFor="timeFormat" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{t('timeformat.label')}</label>
-                <div style={{ minWidth: '200px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, width: '100%', gap: '1rem' }}>
+                <label htmlFor="timeFormat" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('timeformat.label')}</label>
+                <div style={{ flex: '0 0 200px', minWidth: 0 }}>
                   <CustomSelect
                     value={displayOptions.timeFormat}
                     onChange={(val) => setDisplayOptions(prev => ({ ...prev, timeFormat: val }))}

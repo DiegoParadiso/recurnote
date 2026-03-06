@@ -81,15 +81,16 @@ export default function NoteItemEditor({
     const overhead = Math.max(0, height - currentRenderedHeight);
 
     // Calculate desired height of the editor (content + padding + border)
-    // scrollHeight includes padding but not border.
-    // offsetHeight - clientHeight gives border width (vertical).
+    const prevHeight = el.style.height;
+    el.style.height = 'auto';
     const borderHeight = el.offsetHeight - el.clientHeight;
     const contentHeight = el.scrollHeight + borderHeight;
+    el.style.height = prevHeight;
 
     const totalRequiredHeight = contentHeight + overhead;
 
-    // Request resize if content needs more space
-    if (totalRequiredHeight > height) {
+    // Request resize if content needs more or less space
+    if (totalRequiredHeight !== height) {
       onHeightChange?.(totalRequiredHeight);
     }
 
@@ -108,6 +109,20 @@ export default function NoteItemEditor({
       const html = el.innerHTML;
       const markdown = htmlToMarkdown(html);
 
+      // Consolidate final height before saving
+      const prevHeight = el.style.height;
+      el.style.height = 'auto';
+      const borderHeight = el.offsetHeight - el.clientHeight;
+      const contentHeight = el.scrollHeight + borderHeight;
+      el.style.height = prevHeight;
+
+      const overhead = Math.max(0, height - el.offsetHeight);
+      const totalRequiredHeight = contentHeight + overhead;
+
+      if (totalRequiredHeight !== height) {
+        onHeightChange?.(totalRequiredHeight);
+      }
+
       if (markdown !== content) {
         onUpdate?.(id, markdown);
       }
@@ -118,7 +133,24 @@ export default function NoteItemEditor({
     }
     // Si es teclado físico mac/pc con Shift/Ctrl/Meta + Enter, igual permite línea nueva nativamente.
     // Si es Mobile y toca Enter nativo del teclado, dejamos que haga el salto de línea por defecto.
-    // No prevenimos el default en mobile con Enter para que \n funcione.
+    // VERIFICAMOS ALTURA: prevenir salto si excede el máximo del contenedor
+    if (e.key === 'Enter') {
+      const el = e.currentTarget;
+      const prevHeight = el.style.height;
+      el.style.height = 'auto';
+      const borderHeight = el.offsetHeight - el.clientHeight;
+      const contentHeight = el.scrollHeight + borderHeight;
+      el.style.height = prevHeight;
+
+      const overhead = Math.max(0, height - el.offsetHeight);
+      const totalRequiredHeight = contentHeight + overhead;
+
+      // Estimamos que una nueva línea sumará unos 18px (line-height 1.5 en font-size 11.5px)
+      if (totalRequiredHeight + 18 > MAX_CONTAINER_HEIGHT) {
+        e.preventDefault();
+        return;
+      }
+    }
 
     // Escape siempre sale y cancela foco
     if (e.key === 'Escape') {
@@ -182,6 +214,22 @@ export default function NoteItemEditor({
             // Check content and force flush when blurring
             const html = e.currentTarget.innerHTML;
             const markdown = htmlToMarkdown(html);
+
+            // Consolidate final height before saving
+            const el = e.currentTarget;
+            const prevHeight = el.style.height;
+            el.style.height = 'auto';
+            const borderHeight = el.offsetHeight - el.clientHeight;
+            const contentHeight = el.scrollHeight + borderHeight;
+            el.style.height = prevHeight;
+
+            const overhead = Math.max(0, height - el.offsetHeight);
+            const totalRequiredHeight = contentHeight + overhead;
+
+            if (totalRequiredHeight !== height) {
+              onHeightChange?.(totalRequiredHeight);
+            }
+
             if (markdown !== content) {
               onUpdate?.(id, markdown);
             }

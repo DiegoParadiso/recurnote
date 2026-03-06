@@ -112,7 +112,7 @@ export default function NoteItem({
     const el = textareaRef.current;
     if (!el) return;
     try {
-      // Paddings del contenedor padre (UnifiedContainer)
+      // Paddings del contenedor padre y propio
       let containerPaddingTop = 8;
       let containerPaddingBottom = 8;
       const dragWrapper = el.closest('[data-drag-container]');
@@ -126,10 +126,12 @@ export default function NoteItem({
       // Medir el contenido real con altura automática temporalmente
       const prevHeight = el.style.height;
       el.style.height = 'auto';
-      const scrollHeight = el.scrollHeight; // altura real del contenido
+
+      const borderHeight = el.offsetHeight - el.clientHeight;
+      const contentHeight = el.scrollHeight + borderHeight; // altura real del contenido + bordes
 
       // Calcular la altura deseada: contenido + paddings del contenedor
-      const desiredMinHeight = Math.max(60, Math.ceil(scrollHeight + containerPaddingTop + containerPaddingBottom));
+      const desiredMinHeight = Math.max(60, Math.ceil(contentHeight + containerPaddingTop + containerPaddingBottom));
 
       // Actualizar el minHeight para que el usuario no pueda achicarlo más que el texto
       setMinHeightPx(desiredMinHeight);
@@ -332,8 +334,8 @@ export default function NoteItem({
                   const deltaX = -(deltaH / 2) * sin;
                   const deltaY = (deltaH / 2) * cos;
 
-                  const newX = localPos.x + deltaX;
-                  const newY = localPos.y + deltaY;
+                  let newX = localPos.x + deltaX;
+                  let newY = localPos.y + deltaY;
 
                   if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
                     const limited = limitPositionInsideCircle(newX, newY, localSize.width, clamped, { cx, cy }, maxRadius, false, rotation || 0);
@@ -344,6 +346,8 @@ export default function NoteItem({
                   isResizingRef.current = true;
                   setLocalSize(prev => ({ ...prev, height: clamped }));
                   setLocalPos({ x: newX, y: newY });
+
+                  // Crucial: Update the actual saved dimensions with the newly clamped height
                   onUpdate?.(id, content, null, { width: localSize.width, height: clamped }, { x: newX, y: newY });
 
                   // Clear resizing flag after delay
