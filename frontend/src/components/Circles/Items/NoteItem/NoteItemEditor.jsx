@@ -282,7 +282,7 @@ export default function NoteItemEditor({
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          overflowY: 'auto',
+          overflowY: 'hidden',
 
           // padding: '0', // Removed to respect CSS class padding
           fontSize: '11.5px',

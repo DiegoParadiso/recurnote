@@ -322,33 +322,19 @@ export default function NoteItem({
               onHeightChange={(newHeight) => {
                 const clamped = Math.max(minHeightPx, Math.min(newHeight, MAX_CONTAINER_HEIGHT));
                 if (clamped !== localSize.height) {
-                  const deltaH = clamped - localSize.height;
-
-                  const rotRad = ((rotation || 0) * Math.PI) / 180;
-                  const cos = Math.cos(rotRad);
-                  const sin = Math.sin(rotRad);
-
-                  // Only height changes (deltaW = 0)
-                  // deltaX = (0) * cos - (deltaH/2) * sin
-                  // deltaY = (0) * sin + (deltaH/2) * cos
-                  const deltaX = -(deltaH / 2) * sin;
-                  const deltaY = (deltaH / 2) * cos;
-
-                  let newX = localPos.x + deltaX;
-                  let newY = localPos.y + deltaY;
-
-                  if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
-                    const limited = limitPositionInsideCircle(newX, newY, localSize.width, clamped, { cx, cy }, maxRadius, false, rotation || 0);
-                    newX = limited.x;
-                    newY = limited.y;
-                  }
-
                   isResizingRef.current = true;
+                  // Mantener la esquina superior-izquierda visualmente estable:
+                  // solo cambiamos la altura del contenedor y NO reposicionamos el item
+                  // cuando el texto crece o se confirma la edición.
                   setLocalSize(prev => ({ ...prev, height: clamped }));
-                  setLocalPos({ x: newX, y: newY });
 
-                  // Crucial: Update the actual saved dimensions with the newly clamped height
-                  onUpdate?.(id, content, null, { width: localSize.width, height: clamped }, { x: newX, y: newY });
+                  onUpdate?.(
+                    id,
+                    content,
+                    null,
+                    { width: localSize.width, height: clamped },
+                    { x: localPos.x, y: localPos.y }
+                  );
 
                   // Clear resizing flag after delay
                   setTimeout(() => { isResizingRef.current = false; }, 100);
