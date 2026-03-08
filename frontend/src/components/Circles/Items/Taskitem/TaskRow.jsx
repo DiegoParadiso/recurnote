@@ -202,11 +202,13 @@ export default function TaskRow({
             display: 'block',
             overflowX: 'auto', // Allow scrolling while editing if needed, or hidden if preferred
             overflowY: 'hidden',
-            textOverflow: 'clip'
+            textOverflow: 'clip',
+            minWidth: 0,
           } : {
-            display: 'block', // Changed from -webkit-box to block for simple truncation
+            display: 'block',
             overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            textOverflow: 'clip',
+            minWidth: 0,
           }),
 
           boxSizing: 'border-box',

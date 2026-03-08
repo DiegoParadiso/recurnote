@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDragResize } from '@hooks/useDragResize';
 import { limitPositionInsideCircle } from '@utils/helpers/geometry';
 import { getContainerStyle } from '@utils/styles/getContainerStyle';
+import { notifyDragEnd } from '@utils/dragCoordinator';
 
 export default function UnifiedContainer({
   x, y, width, height, rotation = 0,
@@ -90,11 +91,34 @@ export default function UnifiedContainer({
     });
   }, [x, y, width, height, circleCenter, maxRadius, minWidth, minHeight, maxWidth, maxHeight, isSmallScreen, fullboardMode, isDragging, isResizing, pos, onMove]);
 
+  // Registers a one-shot window-level capture listener to block the synthetic
+  // click the browser fires after mouseup/touchend when a drag occurred.
+  const blockNextClick = () => {
+    const handler = (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      window.removeEventListener('click', handler, { capture: true });
+    };
+    window.addEventListener('click', handler, { capture: true });
+    // Safety: clean up after 500 ms if no click fires
+    setTimeout(() => window.removeEventListener('click', handler, { capture: true }), 500);
+  };
+
   const handleMouseUp = (e) => {
     if (isDragging.current) {
       onDrop?.();
       isDragging.current = false;
     }
+
+    // Block the synthetic click that fires after mouseup when a drag occurred
+    if (isDraggingRef.current) {
+      notifyDragEnd(); // Notify global coordinator so children can block their clicks
+      blockNextClick();
+    }
+
+    // Reset per-gesture state
+    isDraggingRef.current = false;
+    dragStartRef.current = null;
 
     // Restaurar selección de texto cuando termine el drag
     document.body.style.userSelect = '';
@@ -109,6 +133,16 @@ export default function UnifiedContainer({
       isDragging.current = false;
     }
 
+    // Block the synthetic click that fires after touchend when a drag occurred
+    if (isDraggingRef.current) {
+      notifyDragEnd(); // Notify global coordinator so children can block their clicks
+      blockNextClick();
+    }
+
+    // Reset per-gesture state
+    isDraggingRef.current = false;
+    dragStartRef.current = null;
+
     // Restaurar selección de texto cuando termine el drag
     document.body.style.userSelect = '';
     document.body.style.WebkitUserSelect = '';
@@ -119,7 +153,6 @@ export default function UnifiedContainer({
   const onMouseDownDrag = (e) => {
     const tag = e.target.tagName.toLowerCase();
 
-    if (['input', 'textarea', 'select'].includes(tag)) return;
     if (['input', 'textarea', 'select'].includes(tag)) return;
     if (e.target.dataset.resizeHandle) return;
 
@@ -138,7 +171,7 @@ export default function UnifiedContainer({
     document.body.style.MozUserSelect = 'none';
     document.body.style.msUserSelect = 'none';
 
-    // Registrar posición inicial para detectar drag vs click
+    // Reset per-gesture drag state
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = false;
 
@@ -181,16 +214,10 @@ export default function UnifiedContainer({
       return;
     }
 
-    // A diferencia de desktop, los inputs y textareas en Recurnote entran en modo edición en click/tap
-    // Para que puedan arrastrarse por el NoteItem vacío, ignoramos su tagname en mobile y solo cortamos 
-    // el inicio si YA es editable.
-
-    // Registrar posición inicial para detectar drag vs click
+    // Reset per-gesture drag state
     dragStartRef.current = { x: touch.clientX, y: touch.clientY };
     isDraggingRef.current = false;
 
-    // No prevenir el comportamiento por defecto aquí para permitir que el long press funcione
-    // Solo registrar la posición inicial
     isDragging.current = true;
     dragStartPos.current = {
       mouseX: touch.clientX,

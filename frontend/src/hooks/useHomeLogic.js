@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { useItems } from '@context/ItemsContext';
 import { useAuth } from '@context/AuthContext';
 import { usePreferences } from './usePreferences';
+import { notifyDragEnd } from '@utils/dragCoordinator';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -298,9 +299,17 @@ export function useHomeLogic() {
     };
     draggingSmallRef.current = true;
 
+    // Track whether any real movement occurred so we can suppress the
+    // synthetic click that browsers fire after mouseup on the drag target.
+    let hasMoved = false;
+
     const onMove = (ev) => {
       ev.preventDefault();
       if (!draggingSmallRef.current) return;
+
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -319,6 +328,12 @@ export function useHomeLogic() {
       ev.preventDefault();
       if (!draggingSmallRef.current) return;
       draggingSmallRef.current = false;
+
+      // Notify the global drag coordinator so CircleSmall's onClickCapture
+      // can suppress the synthetic click that fires after this mouseup.
+      if (hasMoved) {
+        notifyDragEnd();
+      }
 
       // Marcar que el usuario movió el círculo manualmente
       setHasUserMovedCircle(true);
@@ -339,7 +354,7 @@ export function useHomeLogic() {
 
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
-  }, [circleSmallPos]);
+  }, [circleSmallPos, smallSize, token]);
 
   // Handlers para arrastrar el sidebar izquierdo en desktop
   const startLeftSidebarDrag = useCallback((e, initialPos) => {

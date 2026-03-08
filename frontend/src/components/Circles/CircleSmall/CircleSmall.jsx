@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import MonthHeader from '@components/Circles/CircleSmall/MonthHeader';
 import DaysButtons from '@components/Circles/CircleSmall/DaysButtons';
 import { useSwipeMonthNavigation } from '@hooks/useSwipeMonthNavigation';
+import { notifyDragEnd, wasDragRecently } from '@utils/dragCoordinator';
 
 export default function CircleSmall({
   onDayClick,
@@ -15,11 +16,27 @@ export default function CircleSmall({
   const timeoutRef = useRef(null);
   const maxDragDistanceRef = useRef(0);
   const containerRef = useRef(null);
+  // Ref (not state) to track recent drag — persists synchronously through the
+  // click event that browsers fire after mouseup/touchend.
+  const recentDragRef = useRef(false);
+  const recentDragTimerRef = useRef(null);
 
   const [currentDate, setCurrentDate] = useState(DateTime.now());
   const [isDragging, setIsDragging] = useState(false);
   const { handleMouseDown, handleMouseUp, handleTouchStart, handleTouchEnd } =
     useSwipeMonthNavigation(setCurrentDate);
+
+  // One-shot window-level capture listener to block the synthetic click
+  // that browsers fire after touchend/mouseup when a drag occurred.
+  const blockNextClick = () => {
+    const handler = (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      window.removeEventListener('click', handler, { capture: true });
+    };
+    window.addEventListener('click', handler, { capture: true });
+    setTimeout(() => window.removeEventListener('click', handler, { capture: true }), 500);
+  };
 
   const radius = circleSize / 2 - 25;
   const center = circleSize / 2;
@@ -110,7 +127,6 @@ export default function CircleSmall({
     const wasDragging = isDragging;
 
     dragStartRef.current = null;
-
     setIsDragging(false);
 
     if (timeoutRef.current) {
@@ -118,22 +134,48 @@ export default function CircleSmall({
       timeoutRef.current = null;
     }
 
+    if (maxDragDistanceRef.current > 2) {
+      notifyDragEnd();
+      recentDragRef.current = true;
+      clearTimeout(recentDragTimerRef.current);
+      recentDragTimerRef.current = setTimeout(() => { recentDragRef.current = false; }, 300);
+      blockNextClick();
+    }
+
     handleMouseUp(e);
     return wasDragging;
+  };
+
+  const handleContainerTouchEnd = (e) => {
+    dragStartRef.current = null;
+    setIsDragging(false);
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (maxDragDistanceRef.current > 2) {
+      notifyDragEnd();
+      recentDragRef.current = true;
+      clearTimeout(recentDragTimerRef.current);
+      recentDragTimerRef.current = setTimeout(() => { recentDragRef.current = false; }, 300);
+      blockNextClick();
+    }
+
+    handleTouchEnd(e);
   };
 
 
 
   const handleMonthChange = (newDate) => {
-    // Solo cambiar mes si no se está arrastrando
-    if (!isDragging) {
+    if (!isDragging && !recentDragRef.current && !wasDragRecently()) {
       setCurrentDate(newDate);
     }
   };
 
   const handleDayClick = (day) => {
-    // Solo cambiar día si no se está arrastrando
-    if (!isDragging) {
+    if (!isDragging && !recentDragRef.current && !wasDragRecently()) {
       const newSelected = currentDate.set({ day });
       setSelectedDay(newSelected.toObject());
       onDayClick?.(newSelected.toObject());
@@ -192,7 +234,15 @@ export default function CircleSmall({
       onMouseLeave={handleContainerMouseUp}
       onTouchStart={handleContainerTouchStart}
       onTouchMove={handleContainerTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchEnd={handleContainerTouchEnd}
+      onClickCapture={(e) => {
+        // Block clicks that are the result of a drag gesture.
+        // Triple guard: local distance, local recent-drag ref, global coordinator.
+        if (maxDragDistanceRef.current > 2 || recentDragRef.current || wasDragRecently()) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      }}
       style={containerStyle}
       ref={containerRef}
     >
