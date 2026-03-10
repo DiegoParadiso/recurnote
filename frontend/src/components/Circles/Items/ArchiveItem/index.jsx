@@ -228,51 +228,10 @@ export default function ArchivoItem({
       }
 
       // Agregar un pequeño padding para evitar que la imagen toque los bordes
-      // y espacio para nombre + tamaño debajo.
-      const metaHeight = isSmallScreen ? 60 : 48;
-
       return {
         width: Math.round(finalWidth + 16),
-        height: Math.round(finalHeight + 16 + metaHeight)
+        height: Math.round(finalHeight + 16)
       };
-    }
-
-    // Imagen en modo colapsado: ajustar alto según proporción real
-    if (isImage && !isExpanded && imageDimensions.width > 0 && imageDimensions.height > 0) {
-      const aspectRatio = imageDimensions.width / imageDimensions.height;
-      const containerWidth = Math.max(minWidthPx, 180);
-
-      // Coincidir con las restricciones del CSS de .archivo-image
-      const maxThumbHeight = 100;
-      const horizontalPadding = 8; // padding aproximado del contenedor
-      const maxThumbWidth = containerWidth - horizontalPadding * 2;
-
-      // Altura estimada que tendrá la miniatura dentro del contenedor
-      const estimatedThumbHeight = Math.min(
-        maxThumbHeight,
-        maxThumbWidth / aspectRatio
-      );
-
-      // Espacio para:
-      // - margin-bottom de la imagen (6px)
-      // - nombre (línea + márgenes)
-      // - tamaño (línea + márgenes)
-      // y, en mobile, el botón de descarga.
-      const textAndGapsBase = 36;      // aprox. nombre + tamaño + márgenes
-      const downloadButtonExtra = isSmallScreen ? 24 : 0;
-      const metaHeight = textAndGapsBase + downloadButtonExtra;
-
-      // Paddings verticales totales fuera del contenido:
-      // - UnifiedContainer: 8px top + 8px bottom
-      // - .archivo-item-container: 8px top + 8px bottom
-      const verticalChrome = 8 + 8 + 8 + 8; // 32
-
-      const finalHeight = Math.max(
-        110,
-        Math.round(estimatedThumbHeight + metaHeight + verticalChrome)
-      );
-
-      return { width: containerWidth, height: finalHeight };
     }
 
     // En modo normal, dimensiones estándar
@@ -415,7 +374,7 @@ export default function ArchivoItem({
               />
             )}
 
-            {item.content?.fileData && (
+            {!isExpanded && item.content?.fileData && (
               <>
                 {!isImage && (
                   <span className="material-symbols-outlined" style={{ marginTop: 8, marginBottom: 4 }}>
@@ -435,7 +394,7 @@ export default function ArchivoItem({
                   {(item.content.fileData.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
 
-                {isSmallScreen && !isExpanded && (
+                {isSmallScreen && (
                   <button
                     onClick={handleDownload}
                     className="btn-download"

@@ -323,17 +323,69 @@ export default function NoteItem({
                 const clamped = Math.max(minHeightPx, Math.min(newHeight, MAX_CONTAINER_HEIGHT));
                 if (clamped !== localSize.height) {
                   isResizingRef.current = true;
-                  // Mantener la esquina superior-izquierda visualmente estable:
-                  // solo cambiamos la altura del contenedor y NO reposicionamos el item
-                  // cuando el texto crece o se confirma la edición.
+
+                  // 1) Intentar mantener la esquina superior visualmente estable
+                  //    (solo crecer hacia abajo) mientras siga dentro del círculo.
+                  let nextX = localPos.x;
+                  let nextY = localPos.y;
+
+                  if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+                    const limitedSamePos = limitPositionInsideCircle(
+                      localPos.x,
+                      localPos.y,
+                      localSize.width,
+                      clamped,
+                      { cx, cy },
+                      maxRadius,
+                      false,
+                      rotation || 0
+                    );
+
+                    const fitsAtSamePos =
+                      Math.round(limitedSamePos.x) === Math.round(localPos.x) &&
+                      Math.round(limitedSamePos.y) === Math.round(localPos.y);
+
+                    // 2) Si a esa nueva altura se sale del círculo en esa posición,
+                    //    aplicamos el ajuste original: movemos ligeramente el centro
+                    //    hacia adentro (crecer "hacia arriba") y luego clampeamos.
+                    if (!fitsAtSamePos) {
+                      const deltaH = clamped - localSize.height;
+                      const rotRad = ((rotation || 0) * Math.PI) / 180;
+                      const sin = Math.sin(rotRad);
+                      const cos = Math.cos(rotRad);
+
+                      // Solo cambiamos en función de la altura (deltaW = 0)
+                      const deltaX = -(deltaH / 2) * sin;
+                      const deltaY = (deltaH / 2) * cos;
+
+                      let movedX = localPos.x + deltaX;
+                      let movedY = localPos.y + deltaY;
+
+                      const limited = limitPositionInsideCircle(
+                        movedX,
+                        movedY,
+                        localSize.width,
+                        clamped,
+                        { cx, cy },
+                        maxRadius,
+                        false,
+                        rotation || 0
+                      );
+
+                      nextX = limited.x;
+                      nextY = limited.y;
+                    }
+                  }
+
                   setLocalSize(prev => ({ ...prev, height: clamped }));
+                  setLocalPos({ x: nextX, y: nextY });
 
                   onUpdate?.(
                     id,
                     content,
                     null,
                     { width: localSize.width, height: clamped },
-                    { x: localPos.x, y: localPos.y }
+                    { x: nextX, y: nextY }
                   );
 
                   // Clear resizing flag after delay
