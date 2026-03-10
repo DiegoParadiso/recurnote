@@ -156,6 +156,21 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
         closeMenu();
       }
     };
+    // Cerrar inmediatamente al comenzar cualquier interacción fuera del menú
+    const handlePointerDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        closeMenu();
+      }
+    };
+    const handleTouchStartGlobal = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        closeMenu();
+      }
+    };
+    const handleKeyDown = () => {
+      // Cualquier tecla (por ejemplo, empezar a escribir o usar atajos) cierra el menú
+      closeMenu();
+    };
     const handleScroll = () => closeMenu();
     const handleResize = () => closeMenu();
     const handleContextMenuOutside = (e) => {
@@ -165,12 +180,18 @@ function WithContextMenu({ onDelete, children, extraOptions = [], headerContent 
     };
 
     window.addEventListener('click', handleClick);
+    window.addEventListener('mousedown', handlePointerDown, true);
+    window.addEventListener('touchstart', handleTouchStartGlobal, true);
+    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('scroll', handleScroll, true);
     window.addEventListener('resize', handleResize);
     window.addEventListener('contextmenu', handleContextMenuOutside);
 
     return () => {
       window.removeEventListener('click', handleClick);
+      window.removeEventListener('mousedown', handlePointerDown, true);
+      window.removeEventListener('touchstart', handleTouchStartGlobal, true);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('scroll', handleScroll, true);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('contextmenu', handleContextMenuOutside);

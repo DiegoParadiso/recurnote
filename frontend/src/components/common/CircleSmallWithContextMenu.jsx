@@ -39,6 +39,19 @@ export default function CircleSmallWithContextMenu({
         closeMenu();
       }
     };
+    const handlePointerDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        closeMenu();
+      }
+    };
+    const handleTouchStartGlobal = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        closeMenu();
+      }
+    };
+    const handleKeyDown = () => {
+      closeMenu();
+    };
     const handleContextMenuOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         closeMenu();
@@ -46,10 +59,16 @@ export default function CircleSmallWithContextMenu({
     };
 
     window.addEventListener('click', handleClick);
+    window.addEventListener('mousedown', handlePointerDown, true);
+    window.addEventListener('touchstart', handleTouchStartGlobal, true);
+    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('contextmenu', handleContextMenuOutside);
 
     return () => {
       window.removeEventListener('click', handleClick);
+      window.removeEventListener('mousedown', handlePointerDown, true);
+      window.removeEventListener('touchstart', handleTouchStartGlobal, true);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('contextmenu', handleContextMenuOutside);
     };
   }, [closeMenu]);
