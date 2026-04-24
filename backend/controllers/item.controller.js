@@ -1,6 +1,27 @@
 import { Item } from '../models/item.model.js';
 import { withRLS } from '../utils/rls.utils.js';
 
+function extractItemMetadata(itemData) {
+  if (!itemData) return { item_type: null, content_text: null };
+  const item_type = itemData.type || itemData.label || null;
+  
+  let content_text = null;
+  if (itemData.content) {
+     if (typeof itemData.content.text === 'string') {
+        content_text = itemData.content.text;
+     } else if (typeof itemData.content.title === 'string') {
+        content_text = itemData.content.title + (itemData.content.description ? ' ' + itemData.content.description : '');
+     } else if (typeof itemData.content === 'string') {
+        content_text = itemData.content;
+     }
+  }
+  if (!content_text && itemData.text) {
+     content_text = itemData.text;
+  }
+  
+  return { item_type, content_text };
+}
+
 export async function getItems(req, res) {
   try {
     await withRLS(req.user.id, async (t) => {
@@ -64,6 +85,8 @@ export async function createItem(req, res) {
         date, x, y, rotation, rotation_enabled, item_data, user_id: req.user.id
       });
 
+      const { item_type, content_text } = extractItemMetadata(item_data);
+
       const newItem = await Item.create({
         date,
         x,
@@ -71,6 +94,8 @@ export async function createItem(req, res) {
         rotation,
         rotation_enabled,
         item_data,
+        item_type,
+        content_text,
         user_id: req.user.id
       }, { transaction: t });
 
@@ -165,6 +190,12 @@ export async function updateItem(req, res) {
 
       if (incomingVersion && !isNaN(parsedIncomingVersion)) {
         updatePayload.version = Number(item.version) + 1;
+      }
+
+      if (updatePayload.item_data) {
+        const { item_type, content_text } = extractItemMetadata(updatePayload.item_data);
+        if (item_type !== null) updatePayload.item_type = item_type;
+        if (content_text !== null) updatePayload.content_text = content_text;
       }
 
       await item.update(updatePayload, { transaction: t });

@@ -45,6 +45,14 @@ export const Item = sequelize.define('Item', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  item_type: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  content_text: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   item_data: {
     type: DataTypes.JSONB,
     allowNull: false,
