@@ -49,6 +49,11 @@ export const Item = sequelize.define('Item', {
     type: DataTypes.JSONB,
     allowNull: false,
   },
+  version: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+    allowNull: false,
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

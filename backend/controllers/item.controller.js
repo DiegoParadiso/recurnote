@@ -92,9 +92,19 @@ export async function updateItem(req, res) {
       });
       if (!item) return res.status(404).json({ message: 'Item no encontrado' });
 
-      let { item_data: incomingItemData, ...rest } = req.body;
+      let { item_data: incomingItemData, version: incomingVersion, ...rest } = req.body;
       if (typeof incomingItemData === 'string') {
         try { incomingItemData = JSON.parse(incomingItemData); } catch { incomingItemData = undefined; }
+      }
+
+      const parsedIncomingVersion = Number(incomingVersion);
+      if (incomingVersion && !isNaN(parsedIncomingVersion)) {
+        if (Number(item.version) !== parsedIncomingVersion) {
+          return res.status(409).json({ 
+            message: 'Conflicto de sincronización. El ítem fue modificado y guardado por otra sesión.', 
+            current_item: item.toJSON() 
+          });
+        }
       }
 
       // Restricción de tamaño de archivo para cuentas gratuitas al actualizar un Archivo
@@ -148,6 +158,10 @@ export async function updateItem(req, res) {
           mergedItemData.position_ts = currentTs;
         }
         updatePayload.item_data = mergedItemData;
+      }
+
+      if (incomingVersion && !isNaN(parsedIncomingVersion)) {
+        updatePayload.version = Number(item.version) + 1;
       }
 
       await item.update(updatePayload, { transaction: t });

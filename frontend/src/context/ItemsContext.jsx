@@ -398,6 +398,7 @@ export const ItemsProvider = ({ children }) => {
         item_data: { label, ...itemData, position_ts: Date.now() },
         label,
         ...itemData,
+        version: 1,
         _pending: true,
       };
 
@@ -538,6 +539,7 @@ export const ItemsProvider = ({ children }) => {
         rotation_enabled: rotation_enabled ?? true,
         label,
         ...itemData,
+        version: 1,
         _local: true,
         createdAt: new Date().toISOString(),
       };
@@ -566,7 +568,7 @@ export const ItemsProvider = ({ children }) => {
 
   // Construir payload para API a partir de "changes"
   const buildPayload = (changes) => {
-    const { date, x, y, rotation, rotation_enabled, ...rest } = changes || {};
+    const { date, x, y, rotation, rotation_enabled, version, ...rest } = changes || {};
     const hasGeometry = (
       x !== undefined || y !== undefined ||
       rest?.angle !== undefined || rest?.distance !== undefined ||
@@ -585,6 +587,7 @@ export const ItemsProvider = ({ children }) => {
       ...(y !== undefined ? { y } : {}),
       ...(rotation !== undefined ? { rotation } : {}),
       ...(rotation_enabled !== undefined ? { rotation_enabled } : {}),
+      ...(version !== undefined ? { version } : {}),
       ...(Object.keys(itemDataOut).length ? { item_data: itemDataOut } : {}),
     };
   };
@@ -599,8 +602,11 @@ export const ItemsProvider = ({ children }) => {
       return; // Ignorar actualizaciones externas mientras se arrastra
     }
 
+    const currentItem = Object.values(itemsRef.current).flat().find(i => i.id === id);
+    const itemVersion = currentItem ? currentItem.version : undefined;
+
     const url = `${API_URL}/api/items/${id}`;
-    const payload = buildPayload(changes);
+    const payload = buildPayload({ ...changes, version: itemVersion });
     const debounceMs = typeof opts.debounceMs === 'number' ? opts.debounceMs : 1000;
 
     // Limpiar timeout previo ANTES de mergear
@@ -645,9 +651,35 @@ export const ItemsProvider = ({ children }) => {
             },
             body: JSON.stringify(entry.payload),
           });
-          if (!response.ok && response.status !== 404) {
-            // 404 no es crítico; otros errores loguearlos
-            console.error('Server error on updateItem:', response.status, response.statusText);
+          if (!response.ok) {
+            if (response.status === 409) {
+              const err = await response.json();
+              if (err.current_item) {
+                const refreshedItem = expandItem(err.current_item);
+                setItemsByDate(prev => {
+                  const newState = { ...prev };
+                  for (const dateKey in newState) {
+                    newState[dateKey] = newState[dateKey].map(i => i.id === id ? refreshedItem : i);
+                  }
+                  return newState;
+                });
+                setErrorToast('Sinconización forzada: otro dispositivo editó este ítem.');
+                setTimeout(() => setErrorToast(''), 4000);
+              }
+            } else if (response.status !== 404) {
+              console.error('Server error on updateItem:', response.status, response.statusText);
+            }
+          } else {
+             const updatedData = await response.json();
+             if (updatedData && updatedData.version) {
+               setItemsByDate(prev => {
+                 const newState = { ...prev };
+                 for (const dateKey in newState) {
+                   newState[dateKey] = newState[dateKey].map(i => i.id === id ? { ...i, version: updatedData.version } : i);
+                 }
+                 return newState;
+               });
+             }
           }
         } catch (err) {
           // Errores de red: log y permitir reintento por próxima edición/flush

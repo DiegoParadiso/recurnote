@@ -324,15 +324,28 @@ export default function NoteItem({
                 if (clamped !== localSize.height) {
                   isResizingRef.current = true;
 
-                  // 1) Intentar mantener la esquina superior visualmente estable
-                  //    (solo crecer hacia abajo) mientras siga dentro del círculo.
-                  let nextX = localPos.x;
-                  let nextY = localPos.y;
+                  // 1) Queremos mantener la esquina superior fija (solo crecer hacia abajo).
+                  // Como x, y son el centro de la nota, al aumentar el height, la nota crece
+                  // en ambas direcciones. Para que el borde superior quede inmóvil, debemos
+                  // desplazar el centro hacia 'abajo' (en su sistema de coordenadas local)
+                  // en una cantidad igual a deltaH / 2.
+                  const deltaH = clamped - localSize.height;
+                  const rotRad = ((rotation || 0) * Math.PI) / 180;
+                  const sin = Math.sin(rotRad);
+                  const cos = Math.cos(rotRad);
 
+                  const deltaX = -(deltaH / 2) * sin;
+                  const deltaY = (deltaH / 2) * cos;
+
+                  let nextX = localPos.x + deltaX;
+                  let nextY = localPos.y + deltaY;
+
+                  // 2) Si a esa nueva altura + nueva posición se sale del círculo,
+                  // limitamos la posición para asegurar que permanezca dentro.
                   if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
-                    const limitedSamePos = limitPositionInsideCircle(
-                      localPos.x,
-                      localPos.y,
+                    const limited = limitPositionInsideCircle(
+                      nextX,
+                      nextY,
                       localSize.width,
                       clamped,
                       { cx, cy },
@@ -341,40 +354,8 @@ export default function NoteItem({
                       rotation || 0
                     );
 
-                    const fitsAtSamePos =
-                      Math.round(limitedSamePos.x) === Math.round(localPos.x) &&
-                      Math.round(limitedSamePos.y) === Math.round(localPos.y);
-
-                    // 2) Si a esa nueva altura se sale del círculo en esa posición,
-                    //    aplicamos el ajuste original: movemos ligeramente el centro
-                    //    hacia adentro (crecer "hacia arriba") y luego clampeamos.
-                    if (!fitsAtSamePos) {
-                      const deltaH = clamped - localSize.height;
-                      const rotRad = ((rotation || 0) * Math.PI) / 180;
-                      const sin = Math.sin(rotRad);
-                      const cos = Math.cos(rotRad);
-
-                      // Solo cambiamos en función de la altura (deltaW = 0)
-                      const deltaX = -(deltaH / 2) * sin;
-                      const deltaY = (deltaH / 2) * cos;
-
-                      let movedX = localPos.x + deltaX;
-                      let movedY = localPos.y + deltaY;
-
-                      const limited = limitPositionInsideCircle(
-                        movedX,
-                        movedY,
-                        localSize.width,
-                        clamped,
-                        { cx, cy },
-                        maxRadius,
-                        false,
-                        rotation || 0
-                      );
-
-                      nextX = limited.x;
-                      nextY = limited.y;
-                    }
+                    nextX = limited.x;
+                    nextY = limited.y;
                   }
 
                   setLocalSize(prev => ({ ...prev, height: clamped }));
