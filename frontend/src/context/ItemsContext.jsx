@@ -226,6 +226,70 @@ export const ItemsProvider = ({ children }) => {
     return result;
   }
 
+  // Sincronización en lote desde localStorage hacia el backend
+  const syncLocalToCloud = useCallback(async () => {
+    if (!user || !token) return;
+    try {
+      const localItemsJson = localStorage.getItem('localItems');
+      if (!localItemsJson) return;
+      
+      let parsed;
+      try {
+        parsed = JSON.parse(localItemsJson);
+      } catch (err) {
+        return;
+      }
+      if (!parsed || typeof parsed !== 'object') return;
+
+      const itemsToSync = [];
+      for (const dateKey in parsed) {
+        if (!Array.isArray(parsed[dateKey])) continue;
+        for (const item of parsed[dateKey]) {
+          if (item._local || (item.id && String(item.id).startsWith('local_'))) {
+            const payloadItem = {
+              client_id: item.id,
+              date: item.date,
+              x: item.x,
+              y: item.y,
+              rotation: item.rotation ?? 0,
+              rotation_enabled: item.rotation_enabled ?? true,
+              item_data: { 
+                 label: item.label,
+                 content: item.content,
+                 checked: item.checked,
+                 width: item.width,
+                 height: item.height,
+                 position_ts: item.position_ts || Date.now()
+              }
+            };
+            for (const k of Object.keys(item)) {
+               if (!['id','label','date','x','y','rotation','rotation_enabled','_local','createdAt','content','checked','width','height','version'].includes(k)) {
+                  payloadItem.item_data[k] = item[k];
+               }
+            }
+            itemsToSync.push(payloadItem);
+          }
+        }
+      }
+
+      if (itemsToSync.length > 0) {
+        const response = await fetch(`${API_URL}/api/items/sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ items: itemsToSync })
+        });
+        if (response.ok) {
+           localStorage.removeItem('localItems');
+        }
+      }
+    } catch (e) {
+      console.error("Error sincronizando items locales:", e);
+    }
+  }, [user, token, API_URL]);
+
   // Función para cargar items
   const loadItems = useCallback(async (isRetry = false) => {
     if (!user || !token) {
@@ -334,9 +398,15 @@ export const ItemsProvider = ({ children }) => {
   // Cargar items cuando cambie la autenticación (ej. login/logout), no al cambiar preferencias
   useEffect(() => {
     if (!authLoading) {
-      loadItems();
+      const init = async () => {
+        if (user && token) {
+           await syncLocalToCloud(); // sync offline items before fetching cloud items
+        }
+        loadItems();
+      };
+      init();
     }
-  }, [user?.id, token, authLoading]);
+  }, [user?.id, token, authLoading, loadItems, syncLocalToCloud]);
 
   // Función para recargar items manualmente
   const refreshItems = () => {
@@ -412,6 +482,7 @@ export const ItemsProvider = ({ children }) => {
       }));
 
       const payload = {
+        client_id: placeholder.id,
         date,
         x,
         y,
@@ -434,12 +505,14 @@ export const ItemsProvider = ({ children }) => {
           throw new Error(err.message || 'Error creando item');
         }
         const saved = await res.json();
-        const expanded = expandItem(saved);
+        const serverItem = saved.item;
+        const expanded = expandItem(serverItem);
+        const returnedClientId = saved.client_id || placeholder.id;
 
         // VERIFICACIÓN DE RACE CONDITION:
         // Verificar si el placeholder ha sido movido localmente (drag) mientras se creaba
         const latestState = itemsRef.current;
-        const latestPlaceholder = latestState[date]?.find(i => i.id === placeholder.id);
+        const latestPlaceholder = latestState[date]?.find(i => i.id === returnedClientId);
 
         let finalItem = expanded;
         let shouldSync = false;
@@ -472,15 +545,15 @@ export const ItemsProvider = ({ children }) => {
           }
 
           // If the placeholder was being dragged, transfer drag tracking to the new permanent ID immediately
-          if (draggingItemsRef.current.has(placeholder.id)) {
-            draggingItemsRef.current.delete(placeholder.id);
+          if (draggingItemsRef.current.has(returnedClientId)) {
+            draggingItemsRef.current.delete(returnedClientId);
             draggingItemsRef.current.add(finalItem.id);
           }
         }
 
         setItemsByDate(prev => ({
           ...prev,
-          [date]: (prev[date] || []).map(i => i.id === placeholder.id ? finalItem : i)
+          [date]: (prev[date] || []).map(i => i.id === returnedClientId ? finalItem : i)
         }));
 
         // Si hubo cambios locales (de texto o posición), sincronizar la versión local actualizada con el backend (usando el ID real)

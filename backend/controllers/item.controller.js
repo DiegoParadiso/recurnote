@@ -26,7 +26,7 @@ export async function getItems(req, res) {
 export async function createItem(req, res) {
   try {
     await withRLS(req.user.id, async (t) => {
-      const { date, x, y, rotation, rotation_enabled } = req.body;
+      const { client_id, date, x, y, rotation, rotation_enabled } = req.body;
       let { item_data } = req.body;
       if (typeof item_data === 'string') {
         try { item_data = JSON.parse(item_data); } catch { item_data = {}; }
@@ -74,7 +74,10 @@ export async function createItem(req, res) {
         user_id: req.user.id
       }, { transaction: t });
 
-      res.json(newItem);
+      res.json({
+        client_id: client_id || null,
+        item: newItem
+      });
     });
   } catch (err) {
     console.error('Error en createItem:', err);
@@ -188,5 +191,60 @@ export async function deleteItem(req, res) {
     });
   } catch (err) {
     res.status(500).json({ message: 'Error al eliminar item', error: err.message });
+  }
+}
+
+export async function syncItems(req, res) {
+  try {
+    await withRLS(req.user.id, async (t) => {
+      const { items } = req.body;
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ message: 'Se esperaba un array de items' });
+      }
+
+      const syncedItems = [];
+      const isVip = !!req.user?.is_vip;
+
+      let currentItemCount = 0;
+      if (!isVip) {
+        currentItemCount = await Item.count({ where: { user_id: req.user.id }, transaction: t });
+      }
+
+      for (const item of items) {
+        if (!isVip && currentItemCount >= 15) {
+          continue;
+        }
+
+        const { client_id, date, x, y, rotation, rotation_enabled } = item;
+        let { item_data } = item;
+        if (typeof item_data === 'string') {
+          try { item_data = JSON.parse(item_data); } catch { item_data = {}; }
+        }
+
+        const label = item_data?.label || item_data?.type || '';
+        if (!isVip && (label === 'Archivo' || label.toLowerCase() === 'archivo')) {
+          const sizeBytes = item_data?.content?.fileData?.size;
+          if (typeof sizeBytes === 'number' && (sizeBytes / (1024 * 1024) > 3)) {
+            continue;
+          }
+        }
+
+        const newItem = await Item.create({
+          date, x, y, rotation, rotation_enabled, item_data, user_id: req.user.id
+        }, { transaction: t });
+
+        syncedItems.push({
+          client_id,
+          item: newItem
+        });
+
+        if (!isVip) currentItemCount++;
+      }
+
+      res.json({ synced_items: syncedItems });
+    });
+  } catch (err) {
+    console.error('Error en syncItems:', err);
+    res.status(500).json({ message: 'Error al sincronizar items', error: err.message });
   }
 }
