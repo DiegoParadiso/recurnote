@@ -47,6 +47,14 @@ export const User = sequelize.define('User', {
     type: DataTypes.STRING, // 'active', 'trial', 'expired', 'cancelled'
     allowNull: true,
   },
+  provider_type: {
+    type: DataTypes.STRING, // e.g., 'paypal', 'stripe'
+    allowNull: true,
+  },
+  provider_id: {
+    type: DataTypes.STRING, // e.g., 'I-1234567890'
+    allowNull: true,
+  },
   trial_started_at: {
     type: DataTypes.DATE,
     allowNull: true,

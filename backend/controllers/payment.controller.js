@@ -228,6 +228,8 @@ export const activateSubscription = async (req, res) => {
                 {
                     is_vip: true,
                     subscription_status: subscription.status.toLowerCase(), // 'active', 'approval_pending'
+                    provider_type: 'paypal',
+                    provider_id: subscriptionId,
                     // PayPal format is ISO 8601, compatible with JS Date
                     current_period_started_at: subscription.start_time,
                     current_period_ends_at: subscription.billing_info?.next_billing_time,
@@ -269,4 +271,65 @@ export const getPaymentConfig = (req, res) => {
         currency: 'USD',
         intent: 'subscription'
     });
+};
+
+export const handlePaypalWebhook = async (req, res) => {
+    try {
+        const { event_type, resource } = req.body;
+        console.log(`Webhook received: ${event_type}`, resource ? resource.id : 'No resource ID');
+
+        if (!resource || !resource.id) {
+            return res.status(400).json({ error: 'Invalid webhook payload' });
+        }
+
+        const cancelEvents = [
+            'BILLING.SUBSCRIPTION.CANCELLED',
+            'BILLING.SUBSCRIPTION.SUSPENDED',
+            'BILLING.SUBSCRIPTION.EXPIRED'
+        ];
+
+        if (cancelEvents.includes(event_type)) {
+            const subscriptionId = resource.id;
+
+            const user = await User.findOne({
+                where: {
+                    provider_type: 'paypal',
+                    provider_id: subscriptionId
+                }
+            });
+
+            if (user) {
+                await user.update({
+                    is_vip: false,
+                    subscription_status: 'cancelled',
+                    auto_renew: false
+                });
+                console.log(`Usuario ${user.id} suscripción (${subscriptionId}) ha sido revocada vía webhook.`);
+            } else {
+                console.warn(`Webhook ignorado: sin usuario para la suscripción ${subscriptionId}`);
+            }
+        } else if (event_type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
+            const subscriptionId = resource.id;
+            const user = await User.findOne({
+                where: {
+                    provider_type: 'paypal',
+                    provider_id: subscriptionId
+                }
+            });
+
+            if (user) {
+                await user.update({
+                    is_vip: true,
+                    subscription_status: 'active',
+                });
+                console.log(`Usuario ${user.id} suscripción (${subscriptionId}) ha sido reactivada vía webhook.`);
+            }
+        }
+
+        // Always respond 200 OK to provider so they stop retrying
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error('Error handling webhook:', error);
+        res.status(500).json({ error: error.message });
+    }
 };
