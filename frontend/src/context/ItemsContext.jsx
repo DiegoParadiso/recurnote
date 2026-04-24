@@ -1,3 +1,4 @@
+import { apiFetch } from '../utils/api.js';
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import i18n from '../i18n/index.js';
 import { useAuth } from '@context/AuthContext';
@@ -273,7 +274,7 @@ export const ItemsProvider = ({ children }) => {
       }
 
       if (itemsToSync.length > 0) {
-        const response = await fetch(`${API_URL}/api/items/sync`, {
+        const response = await apiFetch(`${API_URL}/api/items/sync`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -305,7 +306,7 @@ export const ItemsProvider = ({ children }) => {
       }
       setError(null);
 
-      const response = await fetch(`${API_URL}/api/items`, {
+      const response = await apiFetch(`${API_URL}/api/items`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -492,7 +493,7 @@ export const ItemsProvider = ({ children }) => {
       };
 
       try {
-        const res = await fetch(`${API_URL}/api/items`, {
+        const res = await apiFetch(`${API_URL}/api/items`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -716,7 +717,7 @@ export const ItemsProvider = ({ children }) => {
         updateQueueRef.current.delete(id);
         try {
           inFlightRef.current += 1;
-          const response = await fetch(entry.url, {
+          const response = await apiFetch(entry.url, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -1066,7 +1067,7 @@ export const ItemsProvider = ({ children }) => {
       setPendingOperations(prev => new Set([...prev, operationId]));
 
       try {
-        const response = await fetch(`${API_URL}/api/items/${id}`, {
+        const response = await apiFetch(`${API_URL}/api/items/${id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         });

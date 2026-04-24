@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import emailService from '../services/email.service.js';
 import { withRLS } from '../utils/rls.utils.js';
+import { RefreshToken } from '../models/refreshToken.model.js';
+import crypto from 'crypto';
 
 export async function register(req, res) {
   try {
@@ -351,8 +353,18 @@ export async function login(req, res) {
         email_verified: user.email_verified
       },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '15m' }
     );
+
+    const refreshTokenValue = crypto.randomBytes(40).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    await RefreshToken.create({
+      token: refreshTokenValue,
+      user_id: user.id,
+      expires_at: expiresAt
+    });
 
     res.json({
       user: {
@@ -364,6 +376,7 @@ export async function login(req, res) {
         email_verified: user.email_verified
       },
       token,
+      refreshToken: refreshTokenValue
     });
   } catch (err) {
     console.error('Error en login:', err);
@@ -524,5 +537,60 @@ export async function updatePreferences(req, res) {
       message: 'Error al actualizar preferencias',
       errors: ['Error interno del servidor']
     });
+  }
+}
+
+export async function refreshAccessToken(req, res) {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'Refresh token requerido' });
+    }
+
+    const storedToken = await RefreshToken.findOne({
+      where: { token: refreshToken },
+      include: [{ model: User, as: 'user' }]
+    });
+
+    if (!storedToken || storedToken.revoked || new Date() > storedToken.expires_at) {
+      return res.status(401).json({ message: 'Refresh token inválido o expirado' });
+    }
+
+    const user = storedToken.user;
+    if (!user) {
+      return res.status(401).json({ message: 'Usuario inexistente' });
+    }
+
+    // Generar nuevo Access Token de 15m
+    const newToken = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        email_verified: user.email_verified
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    res.json({ token: newToken });
+  } catch (err) {
+    console.error('Error refrescando token:', err);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
+
+export async function logout(req, res) {
+  try {
+    const { refreshToken } = req.body;
+    if (refreshToken) {
+      await RefreshToken.update(
+        { revoked: true },
+        { where: { token: refreshToken } }
+      );
+    }
+    res.json({ message: 'Sesión terminada exitosamente' });
+  } catch (err) {
+    console.error('Error en logout:', err);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 }

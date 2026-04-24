@@ -111,6 +111,9 @@ export function AuthProvider({ children }) {
     setToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('token', data.token);
+    if (data.refreshToken) {
+       localStorage.setItem('refreshToken', data.refreshToken);
+    }
 
     // Aplicar idioma preferido si existe tras login
     const preferredLang = data?.user?.preferences?.displayOptions?.language;
@@ -152,12 +155,25 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function logout() {
+  async function logout() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      try {
+        await fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+      } catch (e) {
+        console.error('Network error logging out', e);
+      }
+    }
     setUser(null);
     setToken(null);
     setMigrationStatus(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     // No forzamos idioma al cerrar sesión; el detector usará localStorage (i18nextLng) o navegador
   }
 

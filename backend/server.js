@@ -9,6 +9,7 @@ import passport from 'passport';
 import GitHubStrategy from 'passport-github2';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/user.model.js';
+import { RefreshToken } from './models/refreshToken.model.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 

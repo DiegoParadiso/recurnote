@@ -9,7 +9,9 @@ import {
   requestPasswordReset,
   resetPassword,
   verifyCode,
-  resendCode
+  resendCode,
+  refreshAccessToken,
+  logout
 } from '../controllers/auth.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import {
@@ -31,6 +33,8 @@ router.post('/verify-email/:token', verifyEmail);
 router.post('/resend-verification', resendVerificationEmail);
 router.post('/request-password-reset', validatePasswordReset, handleValidationErrors, requestPasswordReset);
 router.post('/reset-password', validateNewPassword, handleValidationErrors, resetPassword);
+router.post('/refresh', refreshAccessToken);
+router.post('/logout', logout);
 
 // Rutas protegidas
 router.get('/me', authMiddleware, getMe);

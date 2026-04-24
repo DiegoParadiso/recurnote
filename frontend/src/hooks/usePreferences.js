@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@context/AuthContext';
+import { apiFetch } from '../utils/api.js';
 
 /**
  * Centralized preference management hook
@@ -181,11 +182,10 @@ export function usePreferences() {
         try {
             if (token) {
                 // Save to backend
-                const response = await fetch(`${API_URL}/api/auth/preferences`, {
+                const response = await apiFetch(`${API_URL}/api/auth/preferences`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
                     },
                     body: JSON.stringify({ preferences: prefsToSave }),
                 });
