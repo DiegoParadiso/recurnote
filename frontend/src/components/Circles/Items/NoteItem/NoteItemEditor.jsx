@@ -89,8 +89,8 @@ export default function NoteItemEditor({
 
     const totalRequiredHeight = contentHeight + overhead;
 
-    // Request resize if content needs more or less space
-    if (totalRequiredHeight !== height) {
+    // Request resize if content needs more or less space, with a small tolerance to prevent jumps
+    if (Math.abs(totalRequiredHeight - height) > 2) {
       onHeightChange?.(totalRequiredHeight);
     }
 
@@ -119,7 +119,7 @@ export default function NoteItemEditor({
       const overhead = Math.max(0, height - el.offsetHeight);
       const totalRequiredHeight = contentHeight + overhead;
 
-      if (totalRequiredHeight !== height) {
+      if (Math.abs(totalRequiredHeight - height) > 2) {
         onHeightChange?.(totalRequiredHeight);
       }
 
@@ -226,7 +226,7 @@ export default function NoteItemEditor({
             const overhead = Math.max(0, height - el.offsetHeight);
             const totalRequiredHeight = contentHeight + overhead;
 
-            if (totalRequiredHeight !== height) {
+            if (Math.abs(totalRequiredHeight - height) > 2) {
               onHeightChange?.(totalRequiredHeight);
             }
 

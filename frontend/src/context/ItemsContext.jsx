@@ -28,6 +28,8 @@ export const ItemsProvider = ({ children }) => {
   const retryTimeoutRef = useRef(null);
   const updateTimersRef = useRef(new Map()); // id -> timeoutId
   const updateQueueRef = useRef(new Map());  // id -> { url, payload, debounceMs }
+  const itemInFlightRef = useRef(new Set()); // id -> boolean (lock por item)
+  const lastKnownVersionRef = useRef(new Map()); // id -> version (última conocida por el server)
   const inFlightRef = useRef(0);
   const PENDING_LIMIT = 3;
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -709,14 +711,29 @@ export const ItemsProvider = ({ children }) => {
     }
 
     const scheduleSend = () => {
-      const entry = updateQueueRef.current.get(id);
-      if (!entry) return;
-
-      // Control de concurrencia simple
       const send = async () => {
+        if (itemInFlightRef.current.has(id)) {
+          // Ya hay un request volando para este ítem. 
+          // El finally del request actual se encargará de despachar lo que quede en cola.
+          return;
+        }
+
+        const entry = updateQueueRef.current.get(id);
+        if (!entry) return;
+
         updateQueueRef.current.delete(id);
+        itemInFlightRef.current.add(id);
+
         try {
           inFlightRef.current += 1;
+
+          // Obtener la versión más reciente justo antes de disparar el request
+          const latestItem = Object.values(itemsRef.current).flat().find(i => i.id === id);
+          const latestVersion = lastKnownVersionRef.current.get(id) || (latestItem ? latestItem.version : undefined);
+          if (latestVersion !== undefined) {
+             entry.payload.version = latestVersion;
+          }
+
           const response = await apiFetch(entry.url, {
             method: 'PUT',
             headers: {
@@ -730,6 +747,7 @@ export const ItemsProvider = ({ children }) => {
               const err = await response.json();
               if (err.current_item) {
                 const refreshedItem = expandItem(err.current_item);
+                lastKnownVersionRef.current.set(id, refreshedItem.version);
                 setItemsByDate(prev => {
                   const newState = { ...prev };
                   for (const dateKey in newState) {
@@ -737,8 +755,9 @@ export const ItemsProvider = ({ children }) => {
                   }
                   return newState;
                 });
-                setErrorToast('Sinconización forzada: otro dispositivo editó este ítem.');
-                setTimeout(() => setErrorToast(''), 4000);
+                // Como es nuestro mismo dispositivo haciendo spam, no deberíamos mostrar error 
+                // a menos que realmente el contenido haya divergido de forma inesperada.
+                // Por ahora omitimos el Toast asustadizo, el item se auto-corrige.
               }
             } else if (response.status !== 404) {
               console.error('Server error on updateItem:', response.status, response.statusText);
@@ -746,6 +765,7 @@ export const ItemsProvider = ({ children }) => {
           } else {
              const updatedData = await response.json();
              if (updatedData && updatedData.version) {
+               lastKnownVersionRef.current.set(id, updatedData.version);
                setItemsByDate(prev => {
                  const newState = { ...prev };
                  for (const dateKey in newState) {
@@ -760,6 +780,15 @@ export const ItemsProvider = ({ children }) => {
           console.error('Network error on updateItem:', err?.message || err);
         } finally {
           inFlightRef.current = Math.max(0, inFlightRef.current - 1);
+          itemInFlightRef.current.delete(id);
+
+          // Si el usuario siguió tipeando/moviendo mientras el request volaba,
+          // habrá un entry nuevo en la cola. Forzamos su envío de inmediato.
+          if (updateQueueRef.current.has(id)) {
+            setTimeout(() => {
+               queueItemUpdate(id, {}, { flush: true });
+            }, 0);
+          }
         }
       };
 

@@ -40,7 +40,14 @@ export default function NoteItem({
   const { duplicateItem } = useItems();
   const { updateItem, flushItemUpdate, captureUndoState } = useItems();
   const [minWidthPx, setMinWidthPx] = useState(120);
-  const [minHeightPx, setMinHeightPx] = useState(60);
+  const [minHeightPx, setMinHeightPx] = useState(80);
+  const resizingTimeoutRef = useRef(null);
+
+  const setResizing = () => {
+    isResizingRef.current = true;
+    if (resizingTimeoutRef.current) clearTimeout(resizingTimeoutRef.current);
+    resizingTimeoutRef.current = setTimeout(() => { isResizingRef.current = false; }, 500);
+  };
 
   // Local state for optimistic updates
   const [localPos, setLocalPos] = useState({ x, y });
@@ -131,7 +138,7 @@ export default function NoteItem({
       const contentHeight = el.scrollHeight + borderHeight; // altura real del contenido + bordes
 
       // Calcular la altura deseada: contenido + paddings del contenedor
-      const desiredMinHeight = Math.max(60, Math.ceil(contentHeight + containerPaddingTop + containerPaddingBottom));
+      const desiredMinHeight = Math.max(80, Math.ceil(contentHeight + containerPaddingTop + containerPaddingBottom));
 
       // Actualizar el minHeight para que el usuario no pueda achicarlo más que el texto
       setMinHeightPx(desiredMinHeight);
@@ -211,8 +218,8 @@ export default function NoteItem({
           // So we can reset isResizingRef on mouse up or just let it be.
           // Better: set it false in a timeout or rely on the fact that onSizeChange is continuous.
           // Let's set it to false immediately after update? No, that would cause flicker.
-          // We can use a timeout.
-          setTimeout(() => { isResizingRef.current = false; }, 100);
+          // Reset resizing flag after a short delay
+          setResizing();
           // Check if new width causes height overflow
           // We need to estimate height at newWidth.
           // This is tricky without a ref to the editor's content or a measurement utility.
@@ -370,7 +377,7 @@ export default function NoteItem({
                   );
 
                   // Clear resizing flag after delay
-                  setTimeout(() => { isResizingRef.current = false; }, 100);
+                  setResizing();
                 }
               }}
               textareaRef={textareaRef}
