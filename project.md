@@ -402,26 +402,34 @@ Authorization: Bearer <token>
 
 ## Deuda Técnica y Roadmap (Áreas de Mejora Críticas)
 
-El diseño actual permite una iteración rápida (MVP), pero presenta deudas técnicas significativas que deben abordarse antes de escalar a producción o habilitar concurrencia real.
+### Fase 1: Estabilidad Core (COMPLETADA)
+Hemos finalizado exitosamente el blindaje arquitectónico original para garantizar estabilidad:
+- **[X] Concurrencia Optimista:** Migramos a versionado estricto previniendo carreras de guardado erráticas.
+- **[X] Sync Offline-First:** Implementamos reconciliación de IDs temporales (`client_id` -> id servidor) y endpoint batch `/sync`.
+- **[X] Agnosticismo de Payment:** Desacoplamos PayPal hacia `provider_id`/`provider_type` y sumamos la ingesta asíncrona de Webhooks.
+- **[X] Rotación de Sesiones:** Instalación de micro-Access Tokens (15m) alimentados por Refresh Tokens almacenados en base de datos.
+- **[X] Normalización de Base de Datos:** `content_text` y `item_type` han sido extirpados de la tiranía opaca de JSONB hacia columnas directas en postgres.
 
-A continuación, el orden estricto de prioridades para abordar estas mejoras reales (no cosméticas):
+### Fase 2: Robustez de Producción (Roadmap Actual)
 
-### 1. Control de Concurrencia + Versionado en Items
-- **Problema:** El cliente asume el éxito sin versionado. Si hay dos dispositivos editando el mismo ítem, el último en guardar sobrescribe al otro de forma silenciosa. Esto rompe la consistencia y el historial local de Undo/Redo.
-- **Solución Necesaria:** Añadir un control de concurrencia optimista estricto. Agregar campo `version` (entero) en el modelo de Items. Validar en el backend que el update corresponde a la versión esperada, devolviendo conflictos (HTTP 409) si difiere. El cliente debe lidiar con la falla.
+A continuación, la ruta de acción basada en el escrutinio técnico para declarar al proyecto Enterprise-Ready:
 
-### 2. Diseño Real de Sync y Contrato Offline-First (MVP)
-- **Problema:** El frontend opera optimista/offline-first pero el backend asume validación síncrona REST clásica. 
-- **Solución Necesaria:** Mínimo viable para reconciliación. Devolver pares concisos (`client_id` -> `server_id`) en creación. Integrar endpoints de `/sync` que procesen lotes (batch) o manejen deltas, acompañados de marcas de tiempo del cliente para resolución básica de conflictos.
+#### 1. Tolerancia y Protección (Rate Limiting)
+- **Problema:** Enrutamientos públicos críticos (login, register, reset de contraseñas) carecen de defensas anti Fuerza Bruta o spam.
+- **Solución Necesaria:** Instalar capas de Rate Limiting con herramientas como `express-rate-limit` con mem-stores adecuados.
 
-### 3. Desacoplar Payment de PayPal + Webhooks
-- **Problema:** Lógica estrictamente acoplada a PayPal (`paymentId`). Propensa a fallos con cobros pendientes/fallidos.
-- **Solución Necesaria:** Proveedor abstracto en base de datos (`provider_id`, `provider_type`, `status`). Sumar sistema de Webhook routing fundamental para que las suscripciones reaccionen al estado real de la pasarela y hacer la reconciliación.
+#### 2. Extraer Límites de Negocio Duros (Configurabilidad)
+- **Problema:** "15 items límite" y "3MB de peso" están quemados (hardcodeados) a nivel código de controladores. Si se desea cambiar la estrategia de marketing, requeriría recompilar.
+- **Solución Necesaria:** Volcar estos topes a un modelo de Base de Datos (ej. tabla `SubscriptionPlans`) o variables de entorno firmes (`MAX_FREE_ITEMS`).
 
-### 4. Endurecer Auth (Refresh, Revocación)
-- **Problema:** El MVP no tiene políticas para el ciclo vital completo de sesiones públicas en producción.
-- **Solución Necesaria:** Implementar rotación de Refresh Tokens transparente en cliente. Añadir tabla/mecanismo de revocación de sesiones (desconectar otros dispositivos) y Rate Limiting agresivo en rutas críticas.
+#### 3. Introducción de Capa de Dominio (Servicios)
+- **Problema:** Arquitectura tradicional de MVC donde los controladores (`item.controller.js`) están asfixiados operando con lógicas de negocio, validaciones pesadas, limitantes premium y ORM directamente.
+- **Solución Necesaria:** Desplazar las reglas de negocio estrictas a una capa `Servicios` purificada (ej. `item.service.js`) dejando el controlador únicamente como intérprete inerte de JSON HTTP a Dominio.
 
-### 5. Reducir Dependencia de JSONB para Datos Críticos (`item_data`)
-- **Problema:** El blob JSONB no es escalable para búsquedas o indexado de texto.
-- **Solución Necesaria:** Extraer variables críticas sin perder flexibilidad. Añadir columna `type` ('nota', 'tarea', etc.) y `content_text` (para permitir queries FTS/indexadas) e independizar estos valores del blob bruto.
+#### 4. Saneamiento de Modelos y Nombres (Specs Gap)
+- **Problema:** Dualidad histórica residual como `rotation` vs `rotation_enabled`, variables huérfanas como `fullboard_x/y` o piezas que obran implícitas en el controlador pero no existen relacionalmente estables (`position_ts`).
+- **Solución Necesaria:** Depurar el modelo transaccional. Condensar banderas y unificar el mapeo del ORM con la verdad del Front-End.
+
+#### 5. Observabilidad Mínima Operativa
+- **Problema:** Cualquier bug complejo en sincronización multi-hilo, tiempos de respuesta de base de datos o fallos de inyecciones de Webhooks está ciego a nivel monitoreo.
+- **Solución Necesaria:** Implementar un logger estructurado (Winston o similar), trazabilidad de Request ID global y exposición de health-checks de latencias del motor ORM o memoria viva.

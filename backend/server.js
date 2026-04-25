@@ -12,9 +12,25 @@ import { User } from './models/user.model.js';
 import { RefreshToken } from './models/refreshToken.model.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import morgan from 'morgan';
+import logger from './utils/logger.js';
 
 dotenv.config();
 const app = express();
+
+// Generar Request ID global
+app.use((req, res, next) => {
+  req.id = crypto.randomUUID();
+  res.setHeader('X-Request-Id', req.id);
+  next();
+});
+
+// Logging HTTP estructurado
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms', {
+  stream: {
+    write: (message) => logger.info(message.trim())
+  }
+}));
 
 // ==== CORS seguro ====
 app.use(cors({

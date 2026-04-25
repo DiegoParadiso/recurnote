@@ -29,14 +29,6 @@ export const Item = sequelize.define('Item', {
     type: DataTypes.NUMERIC(10, 2),
     allowNull: false,
   },
-  fullboard_x: {
-    type: DataTypes.NUMERIC(10, 2),
-    allowNull: true,
-  },
-  fullboard_y: {
-    type: DataTypes.NUMERIC(10, 2),
-    allowNull: true,
-  },
   rotation: {
     type: DataTypes.NUMERIC(10, 2),
     defaultValue: 0,

@@ -1,26 +1,7 @@
 import { Item } from '../models/item.model.js';
 import { withRLS } from '../utils/rls.utils.js';
-
-function extractItemMetadata(itemData) {
-  if (!itemData) return { item_type: null, content_text: null };
-  const item_type = itemData.type || itemData.label || null;
-  
-  let content_text = null;
-  if (itemData.content) {
-     if (typeof itemData.content.text === 'string') {
-        content_text = itemData.content.text;
-     } else if (typeof itemData.content.title === 'string') {
-        content_text = itemData.content.title + (itemData.content.description ? ' ' + itemData.content.description : '');
-     } else if (typeof itemData.content === 'string') {
-        content_text = itemData.content;
-     }
-  }
-  if (!content_text && itemData.text) {
-     content_text = itemData.text;
-  }
-  
-  return { item_type, content_text };
-}
+import { itemService } from '../services/item.service.js';
+import { BUSINESS_RULES } from '../config/business.js';
 
 export async function getItems(req, res) {
   try {
@@ -56,48 +37,24 @@ export async function createItem(req, res) {
       // Restricciones para usuarios no VIP
       const isVip = !!req.user?.is_vip;
       if (!isVip) {
-        // Limitar cantidad total de items del usuario
-        const itemCount = await Item.count({
-          where: { user_id: req.user.id },
-          transaction: t
-        });
-        if (itemCount >= 15) {
-          return res.status(403).json({
-            message: 'Límite alcanzado: las cuentas gratuitas pueden crear hasta 15 items.'
-          });
-        }
-
-        // Si es un item tipo Archivo, validar tamaño máximo de 3MB
-        const label = item_data?.label || item_data?.type || '';
-        if (label === 'Archivo' || label.toLowerCase() === 'archivo') {
-          const sizeBytes = item_data?.content?.fileData?.size;
-          if (typeof sizeBytes === 'number') {
-            const sizeMB = sizeBytes / (1024 * 1024);
-            if (sizeMB > 3) {
-              return res.status(413).json({
-                message: 'El archivo excede el límite de 3MB para cuentas gratuitas.'
-              });
-            }
-          }
-        }
+        await itemService.checkFreeItemLimit(req.user.id, t);
+        itemService.checkFreeFileSizeLimit(item_data);
       }
       console.log('📝 Creando item en base de datos con:', {
         date, x, y, rotation, rotation_enabled, item_data, user_id: req.user.id
       });
 
-      const { item_type, content_text } = extractItemMetadata(item_data);
-
-      const newItem = await Item.create({
+      const payload = itemService.prepareItemPayload({
         date,
         x,
         y,
         rotation,
         rotation_enabled,
         item_data,
-        item_type,
-        content_text,
         user_id: req.user.id
-      }, { transaction: t });
+      });
+
+      const newItem = await Item.create(payload, { transaction: t });
 
       res.json({
         client_id: client_id || null,
@@ -106,7 +63,7 @@ export async function createItem(req, res) {
     });
   } catch (err) {
     console.error('Error en createItem:', err);
-    res.status(500).json({ message: 'Error al crear item', error: err.message });
+    res.status(err.statusCode || 500).json({ message: err.message || 'Error al crear item', error: err.message });
   }
 }
 
@@ -139,17 +96,7 @@ export async function updateItem(req, res) {
       const isVip = !!req.user?.is_vip;
       if (!isVip && incomingItemData && typeof incomingItemData === 'object') {
         const effectiveLabel = incomingItemData?.label || item.item_data?.label || '';
-        if (effectiveLabel === 'Archivo' || String(effectiveLabel).toLowerCase() === 'archivo') {
-          const sizeBytes = incomingItemData?.content?.fileData?.size;
-          if (typeof sizeBytes === 'number') {
-            const sizeMB = sizeBytes / (1024 * 1024);
-            if (sizeMB > 3) {
-              return res.status(413).json({
-                message: 'El archivo excede el límite de 3MB para cuentas gratuitas. Hazte VIP para subir archivos más grandes.'
-              });
-            }
-          }
-        }
+        itemService.checkFreeFileSizeLimit({ label: effectiveLabel, content: incomingItemData.content });
       }
 
       const updatePayload = { ...rest };
@@ -193,9 +140,7 @@ export async function updateItem(req, res) {
       }
 
       if (updatePayload.item_data) {
-        const { item_type, content_text } = extractItemMetadata(updatePayload.item_data);
-        if (item_type !== null) updatePayload.item_type = item_type;
-        if (content_text !== null) updatePayload.content_text = content_text;
+        Object.assign(updatePayload, itemService.prepareItemPayload({ item_data: updatePayload.item_data }));
       }
 
       await item.update(updatePayload, { transaction: t });
@@ -205,7 +150,7 @@ export async function updateItem(req, res) {
     });
   } catch (err) {
     console.error('Error en updateItem:', err);
-    res.status(500).json({ message: 'Error al actualizar item', error: err.message });
+    res.status(err.statusCode || 500).json({ message: err.message || 'Error al actualizar item', error: err.message });
   }
 }
 
@@ -242,7 +187,7 @@ export async function syncItems(req, res) {
       }
 
       for (const item of items) {
-        if (!isVip && currentItemCount >= 15) {
+        if (!isVip && currentItemCount >= BUSINESS_RULES.MAX_FREE_ITEMS) {
           continue;
         }
 
@@ -255,14 +200,16 @@ export async function syncItems(req, res) {
         const label = item_data?.label || item_data?.type || '';
         if (!isVip && (label === 'Archivo' || label.toLowerCase() === 'archivo')) {
           const sizeBytes = item_data?.content?.fileData?.size;
-          if (typeof sizeBytes === 'number' && (sizeBytes / (1024 * 1024) > 3)) {
+          if (typeof sizeBytes === 'number' && (sizeBytes / (1024 * 1024) > BUSINESS_RULES.MAX_FREE_FILE_SIZE_MB)) {
             continue;
           }
         }
 
-        const newItem = await Item.create({
+        const payload = itemService.prepareItemPayload({
           date, x, y, rotation, rotation_enabled, item_data, user_id: req.user.id
-        }, { transaction: t });
+        });
+
+        const newItem = await Item.create(payload, { transaction: t });
 
         syncedItems.push({
           client_id,

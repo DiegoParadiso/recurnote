@@ -21,17 +21,18 @@ import {
   validateNewPassword,
   handleValidationErrors
 } from '../middleware/validation.middleware.js';
+import { authLimiter } from '../middleware/rateLimiter.middleware.js';
 
 const router = express.Router();
 
 // Rutas públicas
-router.post('/register', validateRegister, handleValidationErrors, register);
-router.post('/login', validateLogin, handleValidationErrors, login);
+router.post('/register', authLimiter, validateRegister, handleValidationErrors, register);
+router.post('/login', authLimiter, validateLogin, handleValidationErrors, login);
 router.post('/verify-code', verifyCode);
 router.post('/resend-code', resendCode);
 router.post('/verify-email/:token', verifyEmail);
 router.post('/resend-verification', resendVerificationEmail);
-router.post('/request-password-reset', validatePasswordReset, handleValidationErrors, requestPasswordReset);
+router.post('/request-password-reset', authLimiter, validatePasswordReset, handleValidationErrors, requestPasswordReset);
 router.post('/reset-password', validateNewPassword, handleValidationErrors, resetPassword);
 router.post('/refresh', refreshAccessToken);
 router.post('/logout', logout);
