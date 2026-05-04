@@ -312,19 +312,19 @@ export default function ConfigPanel({
                   id="toggle-account-indicator"
                   label={t('visual.accountIndicator')}
                   value={displayOptions.showAccountIndicator}
-                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val }))}
+                  onChange={(val) => withLoading(async () => setDisplayOptions((prev) => ({ ...prev, showAccountIndicator: val })), { immediate: true })}
                 />
                 <ToggleOption
                   id="toggle-sidebar-left-pinned"
                   label={t('visual.pinLeftSidebar')}
                   value={isLeftSidebarPinned}
-                  onChange={setIsLeftSidebarPinned}
+                  onChange={(val) => withLoading(async () => setIsLeftSidebarPinned(val), { immediate: true })}
                 />
                 <ToggleOption
                   id="toggle-sidebar-right-pinned"
                   label={t('visual.pinRightSidebar')}
                   value={isRightSidebarPinned}
-                  onChange={setIsRightSidebarPinned}
+                  onChange={(val) => withLoading(async () => setIsRightSidebarPinned(val), { immediate: true })}
                 />
               </div>
             )}
@@ -335,7 +335,7 @@ export default function ConfigPanel({
                   id={`toggle-${key}`}
                   label={` ${label}`}
                   value={displayOptions[key]}
-                  onChange={(val) => setDisplayOptions((prev) => ({ ...prev, [key]: val }))}
+                  onChange={(val) => withLoading(async () => setDisplayOptions((prev) => ({ ...prev, [key]: val })), { immediate: true })}
                 />
               ))}
             </div>

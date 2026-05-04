@@ -366,6 +366,20 @@ export async function login(req, res) {
       expires_at: expiresAt
     });
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.cookie('refreshToken', refreshTokenValue, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
     res.json({
       user: {
         id: user.id,
@@ -374,9 +388,7 @@ export async function login(req, res) {
         is_vip: !!user.is_vip,
         preferences: user.preferences || {},
         email_verified: user.email_verified
-      },
-      token,
-      refreshToken: refreshTokenValue
+      }
     });
   } catch (err) {
     console.error('Error en login:', err);
@@ -542,7 +554,7 @@ export async function updatePreferences(req, res) {
 
 export async function refreshAccessToken(req, res) {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (!refreshToken) {
       return res.status(401).json({ message: 'Refresh token requerido' });
     }
@@ -572,7 +584,14 @@ export async function refreshAccessToken(req, res) {
       { expiresIn: '15m' }
     );
 
-    res.json({ token: newToken });
+    res.cookie('token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.json({ message: 'Token refrescado' });
   } catch (err) {
     console.error('Error refrescando token:', err);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -581,13 +600,15 @@ export async function refreshAccessToken(req, res) {
 
 export async function logout(req, res) {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (refreshToken) {
       await RefreshToken.update(
         { revoked: true },
         { where: { token: refreshToken } }
       );
     }
+    res.clearCookie('token');
+    res.clearCookie('refreshToken');
     res.json({ message: 'Sesión terminada exitosamente' });
   } catch (err) {
     console.error('Error en logout:', err);

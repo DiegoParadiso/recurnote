@@ -9,28 +9,18 @@ function onRefreshed(token) {
 }
 
 export async function apiFetch(url, options = {}) {
-  let token = localStorage.getItem('token');
+  options.credentials = 'include';
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {})
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const response = await fetch(url, { ...options, headers });
 
   if (response.status === 401 && !options._retry) {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-       return response;
-    }
-
     if (isRefreshing) {
       return new Promise(resolve => {
-        refreshSubscribers.push(newToken => {
-          headers['Authorization'] = `Bearer ${newToken}`;
+        refreshSubscribers.push(() => {
           resolve(fetch(url, { ...options, headers }));
         });
       });
@@ -43,22 +33,16 @@ export async function apiFetch(url, options = {}) {
       const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken })
+        credentials: 'include'
       });
 
       if (!refreshRes.ok) {
-         localStorage.removeItem('token');
-         localStorage.removeItem('refreshToken');
          localStorage.removeItem('user');
          window.location.reload();
          throw new Error('Refresh failed');
       }
-
-      const data = await refreshRes.json();
-      localStorage.setItem('token', data.token);
-      headers['Authorization'] = `Bearer ${data.token}`;
       
-      onRefreshed(data.token);
+      onRefreshed(null);
       isRefreshing = false;
 
       return fetch(url, { ...options, headers });

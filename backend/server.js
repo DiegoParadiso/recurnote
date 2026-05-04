@@ -14,6 +14,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import morgan from 'morgan';
 import logger from './utils/logger.js';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 const app = express();
@@ -73,6 +74,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(passport.initialize());
 
 // Passport GitHub

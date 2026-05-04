@@ -990,6 +990,7 @@ export const ItemsProvider = ({ children }) => {
         _pending: user && token ? true : false,
         _local: !user || !token ? true : false,
         _justDuplicated: true,
+        zIndexOverride: 9999,
         createdAt: new Date().toISOString(),
       };
 

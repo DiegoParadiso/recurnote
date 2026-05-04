@@ -16,46 +16,29 @@ export function AuthProvider({ children }) {
   // Función para inicializar la autenticación
   const initializeAuth = async () => {
     try {
-      const savedUser = localStorage.getItem('user');
-      const savedToken = localStorage.getItem('token');
-      if (savedToken && !savedUser) {
-        // Scenario: login via OAuth/jwt, fetch user info
-        const res = await fetch(`${API_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${savedToken}` }
-        });
-        if (res.ok) {
-          const me = await res.json();
-          setUser(me);
-          setToken(savedToken);
-          localStorage.setItem('user', JSON.stringify(me));
-        } else {
-          localStorage.removeItem('token');
-        }
-      } else if (savedUser && savedToken) {
-        // Verificar si el token sigue siendo válido
-        const isValid = await validateToken(savedToken);
-        if (isValid) {
-          setUser(JSON.parse(savedUser));
-          setToken(savedToken);
-          await refreshMe();
-        } else {
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-        }
+      // Intentamos validar sesión automáticamente vía cookie
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const me = await res.json();
+        setUser(me);
+        localStorage.setItem('user', JSON.stringify(me));
+      } else {
+        localStorage.removeItem('user');
       }
     } catch (error) {
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
     } finally {
       setLoading(false);
     }
   };
 
   // Función para validar token
-  const validateToken = async (tokenToValidate) => {
+  const validateToken = async () => {
     try {
       const res = await fetch(`${API_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${tokenToValidate}` }
+        credentials: 'include'
       });
       return res.ok;
     } catch (error) {
@@ -68,10 +51,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function refreshMe() {
-    if (!token) return;
     try {
       const res = await fetch(`${API_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!res.ok) return;
       const me = await res.json();
@@ -98,6 +80,7 @@ export function AuthProvider({ children }) {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
 
@@ -108,12 +91,7 @@ export function AuthProvider({ children }) {
 
     const data = await response.json();
     setUser(data.user);
-    setToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    localStorage.setItem('token', data.token);
-    if (data.refreshToken) {
-       localStorage.setItem('refreshToken', data.refreshToken);
-    }
 
     // Aplicar idioma preferido si existe tras login
     const preferredLang = data?.user?.preferences?.displayOptions?.language;
@@ -156,20 +134,16 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken) {
-      try {
-        await fetch(`${API_URL}/api/auth/logout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken })
-        });
-      } catch (e) {
-        console.error('Network error logging out', e);
-      }
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+    } catch (e) {
+      console.error('Network error logging out', e);
     }
     setUser(null);
-    setToken(null);
     setMigrationStatus(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');

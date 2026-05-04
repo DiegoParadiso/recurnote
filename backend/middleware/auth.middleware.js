@@ -2,10 +2,8 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
 
 export async function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: 'Token no proporcionado' });
-
-  const token = authHeader.split(' ')[1];
+  const token = req.cookies?.token || (req.headers.authorization?.split(' ')[1]);
+  if (!token) return res.status(401).json({ message: 'Token no proporcionado' });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded || !decoded.id) {

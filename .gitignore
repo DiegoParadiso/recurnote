@@ -39,3 +39,6 @@ build/
 
 # npm pack files
 *.tgz
+
+# Documentos internos
+docs/risk_analysis_plan.md
