@@ -144,13 +144,37 @@ app.get('/auth/github', passport.authenticate('github', { session: false }));
 
 app.get('/auth/github/callback',
   passport.authenticate('github', { session: false, failureRedirect: '/login' }),
-  (req, res) => {
+  async (req, res) => {
     try {
       const token = jwt.sign(
         { id: req.user.id, email: req.user.email, email_verified: req.user.email_verified },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '15m' }
       );
+
+      const refreshTokenValue = crypto.randomBytes(40).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      
+      await RefreshToken.create({
+        token: refreshTokenValue,
+        user_id: req.user.id,
+        expires_at: expiresAt
+      });
+      
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 15 * 60 * 1000
+      });
+
+      res.cookie('refreshToken', refreshTokenValue, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
       const nonce = crypto.randomBytes(16).toString('hex');
       const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -216,13 +240,37 @@ app.get('/auth/google', passport.authenticate('google', {
 
 app.get('/auth/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
-  (req, res) => {
+  async (req, res) => {
     try {
       const token = jwt.sign(
         { id: req.user.id, email: req.user.email, email_verified: req.user.email_verified },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '15m' }
       );
+
+      const refreshTokenValue = crypto.randomBytes(40).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      
+      await RefreshToken.create({
+        token: refreshTokenValue,
+        user_id: req.user.id,
+        expires_at: expiresAt
+      });
+      
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 15 * 60 * 1000
+      });
+
+      res.cookie('refreshToken', refreshTokenValue, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
       const nonce = crypto.randomBytes(16).toString('hex');
       const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
