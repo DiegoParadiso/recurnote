@@ -185,7 +185,7 @@ export default function Login() {
     }
   };
 
-  const handleGitHubToken = (event) => {
+  const handleGitHubToken = async (event) => {
     // Verificar que el mensaje viene de nuestro backend
     const backendUrl = getBackendUrl();
     const allowedOrigins = [
@@ -230,7 +230,7 @@ export default function Login() {
     }
   };
 
-  const handleGoogleToken = (event) => {
+  const handleGoogleToken = async (event) => {
     // Verificar que el mensaje viene de nuestro backend
     const backendUrl = getBackendUrl();
     const allowedOrigins = [
