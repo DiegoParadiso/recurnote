@@ -11,7 +11,6 @@ import {
   verifyCode,
   resendCode,
   refreshAccessToken,
-  refreshAccessToken,
   logout,
   oauthCookieSync
 } from '../controllers/auth.controller.js';

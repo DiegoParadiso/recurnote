@@ -619,11 +619,33 @@ export async function logout(req, res) {
 export async function oauthCookieSync(req, res) {
   try {
     const { token } = req.body;
-    if (!token) return res.status(400).json({ message: 'Token requerido' });
+    if (!token) {
+      console.warn('oauthCookieSync: No se proporcionó token');
+      return res.status(400).json({ message: 'Token requerido' });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('oauthCookieSync: JWT_SECRET no está configurado');
+      return res.status(500).json({ message: 'Error de configuración del servidor' });
+    }
+    console.log(`oauthCookieSync: Usando JWT_SECRET de longitud ${secret.length} (empieza con ${secret.substring(0, 4)}...)`);
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtErr) {
+      console.error('oauthCookieSync: Error al verificar JWT:', jwtErr.message);
+      return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
+
     const user = await User.findByPk(decoded.id);
-    if (!user) return res.status(401).json({ message: 'Usuario no encontrado' });
+    if (!user) {
+      console.warn(`oauthCookieSync: Usuario no encontrado para ID ${decoded.id}`);
+      return res.status(401).json({ message: 'Usuario no encontrado' });
+    }
+
+    console.log(`oauthCookieSync: Sincronizando sesión para usuario ${user.email} (ID: ${user.id})`);
 
     const sessionToken = jwt.sign(
       { id: user.id, email: user.email, email_verified: user.email_verified },
@@ -653,9 +675,10 @@ export async function oauthCookieSync(req, res) {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
+    console.log('oauthCookieSync: Cookies configuradas exitosamente');
     res.json({ message: 'Cookies sincronizadas' });
   } catch(err) {
-    console.error('Error en oauthCookieSync:', err);
-    res.status(401).json({ message: 'Token inválido' });
+    console.error('Error crítico en oauthCookieSync:', err);
+    res.status(500).json({ message: 'Error interno al sincronizar sesión' });
   }
 }

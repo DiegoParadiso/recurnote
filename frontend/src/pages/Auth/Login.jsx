@@ -185,6 +185,8 @@ export default function Login() {
     }
   };
 
+  const syncInProgress = useRef(false);
+
   const handleGitHubToken = async (event) => {
     // Verificar que el mensaje viene de nuestro backend
     const backendUrl = getBackendUrl();
@@ -195,19 +197,26 @@ export default function Login() {
       'http://localhost:5001'
     ];
 
-    if (!allowedOrigins.some(origin => event.origin === origin)) {
+    const isAllowed = allowedOrigins.some(origin => {
+      try {
+        return event.origin === origin || new URL(event.origin).origin === new URL(origin).origin;
+      } catch (e) {
+        return event.origin === origin;
+      }
+    });
+
+    if (!isAllowed) {
       console.warn('Mensaje recibido de origen no confiable:', event.origin);
       return;
     }
 
-    if (!event.data || !event.data.token) {
-      console.log('Mensaje sin token recibido');
-      return;
-    }
+    if (!event.data || !event.data.token) return;
+    if (syncInProgress.current) return;
 
     try {
+      syncInProgress.current = true;
       console.log('Token de GitHub recibido, sincronizando cookies...');
-      const backendUrl = getBackendUrl();
+      
       const res = await fetch(`${backendUrl}/api/auth/oauth-cookie-sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -216,7 +225,9 @@ export default function Login() {
       });
 
       if (!res.ok) {
-        throw new Error('No se pudo sincronizar la sesión');
+        const errorData = await res.json().catch(() => ({}));
+        console.error('Error en sync de sesión:', res.status, errorData);
+        throw new Error(errorData.message || 'No se pudo sincronizar la sesión');
       }
 
       window.removeEventListener('message', handleGitHubToken);
@@ -226,7 +237,8 @@ export default function Login() {
       window.location.href = '/';
     } catch (err) {
       console.error('Error procesando token de GitHub:', err);
-      setErrors({ general: t('auth.githubAuthError') || 'Error al procesar autenticación' });
+      setErrors({ general: err.message || t('auth.githubAuthError') || 'Error al procesar autenticación' });
+      syncInProgress.current = false;
     }
   };
 
@@ -240,19 +252,26 @@ export default function Login() {
       'http://localhost:5001'
     ];
 
-    if (!allowedOrigins.some(origin => event.origin === origin)) {
+    const isAllowed = allowedOrigins.some(origin => {
+      try {
+        return event.origin === origin || new URL(event.origin).origin === new URL(origin).origin;
+      } catch (e) {
+        return event.origin === origin;
+      }
+    });
+
+    if (!isAllowed) {
       console.warn('Mensaje recibido de origen no confiable:', event.origin);
       return;
     }
 
-    if (!event.data || !event.data.token) {
-      console.log('Mensaje sin token recibido');
-      return;
-    }
+    if (!event.data || !event.data.token) return;
+    if (syncInProgress.current) return;
 
     try {
+      syncInProgress.current = true;
       console.log('Token de Google recibido, sincronizando cookies...');
-      const backendUrl = getBackendUrl();
+      
       const res = await fetch(`${backendUrl}/api/auth/oauth-cookie-sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -261,7 +280,9 @@ export default function Login() {
       });
 
       if (!res.ok) {
-        throw new Error('No se pudo sincronizar la sesión');
+        const errorData = await res.json().catch(() => ({}));
+        console.error('Error en sync de sesión (Google):', res.status, errorData);
+        throw new Error(errorData.message || 'No se pudo sincronizar la sesión');
       }
 
       window.removeEventListener('message', handleGoogleToken);
@@ -271,7 +292,8 @@ export default function Login() {
       window.location.href = '/';
     } catch (err) {
       console.error('Error procesando token de Google:', err);
-      setErrors({ general: t('auth.googleAuthError') || 'Error al procesar autenticación' });
+      setErrors({ general: err.message || t('auth.googleAuthError') || 'Error al procesar autenticación' });
+      syncInProgress.current = false;
     }
   };
 
