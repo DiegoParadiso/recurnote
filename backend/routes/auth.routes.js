@@ -11,7 +11,9 @@ import {
   verifyCode,
   resendCode,
   refreshAccessToken,
-  logout
+  refreshAccessToken,
+  logout,
+  oauthCookieSync
 } from '../controllers/auth.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { validateRequest } from '../middleware/zodValidation.middleware.js';
@@ -31,6 +33,7 @@ router.post('/request-password-reset', resetPasswordLimiter, validateRequest(pas
 router.post('/reset-password', validateRequest(newPasswordSchema), resetPassword);
 router.post('/refresh', refreshAccessToken);
 router.post('/logout', logout);
+router.post('/oauth-cookie-sync', oauthCookieSync);
 
 // Rutas protegidas
 router.get('/me', authMiddleware, getMe);

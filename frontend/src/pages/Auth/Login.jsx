@@ -206,8 +206,19 @@ export default function Login() {
     }
 
     try {
-      console.log('Token de GitHub recibido correctamente');
-      localStorage.setItem('token', event.data.token);
+      console.log('Token de GitHub recibido, sincronizando cookies...');
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/auth/oauth-cookie-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token: event.data.token })
+      });
+
+      if (!res.ok) {
+        throw new Error('No se pudo sincronizar la sesión');
+      }
+
       window.removeEventListener('message', handleGitHubToken);
       if (githubLoginWindow.current) {
         githubLoginWindow.current.close();
@@ -240,8 +251,19 @@ export default function Login() {
     }
 
     try {
-      console.log('Token de Google recibido correctamente');
-      localStorage.setItem('token', event.data.token);
+      console.log('Token de Google recibido, sincronizando cookies...');
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/auth/oauth-cookie-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token: event.data.token })
+      });
+
+      if (!res.ok) {
+        throw new Error('No se pudo sincronizar la sesión');
+      }
+
       window.removeEventListener('message', handleGoogleToken);
       if (googleLoginWindow.current) {
         googleLoginWindow.current.close();

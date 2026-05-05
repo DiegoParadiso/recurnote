@@ -368,15 +368,15 @@ export async function login(req, res) {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000
     });
 
     res.cookie('refreshToken', refreshTokenValue, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -586,8 +586,8 @@ export async function refreshAccessToken(req, res) {
 
     res.cookie('token', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000
     });
 
@@ -607,11 +607,55 @@ export async function logout(req, res) {
         { where: { token: refreshToken } }
       );
     }
-    res.clearCookie('token');
-    res.clearCookie('refreshToken');
+    res.clearCookie('token', { secure: true, sameSite: 'none' });
+    res.clearCookie('refreshToken', { secure: true, sameSite: 'none' });
     res.json({ message: 'Sesión terminada exitosamente' });
   } catch (err) {
     console.error('Error en logout:', err);
     res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
+
+export async function oauthCookieSync(req, res) {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ message: 'Token requerido' });
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(401).json({ message: 'Usuario no encontrado' });
+
+    const sessionToken = jwt.sign(
+      { id: user.id, email: user.email, email_verified: user.email_verified },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+    const refreshTokenValue = crypto.randomBytes(40).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    
+    await RefreshToken.create({
+      token: refreshTokenValue,
+      user_id: user.id,
+      expires_at: expiresAt
+    });
+
+    res.cookie('token', sessionToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 15 * 60 * 1000
+    });
+    res.cookie('refreshToken', refreshTokenValue, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json({ message: 'Cookies sincronizadas' });
+  } catch(err) {
+    console.error('Error en oauthCookieSync:', err);
+    res.status(401).json({ message: 'Token inválido' });
   }
 }
