@@ -293,6 +293,34 @@ export const ItemsProvider = ({ children }) => {
     }
   }, [user, token, API_URL]);
 
+  // Recuperar operaciones pendientes de updateQueueRef que no llegaron al servidor
+  const flushSyncQueue = useCallback(async () => {
+    if (!user || !token) return;
+    try {
+      const storedQueue = localStorage.getItem('syncQueue');
+      if (!storedQueue) return;
+
+      const parsedQueue = JSON.parse(storedQueue);
+      if (Array.isArray(parsedQueue) && parsedQueue.length > 0) {
+        console.log(`Recuperando ${parsedQueue.length} operaciones pendientes del localStorage...`);
+        for (const [id, entry] of parsedQueue) {
+          apiFetch(entry.url, {
+             method: 'PUT',
+             headers: {
+               'Content-Type': 'application/json',
+               Authorization: `Bearer ${token}`,
+             },
+             body: JSON.stringify(entry.payload),
+          }).catch(e => console.error("Error flushed entry", e));
+        }
+        localStorage.removeItem('syncQueue');
+      }
+    } catch (e) {
+      console.warn("Error recuperando syncQueue:", e);
+      localStorage.removeItem('syncQueue');
+    }
+  }, [user, token]);
+
   // Función para cargar items
   const loadItems = useCallback(async (isRetry = false) => {
     if (!user || !token) {
@@ -404,12 +432,13 @@ export const ItemsProvider = ({ children }) => {
       const init = async () => {
         if (user && token) {
            await syncLocalToCloud(); // sync offline items before fetching cloud items
+           await flushSyncQueue();
         }
         loadItems();
       };
       init();
     }
-  }, [user?.id, token, authLoading, loadItems, syncLocalToCloud]);
+  }, [user?.id, token, authLoading, loadItems, syncLocalToCloud, flushSyncQueue]);
 
   // Función para recargar items manualmente
   const refreshItems = () => {
@@ -709,6 +738,13 @@ export const ItemsProvider = ({ children }) => {
     } else {
       updateQueueRef.current.set(id, { url, payload, debounceMs });
     }
+    
+    // Persist queue to localStorage
+    try {
+      localStorage.setItem('syncQueue', JSON.stringify(Array.from(updateQueueRef.current.entries())));
+    } catch (e) {
+      console.warn('Could not save syncQueue to localStorage', e);
+    }
 
     const scheduleSend = () => {
       const send = async () => {
@@ -723,6 +759,14 @@ export const ItemsProvider = ({ children }) => {
 
         updateQueueRef.current.delete(id);
         itemInFlightRef.current.add(id);
+
+        try {
+          if (updateQueueRef.current.size === 0) {
+            localStorage.removeItem('syncQueue');
+          } else {
+            localStorage.setItem('syncQueue', JSON.stringify(Array.from(updateQueueRef.current.entries())));
+          }
+        } catch (e) {}
 
         try {
           inFlightRef.current += 1;

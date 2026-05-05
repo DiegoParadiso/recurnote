@@ -282,6 +282,44 @@ export const handlePaypalWebhook = async (req, res) => {
             return res.status(400).json({ error: 'Invalid webhook payload' });
         }
 
+        const webhookId = isLive ? process.env.PAYPAL_LIVE_WEBHOOK_ID : process.env.PAYPAL_SANDBOX_WEBHOOK_ID;
+
+        if (webhookId) {
+            try {
+                const accessToken = await getAccessToken();
+                const verifyPayload = {
+                    auth_algo: req.headers['paypal-auth-algo'],
+                    cert_url: req.headers['paypal-cert-url'],
+                    transmission_id: req.headers['paypal-transmission-id'],
+                    transmission_sig: req.headers['paypal-transmission-sig'],
+                    transmission_time: req.headers['paypal-transmission-time'],
+                    webhook_id: webhookId,
+                    webhook_event: req.body
+                };
+
+                const verifyResponse = await fetch(`${PAYPAL_API}/v1/notifications/verify-webhook-signature`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(verifyPayload)
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (verifyData.verification_status !== 'SUCCESS') {
+                    console.error('Firma de webhook de PayPal inválida', verifyData);
+                    return res.status(400).json({ error: 'Invalid signature' });
+                }
+            } catch (verifyError) {
+                console.error('Error verificando firma del webhook:', verifyError);
+                return res.status(500).json({ error: 'Error verificando firma' });
+            }
+        } else {
+            console.warn('PAYPAL_WEBHOOK_ID no definido, saltando verificación de firma de webhook');
+        }
+
         const cancelEvents = [
             'BILLING.SUBSCRIPTION.CANCELLED',
             'BILLING.SUBSCRIPTION.SUSPENDED',

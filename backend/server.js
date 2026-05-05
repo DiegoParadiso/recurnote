@@ -27,7 +27,8 @@ app.use((req, res, next) => {
 });
 
 // Logging HTTP estructurado
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms', {
+morgan.token('reqId', (req) => req.id);
+app.use(morgan('[:reqId] :method :url :status :res[content-length] - :response-time ms', {
   stream: {
     write: (message) => logger.info(message.trim())
   }
@@ -286,8 +287,14 @@ app.use('/api/items', itemRoutes);
 app.use('/api/payment', paymentRoutes);
 
 // Ruta de health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({ status: 'ok', db: 'connected', timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Health check failed: DB disconnect', { error: error.message });
+    res.status(503).json({ status: 'error', db: 'disconnected', timestamp: new Date().toISOString() });
+  }
 });
 
 // Root route to reduce 404 noise

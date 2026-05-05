@@ -1,6 +1,7 @@
 // backend/config/db.js
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import logger from '../utils/logger.js';
 dotenv.config();
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -18,7 +19,12 @@ export const sequelize = new Sequelize(DATABASE_URL, {
         },
       }
     : {},
-  logging: false,
+  benchmark: true,
+  logging: (msg, timing) => {
+    if (timing > 500) {
+      logger.warn(`Slow query detected (${timing}ms): ${msg}`);
+    }
+  },
   define: {
     underscored: true,
     timestamps: true,
