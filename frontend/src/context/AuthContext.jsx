@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import BottomToast from '@components/common/BottomToast';
 import i18n from '../i18n/index.js';
+import { apiFetch } from '../utils/api.js';
 
 export const AuthContext = createContext();
 
@@ -11,13 +12,13 @@ export function AuthProvider({ children }) {
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [errorToast, setErrorToast] = useState('');
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
   // Función para inicializar la autenticación
   const initializeAuth = async () => {
     try {
       // Intentamos validar sesión automáticamente vía cookie
-      const res = await fetch(`${API_URL}/api/auth/me`, {
+      const res = await apiFetch(`${API_URL}/api/auth/me`, {
         credentials: 'include'
       });
       if (res.ok) {
@@ -37,7 +38,7 @@ export function AuthProvider({ children }) {
   // Función para validar token
   const validateToken = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, {
+      const res = await apiFetch(`${API_URL}/api/auth/me`, {
         credentials: 'include'
       });
       return res.ok;
@@ -52,7 +53,7 @@ export function AuthProvider({ children }) {
 
   async function refreshMe() {
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, {
+      const res = await apiFetch(`${API_URL}/api/auth/me`, {
         credentials: 'include'
       });
       if (!res.ok) return;
@@ -135,7 +136,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     try {
-      await fetch(`${API_URL}/api/auth/logout`, {
+      await apiFetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'

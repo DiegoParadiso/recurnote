@@ -86,19 +86,39 @@ passport.use(new GitHubStrategy({
   scope: ['user:email']
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const email = profile.emails?.[0]?.value;
+    let email = profile.emails?.[0]?.value;
+
+    // Si GitHub no nos da el email (porque es privado o por el scope), lo obtenemos manualmente
     if (!email) {
-      return done(null, false, { message: 'No se pudo obtener el email.' });
+      try {
+        const fetch = (await import('node-fetch')).default || global.fetch;
+        const res = await fetch('https://api.github.com/user/emails', {
+          headers: {
+            'Authorization': `token ${accessToken}`,
+            'User-Agent': 'RecurNote-App'
+          }
+        });
+        if (res.ok) {
+          const emails = await res.json();
+          const primaryEmail = emails.find(e => e.primary) || emails[0];
+          if (primaryEmail) email = primaryEmail.email;
+        }
+      } catch (err) {
+        console.error('Error fetching GitHub emails:', err);
+      }
+    }
+
+    if (!email) {
+      return done(null, false, { message: 'No se pudo obtener el email de GitHub.' });
     }
     let user = await User.findOne({ where: { email } });
     if (!user) {
       user = await User.create({
-        name: profile.displayName || profile.username,
+        name: profile.displayName || profile.username || email.split('@')[0],
         email,
         avatar_url: profile.photos?.[0]?.value,
         password: crypto.randomBytes(48).toString('base64'),
         email_verified: true,
-        account_status: 'active',
         preferences: {}
       });
     }
@@ -126,7 +146,6 @@ passport.use(new GoogleStrategy({
         avatar_url: profile.photos?.[0]?.value,
         password: crypto.randomBytes(48).toString('base64'),
         email_verified: true,
-        account_status: 'active',
         preferences: {}
       });
     }
