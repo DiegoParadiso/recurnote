@@ -7,8 +7,7 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [errorToast, setErrorToast] = useState('');
 
@@ -170,8 +169,7 @@ export function AuthProvider({ children }) {
     <>
       <AuthContext.Provider value={{
         user,
-        token,
-        login,
+                login,
         logout,
         register,
         loading,

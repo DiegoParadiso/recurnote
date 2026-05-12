@@ -10,7 +10,7 @@ const ItemsContext = createContext();
 const draggingItemsRef = { current: new Set() };
 
 export const ItemsProvider = ({ children }) => {
-  const { user, token, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [itemsByDate, setItemsByDate] = useState({});
   const itemsRef = useRef(itemsByDate); // Ref para acceder al estado más reciente en callbacks async
 
@@ -221,8 +221,7 @@ export const ItemsProvider = ({ children }) => {
       angle: Number.isFinite(angle) ? angle : 0,
       distance: Number.isFinite(distance) ? distance : 120,
       width: Number.isFinite(width) ? width : (merged.label === 'Tarea' ? 200 : 200),
-      height: Number.isFinite(height) ? height : (merged.label === 'Tarea' ? 120 : 80),
-    };
+      height: Number.isFinite(height) ? height : (merged.label === 'Tarea' ? 120 : 80)};
 
 
 
@@ -231,7 +230,7 @@ export const ItemsProvider = ({ children }) => {
 
   // Sincronización en lote desde localStorage hacia el backend
   const syncLocalToCloud = useCallback(async () => {
-    if (!user || !token) return;
+    if (!user) return;
     try {
       const localItemsJson = localStorage.getItem('localItems');
       if (!localItemsJson) return;
@@ -279,8 +278,7 @@ export const ItemsProvider = ({ children }) => {
         const response = await apiFetch(`${API_URL}/api/items/sync`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ items: itemsToSync })
         });
@@ -291,11 +289,11 @@ export const ItemsProvider = ({ children }) => {
     } catch (e) {
       console.error("Error sincronizando items locales:", e);
     }
-  }, [user, token, API_URL]);
+  }, [user, API_URL]);
 
   // Recuperar operaciones pendientes de updateQueueRef que no llegaron al servidor
   const flushSyncQueue = useCallback(async () => {
-    if (!user || !token) return;
+    if (!user) return;
     try {
       const storedQueue = localStorage.getItem('syncQueue');
       if (!storedQueue) return;
@@ -307,11 +305,8 @@ export const ItemsProvider = ({ children }) => {
           apiFetch(entry.url, {
              method: 'PUT',
              headers: {
-               'Content-Type': 'application/json',
-               Authorization: `Bearer ${token}`,
-             },
-             body: JSON.stringify(entry.payload),
-          }).catch(e => console.error("Error flushed entry", e));
+               'Content-Type': 'application/json'},
+             body: JSON.stringify(entry.payload)}).catch(e => console.error("Error flushed entry", e));
         }
         localStorage.removeItem('syncQueue');
       }
@@ -319,11 +314,11 @@ export const ItemsProvider = ({ children }) => {
       console.warn("Error recuperando syncQueue:", e);
       localStorage.removeItem('syncQueue');
     }
-  }, [user, token]);
+  }, [user]);
 
   // Función para cargar items
   const loadItems = useCallback(async (isRetry = false) => {
-    if (!user || !token) {
+    if (!user) {
       // Usuario no autenticado - cargar items locales
       loadLocalItems();
       setLoading(false);
@@ -337,7 +332,7 @@ export const ItemsProvider = ({ children }) => {
       setError(null);
 
       const response = await apiFetch(`${API_URL}/api/items`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {  }
       });
 
       if (!response.ok) {
@@ -388,13 +383,13 @@ export const ItemsProvider = ({ children }) => {
       setError(err.message);
 
       // Solo intentar reintento automático si no es un reintento manual
-      if (!isRetry && user && token) {
+      if (!isRetry && user) {
         scheduleRetry();
       }
     } finally {
       setLoading(false);
     }
-  }, [user, token, API_URL, loadLocalItems]);
+  }, [user, API_URL, loadLocalItems]);
 
   // Función para programar reintento automático
   const scheduleRetry = useCallback(() => {
@@ -430,7 +425,7 @@ export const ItemsProvider = ({ children }) => {
   useEffect(() => {
     if (!authLoading) {
       const init = async () => {
-        if (user && token) {
+        if (user) {
            await syncLocalToCloud(); // sync offline items before fetching cloud items
            await flushSyncQueue();
         }
@@ -438,7 +433,7 @@ export const ItemsProvider = ({ children }) => {
       };
       init();
     }
-  }, [user?.id, token, authLoading, loadItems, syncLocalToCloud, flushSyncQueue]);
+  }, [user?.id, authLoading, loadItems, syncLocalToCloud, flushSyncQueue]);
 
   // Función para recargar items manualmente
   const refreshItems = () => {
@@ -488,7 +483,7 @@ export const ItemsProvider = ({ children }) => {
       if (!Array.isArray(itemData.checked)) itemData.checked = [false];
     }
 
-    if (user && token) {
+    if (user) {
       // Usuario autenticado - guardar en servidor
       const placeholder = {
         id: `tmp_${Math.random().toString(36).slice(2)}`,
@@ -501,8 +496,7 @@ export const ItemsProvider = ({ children }) => {
         label,
         ...itemData,
         version: 1,
-        _pending: true,
-      };
+        _pending: true};
 
       // Registrar operación pendiente
       const operationId = `add_${placeholder.id}`;
@@ -510,8 +504,7 @@ export const ItemsProvider = ({ children }) => {
 
       setItemsByDate(prev => ({
         ...prev,
-        [date]: [...(prev[date] || []), placeholder],
-      }));
+        [date]: [...(prev[date] || []), placeholder]}));
 
       const payload = {
         client_id: placeholder.id,
@@ -520,15 +513,13 @@ export const ItemsProvider = ({ children }) => {
         y,
         rotation: rotation ?? 0,
         rotation_enabled: rotation_enabled ?? true,
-        item_data: { label, ...itemData, position_ts: Date.now() },
-      };
+        item_data: { label, ...itemData, position_ts: Date.now() }};
 
       try {
         const res = await apiFetch(`${API_URL}/api/items`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(payload)
         });
@@ -646,14 +637,12 @@ export const ItemsProvider = ({ children }) => {
         ...itemData,
         version: 1,
         _local: true,
-        createdAt: new Date().toISOString(),
-      };
+        createdAt: new Date().toISOString()};
 
       setItemsByDate(prev => {
         const newState = {
           ...prev,
-          [date]: [...(prev[date] || []), newItem],
-        };
+          [date]: [...(prev[date] || []), newItem]};
         // Guardar en localStorage
         saveLocalItems(newState);
         return newState;
@@ -693,13 +682,12 @@ export const ItemsProvider = ({ children }) => {
       ...(rotation !== undefined ? { rotation } : {}),
       ...(rotation_enabled !== undefined ? { rotation_enabled } : {}),
       ...(version !== undefined ? { version } : {}),
-      ...(Object.keys(itemDataOut).length ? { item_data: itemDataOut } : {}),
-    };
+      ...(Object.keys(itemDataOut).length ? { item_data: itemDataOut } : {})};
   };
 
   // Encolar envío con quiet-time por item. opts: { debounceMs, flush, isDragging }
   const queueItemUpdate = useCallback((id, changes, opts = {}) => {
-    if (!user || !token) return; // sin backend
+    if (!user) return; // sin backend
     if (typeof id === 'string' && (id.startsWith('tmp_') || id.startsWith('local_'))) return;
 
     // Si el item está siendo arrastrado por otro proceso, no encolar
@@ -729,9 +717,7 @@ export const ItemsProvider = ({ children }) => {
         ...payload,
         item_data: {
           ...(prevEntry.payload?.item_data || {}),
-          ...(payload?.item_data || {}),
-        },
-      };
+          ...(payload?.item_data || {})}};
       // Si estamos en drag, usar el debounce más largo para agrupar movimientos
       const mergedDebounce = opts.isDragging ? Math.max(prevEntry.debounceMs || 0, debounceMs, 2000) : debounceMs;
       updateQueueRef.current.set(id, { url: prevEntry.url || url, payload: mergedPayload, debounceMs: mergedDebounce });
@@ -781,11 +767,8 @@ export const ItemsProvider = ({ children }) => {
           const response = await apiFetch(entry.url, {
             method: 'PUT',
             headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(entry.payload),
-          });
+              'Content-Type': 'application/json'},
+            body: JSON.stringify(entry.payload)});
           if (!response.ok) {
             if (response.status === 409) {
               const err = await response.json();
@@ -853,7 +836,7 @@ export const ItemsProvider = ({ children }) => {
 
     const timeoutId = setTimeout(scheduleSend, debounceMs);
     updateTimersRef.current.set(id, timeoutId);
-  }, [API_URL, token, user]);
+  }, [API_URL, user]);
 
   // Forzar envío inmediato si hay update encolado para el id
   const flushItemUpdate = useCallback((id) => {
@@ -936,7 +919,7 @@ export const ItemsProvider = ({ children }) => {
       k === 'x' || k === 'y' || k === 'angle' || k === 'distance'
     ));
 
-    const shouldSkipVisualUpdate = (opts?.fromDrag && isGeomOnly && user && token);
+    const shouldSkipVisualUpdate = (opts?.fromDrag && isGeomOnly && user);
 
     if (!shouldSkipVisualUpdate) {
       // Actualizar estado visual inmediatamente
@@ -946,7 +929,7 @@ export const ItemsProvider = ({ children }) => {
           newState[dateKey] = newState[dateKey].map(i => i.id === id ? { ...i, ...changes } : i);
         }
         // Si es modo local, guardar en localStorage
-        if (!user || !token) {
+        if (!user) {
           saveLocalItems(newState);
         }
         return newState;
@@ -958,7 +941,7 @@ export const ItemsProvider = ({ children }) => {
       return;
     }
 
-    if (user && token) {
+    if (user) {
       const operationId = `update_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
 
@@ -982,7 +965,7 @@ export const ItemsProvider = ({ children }) => {
   async function duplicateItem(id) {
     try {
       // En modo local, respetar el mismo límite que addItem
-      if (!user || !token) {
+      if (!user) {
         const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
         const maxLocalItems = 5;
         if (totalLocalItems >= maxLocalItems) {
@@ -1026,20 +1009,19 @@ export const ItemsProvider = ({ children }) => {
       // Crear el item duplicado
       const duplicatedItem = {
         ...itemToDuplicate,
-        id: user && token ? `tmp_${Math.random().toString(36).slice(2)}` : `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        id: user ? `tmp_${Math.random().toString(36).slice(2)}` : `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
         angle: newAngle,
         distance: newDistance,
         x: newX,
         y: newY,
-        _pending: user && token ? true : false,
-        _local: !user || !token ? true : false,
+        _pending: user ? true : false,
+        _local: !user ? true : false,
         _justDuplicated: true,
         zIndexOverride: 9999,
-        createdAt: new Date().toISOString(),
-      };
+        createdAt: new Date().toISOString()};
 
       // Si es modo local, agregar al estado visual inmediatamente y guardar
-      if (!user || !token) {
+      if (!user) {
         // Re-chequear límite con estado más reciente por seguridad
         const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
         const maxLocalItems = 5;
@@ -1128,14 +1110,14 @@ export const ItemsProvider = ({ children }) => {
       }
 
       // Si es modo local, guardar en localStorage
-      if (!user || !token) {
+      if (!user) {
         saveLocalItems(newState);
       }
 
       return newState;
     });
 
-    if (user && token) {
+    if (user) {
       // Usuario autenticado - eliminar del servidor
       const operationId = `delete_${id}`;
       setPendingOperations(prev => new Set([...prev, operationId]));
@@ -1143,7 +1125,7 @@ export const ItemsProvider = ({ children }) => {
       try {
         const response = await apiFetch(`${API_URL}/api/items/${id}`, {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` }
+          headers: {  }
         });
 
         // Solo lanzar error si hay un problema real de red o servidor
