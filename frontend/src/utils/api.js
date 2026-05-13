@@ -38,7 +38,7 @@ export async function apiFetch(url, options = {}) {
 
       if (!refreshRes.ok) {
          localStorage.removeItem('user');
-         window.location.reload();
+         window.dispatchEvent(new CustomEvent('auth:expired'));
          throw new Error('Refresh failed');
       }
       

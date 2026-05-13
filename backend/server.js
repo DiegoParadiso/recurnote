@@ -230,7 +230,8 @@ try {
 // Rutas Google
 app.get('/auth/google', passport.authenticate('google', {
   session: false,
-  scope: ['profile', 'email']
+  scope: ['profile', 'email'],
+  prompt: 'select_account'
 }));
 
 app.get('/auth/google/callback',

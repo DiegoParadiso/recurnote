@@ -13,6 +13,18 @@ export function AuthProvider({ children }) {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setUser(null);
+      setMigrationStatus(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+    };
+    window.addEventListener('auth:expired', handleAuthExpired);
+    return () => window.removeEventListener('auth:expired', handleAuthExpired);
+  }, []);
+
   // Función para inicializar la autenticación
   const initializeAuth = async () => {
     try {
@@ -138,7 +150,8 @@ export function AuthProvider({ children }) {
       await apiFetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
+        _retry: true
       });
     } catch (e) {
       console.error('Network error logging out', e);
