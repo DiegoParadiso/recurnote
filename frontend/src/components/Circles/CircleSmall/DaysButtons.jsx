@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import DayButton from '@components/Circles/CircleSmall/DayButton';
 
 export default function DaysButtons({
@@ -29,7 +30,7 @@ export default function DaysButtons({
 
         return (
           <DayButton
-            key={i}
+            key={`day-${currentDate.year}-${currentDate.month}-${dayNumber}`}
             day={dayNumber}
             style={{
               left: `${x}px`,
@@ -53,3 +54,15 @@ export default function DaysButtons({
     </>
   );
 }
+
+DaysButtons.propTypes = {
+  currentDate: PropTypes.object.isRequired,
+  selectedDay: PropTypes.object,
+  setSelectedDay: PropTypes.func,
+  onDayClick: PropTypes.func,
+  radius: PropTypes.number.isRequired,
+  center: PropTypes.number.isRequired,
+  buttonSize: PropTypes.number.isRequired,
+  labelDistanceFromCenter: PropTypes.number.isRequired,
+  isDragging: PropTypes.bool,
+};

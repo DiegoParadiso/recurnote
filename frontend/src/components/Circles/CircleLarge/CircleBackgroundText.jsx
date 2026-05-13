@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { PRIMARY_FONT } from '../../../config/fonts';
 
@@ -9,28 +10,48 @@ export default function CircleBackgroundText({ circleSize, radius, displayText, 
   const cx = circleSize / 2;
   const cy = circleSize / 2;
 
+  const getSmallScreenStyle = (isFullboard, size) => {
+    const baseStyle = {
+      position: 'absolute',
+      left: '50%',
+      pointerEvents: 'none',
+      color: 'var(--color-text-primary)',
+      fontFamily: 'Roboto Slab, serif',
+      fontWeight: 600,
+      textAlign: 'center',
+    };
+
+    if (isFullboard) {
+      return {
+        ...baseStyle,
+        top: '0',
+        transform: 'translateX(-50%)',
+        zIndex: 'var(--z-fullboard)',
+        fontSize: '1.5rem',
+        letterSpacing: 2,
+        width: 'auto',
+        paddingTop: '2rem',
+        whiteSpace: 'nowrap',
+      };
+    }
+
+    return {
+      ...baseStyle,
+      top: '5%',
+      transform: 'translate(-50%, 0)',
+      zIndex: 'var(--z-mid-low)',
+      fontSize: size * 0.03,
+      letterSpacing: 1.5,
+      width: '80%',
+      paddingTop: '1rem',
+      whiteSpace: 'normal',
+    };
+  };
+
   if (isSmallScreen || fullboardMode) {
     // Texto recto centrado en móviles y fullboard mode
     return (
-      <div
-        style={{
-          position: 'absolute',
-          top: fullboardMode ? '0' : '5%',
-          left: '50%',
-          transform: fullboardMode ? 'translateX(-50%)' : 'translate(-50%, 0)',
-          pointerEvents: 'none',
-          zIndex: fullboardMode ? 'var(--z-fullboard)' : 'var(--z-mid-low)',
-          color: 'var(--color-text-primary)',
-          fontFamily: 'Roboto Slab, serif',
-          fontSize: fullboardMode ? '1.5rem' : (circleSize * 0.03), // Más chico en fullboard
-          letterSpacing: fullboardMode ? 2 : 1.5,
-          fontWeight: 600,
-          textAlign: 'center',
-          width: fullboardMode ? 'auto' : '80%',
-          paddingTop: fullboardMode ? '2rem' : '1rem',
-          whiteSpace: fullboardMode ? 'nowrap' : 'normal', // No romper línea en fullboard
-        }}
-      >
+      <div style={getSmallScreenStyle(fullboardMode, circleSize)}>
         {displayText.toUpperCase()}
       </div>
     );
@@ -79,3 +100,10 @@ export default function CircleBackgroundText({ circleSize, radius, displayText, 
     </div>
   );
 }
+
+CircleBackgroundText.propTypes = {
+  circleSize: PropTypes.number.isRequired,
+  radius: PropTypes.number.isRequired,
+  displayText: PropTypes.string.isRequired,
+  fullboardMode: PropTypes.bool,
+};

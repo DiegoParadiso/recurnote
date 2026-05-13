@@ -12,6 +12,31 @@ import TaskRow from './TaskRow';
 import { computePolarFromXY, limitPositionInsideCircle } from '@utils/helpers/geometry';
 import { lockBodyScroll, unlockBodyScroll } from '@utils/scrollLock';
 
+const calculateCompensatedPosition = (prevW, prevH, newW, newH, currentX, currentY, rotationAngle, rotationEnabled, isSmallScreen, cx, cy, maxRadius) => {
+  const deltaW = newW - prevW;
+  const deltaH = newH - prevH;
+
+  if (deltaW === 0 && deltaH === 0) return null;
+
+  const rotRad = (rotationEnabled ? rotationAngle : 0) * (Math.PI / 180);
+  const cos = Math.cos(rotRad);
+  const sin = Math.sin(rotRad);
+
+  const localDx = (deltaW / 2) * cos - (deltaH / 2) * sin;
+  const localDy = (deltaW / 2) * sin + (deltaH / 2) * cos;
+
+  let newX = currentX + localDx;
+  let newY = currentY + localDy;
+
+  if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
+    const limited = limitPositionInsideCircle(newX, newY, newW, newH, { cx, cy }, maxRadius, false, rotationEnabled ? rotationAngle : 0);
+    newX = limited.x;
+    newY = limited.y;
+  }
+
+  return { x: newX, y: newY };
+};
+
 import '@styles/components/circles/items/TaskItem.css';
 
 function TaskItem({
@@ -144,44 +169,23 @@ function TaskItem({
     const prevH = prevSizeRef.current.height;
 
     if (prevW !== computedWidth || prevH !== computedMinHeight) {
-      const deltaW = computedWidth - prevW;
-      const deltaH = computedMinHeight - prevH;
-
-      if (deltaW !== 0 || deltaH !== 0) {
-        const rotRad = (rotationEnabled ? rotation : 0) * (Math.PI / 180);
-        const cos = Math.cos(rotRad);
-        const sin = Math.sin(rotRad);
-
-        // Desplazamiento local necesario para anclar la esquina superior izquierda
-        // Si el ancho crece, el centro se mueve a la derecha relativo al angulo
-        // Si el alto crece, el centro se mueve hacia abajo relativo al angulo
-        const localDx = (deltaW / 2) * cos - (deltaH / 2) * sin;
-        const localDy = (deltaW / 2) * sin + (deltaH / 2) * cos;
-
-        let newX = localX + localDx;
-        let newY = localY + localDy;
-
-        if (!isSmallScreen && cx !== undefined && cy !== undefined && maxRadius !== undefined) {
-          const limited = limitPositionInsideCircle(newX, newY, computedWidth, computedMinHeight, { cx, cy }, maxRadius, false, rotationEnabled ? rotation : 0);
-          newX = limited.x;
-          newY = limited.y;
-        }
-
+      const newPos = calculateCompensatedPosition(prevW, prevH, computedWidth, computedMinHeight, localX, localY, rotation, rotationEnabled, isSmallScreen, cx, cy, maxRadius);
+      
+      if (newPos) {
         isCompensatingXRef.current = true;
         isCompensatingYRef.current = true;
-        setLocalX(newX);
-        setLocalY(newY);
-        lastPosRef.current = { x: newX, y: newY };
+        setLocalX(newPos.x);
+        setLocalY(newPos.y);
+        lastPosRef.current = { x: newPos.x, y: newPos.y };
 
-        // Persistir el cambio de tamaño y posición
         onUpdate?.(id, item.content || [], item.checked || [],
           { width: computedWidth, height: computedMinHeight },
-          { x: newX, y: newY }
+          { x: newPos.x, y: newPos.y }
         );
       }
       prevSizeRef.current = { width: computedWidth, height: computedMinHeight };
     }
-  }, [computedWidth, computedMinHeight, localX, localY, rotation, rotationEnabled, id, onUpdate, item.content, item.checked]);
+  }, [computedWidth, computedMinHeight, localX, localY, rotation, rotationEnabled, id, onUpdate, item.content, item.checked, isSmallScreen, cx, cy, maxRadius]);
 
   // Sincronizar lastPosRef con la posición actual (incluyendo compensación local)
   // para asegurar que si se hace drop sin mover (click) o drag inmediato, se use la posición correcta

@@ -71,6 +71,20 @@ export default function DataManagementOptions() {
     }
   };
 
+  const cleanLocalPastItems = () => {
+    try {
+      const localItems = JSON.parse(localStorage.getItem('localItems') || '{}');
+      const updatedLocalItems = {};
+      Object.entries(localItems).forEach(([dateKey, items]) => {
+        const date = new Date(dateKey);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (date >= today) updatedLocalItems[dateKey] = items;
+      });
+      localStorage.setItem('localItems', JSON.stringify(updatedLocalItems));
+    } catch { }
+  };
+
   const handleDeletePastItems = async () => {
     setIsDeletingPast(true);
     setShowConfirmPast(false);
@@ -85,17 +99,7 @@ export default function DataManagementOptions() {
         const updatedItemsByDate = { ...itemsByDate };
         pastItems.dates.forEach(({ dateKey }) => { delete updatedItemsByDate[dateKey]; });
         setItemsByDate(updatedItemsByDate);
-        try {
-          const localItems = JSON.parse(localStorage.getItem('localItems') || '{}');
-          const updatedLocalItems = {};
-          Object.entries(localItems).forEach(([dateKey, items]) => {
-            const date = new Date(dateKey);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (date >= today) updatedLocalItems[dateKey] = items;
-          });
-          localStorage.setItem('localItems', JSON.stringify(updatedLocalItems));
-        } catch { }
+        cleanLocalPastItems();
         setToastMsg(t('data.pastDeleted', { count: pastItems.count }));
       }
     } catch {

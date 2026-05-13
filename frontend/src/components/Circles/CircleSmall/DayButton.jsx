@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useTheme } from '@context/ThemeContext';
 import '@styles/components/circles/DayButton.css';
 
@@ -21,6 +22,8 @@ function DayButton({
   return (
     <div
       className="day-button"
+      role="button"
+      tabIndex={0}
       style={{
         ...style,
         position: 'absolute',
@@ -29,6 +32,12 @@ function DayButton({
       }}
       onClick={(e) => {
         if (!isDragging && onClick) {
+          onClick();
+        }
+      }}
+      onKeyDown={(e) => {
+        if (!isDragging && onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
           onClick();
         }
       }}
@@ -60,9 +69,7 @@ function DayButton({
             top: `${labelY}px`,
             transform: 'translate(-50%, -50%)',
             userSelect: 'none',
-            color: isSelected
-              ? 'var(--color-text-primary)'
-              : 'var(--color-text-primary)',
+            color: 'var(--color-text-primary)',
             transition: 'none', // Sin transición para cambios de tema
           }}
         >
@@ -74,3 +81,14 @@ function DayButton({
 }
 
 export default React.memo(DayButton);
+
+DayButton.propTypes = {
+  day: PropTypes.number.isRequired,
+  style: PropTypes.object.isRequired,
+  angle: PropTypes.number.isRequired,
+  onClick: PropTypes.func.isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  buttonSize: PropTypes.number,
+  labelDistanceFromCenter: PropTypes.number,
+  isDragging: PropTypes.bool,
+};

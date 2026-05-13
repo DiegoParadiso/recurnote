@@ -4,6 +4,23 @@ import { limitPositionInsideCircle } from '@utils/helpers/geometry';
 import { getContainerStyle } from '@utils/styles/getContainerStyle';
 import { notifyDragEnd } from '@utils/dragCoordinator';
 
+const calculateNextPosition = (isSmallScreen, fullboardMode, modeChanged, pos, x, y, width, height, circleCenter, maxRadius, rotation) => {
+  const positionToCheck = modeChanged ? pos : { x, y };
+  
+  if (isSmallScreen || fullboardMode) {
+    const safeX = (typeof positionToCheck.x === 'number' && !isNaN(positionToCheck.x)) ? positionToCheck.x : 0;
+    const safeY = (typeof positionToCheck.y === 'number' && !isNaN(positionToCheck.y)) ? positionToCheck.y : 0;
+
+    const limited = limitPositionInsideCircle(
+      safeX, safeY, width, height,
+      circleCenter, maxRadius, true, rotation
+    );
+    return { x: limited.x, y: limited.y };
+  }
+  
+  return { x, y };
+};
+
 export default function UnifiedContainer({
   x, y, width, height, rotation = 0,
   minWidth = 100, minHeight = 80,
@@ -56,25 +73,7 @@ export default function UnifiedContainer({
 
     prevModeRef.current = { isSmallScreen, fullboardMode };
 
-    const positionToCheck = modeChanged ? pos : { x, y };
-    let nextPos;
-
-    if (isSmallScreen || fullboardMode) {
-      // En mobile / fullboard, seguir usando limitPositionInsideCircle/Screen
-      // Ensure inputs are valid numbers before calling limitPositionInsideCircle
-      const safeX = (typeof positionToCheck.x === 'number' && !isNaN(positionToCheck.x)) ? positionToCheck.x : 0;
-      const safeY = (typeof positionToCheck.y === 'number' && !isNaN(positionToCheck.y)) ? positionToCheck.y : 0;
-
-      const limited = limitPositionInsideCircle(
-        safeX, safeY, width, height,
-        circleCenter, maxRadius, true, rotation
-      );
-      nextPos = { x: limited.x, y: limited.y };
-    } else {
-      // En modo normal (círculo), no re-clampear: confiar en useDragResize
-      // Solo sincronizar estado interno con las props externas x,y
-      nextPos = { x, y };
-    }
+    const nextPos = calculateNextPosition(isSmallScreen, fullboardMode, modeChanged, pos, x, y, width, height, circleCenter, maxRadius, rotation);
 
     if (modeChanged || nextPos.x !== pos.x || nextPos.y !== pos.y) {
       if (typeof nextPos.x === 'number' && !isNaN(nextPos.x) && typeof nextPos.y === 'number' && !isNaN(nextPos.y)) {

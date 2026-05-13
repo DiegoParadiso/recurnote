@@ -71,7 +71,7 @@ export default function ConfigPanel({
 }) {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const { token, user } = useAuth();
+  const { token, user, updateUser } = useAuth();
   const { isLightTheme, setIsLightTheme, isAutoTheme, enableAutoTheme, disableAutoTheme, isHighContrast, setIsHighContrast, textScale, setTextScale, reducedMotion, setReducedMotion } = useTheme();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const { isOpen: isPremiumOpen, openModal: openPremiumModal, closeModal: closePremiumModal, handleUpgrade } = usePremiumModal();
@@ -108,6 +108,48 @@ export default function ConfigPanel({
       window.dispatchEvent(new CustomEvent('patternChanged', { detail: preferences.circlePattern }));
     }
   }, [show, preferences.circlePattern]);
+
+  const handleLanguageChange = async (lang) => {
+    setDisplayOptions((prev) => ({ ...prev, language: lang }));
+    
+    // Cambiar idioma inmediatamente
+    const resolved = lang === 'auto' ? undefined : lang;
+    await i18n.changeLanguage(resolved);
+    
+    // Persistencia local para modo sin usuario
+    try {
+      const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
+      localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: lang }));
+    } catch { }
+    
+    // Guardar en backend si hay token
+    if (token) {
+      try {
+        const prefs = {
+          ...(user?.preferences || {}),
+          displayOptions: {
+            ...(user?.preferences?.displayOptions || {}),
+            language: lang,
+          },
+        };
+        fetch(`${API_URL}/api/auth/preferences`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ preferences: prefs }),
+        }).catch(() => { });
+        
+        // Actualizar user local
+        if (updateUser) {
+          const updatedUser = { ...user, preferences: prefs };
+          updateUser(updatedUser);
+        }
+      } catch { }
+    }
+    
+    // Ajustar atributo lang del HTML
+    document.documentElement.setAttribute('lang', i18n.language || 'en');
+  };
+
   if (!show) return null;
 
   const options = [
@@ -193,7 +235,7 @@ export default function ConfigPanel({
                         value={preferences.itemBackground || 'normal'}
                         onChange={(val) => withLoading(async () => {
                           updatePreference('itemBackground', val);
-                          document.documentElement.setAttribute('data-item-bg', val);
+                          document.documentElement.dataset.itemBg = val;
                         })}
                         options={[
                           { value: 'normal', label: t('itemBg.normal') },
@@ -221,9 +263,9 @@ export default function ConfigPanel({
                         onChange={(val) => withLoading(async () => {
                           updatePreference('circleSmallBackground', val);
                           if (val === 'normal') {
-                            document.documentElement.removeAttribute('data-circle-small-bg');
+                            delete document.documentElement.dataset.circleSmallBg;
                           } else {
-                            document.documentElement.setAttribute('data-circle-small-bg', val);
+                            document.documentElement.dataset.circleSmallBg = val;
                           }
                         }, { immediate: true })}
                         options={[
@@ -352,39 +394,7 @@ export default function ConfigPanel({
                 <div style={{ flex: '0 0 200px', minWidth: 0 }}>
                   <CustomSelect
                     value={displayOptions.language || 'auto'}
-                    onChange={(lang) => withLoading(async () => {
-                      setDisplayOptions(prev => ({ ...prev, language: lang }));
-                      // Cambiar idioma inmediatamente
-                      const resolved = lang === 'auto' ? undefined : lang;
-                      await i18n.changeLanguage(resolved);
-                      // Persistencia local para modo sin usuario
-                      try {
-                        const current = JSON.parse(localStorage.getItem('localDisplayOptions') || '{}');
-                        localStorage.setItem('localDisplayOptions', JSON.stringify({ ...current, language: lang }));
-                      } catch { }
-                      // Guardar en backend si hay token
-                      try {
-                        if (token) {
-                          const prefs = {
-                            ...(user?.preferences || {}),
-                            displayOptions: {
-                              ...(user?.preferences?.displayOptions || {}),
-                              language: lang,
-                            },
-                          };
-                          fetch(`${API_URL}/api/auth/preferences`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                            body: JSON.stringify({ preferences: prefs }),
-                          }).catch(() => { });
-                          // Actualizar user local
-                          const updatedUser = { ...user, preferences: prefs };
-                          updateUser(updatedUser);
-                        }
-                      } catch { }
-                      // Ajustar atributo lang del HTML
-                      document.documentElement.setAttribute('lang', i18n.language || 'en');
-                    })}
+                    onChange={(lang) => withLoading(() => handleLanguageChange(lang))}
                     options={[
                       { value: 'auto', label: t('language.auto') },
                       { value: 'es', label: t('language.es') },

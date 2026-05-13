@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { DateTime } from 'luxon';
 import MonthHeader from '@components/Circles/CircleSmall/MonthHeader';
 import DaysButtons from '@components/Circles/CircleSmall/DaysButtons';
@@ -223,6 +224,8 @@ export default function CircleSmall({
   return (
     <div
       className="uppercase font-ibm rounded-full overflow-hidden z-high"
+      role="application"
+      aria-label="Small Calendar"
       onWheel={(e) => {
         e.preventDefault();
         const direction = e.deltaY > 0 ? 1 : -1;
@@ -282,3 +285,10 @@ export default function CircleSmall({
     </div>
   );
 }
+
+CircleSmall.propTypes = {
+  onDayClick: PropTypes.func,
+  selectedDay: PropTypes.object,
+  setSelectedDay: PropTypes.func,
+  size: PropTypes.number,
+};

@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
+import PropTypes from 'prop-types';
 import UnifiedContainer from '@components/common/UnifiedContainer';
 import WithContextMenu from '@components/common/WithContextMenu';
 import { handleFile } from '@utils/fileHandler';
@@ -11,6 +12,54 @@ import { computePolarFromXY } from '@utils/helpers/geometry';
 import { useCallback } from 'react';
 import useItemDrag from '../hooks/useItemDrag';
 import { measureTextWidth } from '@utils/measureTextWidth';
+
+const calculateContainerDimensions = (item, minWidthPx, isImage, isExpanded, imageDimensions, isSmallScreen) => {
+  if (!item.content?.fileData) {
+    const side = Math.max(minWidthPx, 110);
+    return { width: side, height: side };
+  }
+
+  if (isImage && isExpanded && imageDimensions.width > 0) {
+    if (item.width && item.height) {
+      return { width: item.width, height: item.height };
+    }
+
+    const maxSize = 300;
+    const aspectRatio = imageDimensions.width / imageDimensions.height;
+    let finalWidth, finalHeight;
+
+    if (aspectRatio > 1) {
+      finalWidth = Math.min(imageDimensions.width, maxSize);
+      finalHeight = finalWidth / aspectRatio;
+    } else {
+      finalHeight = Math.min(imageDimensions.height, maxSize);
+      finalWidth = finalHeight * aspectRatio;
+    }
+
+    return {
+      width: Math.round(finalWidth + 16),
+      height: Math.round(finalHeight + 16)
+    };
+  }
+
+  const baseHeight = isImage ? 180 : 130;
+  const mobileExtraHeight = isSmallScreen ? 30 : 0;
+  return { width: Math.max(minWidthPx, 180), height: baseHeight + mobileExtraHeight };
+};
+
+const calculateMinWidth = (item, isImage) => {
+  if (!item.content?.fileData?.name) return 110;
+  if (isImage) return 110;
+
+  const name = item.content?.fileData?.name || 'Subir archivo...';
+  const font = '10px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+  const textWidth = measureTextWidth(name, font);
+
+  const padding = 32; // 8 + 8 + 16
+  const borders = 2;
+  const desired = Math.ceil(textWidth + padding + borders);
+  return Math.max(110, Math.min(300, desired));
+};
 
 export default function ArchivoItem({
   id,
@@ -198,113 +247,7 @@ export default function ArchivoItem({
     return options;
   };
 
-  // Calcular dimensiones del contenedor
-  const getContainerDimensions = () => {
-    if (!item.content?.fileData) {
-      const side = Math.max(minWidthPx, 110);
-      // Estado inicial sin archivo: forzar contenedor cuadrado más pequeño
-      return { width: side, height: side };
-    }
-
-    if (isImage && isExpanded && imageDimensions.width > 0) {
-      // Si el item ya tiene dimensiones guardadas, usarlas
-      if (item.width && item.height) {
-        return { width: item.width, height: item.height };
-      }
-
-      const maxSize = 300;
-      const aspectRatio = imageDimensions.width / imageDimensions.height;
-
-      let finalWidth, finalHeight;
-
-      if (aspectRatio > 1) {
-        // Imagen horizontal
-        finalWidth = Math.min(imageDimensions.width, maxSize);
-        finalHeight = finalWidth / aspectRatio;
-      } else {
-        // Imagen vertical
-        finalHeight = Math.min(imageDimensions.height, maxSize);
-        finalWidth = finalHeight * aspectRatio;
-      }
-
-      // Agregar un pequeño padding para evitar que la imagen toque los bordes
-      return {
-        width: Math.round(finalWidth + 16),
-        height: Math.round(finalHeight + 16)
-      };
-    }
-
-    // En modo normal, dimensiones estándar
-    // En mobile, aumentar altura para acomodar el botón de descarga
-    const baseHeight = isImage ? 180 : 130;
-    const mobileExtraHeight = isSmallScreen ? 30 : 0;
-    return { width: Math.max(minWidthPx, 180), height: baseHeight + mobileExtraHeight };
-  };
-
-  const { width, height } = getContainerDimensions();
-
-  // Calcular aspect ratio si hay imagen expandida
-  const aspectRatio = (isImage && isExpanded && imageDimensions.width > 0)
-    ? imageDimensions.width / imageDimensions.height
-    : null;
-
-  // Manejador de resize simplificado - useDragResize ya mantiene el aspect ratio
-  const handleResize = useCallback(({ width: newWidth, height: newHeight, x: newX, y: newY }) => {
-    if (!isImage || !isExpanded || imageDimensions.width === 0) return;
-
-    // Solo guardar el nuevo tamaño, ya viene corregido por useDragResize
-    // Firma: (id, newContent, newPolar, maybeSize, newPosition, extra)
-    const posUpdate = (newX !== undefined && newY !== undefined) ? { x: newX, y: newY } : { x, y };
-
-    let extra = { fromDrag: false };
-    if (posUpdate.x !== undefined && posUpdate.y !== undefined) {
-      const { angle, distance } = computePolarFromXY(posUpdate.x, posUpdate.y, cx, cy);
-      extra = { ...extra, angle, distance, fullboardMode };
-    }
-
-    onUpdate?.(
-      id,
-      item.content || {},
-      null,
-      { width: Math.round(newWidth), height: Math.round(newHeight) },
-      posUpdate,
-      extra
-    );
-  }, [id, isImage, isExpanded, imageDimensions.width, item.content, x, y, onUpdate, cx, cy]);
-
-  // Medir ancho mínimo basado en el nombre del archivo (o placeholder)
-  useLayoutEffect(() => {
-    try {
-      // Si no hay archivo aún, mantener mínimo cuadrado pequeño
-      if (!item.content?.fileData?.name) {
-        setMinWidthPx(110);
-        return;
-      }
-
-      // Para imágenes, no dejar que el nombre largo expanda el contenedor.
-      // El ancho lo define la previsualización de la imagen y el card,
-      // el texto se trunca dentro de ese ancho fijo.
-      if (isImage) {
-        setMinWidthPx(110);
-        return;
-      }
-
-      const name = item.content?.fileData?.name || 'Subir archivo...';
-
-      // Usar fuente estándar del sistema para medir
-      const font = '10px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-      const textWidth = measureTextWidth(name, font);
-
-      // Aproximar paddings (container + interno)
-      const padding = 8 + 8 + 16; // container L/R + extra seguridad
-      const borders = 2;
-      const desired = Math.ceil(textWidth + padding + borders);
-      const baseMin = 110; // permitir cuadrado más pequeño
-      const maxAllowed = 300;
-      const minW = Math.max(baseMin, Math.min(maxAllowed, desired));
-      setMinWidthPx(minW);
-    } catch (_) { }
-  }, [item.content?.fileData?.name, isImage]);
+  const { width, height } = calculateContainerDimensions(item, minWidthPx, isImage, isExpanded, imageDimensions, isSmallScreen);
 
   return (
     <>
@@ -441,3 +384,21 @@ export default function ArchivoItem({
     </>
   );
 }
+
+ArchiveItem.propTypes = {
+  id: PropTypes.string.isRequired,
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired,
+  rotation: PropTypes.number.isRequired,
+  rotationEnabled: PropTypes.bool.isRequired,
+  item: PropTypes.object.isRequired,
+  onUpdate: PropTypes.func.isRequired,
+  onDragStart: PropTypes.func,
+  circleSize: PropTypes.number,
+  maxRadius: PropTypes.number,
+  isSmallScreen: PropTypes.bool,
+  isActive: PropTypes.bool,
+  onActivate: PropTypes.func,
+  zIndex: PropTypes.number,
+  fullboardMode: PropTypes.bool,
+};
