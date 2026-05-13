@@ -67,6 +67,47 @@ export async function createItem(req, res) {
   }
 }
 
+// Funciones auxiliares para updateItem
+const parseIncomingData = (data) => {
+  if (typeof data !== 'string') return data;
+  try { return JSON.parse(data); } catch { return undefined; }
+};
+
+const checkVersionConflict = (currentVersion, incomingVersion) => {
+  const parsed = Number(incomingVersion);
+  return incomingVersion && !Number.isNaN(parsed) && Number(currentVersion) !== parsed;
+};
+
+const handleGeometryAndUpdatePayload = (item, incomingItemData, updatePayload) => {
+  const geometryKeys = new Set([
+    'x', 'y', 'angle', 'distance', 'width', 'height', 'rotation', 'rotation_enabled'
+  ]);
+  const hasGeomInRest = Object.keys(updatePayload).some(k => geometryKeys.has(k));
+  const currentItemData = item.item_data || {};
+  const incomingItemDataObj = (incomingItemData && typeof incomingItemData === 'object') ? incomingItemData : {};
+
+  const incomingTs = Number(incomingItemDataObj.position_ts || 0);
+  const currentTs = Number(currentItemData.position_ts || 0);
+
+  // If there are geometry fields in request but ts is stale, drop geometry fields
+  if (hasGeomInRest && incomingTs && currentTs && incomingTs < currentTs) {
+    for (const k of Object.keys(updatePayload)) {
+      if (geometryKeys.has(k)) delete updatePayload[k];
+    }
+  }
+
+  // Merge item_data, and update stored position_ts only if newer
+  if (incomingItemData && typeof incomingItemData === 'object') {
+    const mergedItemData = { ...currentItemData, ...incomingItemDataObj };
+    if (incomingTs && (!currentTs || incomingTs >= currentTs)) {
+      mergedItemData.position_ts = incomingTs;
+    } else if (currentTs && incomingTs && incomingTs < currentTs) {
+      mergedItemData.position_ts = currentTs;
+    }
+    updatePayload.item_data = mergedItemData;
+  }
+};
+
 export async function updateItem(req, res) {
   try {
     await withRLS(req.user.id, async (t) => {
@@ -77,19 +118,14 @@ export async function updateItem(req, res) {
       });
       if (!item) return res.status(404).json({ message: 'Item no encontrado' });
 
-      let { item_data: incomingItemData, version: incomingVersion, ...rest } = req.body;
-      if (typeof incomingItemData === 'string') {
-        try { incomingItemData = JSON.parse(incomingItemData); } catch { incomingItemData = undefined; }
-      }
+      const { item_data: incomingItemDataRaw, version: incomingVersion, ...rest } = req.body;
+      const incomingItemData = parseIncomingData(incomingItemDataRaw);
 
-      const parsedIncomingVersion = Number(incomingVersion);
-      if (incomingVersion && !isNaN(parsedIncomingVersion)) {
-        if (Number(item.version) !== parsedIncomingVersion) {
-          return res.status(409).json({ 
-            message: 'Conflicto de sincronización. El ítem fue modificado y guardado por otra sesión.', 
-            current_item: item.toJSON() 
-          });
-        }
+      if (checkVersionConflict(item.version, incomingVersion)) {
+        return res.status(409).json({ 
+          message: 'Conflicto de sincronización. El ítem fue modificado y guardado por otra sesión.', 
+          current_item: item.toJSON() 
+        });
       }
 
       // Restricción de tamaño de archivo para cuentas gratuitas al actualizar un Archivo
@@ -100,42 +136,9 @@ export async function updateItem(req, res) {
       }
 
       const updatePayload = { ...rest };
+      handleGeometryAndUpdatePayload(item, incomingItemData, updatePayload);
 
-      // Optimistic concurrency for geometry updates using position_ts in item_data
-      const geometryKeys = new Set([
-        'x', 'y', 'angle', 'distance', 'width', 'height', 'rotation', 'rotation_enabled'
-      ]);
-      const hasGeomInRest = Object.keys(rest || {}).some(k => geometryKeys.has(k));
-      const currentItemData = item.item_data || {};
-      const incomingItemDataObj = (incomingItemData && typeof incomingItemData === 'object') ? incomingItemData : {};
-
-      // Determine incoming vs current position_ts
-      const incomingTs = Number(incomingItemDataObj.position_ts || 0);
-      const currentTs = Number(currentItemData.position_ts || 0);
-
-      // If there are geometry fields in request but ts is stale, drop geometry fields
-      if (hasGeomInRest && incomingTs && currentTs && incomingTs < currentTs) {
-        for (const k of Object.keys(updatePayload)) {
-          if (geometryKeys.has(k)) delete updatePayload[k];
-        }
-      }
-
-      // Merge item_data, and update stored position_ts only if newer
-      if (incomingItemData && typeof incomingItemData === 'object') {
-        const mergedItemData = {
-          ...currentItemData,
-          ...incomingItemDataObj,
-        };
-        if (incomingTs && (!currentTs || incomingTs >= currentTs)) {
-          mergedItemData.position_ts = incomingTs;
-        } else if (currentTs && incomingTs && incomingTs < currentTs) {
-          // keep current position_ts on stale update
-          mergedItemData.position_ts = currentTs;
-        }
-        updatePayload.item_data = mergedItemData;
-      }
-
-      if (incomingVersion && !isNaN(parsedIncomingVersion)) {
+      if (incomingVersion && !Number.isNaN(Number(incomingVersion))) {
         updatePayload.version = Number(item.version) + 1;
       }
 
@@ -145,8 +148,7 @@ export async function updateItem(req, res) {
 
       await item.update(updatePayload, { transaction: t });
 
-      const plain = item.toJSON();
-      res.json(plain);
+      res.json(item.toJSON());
     });
   } catch (err) {
     console.error('Error en updateItem:', err);
@@ -170,6 +172,20 @@ export async function deleteItem(req, res) {
   }
 }
 
+const checkSyncItemLimits = (isVip, currentItemCount, item_data) => {
+  if (isVip) return true;
+  if (currentItemCount >= BUSINESS_RULES.MAX_FREE_ITEMS) return false;
+
+  const label = item_data?.label || item_data?.type || '';
+  if (label === 'Archivo' || label.toLowerCase() === 'archivo') {
+    const sizeBytes = item_data?.content?.fileData?.size;
+    if (typeof sizeBytes === 'number' && (sizeBytes / (1024 * 1024) > BUSINESS_RULES.MAX_FREE_FILE_SIZE_MB)) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export async function syncItems(req, res) {
   try {
     await withRLS(req.user.id, async (t) => {
@@ -187,22 +203,11 @@ export async function syncItems(req, res) {
       }
 
       for (const item of items) {
-        if (!isVip && currentItemCount >= BUSINESS_RULES.MAX_FREE_ITEMS) {
-          continue;
-        }
-
         const { client_id, date, x, y, rotation, rotation_enabled } = item;
-        let { item_data } = item;
-        if (typeof item_data === 'string') {
-          try { item_data = JSON.parse(item_data); } catch { item_data = {}; }
-        }
+        const item_data = parseIncomingData(item.item_data) || {};
 
-        const label = item_data?.label || item_data?.type || '';
-        if (!isVip && (label === 'Archivo' || label.toLowerCase() === 'archivo')) {
-          const sizeBytes = item_data?.content?.fileData?.size;
-          if (typeof sizeBytes === 'number' && (sizeBytes / (1024 * 1024) > BUSINESS_RULES.MAX_FREE_FILE_SIZE_MB)) {
-            continue;
-          }
+        if (!checkSyncItemLimits(isVip, currentItemCount, item_data)) {
+          continue;
         }
 
         const payload = itemService.prepareItemPayload({

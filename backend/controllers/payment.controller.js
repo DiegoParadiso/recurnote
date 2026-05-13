@@ -39,7 +39,7 @@ const getAccessToken = async () => {
     const data = await response.json();
 
     if (!response.ok) {
-        console.error('PayPal Auth Error:', data);
+        console.error('PayPal Auth Error');
         throw new Error(`Failed to get access token: ${data.error_description || data.error}`);
     }
 
@@ -61,7 +61,7 @@ const getOrCreateProduct = async (accessToken) => {
 
         if (response.ok) return productId;
     } catch (e) {
-        console.log('Product check failed, attempting creation...');
+        console.log('Product check failed, attempting creation...', e.message);
     }
 
     // Crear producto si no existe
@@ -90,7 +90,7 @@ const getOrCreateProduct = async (accessToken) => {
             return productId;
         }
 
-        console.error('PayPal Product Creation Error:', errorData);
+        console.error('PayPal Product Creation Error');
         throw new Error('Failed to create PayPal product');
     }
 
@@ -159,7 +159,7 @@ const createPlan = async (accessToken, productId, planData) => {
     const data = await response.json();
 
     if (!response.ok) {
-        console.error('PayPal Plan Creation Error:', data);
+        console.error('PayPal Plan Creation Error');
         throw new Error(`Failed to create plan: ${data.name} - ${data.message}`);
     }
 
@@ -206,7 +206,7 @@ export const activateSubscription = async (req, res) => {
     try {
         // Verificar estado de la suscripción
         const accessToken = await getAccessToken();
-        const response = await fetch(`${PAYPAL_API}/v1/billing/subscriptions/${subscriptionId}`, {
+        const response = await fetch(`${PAYPAL_API}/v1/billing/subscriptions/${encodeURIComponent(subscriptionId)}`, {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
@@ -217,9 +217,6 @@ export const activateSubscription = async (req, res) => {
 
         if (subscription.status === 'ACTIVE' || subscription.status === 'APPROVAL_PENDING') {
             // Determine dates based on subscription state
-            const now = new Date();
-            let trialEnd = null;
-
             // Check if in trial (PayPal doesn't explicitly say "in trial" on the sub object easily, 
             // but we can infer or set based on plan logic. For now, we'll rely on next_billing_time)
 
@@ -273,10 +270,76 @@ export const getPaymentConfig = (req, res) => {
     });
 };
 
+const verifyWebhookSignature = async (req, webhookId) => {
+    const accessToken = await getAccessToken();
+    const verifyPayload = {
+        auth_algo: req.headers['paypal-auth-algo'],
+        cert_url: req.headers['paypal-cert-url'],
+        transmission_id: req.headers['paypal-transmission-id'],
+        transmission_sig: req.headers['paypal-transmission-sig'],
+        transmission_time: req.headers['paypal-transmission-time'],
+        webhook_id: webhookId,
+        webhook_event: req.body
+    };
+
+    const verifyResponse = await fetch(`${PAYPAL_API}/v1/notifications/verify-webhook-signature`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(verifyPayload)
+    });
+
+    const verifyData = await verifyResponse.json();
+    if (verifyData.verification_status !== 'SUCCESS') {
+        console.error('Firma de webhook de PayPal inválida');
+        return false;
+    }
+    return true;
+};
+
+const handleSubscriptionEvent = async (event_type, subscriptionId) => {
+    const cancelEvents = [
+        'BILLING.SUBSCRIPTION.CANCELLED',
+        'BILLING.SUBSCRIPTION.SUSPENDED',
+        'BILLING.SUBSCRIPTION.EXPIRED'
+    ];
+
+    if (cancelEvents.includes(event_type)) {
+        const user = await User.findOne({
+            where: { provider_type: 'paypal', provider_id: subscriptionId }
+        });
+
+        if (user) {
+            await user.update({
+                is_vip: false,
+                subscription_status: 'cancelled',
+                auto_renew: false
+            });
+            console.log('Usuario suscripción revocada vía webhook.');
+        } else {
+            console.warn('Webhook ignorado: sin usuario para la suscripción');
+        }
+    } else if (event_type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
+        const user = await User.findOne({
+            where: { provider_type: 'paypal', provider_id: subscriptionId }
+        });
+
+        if (user) {
+            await user.update({
+                is_vip: true,
+                subscription_status: 'active',
+            });
+            console.log('Usuario suscripción reactivada vía webhook.');
+        }
+    }
+};
+
 export const handlePaypalWebhook = async (req, res) => {
     try {
         const { event_type, resource } = req.body;
-        console.log(`Webhook received: ${event_type}`, resource ? resource.id : 'No resource ID');
+        console.log('Webhook received');
 
         if (!resource || !resource.id) {
             return res.status(400).json({ error: 'Invalid webhook payload' });
@@ -286,30 +349,8 @@ export const handlePaypalWebhook = async (req, res) => {
 
         if (webhookId) {
             try {
-                const accessToken = await getAccessToken();
-                const verifyPayload = {
-                    auth_algo: req.headers['paypal-auth-algo'],
-                    cert_url: req.headers['paypal-cert-url'],
-                    transmission_id: req.headers['paypal-transmission-id'],
-                    transmission_sig: req.headers['paypal-transmission-sig'],
-                    transmission_time: req.headers['paypal-transmission-time'],
-                    webhook_id: webhookId,
-                    webhook_event: req.body
-                };
-
-                const verifyResponse = await fetch(`${PAYPAL_API}/v1/notifications/verify-webhook-signature`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify(verifyPayload)
-                });
-
-                const verifyData = await verifyResponse.json();
-
-                if (verifyData.verification_status !== 'SUCCESS') {
-                    console.error('Firma de webhook de PayPal inválida', verifyData);
+                const isValid = await verifyWebhookSignature(req, webhookId);
+                if (!isValid) {
                     return res.status(400).json({ error: 'Invalid signature' });
                 }
             } catch (verifyError) {
@@ -320,49 +361,7 @@ export const handlePaypalWebhook = async (req, res) => {
             console.warn('PAYPAL_WEBHOOK_ID no definido, saltando verificación de firma de webhook');
         }
 
-        const cancelEvents = [
-            'BILLING.SUBSCRIPTION.CANCELLED',
-            'BILLING.SUBSCRIPTION.SUSPENDED',
-            'BILLING.SUBSCRIPTION.EXPIRED'
-        ];
-
-        if (cancelEvents.includes(event_type)) {
-            const subscriptionId = resource.id;
-
-            const user = await User.findOne({
-                where: {
-                    provider_type: 'paypal',
-                    provider_id: subscriptionId
-                }
-            });
-
-            if (user) {
-                await user.update({
-                    is_vip: false,
-                    subscription_status: 'cancelled',
-                    auto_renew: false
-                });
-                console.log(`Usuario ${user.id} suscripción (${subscriptionId}) ha sido revocada vía webhook.`);
-            } else {
-                console.warn(`Webhook ignorado: sin usuario para la suscripción ${subscriptionId}`);
-            }
-        } else if (event_type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
-            const subscriptionId = resource.id;
-            const user = await User.findOne({
-                where: {
-                    provider_type: 'paypal',
-                    provider_id: subscriptionId
-                }
-            });
-
-            if (user) {
-                await user.update({
-                    is_vip: true,
-                    subscription_status: 'active',
-                });
-                console.log(`Usuario ${user.id} suscripción (${subscriptionId}) ha sido reactivada vía webhook.`);
-            }
-        }
+        await handleSubscriptionEvent(event_type, resource.id);
 
         // Always respond 200 OK to provider so they stop retrying
         res.status(200).send('OK');

@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import emailService from '../services/email.service.js';
 import { withRLS } from '../utils/rls.utils.js';
 import { RefreshToken } from '../models/refreshToken.model.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export async function register(req, res) {
   try {
@@ -69,9 +69,9 @@ export async function register(req, res) {
     emailService.sendVerificationCodeEmail(email, name, verificationCode)
       .then(success => {
         if (success) {
-          console.log('Email de verificación enviado a', email);
+          console.log('Email de verificación enviado al usuario');
         } else {
-          console.warn('No se pudo enviar email a', email);
+          console.warn('No se pudo enviar email al usuario');
         }
       })
       .catch(err => {
@@ -540,7 +540,7 @@ export async function updatePreferences(req, res) {
     await withRLS(req.user.id, async (t) => {
       // Reload user to attach to transaction
       const user = await User.findByPk(req.user.id, { transaction: t });
-      await user.update({ preferences: { ...(user.preferences || {}), ...preferences } }, { transaction: t });
+      await user.update({ preferences: { ...user.preferences, ...preferences } }, { transaction: t });
       res.json({ preferences: user.preferences || {} });
     });
   } catch (err) {
