@@ -199,6 +199,7 @@ export default function NoteItemEditor({
         onBlur={(e) => {
           // Commit undo state on blur
           commitUndoState?.(id);
+          const el = e.currentTarget;
 
           // Use setTimeout to check where focus went (more reliable than relatedTarget)
           setTimeout(() => {
@@ -212,11 +213,10 @@ export default function NoteItemEditor({
             }
 
             // Check content and force flush when blurring
-            const html = e.currentTarget.innerHTML;
+            const html = el.innerHTML;
             const markdown = htmlToMarkdown(html);
 
             // Consolidate final height before saving
-            const el = e.currentTarget;
             const prevHeight = el.style.height;
             el.style.height = 'auto';
             const borderHeight = el.offsetHeight - el.clientHeight;

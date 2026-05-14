@@ -248,6 +248,7 @@ export default function ArchivoItem({
   };
 
   const { width, height } = calculateContainerDimensions(item, minWidthPx, isImage, isExpanded, imageDimensions, isSmallScreen);
+  const aspectRatio = imageDimensions.height ? imageDimensions.width / imageDimensions.height : null;
 
   return (
     <>
