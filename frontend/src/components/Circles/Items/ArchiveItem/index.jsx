@@ -140,6 +140,17 @@ export default function ArchivoItem({
     }
   };
 
+  const handleResize = (newSize) => {
+    onUpdate?.(
+      id,
+      item.content || {},
+      null,
+      { width: newSize.width, height: newSize.height },
+      null,
+      null
+    );
+  };
+
   const handleContainerClick = (e) => {
     // No permitir carga de archivo si se está arrastrando
     if (isDragging || wasDraggingRef.current) {
