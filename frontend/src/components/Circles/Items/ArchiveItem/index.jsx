@@ -385,7 +385,7 @@ export default function ArchivoItem({
   );
 }
 
-ArchiveItem.propTypes = {
+ArchivoItem.propTypes = {
   id: PropTypes.string.isRequired,
   x: PropTypes.number.isRequired,
   y: PropTypes.number.isRequired,
