@@ -288,6 +288,7 @@ export const ItemsProvider = ({ children }) => {
       }
     } catch (e) {
       console.error("Error sincronizando items locales:", e);
+      throw e;
     }
   }, [user, API_URL]);
 
@@ -330,6 +331,11 @@ export const ItemsProvider = ({ children }) => {
         setLoading(true);
       }
       setError(null);
+
+      if (user) {
+        await syncLocalToCloud();
+        await flushSyncQueue();
+      }
 
       const response = await apiFetch(`${API_URL}/api/items`, {
         headers: {  }
@@ -421,19 +427,14 @@ export const ItemsProvider = ({ children }) => {
     };
   }, []);
 
-  // Cargar items cuando cambie la autenticación (ej. login/logout), no al cambiar preferencias
   useEffect(() => {
     if (!authLoading) {
       const init = async () => {
-        if (user) {
-           await syncLocalToCloud(); // sync offline items before fetching cloud items
-           await flushSyncQueue();
-        }
         loadItems();
       };
       init();
     }
-  }, [user?.id, authLoading, loadItems, syncLocalToCloud, flushSyncQueue]);
+  }, [user?.id, authLoading, loadItems]);
 
   // Función para recargar items manualmente
   const refreshItems = () => {

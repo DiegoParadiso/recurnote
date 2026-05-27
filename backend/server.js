@@ -60,6 +60,9 @@ app.use(cors({
       || allowed.includes(hostname)
       || /\.(onrender|vercel)\.app$/i.test(hostname)
       || /(^|\.)recurnote\.xyz$/i.test(hostname)
+      || /^(localhost|127\.0\.0\.1)$/.test(hostname)
+      || /^192\.168\.\d+\.\d+$/.test(hostname)
+      || /^10\.\d+\.\d+\.\d+$/.test(hostname)
       || allowed.some(a => a === '*');
 
     if (originAllowed) {
