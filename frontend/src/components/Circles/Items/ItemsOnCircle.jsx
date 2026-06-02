@@ -86,7 +86,7 @@ export default function ItemsOnCircle({
         if (label === 'Tarea') {
           return (
             <TaskItem
-              key={item.id}
+              key={item.clientId || item.id}
               id={item.id}
               x={x}
               y={y}
@@ -114,7 +114,7 @@ export default function ItemsOnCircle({
         if (label.toLowerCase().includes('nota')) {
           return (
             <NoteItem
-              key={item.id}
+              key={item.clientId || item.id}
               id={item.id}
               x={x}
               y={y}
@@ -142,7 +142,7 @@ export default function ItemsOnCircle({
         if (label === 'Archivo') {
           return (
             <ArchiveItem
-              key={item.id}
+              key={item.clientId || item.id}
               id={item.id}
               x={x}
               y={y}
@@ -170,7 +170,7 @@ export default function ItemsOnCircle({
         // Otros labels
         return (
           <div
-            key={item.id}
+            key={item.clientId || item.id}
             draggable
             onDragStart={(e) => onNoteDragStart(e, item.id)}
             style={{

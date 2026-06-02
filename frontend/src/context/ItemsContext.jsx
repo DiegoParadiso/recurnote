@@ -486,8 +486,10 @@ export const ItemsProvider = ({ children }) => {
 
     if (user) {
       // Usuario autenticado - guardar en servidor
+      const clientId = `tmp_${Math.random().toString(36).slice(2)}`;
       const placeholder = {
-        id: `tmp_${Math.random().toString(36).slice(2)}`,
+        id: clientId,
+        clientId: clientId,
         date,
         x,
         y,
@@ -544,27 +546,36 @@ export const ItemsProvider = ({ children }) => {
 
         if (latestPlaceholder) {
           // Identify any differences between the original placeholder and the latest state
-          const posChanged = latestPlaceholder.x !== placeholder.x || latestPlaceholder.y !== placeholder.y || latestPlaceholder.rotation !== placeholder.rotation;
+          const changesToSync = {};
+          for (const key of Object.keys(latestPlaceholder)) {
+            if (key === 'id' || key === '_pending' || key === 'version' || key === 'clientId' || key === 'item_data') continue;
+            
+            const val1 = latestPlaceholder[key];
+            const val2 = placeholder[key];
+            
+            if (JSON.stringify(val1) !== JSON.stringify(val2)) {
+               changesToSync[key] = val1;
+            }
+          }
 
-          // Also check for content/checked/size modifications
-          const contentChanged = latestPlaceholder.content !== placeholder.content;
-          const checkedChanged = JSON.stringify(latestPlaceholder.checked) !== JSON.stringify(placeholder.checked);
-          const sizeChanged = latestPlaceholder.width !== placeholder.width || latestPlaceholder.height !== placeholder.height;
-
-          if (posChanged || contentChanged || checkedChanged || sizeChanged) {
+          if (Object.keys(changesToSync).length > 0) {
             finalItem = {
               ...expanded,
               ...latestPlaceholder, // OVERWRITE server's empty item with all current unsaved edits on placeholder
               id: expanded.id, // but KEEP the new server ID
+              clientId: latestPlaceholder.clientId || returnedClientId, // Preserve the clientId
             };
 
             shouldSync = true;
             mergedChangesForSync = {
-              ...(posChanged && { x: latestPlaceholder.x, y: latestPlaceholder.y, rotation: latestPlaceholder.rotation }),
-              ...(contentChanged && { content: latestPlaceholder.content }),
-              ...(checkedChanged && { checked: latestPlaceholder.checked }),
-              ...(sizeChanged && { width: latestPlaceholder.width, height: latestPlaceholder.height }),
+              ...changesToSync,
               date: finalItem.date
+            };
+          } else {
+            // Even if there are no changes, preserve the clientId so the component doesn't unmount
+            finalItem = {
+              ...expanded,
+              clientId: latestPlaceholder.clientId || returnedClientId
             };
           }
 
