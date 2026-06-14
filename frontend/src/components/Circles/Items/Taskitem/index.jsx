@@ -335,10 +335,11 @@ function TaskItem({
       extraOptions={[
         { label: 'common.duplicate', onClick: handleDuplicate },
         {
-          label: 'task.markAllCompleted',
+          label: ((item.content || []).length > 0 && (item.checked || []).length === (item.content || []).length && (item.checked || []).every(c => c === true)) ? 'task.unmarkAllCompleted' : 'task.markAllCompleted',
           onClick: () => {
-            const allChecked = (item.content || []).map(() => true);
-            onUpdate?.(id, item.content || [], allChecked);
+            const areAllChecked = (item.content || []).length > 0 && (item.checked || []).length === (item.content || []).length && (item.checked || []).every(c => c === true);
+            const newChecked = (item.content || []).map(() => !areAllChecked);
+            onUpdate?.(id, item.content || [], newChecked);
           },
         },
         ...((item.content?.length || 0) > 1 ? [{ label: 'task.deleteLast', onClick: deleteLastTask }] : []),

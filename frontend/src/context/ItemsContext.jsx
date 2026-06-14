@@ -1034,93 +1034,47 @@ export const ItemsProvider = ({ children }) => {
         throw new Error('Item no encontrado');
       }
 
-      const currentAngle = itemToDuplicate.angle || 0;
-      const currentDistance = itemToDuplicate.distance || 120;
+      const currentAngle = Number(itemToDuplicate.angle) || 0;
+      const currentDistance = Number(itemToDuplicate.distance) || 120;
 
       const newAngle = (currentAngle + 20) % 360;
       const newDistance = currentDistance;
 
       const angleRad = (newAngle * Math.PI) / 180;
       const oldRad = (currentAngle * Math.PI) / 180;
-      const estimatedCx = itemToDuplicate.x - currentDistance * Math.cos(oldRad);
-      const estimatedCy = itemToDuplicate.y - currentDistance * Math.sin(oldRad);
+      
+      const oldX = Number(itemToDuplicate.x) || 0;
+      const oldY = Number(itemToDuplicate.y) || 0;
+      const estimatedCx = oldX - currentDistance * Math.cos(oldRad);
+      const estimatedCy = oldY - currentDistance * Math.sin(oldRad);
 
       const newX = estimatedCx + newDistance * Math.cos(angleRad);
       const newY = estimatedCy + newDistance * Math.sin(angleRad);
 
-      // Crear el item duplicado
-      const duplicatedItem = {
-        ...itemToDuplicate,
-        id: user ? `tmp_${Math.random().toString(36).slice(2)}` : `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        angle: newAngle,
-        distance: newDistance,
-        x: newX,
-        y: newY,
-        _pending: user ? true : false,
-        _local: !user ? true : false,
-        _justDuplicated: true,
-        zIndexOverride: 9999,
-        createdAt: new Date().toISOString()};
-
-      // Si es modo local, agregar al estado visual inmediatamente y guardar
-      if (!user) {
-        // Re-chequear límite con estado más reciente por seguridad
-        const totalLocalItems = Object.values(itemsByDate).reduce((acc, arr) => acc + (arr?.length || 0), 0);
-        const maxLocalItems = 5;
-        if (totalLocalItems >= maxLocalItems) {
-          setErrorToast(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
-          throw new Error(`Límite alcanzado. Solo puedes tener ${maxLocalItems} items en modo local.`);
-        }
-
-        setItemsByDate(prev => {
-          const newState = { ...prev };
-          if (!newState[itemDate]) {
-            newState[itemDate] = [];
-          }
-          newState[itemDate] = [...newState[itemDate], duplicatedItem];
-          return newState;
-        });
-
-        // Guardar en localStorage con el estado actualizado
-        const newState = { ...itemsByDate };
-        if (!newState[itemDate]) {
-          newState[itemDate] = [];
-        }
-        newState[itemDate] = [...newState[itemDate], duplicatedItem];
-        saveLocalItems(newState);
-
-        return duplicatedItem;
-      }
-
-      // Si es modo premium, NO agregar al estado visual hasta completar sincronización
-      // Solo crear el item temporal en memoria para la operación
-
-      // Si es modo premium, sincronizar con el servidor
       const payload = {
+        ...itemToDuplicate,
         date: itemDate,
         x: newX,
         y: newY,
-        rotation: itemToDuplicate.rotation || 0,
-        rotation_enabled: itemToDuplicate.rotation_enabled ?? true,
         angle: newAngle,
         distance: newDistance,
-        label: itemToDuplicate.label,
-        width: itemToDuplicate.width,
-        height: itemToDuplicate.height
+        rotation: Number(itemToDuplicate.rotation) || 0,
+        rotation_enabled: itemToDuplicate.rotation_enabled ?? true
       };
 
-      // Agregar contenido específico según el tipo de item
-      if (itemToDuplicate.label === 'Tarea') {
-        payload.content = itemToDuplicate.content || [''];
-        payload.checked = itemToDuplicate.checked || [false];
-      } else if (itemToDuplicate.label === 'Nota') {
-        payload.content = itemToDuplicate.content || '';
-      } else if (itemToDuplicate.label === 'Archivo' && itemToDuplicate.content?.fileData) {
-        payload.content = {
-          fileData: itemToDuplicate.content.fileData,
-          base64: itemToDuplicate.content.base64
-        };
-      }
+      // Remove internal/backend keys so they don't interfere with creation
+      delete payload.id;
+      delete payload.client_id;
+      delete payload.clientId;
+      delete payload._pending;
+      delete payload._local;
+      delete payload._justDuplicated;
+      delete payload.version;
+      delete payload.createdAt;
+      delete payload.item_data;
+
+      if (typeof payload.fullboard_x === 'number') payload.fullboard_x += 20;
+      if (typeof payload.fullboard_y === 'number') payload.fullboard_y += 20;
 
       const result = await addItem(payload, { fromUndo: true });
       return result;

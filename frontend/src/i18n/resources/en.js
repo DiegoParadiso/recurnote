@@ -117,6 +117,7 @@ const en = {
   task: {
     placeholderMobile: 'Task...',
     markAllCompleted: 'Mark all as completed',
+    unmarkAllCompleted: 'Unmark all as completed',
     empty: 'Task without description',
     deleteLast: 'Delete last task',
   },

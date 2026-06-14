@@ -117,6 +117,7 @@ const es = {
   task: {
     placeholderMobile: 'Tarea...',
     markAllCompleted: 'Marcar todas como completadas',
+    unmarkAllCompleted: 'Desmarcar todas como completadas',
     empty: 'Tarea sin descripción',
     deleteLast: 'Eliminar última tarea',
   },
