@@ -6,8 +6,24 @@ import { apiFetch } from '../utils/api.js';
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+  // Initialize loading to false if we have a cached user, so we don't block the UI
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('user') ? false : true;
+    }
+    return true;
+  });
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [errorToast, setErrorToast] = useState('');
 
@@ -38,9 +54,11 @@ export function AuthProvider({ children }) {
         localStorage.setItem('user', JSON.stringify(me));
       } else {
         localStorage.removeItem('user');
+        setUser(null);
       }
     } catch (error) {
       localStorage.removeItem('user');
+      setUser(null);
     } finally {
       setLoading(false);
     }

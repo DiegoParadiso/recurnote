@@ -11,14 +11,44 @@ const draggingItemsRef = { current: new Set() };
 
 export const ItemsProvider = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
-  const [itemsByDate, setItemsByDate] = useState({});
+  const [itemsByDate, setItemsByDate] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const localUser = localStorage.getItem('user');
+        if (localUser) {
+          const cached = localStorage.getItem('cachedCloudItems');
+          if (cached) {
+             const parsed = JSON.parse(cached);
+             if (parsed && typeof parsed === 'object') return parsed;
+          }
+        } else {
+          const localItems = localStorage.getItem('localItems');
+          if (localItems) {
+             const parsed = JSON.parse(localItems);
+             if (parsed && typeof parsed === 'object') return parsed;
+          }
+        }
+      } catch (e) {}
+    }
+    return {};
+  });
   const itemsRef = useRef(itemsByDate); // Ref para acceder al estado más reciente en callbacks async
 
   useEffect(() => {
     itemsRef.current = itemsByDate;
   }, [itemsByDate]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+       const localUser = localStorage.getItem('user');
+       if (localUser) {
+          return localStorage.getItem('cachedCloudItems') ? false : true;
+       } else {
+          return false;
+       }
+    }
+    return true;
+  });
   const [error, setError] = useState(null);
   const [pendingOperations, setPendingOperations] = useState(new Set());
   const [retryCount, setRetryCount] = useState(0);
@@ -328,7 +358,10 @@ export const ItemsProvider = ({ children }) => {
 
     try {
       if (!isRetry) {
-        setLoading(true);
+        // Only set global loading to true if we don't have cached items
+        if (Object.keys(itemsRef.current).length === 0) {
+          setLoading(true);
+        }
       }
       setError(null);
 
@@ -383,6 +416,10 @@ export const ItemsProvider = ({ children }) => {
         combined[dateKey] = [...combined[dateKey], ...preservedItems];
       }
       setItemsByDate(combined);
+      try {
+        localStorage.setItem('cachedCloudItems', JSON.stringify(combined));
+      } catch (e) {}
+      
       setRetryCount(0); // Reset retry count on success
       setIsRetrying(false);
     } catch (err) {
@@ -794,9 +831,6 @@ export const ItemsProvider = ({ children }) => {
                   }
                   return newState;
                 });
-                // Como es nuestro mismo dispositivo haciendo spam, no deberíamos mostrar error 
-                // a menos que realmente el contenido haya divergido de forma inesperada.
-                // Por ahora omitimos el Toast asustadizo, el item se auto-corrige.
               }
             } else if (response.status !== 404) {
               console.error('Server error on updateItem:', response.status, response.statusText);
@@ -920,10 +954,6 @@ export const ItemsProvider = ({ children }) => {
       }
       // Si no toca geometría (p.ej. content/checked), permitir update
     }
-
-    // El bloque que interceptaba \`_justDuplicated\` fue removido intencionalmente
-    // para permitir que el usuario pueda arrastrar los items duplicados 
-    // sin que el sistema los devuelva bruscamente a su posición de origen.
 
     // Determinar si el cambio es únicamente geométrico (sin width/height) durante drag
     const changedKeys = Object.keys(changes || {});
@@ -1092,9 +1122,6 @@ export const ItemsProvider = ({ children }) => {
         };
       }
 
-      // El `addItem` ya se encargó de subirlo al servidor y añadir el placeholder o estado final a itemsByDate.
-      // Por ende, devolver el result de addItem es suficiente, no debemos meterlo al estado "A MANO" otra vez
-      // para evitar doble renderizado fantasma de duplicados.
       const result = await addItem(payload, { fromUndo: true });
       return result;
     } catch (error) {
