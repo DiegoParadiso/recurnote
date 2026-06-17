@@ -298,6 +298,17 @@ export default function Home() {
     };
   }, []);
 
+  // Mostrar error de carga en el toast de error
+  useEffect(() => {
+    if (itemsError) {
+      let msg = itemsError;
+      if (isRetrying) {
+        msg += ` - Reintentando automáticamente... (intento ${retryCount + 1}/5)`;
+      }
+      setErrorToast(msg);
+    }
+  }, [itemsError, isRetrying, retryCount, setErrorToast]);
+
   return (
     <div
       className={`home-page pt-3 sm:pt-0 w-screen min-h-[100dvh] flex items-center justify-center relative ${displayOptions?.fullboardMode ? 'fullboard-active' : ''}`}
@@ -404,28 +415,6 @@ export default function Home() {
       )}
 
 
-
-      {/* Indicador de error para items con reintento automático */}
-      {itemsError && (
-        <div
-          className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
-          style={{
-            pointerEvents: draggedItem && isMobile ? 'none' : 'auto'
-          }}
-        >
-          <div className="flex items-center">
-            <span className="mr-2">⚠️</span>
-            <div>
-              <div>{itemsError}</div>
-              {isRetrying && (
-                <div className="text-sm text-red-600 mt-1">
-                  Reintentando automáticamente... (intento {retryCount + 1}/5)
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Contenido principal */}
       <main
