@@ -1,5 +1,13 @@
 # RecurNote - Project Documentation
 
+## Resumen Técnico del Proyecto
+
+RecurNote es una aplicación web (SPA) full-stack orientada a la gestión espacial de entidades (tareas, notas y archivos) sobre un sistema de coordenadas polares y cartesianas. 
+
+A nivel frontend, utiliza React y Context API para manejar un estado complejo que incluye posicionamiento interactivo (drag & drop), un motor de historial (undo/redo), y un sistema de sincronización asíncrono (local-first, colas de actualización y debouncing) contra el servidor. 
+
+A nivel backend, se expone una API RESTful desarrollada con Node.js y Express.js, utilizando PostgreSQL como base de datos transaccional mediante Sequelize ORM, y delegando la autenticación a JWT y Passport.
+
 ## Stack
 
 ### Frontend
