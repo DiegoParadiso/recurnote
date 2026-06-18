@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
 dotenv.config();
 
-const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_URL || 'postgres://dummy:dummy@localhost:5432/dummy';
 
 // Forzar SSL para Neon
 const useSSL = true;
