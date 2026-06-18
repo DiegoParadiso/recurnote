@@ -353,18 +353,22 @@ app.use((req, res) => {
 
 // Conexión DB y servidor
 const PORT = process.env.PORT || 5002;
-connectDB().then(() => {
-  const alter = process.env.NODE_ENV !== 'production';
-  sequelize.sync(alter ? { alter: true } : undefined).then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`);
-      console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-      console.log(`Callback URLs configuradas:`);
-      console.log(`  - GitHub: ${process.env.GITHUB_CALLBACK_URL}`);
-      console.log(`  - Google: ${process.env.GOOGLE_CALLBACK_URL}`);
+if (process.env.NODE_ENV !== 'test') {
+  connectDB().then(() => {
+    const alter = process.env.NODE_ENV !== 'production';
+    sequelize.sync(alter ? { alter: true } : undefined).then(() => {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`);
+        console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+        console.log(`Callback URLs configuradas:`);
+        console.log(`  - GitHub: ${process.env.GITHUB_CALLBACK_URL}`);
+        console.log(`  - Google: ${process.env.GOOGLE_CALLBACK_URL}`);
+      });
     });
+  }).catch(err => {
+    console.error('Error al conectar con la base de datos:', err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('Error al conectar con la base de datos:', err);
-  process.exit(1);
-});
+}
+
+export default app;
