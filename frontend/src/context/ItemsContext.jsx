@@ -523,7 +523,7 @@ export const ItemsProvider = ({ children }) => {
 
     if (user) {
       // Usuario autenticado - guardar en servidor
-      const clientId = `tmp_${Math.random().toString(36).slice(2)}`;
+      const clientId = `tmp_${crypto.randomUUID()}`;
       const placeholder = {
         id: clientId,
         clientId: clientId,
@@ -676,7 +676,7 @@ export const ItemsProvider = ({ children }) => {
 
       // Usuario no autenticado - guardar localmente
       const newItem = {
-        id: `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        id: `local_${Date.now()}_${crypto.randomUUID()}`,
         date,
         x,
         y,
