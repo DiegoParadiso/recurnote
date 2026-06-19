@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { formatText } from '@utils/textFormatter';
 import { markdownToHtml, htmlToMarkdown } from '@utils/markdownConverter';
+import { getFontFromComputedStyle, measureTextWidth } from '@utils/measureTextWidth';
 
 export default function TaskRow({
   index,
@@ -102,33 +103,35 @@ export default function TaskRow({
         className="taskitem-input" // Reuse class for basic styling
         onInput={(e) => {
           const el = e.currentTarget;
-          const html = el.innerHTML;
-          const textContent = el.textContent;
+          let html = el.innerHTML;
+          let textContent = el.textContent;
 
-          // Check width limit
-          // If scrollWidth > clientWidth, we are overflowing
-          // But we need to allow some buffer or check if it actually grew beyond visible bounds?
-          // The user wants "se pueda escribir solo hasta allí".
-          // If scrollWidth > clientWidth, it means content is wider than container.
-          // Since we set overflow-x: auto (or hidden), it might scroll.
-          // But user wants to STOP writing.
+          const cs = window.getComputedStyle(el);
+          const font = getFontFromComputedStyle(cs);
+          let currentWidth = measureTextWidth(textContent, font);
+          
+          const MAX_TEXT_WIDTH = 342; // Approx 400px container minus 58px padding and checkbox
 
-          if (el.scrollWidth > el.clientWidth) {
-            // Revert content
-            if (lastValidContentRef.current !== undefined) {
-              el.innerHTML = lastValidContentRef.current;
-
-              // Restore cursor position (end)
-              try {
-                const range = document.createRange();
-                range.selectNodeContents(el);
-                range.collapse(false);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-              } catch (_) { }
+          if (currentWidth > MAX_TEXT_WIDTH) {
+            // Truncate text until it fits within the maximum allowed width
+            let truncated = textContent;
+            while (truncated.length > 0 && measureTextWidth(truncated, font) > MAX_TEXT_WIDTH) {
+              truncated = truncated.slice(0, -1);
             }
-            return;
+            
+            el.innerHTML = truncated; 
+            html = truncated;
+            textContent = truncated;
+            
+            // Move cursor to end
+            try {
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              range.collapse(false);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            } catch (_) {}
           }
 
           lastValidContentRef.current = html;
