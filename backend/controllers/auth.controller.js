@@ -370,6 +370,7 @@ export async function login(req, res) {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      partitioned: true,
       maxAge: 15 * 60 * 1000
     });
 
@@ -377,6 +378,7 @@ export async function login(req, res) {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      partitioned: true,
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -588,6 +590,7 @@ export async function refreshAccessToken(req, res) {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      partitioned: true,
       maxAge: 15 * 60 * 1000
     });
 
@@ -607,8 +610,8 @@ export async function logout(req, res) {
         { where: { token: refreshToken } }
       );
     }
-    res.clearCookie('token', { secure: true, sameSite: 'none' });
-    res.clearCookie('refreshToken', { secure: true, sameSite: 'none' });
+    res.clearCookie('token', { secure: true, sameSite: 'none', partitioned: true });
+    res.clearCookie('refreshToken', { secure: true, sameSite: 'none', partitioned: true });
     res.json({ message: 'Sesión terminada exitosamente' });
   } catch (err) {
     console.error('Error en logout:', err);
@@ -666,12 +669,14 @@ export async function oauthCookieSync(req, res) {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      partitioned: true,
       maxAge: 15 * 60 * 1000
     });
     res.cookie('refreshToken', refreshTokenValue, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      partitioned: true,
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 

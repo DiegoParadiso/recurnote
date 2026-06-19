@@ -37,9 +37,10 @@ export async function apiFetch(url, options = {}) {
       });
 
       if (!refreshRes.ok) {
+         isRefreshing = false;
          localStorage.removeItem('user');
          window.dispatchEvent(new CustomEvent('auth:expired'));
-         throw new Error('Refresh failed');
+         return new Promise(() => {}); // Prevent caller from throwing error
       }
       
       onRefreshed(null);
@@ -48,7 +49,7 @@ export async function apiFetch(url, options = {}) {
       return fetch(url, { ...options, headers });
     } catch (err) {
       isRefreshing = false;
-      return response;
+      return new Promise(() => {}); // Prevent caller from throwing error on network failure during refresh
     }
   }
 
