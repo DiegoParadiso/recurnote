@@ -20,8 +20,12 @@ export async function apiFetch(url, options = {}) {
   if (response.status === 401 && !options._retry) {
     if (isRefreshing) {
       return new Promise(resolve => {
-        refreshSubscribers.push(() => {
-          resolve(fetch(url, { ...options, headers }));
+        refreshSubscribers.push((failedResponse) => {
+          if (failedResponse) {
+            resolve(failedResponse);
+          } else {
+            resolve(fetch(url, { ...options, headers }));
+          }
         });
       });
     }
@@ -40,16 +44,27 @@ export async function apiFetch(url, options = {}) {
          isRefreshing = false;
          localStorage.removeItem('user');
          window.dispatchEvent(new CustomEvent('auth:expired'));
-         return new Promise(() => {}); // Prevent caller from throwing error
+         
+         // Resolver cualquier petición pendiente con la respuesta original 401
+         refreshSubscribers.forEach(cb => cb(response));
+         refreshSubscribers = [];
+         
+         return response; // Devolver la respuesta 401 original para que no se congele
       }
       
-      onRefreshed(null);
+      // onRefreshed(null); // Esto estaba ejecutando fetch en los subscribers
       isRefreshing = false;
+      
+      // Ejecutar los callbacks pendientes para que vuelvan a intentar el fetch
+      refreshSubscribers.forEach(cb => cb());
+      refreshSubscribers = [];
 
       return fetch(url, { ...options, headers });
     } catch (err) {
       isRefreshing = false;
-      return new Promise(() => {}); // Prevent caller from throwing error on network failure during refresh
+      refreshSubscribers.forEach(cb => cb(response));
+      refreshSubscribers = [];
+      return response; 
     }
   }
 
