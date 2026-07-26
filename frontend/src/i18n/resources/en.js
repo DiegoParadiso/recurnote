@@ -248,19 +248,19 @@ const en = {
       backToRegister: 'Back to register',
       acceptance: {
         title: 'Acceptance of Terms',
-        body: 'By accessing and using RecurNote, you agree to be bound by these terms and conditions. If you disagree with any part of these terms, you must not use our service.'
+        body: 'By accessing and using Recurnote, you agree to be bound by these terms and conditions. If you disagree with any part of these terms, you must not use our service.'
       },
       service: {
         title: 'Service Description',
-        body: 'RecurNote is a web app to create, organize, and manage notes and tasks efficiently, with sync, categorization, and multi-platform access.'
+        body: 'Recurnote is a web app to create, organize, and manage notes and tasks efficiently, with sync, categorization, and multi-platform access.'
       },
       account: {
         title: 'User Account',
-        body: 'To use RecurNote, you must create an account with accurate and up-to-date information. You are responsible for keeping your password confidential and for all activities under your account.'
+        body: 'To use Recurnote, you must create an account with accurate and up-to-date information. You are responsible for keeping your password confidential and for all activities under your account.'
       },
       acceptableUse: {
         title: 'Acceptable Use',
-        body: 'You agree to use RecurNote only for lawful purposes and in accordance with these terms. You must not:',
+        body: 'You agree to use Recurnote only for lawful purposes and in accordance with these terms. You must not:',
         items: [
           'Use the service for illegal or fraudulent activities',
           'Attempt to access other users\' accounts',
@@ -274,11 +274,11 @@ const en = {
       },
       ip: {
         title: 'Intellectual Property',
-        body: 'RecurNote and all its content (text, graphics, logos, icons, software) are owned by RecurNote or its licensors and protected by intellectual property laws.'
+        body: 'Recurnote and all its content (text, graphics, logos, icons, software) are owned by Recurnote or its licensors and protected by intellectual property laws.'
       },
       liability: {
         title: 'Limitation of Liability',
-        body: 'RecurNote shall not be liable for any indirect, incidental, special, or consequential damages arising from the use or inability to use the service.'
+        body: 'Recurnote shall not be liable for any indirect, incidental, special, or consequential damages arising from the use or inability to use the service.'
       },
       changes: {
         title: 'Changes',
@@ -303,7 +303,7 @@ const en = {
       backToRegister: 'Back to register',
       infoCollected: {
         title: 'Information We Collect',
-        body: 'We collect the following information when you use RecurNote:',
+        body: 'We collect the following information when you use Recurnote:',
         items: [
           { label: 'Account information:', value: 'name, email and password' },
           { label: 'Usage data:', value: 'how you interact with the application' },
@@ -315,7 +315,7 @@ const en = {
         title: 'How We Use Your Information',
         body: 'We use your information to:',
         items: [
-          'Provide and maintain RecurNote service',
+          'Provide and maintain Recurnote service',
           'Personalize your experience and show relevant content',
           'Communicate with you about updates and changes',
           'Improve our services and develop new features',
@@ -369,7 +369,7 @@ const en = {
       },
       minors: {
         title: 'Minors',
-        body: 'RecurNote is not directed at children under 13. We do not intentionally collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, contact us immediately.'
+        body: 'Recurnote is not directed at children under 13. We do not intentionally collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, contact us immediately.'
       },
       international: {
         title: 'International Transfers',

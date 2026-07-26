@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   auth.css – RecurNote Auth Pages
+   auth.css – Recurnote Auth Pages
    ═══════════════════════════════════════════════ */
 
 /* ── Container ─────────────────────────────────── */
@@ -52,7 +52,7 @@
 
 /* Dark Mode Adaptation */
 html.dark .auth-box {
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 .auth-box h2 {
@@ -291,46 +291,42 @@ html.dark .auth-box {
   top: -2px;
   width: 16px;
   height: 16px;
-  border: 1.5px solid color-mix(in oklab, var(--color-text-primary) 30%, transparent);
-  border-radius: 5px;
+  border: 1.5px solid color-mix(in oklab, var(--color-text-primary) 25%, transparent);
+  border-radius: 4px;
   background-color: transparent;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .checkbox-text::after {
   content: '';
   position: absolute;
-  left: 8px;
-  top: 6px;
-  width: 12px;
-  height: 12px;
-  color: var(--color-text-primary);
-  font-size: 10px;
-  font-weight: bold;
-  line-height: 12px;
-  text-align: center;
+  left: 6px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--color-bg);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) scale(0.5);
   opacity: 0;
-  transition: opacity 0.2s ease;
-  transform: translate(-50%, -50%);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .checkbox-label:hover .checkbox-text::before {
-  border-color: var(--color-text-primary);
+  border-color: color-mix(in oklab, var(--color-text-primary) 50%, transparent);
 }
 
-.checkbox-label input[type="checkbox"]:focus+.checkbox-text::before {
-  outline: 2px solid var(--color-text-primary);
-  outline-offset: 2px;
+.checkbox-label input[type="checkbox"]:focus-visible+.checkbox-text::before {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-text-primary) 20%, transparent);
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-text::before {
-  background-color: transparent;
+  background-color: var(--color-text-primary);
   border-color: var(--color-text-primary);
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-text::after {
-  content: '✓';
   opacity: 1;
+  transform: rotate(45deg) scale(1);
 }
 
 .checkbox-label input[type="checkbox"].error+.checkbox-text::before {
@@ -385,16 +381,14 @@ html.dark .auth-box {
 /* Auth Tabs */
 .auth-tabs {
   display: flex;
-  background: rgba(0, 0, 0, 0.03);
 }
 
 html.dark .auth-tabs {
-  background: rgba(255, 255, 255, 0.02);
 }
 
 .auth-tab {
   flex: 1;
-  padding: 18px 10px;
+  padding: 12px 10px;
   border: none;
   background: transparent;
   color: var(--color-muted);
@@ -403,26 +397,34 @@ html.dark .auth-tabs {
   border-radius: 0;
   transition: all 0.3s ease;
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  position: relative;
 }
 
 .auth-tab:not(.active) {
   box-shadow: inset 0 -1px 0 var(--color-border);
+  background: rgba(0, 0, 0, 0.03);
+  z-index: 1;
+}
+
+html.dark .auth-tab:not(.active) {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .auth-tab:not(.active):hover {
   color: var(--color-text-primary);
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(0, 0, 0, 0.015);
 }
 
 html.dark .auth-tab:not(.active):hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .auth-tab.active {
   background: var(--color-bg);
   color: var(--color-text-primary);
   box-shadow: none;
+  z-index: 2;
 }
 
 /* First tab active (Left) */
@@ -435,6 +437,24 @@ html.dark .auth-tab:not(.active):hover {
 .auth-tab:last-child.active {
   border-radius: 20px 0 0 0;
   box-shadow: -4px 0 10px rgba(0, 0, 0, 0.02);
+}
+
+/* Fill the gap under the curved corner */
+.auth-tab:first-child:not(.active)::after,
+.auth-tab:last-child:not(.active)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: inherit;
+  pointer-events: none;
+}
+.auth-tab:first-child:not(.active)::after {
+  right: -20px;
+}
+.auth-tab:last-child:not(.active)::after {
+  left: -20px;
 }
 
 /* ── Social login buttons ──────────────────────── */

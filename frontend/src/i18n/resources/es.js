@@ -198,7 +198,7 @@ const es = {
     loginError: 'Error en el login',
     registerError: 'Error en el registro',
     accept: 'Acepto los',
-    terms: 'términos y condiciones',
+    terms: 'Términos y Condiciones',
     and: 'y la',
     privacy: 'política de privacidad',
     loginWithGitHub: 'Iniciar sesión con GitHub',
@@ -242,25 +242,33 @@ const es = {
     invalidLink: 'Enlace inválido o expirado'
   },
   legal: {
+    nav: {
+      terms: 'Términos',
+      privacy: 'Privacidad',
+      faq: 'FAQ',
+      contact: 'Contacto',
+      resources: 'Recursos Legales',
+      back: 'Volver al registro'
+    },
     terms: {
       title: 'Términos y Condiciones',
       lastUpdated: 'Última actualización',
       backToRegister: 'Volver al registro',
       acceptance: {
         title: 'Aceptación de los Términos',
-        body: 'Al acceder y utilizar RecurNote, aceptas estar sujeto a estos términos y condiciones. Si no estás de acuerdo con alguna parte de estos términos, no debes usar nuestro servicio.'
+        body: 'El presente documento establece las condiciones generales de uso del servicio Recurnote. El acceso y utilización del servicio atribuye la condición de Usuario e implica la aceptación incondicional de estas disposiciones.'
       },
       service: {
         title: 'Descripción del Servicio',
-        body: 'RecurNote es una aplicación web que permite crear, organizar y gestionar notas y tareas de manera eficiente, con sincronización, organización por categorías y acceso multiplataforma.'
+        body: 'Recurnote se provee "tal cual" (as is) como una plataforma web orientada a la creación y gestión de notas y tareas. La entidad se reserva el derecho de modificar o suspender el servicio sin previo aviso.'
       },
       account: {
         title: 'Cuenta de Usuario',
-        body: 'Para utilizar RecurNote, debes crear una cuenta con información precisa y actualizada. Eres responsable de mantener la confidencialidad de tu contraseña y de todas las actividades de tu cuenta.'
+        body: 'El Usuario es enteramente responsable de la veracidad de los datos provistos y de la custodia de sus credenciales de acceso, asumiendo total responsabilidad por cualquier actividad efectuada bajo su cuenta.'
       },
       acceptableUse: {
         title: 'Uso Aceptable',
-        body: 'Te comprometes a usar RecurNote solo para fines legales y de acuerdo con estos términos. No debes:',
+        body: 'El Usuario se obliga a hacer un uso lícito y adecuado del servicio, conforme a la legislación aplicable. Queda estrictamente prohibido:',
         items: [
           'Usar el servicio para actividades ilegales o fraudulentas',
           'Intentar acceder a cuentas de otros usuarios',
@@ -270,15 +278,15 @@ const es = {
       },
       privacy: {
         title: 'Privacidad y Datos',
-        body: 'Tu privacidad es importante. El uso de tu información personal se rige por nuestra Política de Privacidad, que es parte de estos términos.'
+        body: 'La recopilación y tratamiento de datos personales se rige estrictamente por la Política de Privacidad vigente, la cual forma parte integral del presente instrumento legal.'
       },
       ip: {
         title: 'Propiedad Intelectual',
-        body: 'RecurNote y su contenido (texto, gráficos, logos, iconos, software) son propiedad de RecurNote o sus licenciantes y están protegidos por leyes de propiedad intelectual.'
+        body: 'Recurnote y su contenido (texto, gráficos, logos, iconos, software) son propiedad de Recurnote o sus licenciantes y están protegidos por leyes de propiedad intelectual.'
       },
       liability: {
         title: 'Limitación de Responsabilidad',
-        body: 'RecurNote no será responsable por daños indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de usar el servicio.'
+        body: 'Recurnote no será responsable por daños indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de usar el servicio.'
       },
       changes: {
         title: 'Modificaciones',
@@ -286,7 +294,7 @@ const es = {
       },
       termination: {
         title: 'Terminación',
-        body: 'Podemos terminar o suspender tu cuenta en cualquier momento, con o sin causa y con o sin aviso. Puedes cancelar tu cuenta cuando quieras.'
+        body: 'La plataforma se reserva el derecho unilateral de denegar, suspender o cancelar el acceso al servicio en caso de incumplimiento de los presentes términos o por imperativo legal.'
       },
       governingLaw: {
         title: 'Ley Aplicable',
@@ -303,7 +311,7 @@ const es = {
       backToRegister: 'Volver al registro',
       infoCollected: {
         title: 'Información que Recopilamos',
-        body: 'Recopilamos la siguiente información cuando utilizas RecurNote:',
+        body: 'En virtud del cumplimiento normativo, los datos recabados durante la prestación del servicio incluyen:',
         items: [
           { label: 'Información de cuenta:', value: 'nombre, email y contraseña' },
           { label: 'Datos de uso:', value: 'cómo interactúas con la aplicación' },
@@ -313,9 +321,9 @@ const es = {
       },
       howWeUse: {
         title: 'Cómo Usamos tu Información',
-        body: 'Utilizamos tu información para:',
+        body: 'Los datos personales recabados serán objeto de tratamiento automatizado con las siguientes finalidades exclusivas:',
         items: [
-          'Proporcionar y mantener el servicio de RecurNote',
+          'Proporcionar y mantener el servicio de Recurnote',
           'Personalizar tu experiencia y mostrar contenido relevante',
           'Comunicarnos contigo sobre actualizaciones y cambios',
           'Mejorar nuestros servicios y desarrollar nuevas funcionalidades',
@@ -324,7 +332,7 @@ const es = {
       },
       sharing: {
         title: 'Compartir tu Información',
-        body: 'No vendemos, alquilamos ni compartimos tu información personal con terceros, excepto:',
+        body: 'La entidad garantiza que los datos no serán cedidos a terceros con fines comerciales, salvo en los siguientes supuestos legales:',
         items: [
           'Con tu consentimiento explícito',
           'Para cumplir con obligaciones legales',
@@ -344,11 +352,11 @@ const es = {
       },
       dataStorage: {
         title: 'Almacenamiento de Datos',
-        body: 'Tus datos se almacenan en servidores seguros ubicados en centros de datos confiables. Retenemos tu información mientras mantengas una cuenta activa o según sea necesario para proporcionar servicios.'
+        body: 'Los datos son conservados en infraestructura cifrada sujeta a normativas internacionales de protección. La retención se limitará al plazo estrictamente necesario para la prestación del servicio.'
       },
       yourRights: {
-        title: 'Tus Derechos',
-        body: 'Tienes derecho a:',
+        title: 'Derechos ARCO',
+        body: 'El Usuario podrá ejercer, en todo momento y bajo los plazos legales, sus derechos de:',
         items: [
           'Acceder a tu información personal',
           'Corregir información inexacta',
@@ -369,7 +377,7 @@ const es = {
       },
       minors: {
         title: 'Menores de Edad',
-        body: 'RecurNote no está dirigido a menores de 13 años. No recopilamos intencionalmente información personal de menores de 13 años. Si eres padre o tutor y crees que tu hijo nos ha proporcionado información personal, contáctanos inmediatamente.'
+        body: 'Recurnote no está dirigido a menores de 13 años. No recopilamos intencionalmente información personal de menores de 13 años. Si eres padre o tutor y crees que tu hijo nos ha proporcionado información personal, contáctanos inmediatamente.'
       },
       international: {
         title: 'Transferencias Internacionales',
@@ -383,6 +391,28 @@ const es = {
         title: 'Contacto',
         body: 'Si tienes preguntas sobre esta política de privacidad o sobre cómo manejamos tu información, puedes contactarnos a través de: recurnote@gmail.com',
       }
+    },
+    faq: {
+      title: 'Preguntas Frecuentes',
+      lastUpdated: 'Última actualización',
+      items: [
+        {
+          question: '¿Cómo se resguardan mis notas?',
+          answer: 'Todas tus notas y tareas se almacenan en servidores cifrados de alta seguridad. Utilizamos encriptación tanto en tránsito (TLS/SSL) como en reposo para garantizar que solo tú tengas acceso a tu información.'
+        },
+        {
+          question: '¿Puedo exportar mi información?',
+          answer: 'Sí, puedes exportar toda tu información en cualquier momento desde el panel de configuración (sección Gestión de Datos). Te proporcionaremos un archivo estructurado con todas tus notas y tareas.'
+        },
+        {
+          question: '¿Tienen soporte multiplataforma?',
+          answer: 'Recurnote es una aplicación web progresiva (PWA) moderna, lo que significa que puedes acceder y usarla desde cualquier navegador moderno en tu computadora, tablet o teléfono móvil sin necesidad de instalar una app adicional.'
+        },
+        {
+          question: '¿Qué pasa si elimino mi cuenta?',
+          answer: 'Si decides eliminar tu cuenta, todos tus datos personales, notas, y configuraciones serán eliminados de forma permanente de nuestros servidores activos de inmediato. Por razones de integridad, los respaldos pueden tardar hasta 30 días en purgarse completamente.'
+        }
+      ]
     }
   },
   help: {

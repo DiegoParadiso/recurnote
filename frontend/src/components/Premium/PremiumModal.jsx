@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, FilePlus, Image as ImageIcon, Layout, Clock } from 'lucide-react';
 import { useTheme } from '@context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import logoRecurNote from '../../assets/logorecurnote.png';
+import logoRecurnote from '../../assets/logorecurnote.png';
 import './PremiumModal.css';
 
 const PremiumFeature = ({ icon: Icon, title, description, isPremium = false }) => {
@@ -82,7 +82,7 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
     <div className={`modal-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-background-logo">
-          <img src={logoRecurNote} alt="" aria-hidden="true" />
+          <img src={logoRecurnote} alt="" aria-hidden="true" />
         </div>
 
         <div className="modal-scroll-content">

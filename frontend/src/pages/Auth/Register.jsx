@@ -1,7 +1,7 @@
 import { useState, useContext, useRef, useEffect } from 'react';
 import { AuthContext } from '@context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Lock, ArrowRight } from 'lucide-react';
+import { UserPlus, Mail, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 import '@styles/auth.css';
 import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import BottomToast from '@components/common/BottomToast.jsx';
@@ -47,26 +47,26 @@ export default function Register() {
   // Password strength logic (Length over complexity)
   const getPasswordStrength = (password) => {
     if (!password) return { percent: 0, color: 'transparent' };
-    
+
     const length = password.length;
-    
+
     // Checks for full complexity (Green)
     const hasLower = /[a-z]/.test(password);
     const hasUpper = /[A-Z]/.test(password);
     const hasNumber = /\d/.test(password);
     const isComplex = hasLower && hasUpper && hasNumber;
-    
+
     if (length < 12) {
       // Red: under 12 characters. Progress up to 66%
       const percent = (length / 12) * 66;
       return { percent, color: '#dc3545' };
     }
-    
+
     if (length >= 12 && !isComplex) {
       // Yellow: 12 chars met, but not complex. 66% progress.
       return { percent: 66, color: '#eab308' };
     }
-    
+
     // Green: 12 chars + full complexity. 100% progress.
     return { percent: 100, color: '#28a745' };
   };
@@ -176,9 +176,7 @@ export default function Register() {
     e.preventDefault();
     if (formData.password.length >= 12) {
       setShowConfirmPassword(true);
-      setTimeout(() => {
-        if (confirmPasswordRef.current) confirmPasswordRef.current.focus();
-      }, 50);
+      // Removed focus to keep label centered
     }
   };
 
@@ -194,9 +192,7 @@ export default function Register() {
       e.preventDefault();
       if (formData.password.length >= 12) {
         setShowConfirmPassword(true);
-        setTimeout(() => {
-          if (confirmPasswordRef.current) confirmPasswordRef.current.focus();
-        }, 50);
+        // Removed focus to keep label centered
       }
     }
   };
@@ -586,19 +582,20 @@ export default function Register() {
 
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
 
-      <div className="auth-box" style={{ 
-        position: 'relative', 
-        zIndex: 'var(--z-base)', 
-        filter: loading ? 'blur(4px)' : 'none', 
-        pointerEvents: loading ? 'none' : 'auto', 
+      <div className="auth-box" style={{
+        position: 'relative',
+        zIndex: 'var(--z-base)',
+        filter: loading ? 'blur(4px)' : 'none',
+        pointerEvents: loading ? 'none' : 'auto',
         transition: 'filter 0.3s ease',
-        minHeight: '365px',
+        padding: '32px 30px',
+        minHeight: '315px',
         display: 'flex',
         flexDirection: 'column'
       }}>
         {/* Header */}
 
-        <div className="auth-tabs" style={{ margin: '-40px -40px 24px -40px' }}>
+        <div className="auth-tabs" style={{ margin: '-32px -30px 38px -30px' }}>
           <button type="button" className="auth-tab" onClick={() => navigate('/login')}>
             {t('auth.loginLink') || 'Iniciar sesión'}
           </button>
@@ -607,7 +604,7 @@ export default function Register() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '6px' }}>
           {/* Nombre */}
           <div className="floating-group">
             <input
@@ -645,82 +642,81 @@ export default function Register() {
             <div className="floating-bar"></div>
           </div>
 
-          {/* Contraseña */}
-          <div className="floating-group">
-            <input
-              type="text"
-              name="password"
-              ref={passwordRef}
-              placeholder=" "
-              value={formData.password}
-              onChange={handleChange}
-              onKeyDown={handlePasswordKeyDown}
-              onFocus={() => setIsPasswordFocused(true)}
-              onBlur={() => setIsPasswordFocused(false)}
-              className={`floating-input copyable-password ${formData.password ? 'has-value' : ''} ${submitted && errors.password ? 'error' : ''}`}
-              style={{
-                fontFamily: 'monospace',
-                letterSpacing: '-0.16px',
-                color: (formData.password || isPasswordFocused) ? 'transparent' : 'var(--color-text-primary)',
-                caretColor: (formData.password || isPasswordFocused) ? 'transparent' : 'auto',
-                ...(formData.password ? {
-                  border: '2px solid transparent',
-                  backgroundImage: `linear-gradient(var(--color-bg), var(--color-bg)), linear-gradient(to right, ${pwStrength.color} ${pwStrength.percent}%, var(--color-border) ${pwStrength.percent + 15}%)`,
-                  backgroundOrigin: 'padding-box, border-box',
-                  backgroundClip: 'padding-box, border-box'
-                } : {})
-              }}
-              required
-            />
-            {!(isPasswordFocused || formData.password.length > 0) && (
-              <label className="floating-label">
-                <span>{t('auth.passwordPlaceholder') || 'Contraseña'}</span>
-              </label>
-            )}
-            <div className="floating-bar"></div>
-            
-            {formData.password.length >= 12 && !showConfirmPassword && (
-              <button
-                type="submit"
-                className="inline-submit-btn"
-                aria-label="Continuar"
-                onClick={handlePasswordSubmit}
-              >
-                <ArrowRight size={20} color="#fff" />
-              </button>
-            )}
-          
-            {/* Dots Visual Indicator (Inside the input, left aligned) */}
-            {(isPasswordFocused || formData.password.length > 0) && (
-              <div style={{ 
-                position: 'absolute', 
-                left: '19.5px', 
-                top: '50%', 
-                transform: 'translateY(-50%)',
-                marginTop: '2px',
-                display: 'flex', 
-                gap: '3px',
-                pointerEvents: 'none',
-                maxWidth: 'calc(100% - 50px)',
-                overflow: 'hidden'
-              }}>
-                {[...Array(Math.max(12, formData.password.length))].map((_, i) => (
-                  <div 
-                    key={i}
-                    style={{
-                      minWidth: '5px',
-                      height: '5px',
-                      borderRadius: '50%',
-                      backgroundColor: formData.password.length > i ? 'var(--color-text-primary)' : 'var(--color-border)'
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Contraseña / Confirmar Contraseña (Mismo Contenedor) */}
+          {!showConfirmPassword ? (
+            <div className="floating-group">
+              <input
+                type="text"
+                name="password"
+                ref={passwordRef}
+                placeholder=" "
+                value={formData.password}
+                onChange={handleChange}
+                onKeyDown={handlePasswordKeyDown}
+                onFocus={() => setIsPasswordFocused(true)}
+                onBlur={() => setIsPasswordFocused(false)}
+                className={`floating-input copyable-password ${formData.password ? 'has-value' : ''} ${submitted && errors.password ? 'error' : ''}`}
+                style={{
+                  fontFamily: 'monospace',
+                  letterSpacing: '-0.16px',
+                  color: (formData.password || isPasswordFocused) ? 'transparent' : 'var(--color-text-primary)',
+                  caretColor: (formData.password || isPasswordFocused) ? 'transparent' : 'auto',
+                  ...(formData.password ? {
+                    border: '2px solid transparent',
+                    backgroundImage: `linear-gradient(var(--color-bg), var(--color-bg)), linear-gradient(to right, ${pwStrength.color} ${pwStrength.percent}%, var(--color-border) ${pwStrength.percent + 15}%)`,
+                    backgroundOrigin: 'padding-box, border-box',
+                    backgroundClip: 'padding-box, border-box'
+                  } : {})
+                }}
+                required
+              />
+              {!(isPasswordFocused || formData.password.length > 0) && (
+                <label className="floating-label">
+                  <span>{t('auth.passwordPlaceholder') || 'Contraseña'}</span>
+                </label>
+              )}
+              <div className="floating-bar"></div>
 
-          {/* Confirmar contraseña */}
-          {showConfirmPassword && (
+              {formData.password.length >= 12 && !showConfirmPassword && (
+                <button
+                  type="submit"
+                  className="inline-submit-btn"
+                  aria-label="Continuar"
+                  onClick={handlePasswordSubmit}
+                >
+                  <ArrowRight size={20} />
+                </button>
+              )}
+
+              {/* Dots Visual Indicator (Inside the input, left aligned) */}
+              {(isPasswordFocused || formData.password.length > 0) && (
+                <div style={{
+                  position: 'absolute',
+                  left: '19.5px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  marginTop: '2px',
+                  display: 'flex',
+                  gap: '3px',
+                  pointerEvents: 'none',
+                  maxWidth: 'calc(100% - 50px)',
+                  overflow: 'hidden'
+                }}>
+                  {[...Array(Math.max(12, formData.password.length))].map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        minWidth: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        backgroundColor: formData.password.length > i ? 'var(--color-text-primary)' : 'var(--color-border)'
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
             <div className="floating-group">
               <input
                 type="text"
@@ -752,23 +748,23 @@ export default function Register() {
                 </label>
               )}
               <div className="floating-bar"></div>
-              
+
               {/* Dots Visual Indicator (Inside the input, left aligned) */}
               {(isConfirmPasswordFocused || formData.confirmPassword.length > 0) && (
-                <div style={{ 
-                  position: 'absolute', 
-                  left: '19.5px', 
-                  top: '50%', 
+                <div style={{
+                  position: 'absolute',
+                  left: '19.5px',
+                  top: '50%',
                   transform: 'translateY(-50%)',
                   marginTop: '2px',
-                  display: 'flex', 
+                  display: 'flex',
                   gap: '3px',
                   pointerEvents: 'none',
                   maxWidth: 'calc(100% - 50px)',
                   overflow: 'hidden'
                 }}>
                   {[...Array(Math.max(12, formData.confirmPassword.length))].map((_, i) => (
-                    <div 
+                    <div
                       key={i}
                       style={{
                         minWidth: '5px',
@@ -780,7 +776,7 @@ export default function Register() {
                   ))}
                 </div>
               )}
-              
+
               {formData.confirmPassword && (
                 <button
                   type="submit"
@@ -791,11 +787,40 @@ export default function Register() {
                   {loading ? <Loader size={18} /> : <ArrowRight size={18} />}
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfirmPassword(false);
+                  setFormData(prev => ({ ...prev, confirmPassword: '' }));
+                }}
+                style={{
+                  position: 'absolute',
+                  right: formData.confirmPassword ? '44px' : '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  color: 'var(--color-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s ease'
+                }}
+                aria-label="Volver a contraseña"
+                title="Volver a contraseña"
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted)'}
+              >
+                <ArrowLeft size={18} />
+              </button>
             </div>
           )}
 
           {/* Términos y condiciones */}
-          <div className="form-group checkbox-group">
+          <div className="form-group checkbox-group" style={{ marginTop: '32px' }}>
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -808,10 +833,6 @@ export default function Register() {
                 {t('auth.accept')}{' '}
                 <Link to="/terms" className="link-terms">
                   {t('auth.terms')}
-                </Link>
-                {' '}{t('auth.and')}{' '}
-                <Link to="/privacy" className="link-terms">
-                  {t('auth.privacy')}
                 </Link>
               </span>
             </label>

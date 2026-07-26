@@ -1,10 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText } from 'lucide-react';
 import '@styles/legal.css';
-import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/index.js';
+import LegalLayout from '@components/layout/LegalLayout/LegalLayout.jsx';
 
 export default function Terms() {
   const { t } = useTranslation();
@@ -12,15 +9,9 @@ export default function Terms() {
   const dateStr = new Date().toLocaleDateString(i18n.language || 'en');
 
   return (
-    <div className="legal-container" style={{ position: 'relative', overflow: 'hidden' }}>
-      <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-
-      <div className="legal-content" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
+    <LegalLayout>
+      <div className="legal-content">
         <div className="legal-header">
-          <div className="legal-header-icon">
-            <FileText size={22} />
-          </div>
-
           <h1>{t('legal.terms.title')}</h1>
           <p className="legal-date">{t('legal.terms.lastUpdated')}: {dateStr}</p>
         </div>
@@ -87,22 +78,7 @@ export default function Terms() {
             <p>{t('legal.terms.contact.body')}</p>
           </section>
         </div>
-
-        <div className="legal-footer">
-          <Link
-            to="/register"
-            className="back-button"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <ArrowLeft size={18} />
-            {t('legal.terms.backToRegister')}
-          </Link>
-        </div>
       </div>
-    </div>
+    </LegalLayout>
   );
 }

@@ -242,7 +242,7 @@ export default function Login() {
     try {
       syncInProgress.current = true;
       console.log('Token de GitHub recibido, sincronizando cookies...');
-      
+
       const res = await fetch(`${backendUrl}/api/auth/oauth-cookie-sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -297,7 +297,7 @@ export default function Login() {
     try {
       syncInProgress.current = true;
       console.log('Token de Google recibido, sincronizando cookies...');
-      
+
       const res = await fetch(`${backendUrl}/api/auth/oauth-cookie-sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -327,24 +327,24 @@ export default function Login() {
     <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
       {loading && <Loader size={145} fullScreen={true} />}
       <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-      <div className="auth-box" style={{ 
-        position: 'relative', 
-        zIndex: 'var(--z-base)', 
-        filter: loading ? 'blur(4px)' : 'none', 
-        pointerEvents: loading ? 'none' : 'auto', 
+      <div className="auth-box" style={{
+        position: 'relative',
+        zIndex: 'var(--z-base)',
+        filter: loading ? 'blur(4px)' : 'none',
+        pointerEvents: loading ? 'none' : 'auto',
         transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        padding: mode === 'forgot' ? '24px 40px' : '40px',
-        minHeight: mode === 'login' ? '365px' : '0px',
+        padding: mode === 'forgot' ? '10px 10px' : '32px 30px',
+        minHeight: mode === 'login' ? '315px' : '0px',
         display: 'flex',
         flexDirection: 'column'
       }}>
-        
+
         {/* Header Elements Group */}
         <div style={{
           display: 'grid',
           gridTemplateRows: mode === 'login' ? '1fr' : '0fr',
           transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-          margin: mode === 'login' ? '-40px -40px 0 -40px' : '0 -40px 0 -40px',
+          margin: mode === 'login' ? '-32px -30px 0 -30px' : '0 -30px 0 -30px',
           opacity: mode === 'login' ? 1 : 0
         }}>
           <div style={{ overflow: 'hidden' }}>
@@ -356,8 +356,8 @@ export default function Login() {
                 {t('auth.registerLink') || 'Registrarse'}
               </button>
             </div>
-            
-            <div className="social-login" style={{ marginTop: '24px' }}>
+
+            <div className="social-login" style={{ marginTop: '37px' }}>
               <button className="social-circle-btn" type="button" onClick={handleGoogleLogin} title={t('auth.loginWithGoogle')}>
                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="36" height="36" viewBox="0 0 48 48">
                   <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
@@ -366,7 +366,7 @@ export default function Login() {
                   <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
                 </svg>
               </button>
-              
+
               <button className="social-circle-btn" type="button" onClick={handleGitHubLogin} title={t('auth.loginWithGitHub')}>
                 <svg viewBox="0 0 24 24" width={36} height={36}>
                   <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.387.6.112.793-.262.793-.582 0-.288-.01-1.048-.015-2.057-3.338.726-4.042-1.606-4.042-1.606-.546-1.385-1.333-1.754-1.333-1.754-1.09-.745.083-.729.083-.729 1.204.085 1.838 1.236 1.838 1.236 1.07 1.834 2.809 1.304 3.495.997.108-.775.418-1.304.76-1.605-2.665-.304-5.466-1.332-5.466-5.932 0-1.31.468-2.381 1.236-3.22-.124-.303-.535-1.527.117-3.183 0 0 1.01-.323 3.3 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.288-1.553 3.296-1.23 3.296-1.23.653 1.656.243 2.88.12 3.183.77.839 1.235 1.91 1.235 3.22 0 4.61-2.803 5.625-5.474 5.922.43.37.814 1.096.814 2.21 0 1.595-.015 2.88-.015 3.273 0 .322.192.698.8.58C20.565 21.796 24 17.298 24 12c0-6.63-5.373-12-12-12z"></path>
@@ -374,10 +374,10 @@ export default function Login() {
               </button>
             </div>
 
-            <div style={{ padding: '0 40px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0', gap: '12px' }}>
+            <div style={{ padding: '0 30px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '15px 0', gap: '12px' }}>
                 <div style={{ flex: 1, height: '1px', background: 'var(--color-border)', transition: 'var(--transition-colors)' }} />
-                <span style={{ color: 'var(--color-muted)', fontSize: '13px', fontWeight: '500', transition: 'var(--transition-colors)' }}>
+                <span style={{ color: 'var(--color-muted)', fontSize: '13px', fontWeight: '400', transition: 'var(--transition-colors)' }}>
                   {t('auth.continueWith')}
                 </span>
                 <div style={{ flex: 1, height: '1px', background: 'var(--color-border)', transition: 'var(--transition-colors)' }} />
@@ -420,7 +420,7 @@ export default function Login() {
               <span>{t('auth.emailPlaceholder') || 'Email'}</span>
             </label>
             <div className="floating-bar"></div>
-            
+
             {mode === 'forgot' && formData.email && (
               <button
                 type="submit"
@@ -428,7 +428,7 @@ export default function Login() {
                 className="inline-submit-btn"
                 aria-label="Enviar recuperación"
               >
-                {loading ? <Loader size={18} color="#fff" /> : <Send size={18} color="#fff" style={{ transform: 'translate(-1.5px, 1.5px)' }} />}
+                {loading ? <Loader size={18} /> : <Send size={18} style={{ transform: 'translate(-1.5px, 1.5px)' }} />}
               </button>
             )}
           </div>
@@ -457,7 +457,7 @@ export default function Login() {
                   <span>{t('auth.passwordPlaceholder') || 'Password'}</span>
                 </label>
                 <div className="floating-bar"></div>
-                
+
                 {formData.password && (
                   <button
                     type="submit"
@@ -474,8 +474,8 @@ export default function Login() {
         </form>
 
         {/* Footer */}
-        <div className="auth-footer" style={{ marginTop: '1rem', transition: 'margin 0.4s ease' }}>
-          
+        <div className="auth-footer" style={{ marginTop: mode === 'login' ? '15px' : '-4px', marginBottom: mode === 'login' ? '0px' : '0', transition: 'margin 0.4s ease' }}>
+
           <p style={{ textAlign: 'center', margin: 0 }}>
             <button
               onClick={() => setMode(mode === 'login' ? 'forgot' : 'login')}
@@ -502,6 +502,7 @@ export default function Login() {
             </button>
           </p>
         </div>
+
       </div>
 
       <BottomToast

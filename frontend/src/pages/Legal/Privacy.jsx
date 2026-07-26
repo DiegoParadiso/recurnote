@@ -1,10 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Shield } from 'lucide-react';
 import '@styles/legal.css';
-import EmptyLogo from '@components/common/EmptyLogo.jsx';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/index.js';
+import LegalLayout from '@components/layout/LegalLayout/LegalLayout.jsx';
 
 export default function Privacy() {
   const { t } = useTranslation();
@@ -12,16 +9,9 @@ export default function Privacy() {
   const dateStr = new Date().toLocaleDateString(i18n.language || 'en');
 
   return (
-    <div className="legal-container" style={{ position: 'relative', overflow: 'hidden' }}>
-      <EmptyLogo circleSize="500px" isSmallScreen={isSmallScreen} />
-
-      <div className="legal-content" style={{ position: 'relative', zIndex: 'var(--z-base)' }}>
+    <LegalLayout>
+      <div className="legal-content">
         <div className="legal-header">
-          {/* Icono de escudo */}
-          <div className="legal-header-icon">
-            <Shield size={22} />
-          </div>
-
           <h1>{t('legal.privacy.title')}</h1>
           <p className="legal-date">{t('legal.privacy.lastUpdated')}: {dateStr}</p>
         </div>
@@ -120,22 +110,7 @@ export default function Privacy() {
             <p>{t('legal.privacy.contact.body')}</p>
           </section>
         </div>
-
-        <div className="legal-footer">
-          <Link
-            to="/register"
-            className="back-button"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <ArrowLeft size={18} />
-            {t('legal.privacy.backToRegister')}
-          </Link>
-        </div>
       </div>
-    </div>
+    </LegalLayout>
   );
 }

@@ -76,7 +76,7 @@ export default function VerifyEmail() {
               <h2>¡Email verificado!</h2>
               <p className="status-message">{message}</p>
               <p className="status-description">
-                Tu cuenta ha sido activada exitosamente. Ya puedes iniciar sesión y comenzar a usar RecurNote.
+                Tu cuenta ha sido activada exitosamente. Ya puedes iniciar sesión y comenzar a usar Recurnote.
               </p>
               <button
                 onClick={handleGoToLogin}

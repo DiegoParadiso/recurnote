@@ -17,6 +17,7 @@ const Register = lazy(() => import('@pages/Auth/Register'));
 const VerifyEmail = lazy(() => import('@pages/Auth/VerifyEmail'));
 const Terms = lazy(() => import('@pages/Legal/Terms'));
 const Privacy = lazy(() => import('@pages/Legal/Privacy'));
+const FAQ = lazy(() => import('@pages/Legal/FAQ'));
 const NotFound = lazy(() => import('@pages/NotFound'));
 const RequestTimeout = lazy(() => import('@pages/RequestTimeout'));
 const PaymentPage = lazy(() => import('@pages/Premium/PaymentPage'));
@@ -38,6 +39,7 @@ function AppRoutes() {
         {/* Rutas legales */}
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/faq" element={<FAQ />} />
 
         {/* Rutas privadas, por ejemplo un dashboard, perfil, etc */}
         <Route

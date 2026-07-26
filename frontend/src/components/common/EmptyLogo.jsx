@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from '../../assets/logorecurnote.png';
 
-export default function EmptyLogo({ circleSize, isSmallScreen, isFullboardMode = false }) {
+export default function EmptyLogo({ circleSize, isSmallScreen, isFullboardMode = false, style = {}, className }) {
   const fullboardStyles = isFullboardMode
     ? {
       top: '70%',
@@ -30,8 +30,10 @@ export default function EmptyLogo({ circleSize, isSmallScreen, isFullboardMode =
         zIndex: 'var(--z-base)',
         transformOrigin: 'center center',
         filter: `brightness(var(--logo-brightness)) invert(var(--logo-invert)) contrast(var(--logo-contrast))`,
-        mixBlendMode: 'var(--logo-blend)'
+        mixBlendMode: 'var(--logo-blend)',
+        ...style
       }}
+      className={className}
     />
   );
 }
