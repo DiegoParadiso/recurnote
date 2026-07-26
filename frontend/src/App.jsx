@@ -12,7 +12,6 @@ import Loader from '@components/common/Loader';
 // Lazy load pages
 const Home = lazy(() => import('@pages/Home'));
 const Login = lazy(() => import('@pages/Auth/Login'));
-const ForgotPassword = lazy(() => import('@pages/Auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@pages/Auth/ResetPassword'));
 const Register = lazy(() => import('@pages/Auth/Register'));
 const VerifyEmail = lazy(() => import('@pages/Auth/VerifyEmail'));
@@ -34,7 +33,6 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Rutas legales */}

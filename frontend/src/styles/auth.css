@@ -35,14 +35,24 @@
 /* ── Card ──────────────────────────────────────── */
 .auth-box {
   background-color: var(--color-bg);
-  padding: 2.25rem 2rem;
-  border-radius: 20px;
+  padding: 40px;
+  border-radius: 24px;
   width: 100%;
-  max-width: 440px;
-  border: 1px solid color-mix(in oklab, var(--color-text-primary) 10%, transparent);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.07), 0 4px 12px rgba(0, 0, 0, 0.04);
+  max-width: 320px;
+  border: none;
+  
+  /* Soft shadow as requested */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    
   position: relative;
   z-index: var(--z-base);
+  transition: all 0.4s ease;
+  overflow: hidden; /* Clips the tabs perfectly to avoid gray corner bugs */
+}
+
+/* Dark Mode Adaptation */
+html.dark .auth-box {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
 .auth-box h2 {
@@ -58,16 +68,16 @@
 
 .auth-subtitle {
   margin: 0.6rem 0 0;
-  font-size: 0.82rem;
-  color: color-mix(in oklab, var(--color-text-primary) 50%, transparent);
+  font-size: 0.95rem;
+  color: var(--color-muted);
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .auth-box form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 /* ── Form groups ───────────────────────────────── */
@@ -77,41 +87,130 @@
   gap: 0.4rem;
 }
 
-/* ── Inputs ────────────────────────────────────── */
-.auth-box input {
-  padding: 0.6rem 0.9rem;
-  border: none;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-text-primary) 15%, transparent);
-  background-color: transparent;
-  color: var(--color-text-primary);
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s;
+/* ── Inputs (Square Border Style) ───────────────── */
+.floating-group {
+  position: relative;
+  margin-top: 0.25rem;
   width: 100%;
 }
 
-.auth-box input:focus {
-  border-bottom: 1px solid var(--color-text-primary);
+.floating-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 24px;
+  color: var(--color-text-primary);
+  background: transparent;
+  font-size: 0.85rem;
+  transition: border-color 0.3s ease;
+  outline: none;
 }
 
-.auth-box input::placeholder {
-  color: color-mix(in oklab, var(--color-text-primary) 35%, transparent);
+/* Extra right padding for inputs with inline buttons/icons */
+.floating-input[type="password"],
+.floating-input.copyable-password,
+.floating-input.has-inline-btn {
+  padding-right: 2.5rem;
 }
 
-.auth-box input.error {
-  border-bottom: 1px solid var(--color-error);
+.inline-submit-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-text-primary);
+  color: var(--color-bg);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.inline-submit-btn:hover {
+  opacity: 0.8;
+}
+
+.inline-submit-btn:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+@keyframes inlineFadeIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(-10px); }
+  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+.floating-input:focus {
+  border-color: var(--color-highlight);
+}
+
+/* Chrome autofill fix */
+.floating-input:-webkit-autofill,
+.floating-input:-webkit-autofill:hover, 
+.floating-input:-webkit-autofill:focus, 
+.floating-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-bg) inset;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.floating-label {
+  position: absolute;
+  top: 50%; 
+  transform: translateY(-50%);
+  left: 1rem; /* Aligned with input text */
+  display: flex;
+  align-items: center;
+  gap: 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.floating-bar {
+  display: none;
+}
+
+/* Floating logic without animation */
+.floating-input:focus ~ .floating-label {
+  opacity: 0.5; /* Dim when focused but empty */
+}
+
+.floating-input.has-value ~ .floating-label {
+  opacity: 0 !important; /* Completely hide when there is text */
+}
+
+.floating-input:focus ~ .floating-bar:before {
+  transform: scaleX(1);
+}
+
+.floating-input.error ~ .floating-bar {
+  background: var(--color-error);
+}
+.floating-input.error ~ .floating-bar:before {
+  background: var(--color-error);
+  transform: scaleX(1);
+}
+
+/* For copyable password inputs */
+.copyable-password {
+  -webkit-text-security: disc;
+}
+.floating-input.error ~ .floating-label {
+  color: var(--color-error) !important;
 }
 
 /* ── Password toggle ───────────────────────────── */
-.password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
 .password-toggle {
   position: absolute;
   right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
@@ -157,7 +256,7 @@
 
 /* ── Checkbox ──────────────────────────────────── */
 .checkbox-group {
-  margin: 0.75rem 0;
+  margin: 0.25rem 0;
 }
 
 .checkbox-label {
@@ -165,8 +264,8 @@
   align-items: flex-start;
   gap: 0.75rem;
   cursor: pointer;
-  font-size: 0.88rem;
-  line-height: 1.4;
+  font-size: 0.75rem;
+  line-height: 1.2;
   position: relative;
 }
 
@@ -189,9 +288,9 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 0px;
-  width: 18px;
-  height: 18px;
+  top: -2px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid color-mix(in oklab, var(--color-text-primary) 30%, transparent);
   border-radius: 5px;
   background-color: transparent;
@@ -201,12 +300,12 @@
 .checkbox-text::after {
   content: '';
   position: absolute;
-  left: 9px;
-  top: 9px;
+  left: 8px;
+  top: 6px;
   width: 12px;
   height: 12px;
   color: var(--color-text-primary);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
   line-height: 12px;
   text-align: center;
@@ -253,11 +352,11 @@
 .submit-button {
   margin-top: 0.75rem;
   padding: 0.85rem;
-  color: var(--color-bg);
-  background-color: var(--color-text-primary);
+  color: var(--color-text-primary);
+  background-color: transparent;
   font-weight: 600;
-  border: none;
-  border-radius: 12px;
+  border: 1px solid var(--color-text-primary);
+  border-radius: 8px;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.15s ease;
   font-size: 0.95rem;
@@ -265,7 +364,8 @@
 }
 
 .submit-button:hover:not(:disabled) {
-  opacity: 0.85;
+  background-color: var(--color-text-primary);
+  color: var(--color-bg);
 }
 
 .submit-button:active:not(:disabled) {
@@ -277,36 +377,95 @@
   cursor: not-allowed;
 }
 
-/* ── Social login buttons (CSS baseline) ───────── */
-.github-login,
-.gmail-login {
-  padding: 0.7rem;
-  width: 100%;
-  background: color-mix(in oklab, var(--color-text-primary) 4%, transparent);
+.inline-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Auth Tabs */
+.auth-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+html.dark .auth-tabs {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 18px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.auth-tab:not(.active) {
+  box-shadow: inset 0 -1px 0 var(--color-border);
+}
+
+.auth-tab:not(.active):hover {
   color: var(--color-text-primary);
-  font-weight: 500;
-  font-size: 0.92rem;
-  border: 1px solid color-mix(in oklab, var(--color-text-primary) 12%, transparent);
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+html.dark .auth-tab:not(.active):hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.auth-tab.active {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  box-shadow: none;
+}
+
+/* First tab active (Left) */
+.auth-tab:first-child.active {
+  border-radius: 0 20px 0 0;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.02);
+}
+
+/* Second tab active (Right) */
+.auth-tab:last-child.active {
+  border-radius: 20px 0 0 0;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.02);
+}
+
+/* ── Social login buttons ──────────────────────── */
+.social-login {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0;
+}
+
+.social-circle-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  border-radius: 50%;
+  color: var(--color-text-primary);
 }
 
-.github-login:hover,
-.gmail-login:hover {
-  border-color: color-mix(in oklab, var(--color-text-primary) 28%, transparent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+.social-circle-btn:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
 }
 
-.github-login:active,
-.gmail-login:active {
-  transform: translateY(0);
+.social-circle-btn:active {
+  transform: scale(0.95);
 }
 
 /* ── Auth footer ───────────────────────────────── */

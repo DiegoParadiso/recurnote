@@ -119,37 +119,37 @@ export default function ResetPassword() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <div className="password-input-container" style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none', zIndex: 'var(--z-base)', transition: 'var(--transition-colors)' }} />
-              <input
-                type="password"
-                name="password"
-                placeholder={t('auth.passwordPlaceholder')}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={submitted && pwError ? 'error' : ''}
-                style={{ paddingLeft: '44px' }}
-                required
-              />
-            </div>
+          <div className="floating-group">
+            <input
+              type="password"
+              name="password"
+              placeholder=" "
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`floating-input ${password ? 'has-value' : ''} ${submitted && pwError ? 'error' : ''}`}
+              required
+            />
+            <label className="floating-label">
+              <span>{t('auth.passwordPlaceholder') || 'Password'}</span>
+            </label>
+            <div className="floating-bar"></div>
             {password && <PasswordStrength password={password} />}
           </div>
 
-          <div className="form-group">
-            <div className="password-input-container" style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none', zIndex: 'var(--z-base)', transition: 'var(--transition-colors)' }} />
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder={t('auth.confirmPasswordPlaceholder')}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={submitted && confirmError ? 'error' : ''}
-                style={{ paddingLeft: '44px' }}
-                required
-              />
-            </div>
+          <div className="floating-group">
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder=" "
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`floating-input ${confirmPassword ? 'has-value' : ''} ${submitted && confirmError ? 'error' : ''}`}
+              required
+            />
+            <label className="floating-label">
+              <span>{t('auth.confirmPasswordPlaceholder') || 'Confirm Password'}</span>
+            </label>
+            <div className="floating-bar"></div>
           </div>
 
           <button
