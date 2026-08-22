@@ -40,6 +40,7 @@ export async function apiFetch(url, options = {}) {
         isRefreshing = false;
         localStorage.removeItem('user');
         window.dispatchEvent(new CustomEvent('auth:expired'));
+        onRefreshed(null);
         return new Response(null, { status: 401, statusText: 'Unauthorized' });
       }
 
@@ -49,6 +50,7 @@ export async function apiFetch(url, options = {}) {
       return fetch(url, { ...options, headers });
     } catch (err) {
       isRefreshing = false;
+      onRefreshed(null);
       return new Response(null, { status: 401, statusText: 'Unauthorized' });
     }
   }
