@@ -8,6 +8,7 @@ import { NotesProvider } from '@context/NotesContext';
 import { AuthProvider } from '@context/AuthContext';
 import PrivateRoute from './PrivateRoute';
 import Loader from '@components/common/Loader';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy load pages
 const Home = lazy(() => import('@pages/Home'));
@@ -115,6 +116,7 @@ function App() {
               </defs>
             </svg>
             <AppRoutes />
+            <Analytics />
           </NotesProvider>
         </ItemsProvider>
       </ThemeProvider>
